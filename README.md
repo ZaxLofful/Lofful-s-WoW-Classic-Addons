@@ -5,7 +5,7 @@ List of Addons and Mini-Tutorial for Each:
 
 Auctioner - Basically An Auto-Auction Addon
 
-When you open the auction house it adds extra tabs that are very usefull and will auto-calc prices and stacks for you. Super easy to make money this way.
+When you open the auction house it adds extra tabs that are very usefull and will auto-calc prices and stacks for you. Super easy to make money this way. You can scan the whole AH, whic the "play" button. It will save prices for everything so you can review it when out in the field.
 
 ZPERL - UI Addon that makes everything moveable and themeable. I use this to arange my addons party portraits (including my own) into a better view.
 
