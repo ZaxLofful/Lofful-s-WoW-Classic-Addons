@@ -1,0 +1,19 @@
+## Interface: 80000
+
+## Title: Elite Player Frame (Enhanced)
+## Version: 1.5.3
+## Author: Zeal Vurte
+## Notes: Changes your player frame based on level, expansion, class, and faction.
+
+## X-eMail: waa@zealous-studios.com
+## X-Website: https://zealous-studios.com
+## X-Category: Unit Frames
+## X-Credits: Kryndon for the original Elite Player Frame.
+## X-Aperture: https://zealous-studios.com/aperture.xml
+## X-Release: release
+
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariablesPerCharacter: EPF_Vars
+ElitePlayerFrame_Enhanced.lua
+ElitePlayerFrame_Enhanced.xml
