@@ -15,6 +15,10 @@ FasterLooter - This mod automatically loots everything from a body and doesn't e
 
 You can either disable this mod all together if you like to see the loot window, or you can do Shift+Right-click for it to not auto-loot and show you the loot window.
 
+WIM - WoW Instant Messenger - This addon acts like a normal IM client, but its for your whispers. It also will automtically disappear when you are in combat to save screen space.
+
+It makes a pop-up window that allows you to manage your conversations with people via tabs and not having to scroll back through the chat window. It makes whipsers a lot easier to manage and review.
+
 Usage:
 
 /zperl in the chat window: This allows you to move everything around and will bring up an extra customziation window to change things even more.
