@@ -35,4 +35,3 @@ I took out Guide Ally Routes, because it was messing up during QA Unit testing.
 
 
 ![Screen Shot of the latest look open](https://github.com/ZaxLofful/Lofful-s-WoW-Classic-Addons/blob/master/1080p_open.png)
-![Screen Shot of the latest look closed](https://github.com/ZaxLofful/Lofful-s-WoW-Classic-Addons/blob/master/1080p_closed.png)
