@@ -17,11 +17,11 @@ Usage:
 
 /zperl in the chat window: This allows you to move everything around and will bring up an extra customziation window to change things even more.
 
-When using the new Auctioner, just allow it to do a full auto-scan
+When using the new Auctioner, just allow it to do a full auto-scan and then cum.
 
 Release Notes:
 
 I took out Guide Ally Routes, because it was messing up during QA Unit testing.
 
 
-Screen Shot of the latest look:
+![Screen Shot of the latest look](https://octodex.github.com/images/yaktocat.png)
