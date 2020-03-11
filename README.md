@@ -1,5 +1,5 @@
 # Lofful's WoW Classic Addons
-I dual-box a Rogue/Priest (compltely manualy not software asisted in anyway). It can become a hassle to update the addons on both of my computers. So I created this repo initally for that, but some friends wanted my addons as well.
+I dual-box as Rogue/Priest (compltely manualy not software asisted in anyway). It can become a hassle to update the addons on both of my computers. So I created this repo initally for that, but some friends wanted my addons as well.
 
 This is an autoupdated list of the addons I use in game. Lots of good stuff...
 
