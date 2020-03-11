@@ -1,5 +1,7 @@
 # Lofful's WoW Classic Addons
- This is an autoupdated list of the addons I use in game. Lots of good stuff...
+I dual-box a Rogue/Priest (compltely manualy not software asisted in anyway). It can become a hassle to update the addons on both of my computers. So I created this repo initally for that, but some friends wanted my addons as well.
+
+This is an autoupdated list of the addons I use in game. Lots of good stuff...
 
 List of Addons and Mini-Tutorial for Each:
 
@@ -25,8 +27,11 @@ Usage:
 
 You can turn each of the ZPERL modules on/off independantly through the "All" tab (this is within the extras window)
 
-When using the new Auctioner, just allow it to do a full auto-scan
+When using the new Auctioner, just allow it to do a full auto-scan and then cum.
 
 Release Notes:
 
 I took out Guide Ally Routes, because it was messing up during QA Unit testing.
+
+
+![Screen Shot of the latest look](https://octodex.github.com/images/yaktocat.png)
