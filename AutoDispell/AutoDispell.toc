@@ -1,7 +1,0 @@
-## Interface: 33526
-## Version: 1.13.3
-## Title: AutoDispell
-## Notes: Automagically removes certain unwanted buffs
-## Author: Kufmut
-##SavedVariablesPerCharacter: buffs, isEnabled, profiles, activeProfile
-AutoDispell.lua
