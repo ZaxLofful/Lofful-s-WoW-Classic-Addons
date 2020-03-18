@@ -1,8 +1,8 @@
-## Interface: 11303
+## Interface: 11304
 ## Title: Auction House DataBase (AHDB)
 ## Notes: Auction House DataBase, records DB history and offline queries, for classic and more (|cFF99E5FF/ahdb|r)
 ## Author: MooreaTV moorea@ymail.com
-## Version: v1.02.00
+## Version: v1.02.01
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariables: AuctionDBSaved

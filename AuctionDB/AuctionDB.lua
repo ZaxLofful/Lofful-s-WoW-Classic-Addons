@@ -26,7 +26,7 @@ ADB.debugLocalization = false -- TODO: remove this line when dealing with locali
 -- ADB.debug = 9 -- to debug before saved variables are loaded
 
 ADB.slashCmdName = "ahdb"
-ADB.addonHash = "81f8ddc"
+ADB.addonHash = "13b1482"
 ADB.savedVarName = "AuctionDBSaved"
 ADB.name = "AHDB"
 -- ADB.author = "MooreaTv" -- override default author
@@ -416,10 +416,10 @@ function ADB.Slash(arg) -- can't be a : because used directly as slash command
     local subText = L["Please submit on discord or https://|cFF99E5FFbit.ly/ahbug|r or email"]
     ADB:PrintDefault(L["AHDB bug report open: "] .. subText)
     -- base molib will add version and date/timne
-    ADB:BugReport(subText, "81f8ddc\n\n" .. L["Bug report from slash command"])
+    ADB:BugReport(subText, "13b1482\n\n" .. L["Bug report from slash command"])
   elseif cmd == "v" then
     -- version
-    ADB:PrintDefault("AHDB " .. ADB.manifestVersion .. " (81f8ddc) by MooreaTv (moorea@ymail.com)")
+    ADB:PrintDefault("AHDB " .. ADB.manifestVersion .. " (13b1482) by MooreaTv (moorea@ymail.com)")
   elseif cmd == "s" then
     -- scan
     ADB:AHSaveAll()
@@ -467,7 +467,7 @@ function ADB:CreateOptionsPanel()
   p:addText(L["AHDB options"], "GameFontNormalLarge"):Place()
   p:addText(L["Auction House DataBase: records DB history, offline queries and more."]):Place()
   p:addText(L["These options let you control the behavior of AHDB"] .. " " .. ADB.manifestVersion ..
-              " 81f8ddc"):Place()
+              " 13b1482"):Place()
 
   local autoScan = p:addCheckBox(L["Auto Scan"],
                                  L["Automatically scan the AH whenever possible, unless the |cFF99E5FFShift|r key is held"])
