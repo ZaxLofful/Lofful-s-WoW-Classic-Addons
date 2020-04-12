@@ -1,10 +1,10 @@
 ## Interface: 11304
-## Title: Titan Panel Classic [|cffeda55fClock|r] |cff00aa001.2.1.11304|r
+## Title: Titan Panel Classic [|cffeda55fClock|r] |cff00aa001.2.2.11304|r
 ## Notes: Adds a clock to Titan Panel
 ## Author: Titan Panel Development Team (http://www.titanpanel.org)
 ## SavedVariables: 
 ## OptionalDeps: 
 ## Dependencies: TitanClassic
-## Version: 1.2.1.11304
+## Version: 1.2.2.11304
 ## X-Child-Of: TitanClassic
 TitanClassicClock.xml
