@@ -62,8 +62,12 @@ L["The Salty Sailor Tavern"] = "Таверна \"Старый моряк\""
 L["Shattrath City"] = "Шаттрат"
 L["Area 52"] = "Зона 52"
 L["Dalaran"] = "Даларан"
+L["Dalaran (Northrend)"] = "Даларан (Нордскол)"
 L["Bogpaddle"] = "Веслотопь"
 L["The Vindicaar"] = "Виндикар"
+L["Krasus' Landing"] = "Площадка Краса"
+L["The Violet Gate"] = "Аметистовые врата"
+L["Magni's Encampment"] = "Лагерь Магни"
 
 -- Display
 L["DisplayOptions"] = "дисплей"

@@ -62,8 +62,12 @@ L["The Salty Sailor Tavern"] = "La taverne du Loup de mer"
 L["Shattrath City"] = "Shattrath"
 L["Area 52"] = "Zone 52"
 L["Dalaran"] = "Dalaran"
+L["Dalaran (Northrend)"] = "Dalaran (Norfendre)"
 L["Bogpaddle"] = "Brasse-Tourbe"
 L["The Vindicaar"] = "Le Vindicaar"
+L["Krasus' Landing"] = "Aire de Krasus"
+L["The Violet Gate"] = "La porte Pourpre"
+L["Magni's Encampment"] = "Campement de Magni"
 
 -- Display
 L["DisplayOptions"] = "Affichage"
@@ -260,7 +264,7 @@ L["KillOnSight"] = "Tuer à vue"
 
 --Stats
 L["Won"] = "Victoire"
-L["Lost"] = "Défaite"				  
+L["Lost"] = "Défaite"
 L["Time"] = "Temps"	
 L["List"] = "Liste"
 L["Filter"] = "filtre"

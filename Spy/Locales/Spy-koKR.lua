@@ -62,8 +62,12 @@ L["The Salty Sailor Tavern"] = "뱃사공의 선술집"
 L["Shattrath City"] = "샤트라스"
 L["Area 52"] = "52번 구역"
 L["Dalaran"] = "달라란"
+L["Dalaran (Northrend)"] = "달라란 (노스렌드)"
 L["Bogpaddle"] = "수렁진흙탕"
 L["The Vindicaar"] = "구원호"
+L["Krasus' Landing"] = "크라서스 착륙장"
+L["The Violet Gate"] = "보랏빛 관문"
+L["Magni's Encampment"] = "마그니의 야영지"
 
 -- Display
 L["DisplayOptions"] = "디스플레이"
@@ -260,7 +264,7 @@ L["KillOnSight"] = "살생부"
 
 --Stats
 L["Won"] = "승"
-L["Lost"] = "패"				 
+L["Lost"] = "패"
 L["Time"] = "시간"	
 L["List"] = "표식"
 L["Filter"] = "검색"
