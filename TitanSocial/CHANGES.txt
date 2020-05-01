@@ -1,0 +1,12 @@
+lightweight tag 91ea3c65a90f580003336e02531cb09313789420 1.13.3
+Author:	Josh Worden <solocommand@gmail.com>
+Date:	Wed Dec 25 00:04:43 2019 -0500
+
+commit 91ea3c65a90f580003336e02531cb09313789420
+Author: Josh Worden <solocommand@gmail.com>
+Date:   Wed Dec 25 00:04:43 2019 -0500
+
+    Remove retail-specific classmap code
+    
+    Resolves #25
+
