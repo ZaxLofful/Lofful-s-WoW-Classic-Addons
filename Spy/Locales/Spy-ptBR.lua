@@ -68,6 +68,10 @@ L["The Vindicaar"] = "A Vindicaar"
 L["Krasus' Landing"] = "Plataforma de Krasus"
 L["The Violet Gate"] = "Portão Violeta"
 L["Magni's Encampment"] = "Acampamento de Magni"
+L["Silithus"] = "Silithus"
+L["Chamber of Heart"] = "Câmara do Coração"
+L["Hall of Ancient Paths"] = "Salão dos Antigos Caminhos"
+L["Sanctum of the Sages"] = "Sacrário dos Sábios"
 
 -- Display
 L["DisplayOptions"] = "Exibição"
@@ -255,6 +259,8 @@ L["KOSDescription"] = "Adicionar/remover jogadores na Lista Negra."
 L["InvalidInput"] = "Entrada Inválida"
 L["Ignore"] = "Ignore"
 L["IgnoreDescription"] = "Adicionar/remover um jogador de/para a lista de ignorados."
+L["Test"] = "Test"
+L["TestDescription"] = "Exibe um aviso para que você possa reposicioná-lo."
 
 -- Lists
 L["Nearby"] = "Proximidades"
@@ -427,69 +433,71 @@ StaticPopupDialogs["Spy_SetKOSReasonOther"] = {
 	OnShow = function(self)
 		self.editBox:SetText("");
 	end,
-    	OnAccept = function(self)
+    OnAccept = function(self)
 		local reason = self.editBox:GetText()
 		Spy:SetKOSReason(self.playerName, "Digite seu próprio motivo...", reason)
 	end,
 };
 
---++ Class descriptions
---L["DEATHKNIGHT"] = "Cavaleiro da Morte"
---L["DEMONHUNTER"] = "Caçador de Demonios"
+-- Class descriptions
+L["UNKNOWN"] = "Desconhecido"
 L["DRUID"] = "Druida"
 L["HUNTER"] = "Caçador"
 L["MAGE"] = "Mago"
---L["MONK"] = "Monge"
 L["PALADIN"] = "Paladino"
 L["PRIEST"] = "Sacerdote"
 L["ROGUE"] = "Ladino"
 L["SHAMAN"] = "Xamã"
 L["WARLOCK"] = "Bruxo"
 L["WARRIOR"] = "Guerreiro"
-L["UNKNOWN"] = "Desconhecido"
+L["DEATHKNIGHT"] = "Cavaleiro da Morte"
+L["MONK"] = "Monge"
+L["DEMONHUNTER"] = "Caçador de Demonios"
 
 --++ Race descriptions
-L["HUMAN"] = "Humano"
-L["ORC"] = "Orc"
-L["DWARF"] = "Anão"
-L["NIGHT ELF"] = "Elfo Noturno"
-L["UNDEAD"] = "Morto-vivo"
-L["TAUREN"] = "Tauren"
-L["GNOME"] = "Gnomo"
-L["TROLL"] = "Troll"
---L["GOBLIN"] = "Goblin"
---L["BLOOD ELF"] = "Elfo Sangrento"
---L["DRAENEI"] = "Draenei"
---L["WORGEN"] = "Worgen"
---L["PANDAREN"] = "Pandaren"
---L["NIGHTBORNE"] = "Filho da Noite"
---L["HIGHMOUNTAIN TAUREN"] = "Tauren Altamontês"
---L["VOID ELF"] = "Void Elf"	
---L["LIGHTFORGED DRAENEI"] = "Draenei Forjado a Luz"
---L["ZANDALARI TROLL"] = "Troll Zandalari"
---L["KUL TIRAN"] = "Kultireno"
---L["DARK IRON DWARF"] = "Anão Ferro Negro"
---L["MAG'HAR ORC"] = "Orc Mag'har"
+L["Human"] = "Humano"
+L["Orc"] = "Orc"
+L["Dwarf"] = "Anão"
+L["Tauren"] = "Tauren"
+L["Troll"] = "Troll"
+L["Night Elf"] = "Elfo Noturno"
+L["Undead"] = "Morto-vivo"
+L["Gnome"] = "Gnomo"
+L["Blood Elf"] = "Elfo Sangrento"
+L["Draenei"] = "Draenei"
+L["Goblin"] = "Goblin"
+L["Worgen"] = "Worgen"
+L["Pandaren"] = "Pandaren"
+L["Highmountain Tauren"] = "Tauren Altamontês"
+L["Lightforged Draenei"] = "Draenei Forjado a Luz"
+L["Nightborne"] = "Filho da Noite"
+L["Void Elf"] = "Void Elf"	
+L["Dark Iron Dwarf"] = "Anão Ferro Negro"
+L["Mag'har Orc"] = "Orc Mag'har"
+L["Kul Tiran"] = "Kultireno"
+L["Zandalari Troll"] = "Troll Zandalari"
+L["Mechagnome"] = "Gnomecânico"
+L["Vulpera"] = "Vulpera"
 
 -- Stealth abilities
 L["Stealth"] = "Furtividade"
 L["Prowl"] = "Espreitar"
 
---++ Minimap color codes
---L["MinimapClassTextDEATHKNIGHT"] = "|cffc41e3a"
---L["MinimapClassTextDEMONHUNTER"] = "|cffa330c9"
+-- Minimap color codes
+L["MinimapGuildText"] = "|cffffffff"
+L["MinimapClassTextUNKNOWN"] = "|cff191919"
 L["MinimapClassTextDRUID"] = "|cffff7c0a"
 L["MinimapClassTextHUNTER"] = "|cffaad372"
 L["MinimapClassTextMAGE"] = "|cff68ccef"
---L["MinimapClassTextMONK"] = "|cff00ff96"
 L["MinimapClassTextPALADIN"] = "|cfff48cba"
 L["MinimapClassTextPRIEST"] = "|cffffffff"
 L["MinimapClassTextROGUE"] = "|cfffff468"
 L["MinimapClassTextSHAMAN"] = "|cff2359ff"
 L["MinimapClassTextWARLOCK"] = "|cff9382c9"
 L["MinimapClassTextWARRIOR"] = "|cffc69b6d"
-L["MinimapClassTextUNKNOWN"] = "|cff191919"
-L["MinimapGuildText"] = "|cffffffff"
+L["MinimapClassTextDEATHKNIGHT"] = "|cffc41e3a"
+L["MinimapClassTextMONK"] = "|cff00ff96"
+L["MinimapClassTextDEMONHUNTER"] = "|cffa330c9"
 
 Spy_AbilityList = {
 -----------------------------------------------------------

@@ -68,6 +68,10 @@ L["The Vindicaar"] = "Виндикар"
 L["Krasus' Landing"] = "Площадка Краса"
 L["The Violet Gate"] = "Аметистовые врата"
 L["Magni's Encampment"] = "Лагерь Магни"
+L["Silithus"] = "Силитус"
+L["Chamber of Heart"] = "Зал Сердца"
+L["Hall of Ancient Paths"] = "Зал Древних Путей"
+L["Sanctum of the Sages"] = "Святилище жрецов"
 
 -- Display
 L["DisplayOptions"] = "дисплей"
@@ -255,6 +259,8 @@ L["KOSDescription"] = "Добавить/удалить игрока в/из сп
 L["InvalidInput"] = "Неверный Ввод"
 L["Ignore"] = "Ignore"
 L["IgnoreDescription"] = "Добавить/удалить игрока в/из список игнорируемых."
+L["Test"] = "Test"
+L["TestDescription"] = "Отображает предупреждение, чтобы вы могли изменить его положение."
 
 -- Lists
 L["Nearby"] = "Nearby"
@@ -427,69 +433,71 @@ StaticPopupDialogs["Spy_SetKOSReasonOther"] = {
 	OnShow = function(self)
 		self.editBox:SetText("");
 	end,
-    	OnAccept = function(self)
+    OnAccept = function(self)
 		local reason = self.editBox:GetText()
 		Spy:SetKOSReason(self.playerName, "Введите собственную причину ...", reason)
 	end,
 };
 
---++ Class descriptions
---L["DEATHKNIGHT"] = "рыцарь смерти"
---L["DEMONHUNTER"] = "Охотник на демонов"
+-- Class descriptions
+L["UNKNOWN"] = "Неизвестный"
 L["DRUID"] = "Друид"
 L["HUNTER"] = "Охотник"
 L["MAGE"] = "Маг"
---L["MONK"] = "Монах"
 L["PALADIN"] = "Паладин"
 L["PRIEST"] = "Жрец"
 L["ROGUE"] = "Разбойник"
 L["SHAMAN"] = "Шаман"
 L["WARLOCK"] = "Чернокнижник"
 L["WARRIOR"] = "Воин"
-L["UNKNOWN"] = "Неизвестный"
+L["DEATHKNIGHT"] = "рыцарь смерти"
+L["MONK"] = "Монах"
+L["DEMONHUNTER"] = "Охотник на демонов"
 
---++ Race descriptions
-L["HUMAN"] = "Человек"
-L["ORC"] = "Орк"
-L["DWARF"] = "Дворф"
-L["NIGHT ELF"] = "Ночной эльф"
-L["UNDEAD"] = "Нежить"
-L["TAUREN"] = "Таурен"
-L["GNOME"] = "Гном"
-L["TROLL"] = "Тролль"
-L["GOBLIN"] = "Гоблин"
---L["BLOOD ELF"] = "Эльф крови"
---L["DRAENEI"] = "Дреней"
---L["WORGEN"] = "Ворген"
---L["PANDAREN"] = "Пандарен"
---L["NIGHTBORNE"] = "Ночнорожденный"
---L["HIGHMOUNTAIN TAUREN"] = "Таурен Крутогорья"
---L["VOID ELF"] = "Эльф Бездны"
---L["LIGHTFORGED DRAENEI"] = "Озаренный дреней"
---L["ZANDALARI TROLL"] = "Зандалар"
---L["KUL TIRAN"] = "Култирасец"
---L["DARK IRON DWARF"] = "Дворф из клана Черного Железа"
---L["MAG'HAR ORC"] = "Маг'хар"
+-- Race descriptions
+L["Human"] = "Человек"
+L["Orc"] = "Орк"
+L["Dwarf"] = "Дворф"
+L["Tauren"] = "Таурен"
+L["Troll"] = "Тролль"
+L["Night Elf"] = "Ночной эльф"
+L["Undead"] = "Нежить"
+L["Gnome"] = "Гном"
+L["Blood Elf"] = "Эльф крови"
+L["Draenei"] = "Дреней"
+L["Goblin"] = "Гоблин"
+L["Worgen"] = "Ворген"
+L["Pandaren"] = "Пандарен"
+L["Highmountain Tauren"] = "Таурен Крутогорья"
+L["Lightforged Draenei"] = "Озаренный дреней"
+L["Nightborne"] = "Ночнорожденный"
+L["Void Elf"] = "Эльф Бездны"
+L["Dark Iron Dwarf"] = "Дворф из клана Черного Железа"
+L["Mag'har Orc"] = "Маг'хар"
+L["Kul Tiran"] = "Култирасец"
+L["Zandalari Troll"] = "Зандалар"
+L["Mechagnome"] = "Механогном"
+L["Vulpera"] = "Вульпера"
  
 -- Stealth abilities
 L["Stealth"] = "Незаметность"
 L["Prowl"] = "Крадущийся зверь"
  
---++ Minimap color codes
---L["MinimapClassTextDEATHKNIGHT"] = "|cffc41e3a"
---L["MinimapClassTextDEMONHUNTER"] = "|cffa330c9"
+-- Minimap color codes
+L["MinimapGuildText"] = "|cffffffff"
+L["MinimapClassTextUNKNOWN"] = "|cff191919"
 L["MinimapClassTextDRUID"] = "|cffff7c0a"
 L["MinimapClassTextHUNTER"] = "|cffaad372"
 L["MinimapClassTextMAGE"] = "|cff68ccef"
---L["MinimapClassTextMONK"] = "|cff00ff96"
 L["MinimapClassTextPALADIN"] = "|cfff48cba"
 L["MinimapClassTextPRIEST"] = "|cffffffff"
 L["MinimapClassTextROGUE"] = "|cfffff468"
 L["MinimapClassTextSHAMAN"] = "|cff2359ff"
 L["MinimapClassTextWARLOCK"] = "|cff9382c9"
 L["MinimapClassTextWARRIOR"] = "|cffc69b6d"
-L["MinimapClassTextUNKNOWN"] = "|cff191919"
-L["MinimapGuildText"] = "|cffffffff"
+L["MinimapClassTextDEATHKNIGHT"] = "|cffc41e3a"
+L["MinimapClassTextMONK"] = "|cff00ff96"
+L["MinimapClassTextDEMONHUNTER"] = "|cffa330c9"
 
 Spy_AbilityList = {
 -----------------------------------------------------------

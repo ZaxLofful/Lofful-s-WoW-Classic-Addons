@@ -68,6 +68,10 @@ L["The Vindicaar"] = "구원호"
 L["Krasus' Landing"] = "크라서스 착륙장"
 L["The Violet Gate"] = "보랏빛 관문"
 L["Magni's Encampment"] = "마그니의 야영지"
+L["Silithus"] = "실리더스"
+L["Chamber of Heart"] = "심장의 방"
+L["Hall of Ancient Paths"] = "고대 길의 전당"
+L["Sanctum of the Sages"] = "현자의 성소"
 
 -- Display
 L["DisplayOptions"] = "디스플레이"
@@ -255,6 +259,8 @@ L["KOSDescription"] = "적 플레이어를 살생부에 추가/제거 합니다.
 L["InvalidInput"] = "잘못된 입력"
 L["Ignore"] = "제외"
 L["IgnoreDescription"] = "적 플레이어를 제외 목록에 추가/제거 합니다."
+L["Test"] = "Test"
+L["TestDescription"] = "위치를 조정할 수 있도록 경고를 표시합니다."
 
 -- Lists
 L["Nearby"] = "근접한 적"
@@ -427,69 +433,71 @@ StaticPopupDialogs["Spy_SetKOSReasonOther"] = {
 	OnShow = function(self)
 		self.editBox:SetText("");
 	end,
-    	OnAccept = function(self)
+    OnAccept = function(self)
 		local reason = self.editBox:GetText()
 		Spy:SetKOSReason(self.playerName, "이유를 입력하세요...", reason)
 	end,
 };
 
---++ Class descriptions
---L["DEATHKNIGHT"] = "죽음의 기사"
---L["DEMONHUNTER"] = "악마사냥꾼"
+-- Class descriptions
+L["UNKNOWN"] = "미확인"
 L["DRUID"] = "드루이드"
 L["HUNTER"] = "사냥꾼"
 L["MAGE"] = "마법사"
---L["MONK"] = "수도사"
 L["PALADIN"] = "성기사"
 L["PRIEST"] = "사제"
 L["ROGUE"] = "도적"
 L["SHAMAN"] = "주술사"
 L["WARLOCK"] = "흑마법사"
 L["WARRIOR"] = "전사"
-L["UNKNOWN"] = "미확인"
+L["DEATHKNIGHT"] = "죽음의 기사"
+L["MONK"] = "수도사"
+L["DEMONHUNTER"] = "악마사냥꾼"
 
---++ Race descriptions
-L["HUMAN"] = "인간"
-L["ORC"] = "오크"
-L["DWARF"] = "드워프"
-L["NIGHT ELF"] = "나이트 엘프"
-L["UNDEAD"] = "언데드"
-L["TAUREN"] = "타우렌"
-L["GNOME"] = "노움"
-L["TROLL"] = "트롤"
-L["GOBLIN"] = "고블린"
---L["BLOOD ELF"] = "블러드 엘프"
---L["DRAENEI"] = "드레나이"
---L["WORGEN"] = "늑대인간"
---L["PANDAREN"] = "판다렌"
---L["NIGHTBORNE"] = "나이트본"
---L["HIGHMOUNTAIN TAUREN"] = "높은산 타우렌"
---L["VOID ELF"] = "공허 엘프"
---L["LIGHTFORGED DRAENEI"] = "빛벼림 드레나이"
---L["ZANDALARI TROLL"] = "잔달라 트롤"
---L["KUL TIRAN"] = "쿨 티란"
---L["DARK IRON DWARF"] = "검은무쇠 드워프"
---L["MAG'HAR ORC"] = "마그하르 오크"
+-- Race descriptions
+L["Human"] = "인간"
+L["Orc"] = "오크"
+L["Dwarf"] = "드워프"
+L["Tauren"] = "타우렌"
+L["Troll"] = "트롤"
+L["Night Elf"] = "나이트 엘프"
+L["Undead"] = "언데드"
+L["Gnome"] = "노움"
+L["Blood Elf"] = "블러드 엘프"
+L["Draenei"] = "드레나이"
+L["Goblin"] = "고블린"
+L["Worgen"] = "늑대인간"
+L["Pandaren"] = "판다렌"
+L["Highmountain Tauren"] = "높은산 타우렌"
+L["Lightforged Draenei"] = "빛벼림 드레나이"
+L["Nightborne"] = "나이트본"
+L["Void Elf"] = "공허 엘프"
+L["Dark Iron Dwarf"] = "검은무쇠 드워프"
+L["Mag'har Orc"] = "마그하르 오크"
+L["Kul Tiran"] = "쿨 티란"
+L["Zandalari Troll"] = "잔달라 트롤"
+L["Mechagnome"] = "기계노움"
+L["Vulpera"] = "불페라"
 
 -- Stealth abilities
 L["Stealth"] = "은신"
 L["Prowl"] = "숨기"
 
---++ Minimap color codes
---L["MinimapClassTextDEATHKNIGHT"] = "|cffc41e3a"
---L["MinimapClassTextDEMONHUNTER"] = "|cffa330c9"
+-- Minimap color codes
+L["MinimapGuildText"] = "|cffffffff"
+L["MinimapClassTextUNKNOWN"] = "|cff191919"
 L["MinimapClassTextDRUID"] = "|cffff7c0a"
 L["MinimapClassTextHUNTER"] = "|cffaad372"
 L["MinimapClassTextMAGE"] = "|cff68ccef"
---L["MinimapClassTextMONK"] = "|cff00ff96"
 L["MinimapClassTextPALADIN"] = "|cfff48cba"
 L["MinimapClassTextPRIEST"] = "|cffffffff"
 L["MinimapClassTextROGUE"] = "|cfffff468"
 L["MinimapClassTextSHAMAN"] = "|cff2359ff"
 L["MinimapClassTextWARLOCK"] = "|cff9382c9"
 L["MinimapClassTextWARRIOR"] = "|cffc69b6d"
-L["MinimapClassTextUNKNOWN"] = "|cff191919"
-L["MinimapGuildText"] = "|cffffffff"
+L["MinimapClassTextDEATHKNIGHT"] = "|cffc41e3a"
+L["MinimapClassTextMONK"] = "|cff00ff96"
+L["MinimapClassTextDEMONHUNTER"] = "|cffa330c9"
 
 Spy_AbilityList = {
 -----------------------------------------------------------

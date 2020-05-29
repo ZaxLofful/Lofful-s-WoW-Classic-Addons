@@ -68,6 +68,10 @@ L["The Vindicaar"] = "El Vindicaar"
 L["Krasus' Landing"] = "Alto de Krasus"
 L["The Violet Gate"] = "La Puerta Violeta"
 L["Magni's Encampment"] = "Campamento de Magni"
+L["Silithus"] = "Silithus"
+L["Chamber of Heart"] = "Cámara del Corazón"
+L["Hall of Ancient Paths"] = "Cámara de Sendas Ancestrales"
+L["Sanctum of the Sages"] = "Santuario de los Sabios"
 
 -- Display
 L["DisplayOptions"] = "Display"
@@ -255,6 +259,8 @@ L["KOSDescription"] = "Añadir/Eliminar un jugador de la lista de Matar a la Vis
 L["InvalidInput"] = "Invalid Input"
 L["Ignore"] = "Ignore"
 L["IgnoreDescription"] = "Añadir/Eliminar un jugador de la lista de Ignorados."
+L["Test"] = "Test"
+L["TestDescription"] = "Muestra una advertencia para que pueda reposicionarla."
 
 -- Lists
 L["Nearby"] = "Nearby"
@@ -427,69 +433,71 @@ StaticPopupDialogs["Spy_SetKOSReasonOther"] = {
 	OnShow = function(self)
 		self.editBox:SetText("");
 	end,
-    	OnAccept = function(self)
+   	OnAccept = function(self)
 		local reason = self.editBox:GetText()
 		Spy:SetKOSReason(self.playerName, "Enter your own reason...", reason)
 	end,
 };
 
---++ Class descriptions
---L["DEATHKNIGHT"] = "Caballero de la muerte"
---L["DEMONHUNTER"] = "Cazador de demonios"
+-- Class descriptions
+L["UNKNOWN"] = "Desconocido"
 L["DRUID"] = "Druida"
 L["HUNTER"] = "Cazador"
 L["MAGE"] = "Mago"
---L["MONK"] = "Monje"
 L["PALADIN"] = "Paladín"
 L["PRIEST"] = "Sacerdote"
 L["ROGUE"] = "Pícaro"
 L["SHAMAN"] = "Chamán"
 L["WARLOCK"] = "Brujo"
 L["WARRIOR"] = "Guerrero"
-L["UNKNOWN"] = "Desconocido"
+L["DEATHKNIGHT"] = "Caballero de la muerte"
+L["MONK"] = "Monje"
+L["DEMONHUNTER"] = "Cazador de demonios"
 
---++ Race descriptions
-L["HUMAN"] = "Humano"
-L["ORC"] = "Orco"
-L["DWARF"] = "Enano"
-L["NIGHT ELF"] = "Elfo de la noche"
-L["UNDEAD"] = "No-muerto"
-L["TAUREN"] = "Tauren"
-L["GNOME"] = "Gnomo"
-L["TROLL"] = "Trol"
-L["GOBLIN"] = "Goblin"
---L["BLOOD ELF"] = "Elfo de sangre"
---L["DRAENEI"] = "Draenei"
---L["WORGEN"] = "Huargen"
---L["PANDAREN"] = "Pandaren"
---L["NIGHTBORNE"] = "Nocheterna"
---L["HIGHMOUNTAIN TAUREN"] = "Tauren Monte Alto"
---L["VOID ELF"] = "Elfo del Vacío"
---L["LIGHTFORGED DRAENEI"] = "Draenei forjado por la Luz"
---L["ZANDALARI TROLL"] = "Trol Zandalari"
---L["KUL TIRAN"] = "Ciudadano de Kul Tiras"
---L["DARK IRON DWARF"] = "Enano Hierro Negro"
---L["MAG'HAR ORC"] = "Orco Mag'har"
+-- Race descriptions
+L["Human"] = "Humano"
+L["Orc"] = "Orco"
+L["Dwarf"] = "Enano"
+L["Tauren"] = "Tauren"
+L["Troll"] = "Trol"
+L["Night Elf"] = "Elfo de la noche"
+L["Undead"] = "No-muerto"
+L["Gnome"] = "Gnomo"
+L["Blood Elf"] = "Elfo de sangre"
+L["Draenei"] = "Draenei"
+L["Goblin"] = "Goblin"
+L["Worgen"] = "Huargen"
+L["Pandaren"] = "Pandaren"
+L["Highmountain Tauren"] = "Tauren Monte Alto"
+L["Lightforged Draenei"] = "Draenei forjado por la Luz"
+L["Nightborne"] = "Nocheterna"
+L["Void Elf"] = "Elfo del Vacío"
+L["Dark Iron Dwarf"] = "Enano Hierro Negro"
+L["Mag'har Orc"] = "Orco Mag'har"
+L["Kul Tiran"] = "Ciudadano de Kul Tiras"
+L["Zandalari Troll"] = "Trol Zandalari"
+L["Mechagnome"] = "Mecagnomo"
+L["Vulpera"] = "Vulpera"
  
 -- Stealth abilities
 L["Stealth"] = "Sigilo"
 L["Acechar"] = "Acechar"
  
---++ Minimap color codes
---L["MinimapClassTextDEATHKNIGHT"] = "|cffc41e3a"
---L["MinimapClassTextDEMONHUNTER"] = "|cffa330c9"
+-- Minimap color codes
+L["MinimapGuildText"] = "|cffffffff"
+L["MinimapClassTextUNKNOWN"] = "|cff191919"
 L["MinimapClassTextDRUID"] = "|cffff7c0a"
 L["MinimapClassTextHUNTER"] = "|cffaad372"
 L["MinimapClassTextMAGE"] = "|cff68ccef"
---L["MinimapClassTextMONK"] = "|cff00ff96"
 L["MinimapClassTextPALADIN"] = "|cfff48cba"
 L["MinimapClassTextPRIEST"] = "|cffffffff"
 L["MinimapClassTextROGUE"] = "|cfffff468"
 L["MinimapClassTextSHAMAN"] = "|cff2359ff"
 L["MinimapClassTextWARLOCK"] = "|cff9382c9"
 L["MinimapClassTextWARRIOR"] = "|cffc69b6d"
-L["MinimapClassTextUNKNOWN"] = "|cff191919"
-L["MinimapGuildText"] = "|cffffffff"
+L["MinimapClassTextDEATHKNIGHT"] = "|cffc41e3a"
+L["MinimapClassTextMONK"] = "|cff00ff96"
+L["MinimapClassTextDEMONHUNTER"] = "|cffa330c9"
 
 Spy_AbilityList = {
 -----------------------------------------------------------
