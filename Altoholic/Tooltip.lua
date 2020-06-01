@@ -9,6 +9,9 @@ local THIS_REALM = GetRealmName()
 
 local storedLink = nil
 
+-- Bugfix: make the game cache store this item on load, so we don't get a nil error if the recipe is moused over later on
+GetItemInfo(4401)
+
 local GatheringNodes = {			-- Add herb/ore possession info to Plants/Mines, thanks to Tempus on wowace for gathering this.
 
 	-- Mining nodes
@@ -548,18 +551,10 @@ function addon:InitTooltip()
 			function(self,type,index) storedLink = GetQuestLogItemLink(type,index) end,
 			nil
 		},
-		SetRecipeResultItem = {
-			function(self, recipeID)
-				if recipeID then
-					storedLink = C_TradeSkillUI.GetRecipeItemLink(recipeID)
-				end
-			end,
-			nil
-		},
-		SetRecipeReagentItem = {
+		SetCraftItem = {
 			function(self, recipeID, reagentIndex)
 				if recipeID and reagentIndex then
-					storedLink = C_TradeSkillUI.GetRecipeReagentItemLink(recipeID, reagentIndex)
+					storedLink = GetCraftReagentItemLink(recipeID, reagentIndex)
 				end
 			end,
 			nil

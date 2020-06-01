@@ -872,7 +872,7 @@ local function _GetCraftReagents(recipeID)
 end
 
 local function _GetResultItemName(recipeID)
-    if not (type(addon.ref.global.ResultItems) == "table") then print("x"); return "UNKNOWN" end
+    if not (type(addon.ref.global.ResultItems) == "table") then return "UNKNOWN" end
     if not (type(addon.ref.global.ResultItems[recipeID]) == "table") then return "UNKNOWN" end
     return addon.ref.global.ResultItems[recipeID].name
 end
