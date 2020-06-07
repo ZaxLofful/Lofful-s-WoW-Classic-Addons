@@ -1,0 +1,10 @@
+lightweight tag 26b5b427e7f6e78751d7febee745e61f665a2c3e v1.0.5
+Author:	VallanTV <thevallantv@protonmail.com>
+Date:	Tue May 19 19:53:15 2020 -0700
+
+commit 26b5b427e7f6e78751d7febee745e61f665a2c3e
+Author: VallanTV <thevallantv@protonmail.com>
+Date:   Tue May 19 19:53:15 2020 -0700
+
+    Add Russian translation, bump version
+
