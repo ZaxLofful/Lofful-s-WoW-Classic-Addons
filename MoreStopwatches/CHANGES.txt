@@ -1,0 +1,12 @@
+tag 97e02305327503d0e887075824a486fe9c5b8546 v1.17c
+Author:	André Wählisch <AndreWaehlisch@users.noreply.github.com>
+Date:	Fri May 8 12:27:49 2020 +0200
+
+both retail and classic versions should be compatible again
+
+commit 277cf27e2b8970e526f29e17badbea55f42d438e
+Author: André Wählisch <AndreWaehlisch@users.noreply.github.com>
+Date:   Fri May 8 12:22:31 2020 +0200
+
+    better solution to the missing STOPWATCH entry in SlashCmdList
+

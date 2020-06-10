@@ -1,0 +1,17 @@
+## Interface: 11304
+
+## Title: More Stopwatches
+
+## Version: v1.17c
+
+## Notes: Provides as many stopwatches as you like.
+
+## Notes-deDE: Stellt beliebig viele Stoppuhren zur Verfügung.
+
+## Author: |cffFF7D0AHoochie|r @EU-Lucifron
+
+## SavedVariablesPerCharacter: MoreStopwatchesSave
+
+MoreStopwatchesCore.lua
+TimeManager.lua
+TimeManager.xml
