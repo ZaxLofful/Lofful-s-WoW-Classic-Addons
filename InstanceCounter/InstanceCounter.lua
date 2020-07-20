@@ -63,7 +63,8 @@ function InstanceCounter:ADDON_LOADED(addon)
 	self:RegisterEvent('ZONE_CHANGED')
 	self:RegisterEvent('ZONE_CHANGED_INDOORS')
 	self:RegisterEvent('ZONE_CHANGED_NEW_AREA')
-
+	self:RegisterEvent('INSTANCE_BOOT_STOP')
+	
 	if # db.List >= 1 then
 		self:RegisterEvent('CHAT_MSG_SYSTEM')
 	end
@@ -114,12 +115,31 @@ function InstanceCounter:ZONE_CHANGED_NEW_AREA()
 	self:debug('ZONE_CHANGED_NEW_AREA')
 	self:ZonedIn()
 end
+function InstanceCounter:INSTANCE_BOOT_STOP()
+	self:debug('INSTANCE_BOOT_STOP')
+	C_Timer.After(10, function() self:CancelLeaveGroupReset() end)
+end
 
 function InstanceCounter:ZonedIn()
+	local instancesReset = 0
+
 	if not self.Zoned then
-		self:checkForOfflineReset()
+		self:CancelPendingResetNotification()
+		self:ResolveOfflineReset()
 		self.Zoned = true
 	end
+
+	instancesReset = self:ResolveLeftGroupInstances()
+	if instancesReset > 0 then 
+		self:print(L["LEFT_RESET"])
+	end
+	
+	instancesReset = self:ResolvePendingResetNotification()
+	if instancesReset > 0 then 
+		self:print(L["NOTIFICATION_RESET"])
+	end
+
+
 end
 
 function InstanceCounter:CHAT_MSG_SYSTEM(msg)
@@ -128,8 +148,12 @@ function InstanceCounter:CHAT_MSG_SYSTEM(msg)
 		self:PrintTimeUntilReset()
 	end
 
+	if msg == RESET_FAILED_NOTIFY  then
+		self:ResetInstancesByKey('character', fullName, "pendingReset")
+	end
+
 	if msg == ERR_LEFT_GROUP_YOU then
-		self:ResetInstancesByKey('character', fullName)
+		self:ResetInstancesByKey('character', fullName, "leftGroup")
 	end
 
 	local name = string.match(msg, '(.*) has been reset')
@@ -260,8 +284,8 @@ function InstanceCounter:getDetailedLocation()
 end
 
 
-function InstanceCounter:checkForOfflineReset()
-	self:debug("checkForOfflineReset")
+function InstanceCounter:ResolveOfflineReset()
+	self:debug("ResolveOfflineReset")
 	if db.PlayerLogoutLocation[fullName] == nil then return end
 
 	self:debug("Logout Location: " .. db.PlayerLogoutLocation[fullName].name .. ' - ' .. db.PlayerLogoutLocation[fullName].subzone)
@@ -397,6 +421,40 @@ function InstanceCounter:IsPlayerSavedToInstance(name, instanceType, difficultyI
 	return false
 end
 
+function InstanceCounter:CancelLeaveGroupReset()
+	if IsInGroup() then		
+		local name, instanceType, difficultyID = GetInstanceInfo()
+
+		for i = 1, # db.List do
+			if not db.List[i].reset and
+				db.List[i].leftGroup == true and
+				db.List[i].name == name and
+				db.List[i].instanceType == instanceType and
+				db.List[i].difficultyID == difficultyID and
+				db.List[i].character == fullName then
+				db.List[i].leftGroup = false
+			end
+		end
+	end
+end
+
+function InstanceCounter:CancelPendingResetNotification()
+	if IsInGroup() then
+		local name, instanceType, difficultyID = GetInstanceInfo()
+
+		for i = 1, # db.List do
+			if not db.List[i].reset and
+				db.List[i].pendingReset == true and
+				db.List[i].name == name and
+				db.List[i].instanceType == instanceType and
+				db.List[i].difficultyID == difficultyID and
+				db.List[i].character == fullName then
+				db.List[i].pendingReset = false
+			end
+		end
+	end
+end
+
 function InstanceCounter:ResetInstancesForParty()
 	self:debug("ResetInstancesForParty")
 	self:ResetInstancesByKey('character', fullName)
@@ -434,17 +492,73 @@ function InstanceCounter:ResetInstancesOlderThen(playername, t)
 	return resetCount
 end
 
-function InstanceCounter:ResetInstancesByKey(key, value)
+function InstanceCounter:ResetInstancesByKey(key, value, flag)
 	self:debug("ResetInstancesByKey")
 	local resetCount = 0
+	local name, instanceType, difficultyID = GetInstanceInfo()
 
 	for i = 1, # db.List do
 		if db.List[i][key] == value and
 		   not db.List[i].reset and
 		   not db.List[i].saved then
-			db.List[i].resetTime = time()
-			db.List[i].reset = true
-			resetCount = resetCount + 1
+
+			if db.List[i].name == name and
+				db.List[i].instanceType == instanceType and
+				db.List[i].difficultyID == difficultyID and
+				db.List[i].character == fullName and
+				flag ~= nil then
+					db.List[i][flag] = true
+			else
+				db.List[i].resetTime = time()
+				db.List[i].reset = true
+				resetCount = resetCount + 1
+			end
+		end
+	end
+
+	return resetCount
+end
+
+function InstanceCounter:ResolveLeftGroupInstances()
+	self:debug("ResolveLeftGroupInstances")
+
+	local resetCount = 0
+	local name, instanceType, difficultyID = GetInstanceInfo()
+
+	for i = 1, # db.List do
+		if not db.List[i].reset and
+			db.List[i].leftGroup == true and
+			not (	
+				db.List[i].name == name and
+				db.List[i].instanceType == instanceType and
+				db.List[i].difficultyID == difficultyID and
+				db.List[i].character == fullName
+	 		) then
+				db.List[i].reset = true
+				resetCount = resetCount + 1
+		end
+	end
+
+	return resetCount
+end
+
+function InstanceCounter:ResolvePendingResetNotification()
+	self:debug("ResolveLeftGroupInstances")
+
+	local resetCount = 0
+	local name, instanceType, difficultyID = GetInstanceInfo()
+
+	for i = 1, # db.List do
+		if not db.List[i].reset and
+			db.List[i].pendingReset == true and
+			db.List[i].character == fullName and
+			not (	
+				db.List[i].name == name and
+				db.List[i].instanceType == instanceType and
+				db.List[i].difficultyID == difficultyID
+	 		) then
+				db.List[i].reset = true
+				resetCount = resetCount + 1
 		end
 	end
 

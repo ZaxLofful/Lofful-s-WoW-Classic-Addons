@@ -1,8 +1,8 @@
-## Interface: 11304
+## Interface: 11305
 ## Title: Better Vendor Price
 ## Notes: Better Vendor Price with stack price information (|cFF99E5FF/bvp config|r)
 ## Author: MooreaTV moorea@ymail.com
-## Version: v1.13.04
+## Version: v1.13.05
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariables: betterVendorPriceSaved

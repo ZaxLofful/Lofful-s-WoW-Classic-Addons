@@ -1082,31 +1082,21 @@ end
 local function XPerl_Target_UpdateLeader(self)
 	local leader
 	local partyid = self.partyid
-	if (UnitIsUnit(partyid, "player")) then
-		leader = UnitIsGroupLeader("player")
-	elseif (UnitInRaid(partyid)) then
-		local find = UnitName(partyid)
-		for i = 1, GetNumGroupMembers() do
-			local name, rank = GetRaidRosterInfo(i)
-			if (name == find) then
-				leader = (rank == 2)
-				break
-			end
-		end
-	elseif (UnitInParty(partyid)) then
-		--local index = GetPartyLeaderIndex()
-		--if (index > 0) then
-		--	leader = UnitIsUnit(partyid, "party"..index)
-		--end
 
-		leader = UnitIsGroupLeader(partyid)
-	end
-
-	if (leader) then
+	if (UnitIsGroupLeader(partyid)) then
 		self.nameFrame.leaderIcon:Show()
+		self.nameFrame.assistIcon:Hide()
 	else
 		self.nameFrame.leaderIcon:Hide()
+		if (UnitIsGroupAssistant(partyid)) then
+			self.nameFrame.assistIcon:Show()
+		else 
+			self.nameFrame.assistIcon:Hide()
+		end
 	end
+
+
+
 
 	-- We can't determine who is master looter in raid if not in current party... :(
 	--Don't think this is the case anymore.... -- Cexikitin
@@ -1193,6 +1183,7 @@ function XPerl_Target_UpdateDisplay(self)
 		XPerl_Target_SetMana(self)
 		XPerl_Target_UpdateHealth(self)
 		XPerl_Target_Update_Combat(self)
+		XPerl_Target_UpdateLeader(self)
 		XPerl_Unit_ThreatStatus(self, partyid == "target" and "player" or nil, true)
 
 		RaidTargetUpdate(self)
@@ -1200,14 +1191,12 @@ function XPerl_Target_UpdateDisplay(self)
 		if (self.conf.defer) then
 			self.portraitFrame.portrait:Hide()
 			self.portraitFrame.portrait3D:Hide()
-			self.nameFrame.leaderIcon:Hide()
 			self.nameFrame.masterIcon:Hide()
 			self.cpFrame:Hide()
 			self.nameFrame.cpMeter:Hide()
 			self.deferring = true
 			self.time = -0.3
 		else
-			XPerl_Target_UpdateLeader(self)
 			XPerl_Target_UpdateCombo(self)
 			XPerl_Unit_UpdatePortrait(self)
 		end
@@ -1263,7 +1252,6 @@ function XPerl_Target_OnUpdate(self, elapsed)
 
 			if (self.deferring) then
 				self.deferring = nil
-				XPerl_Target_UpdateLeader(self)
 				XPerl_Target_Update_Combat(self)
 				XPerl_Target_UpdateCombo(self)
 				XPerl_Unit_UpdatePortrait(self)

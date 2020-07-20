@@ -1,3 +1,11 @@
+**r1209**
+* Update for Classic 1.13.5.
+* Update libraries.
+
+**r1208**
+* Add assist icon on target frame
+* Don't defer rendering the assist/lead icon on target swap, the performance hit is no longer there
+
 **r1204**
 * Fixed callback handler.
 

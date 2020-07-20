@@ -11,6 +11,11 @@ L.Website					= "Visita nuestro canal de Discord: |cFF73C2FBhttps://discord.gg/d
 L.WebsiteButton				= "Página web"
 
 L.OTabBosses	= "Jefes"
+L.OTabRaids		= "Banda"--Raids & PVP
+L.OTabDungeons	= "Grupo/Solo"--1-5 person content (Dungeons, MoP Scenarios, World Events, Brawlers, Proving Grounds, Visions, Torghast, etc)
+L.OTabPlugins	= "Plugins del núcleo"
+L.OTabOptions	= GAMEOPTIONS_MENU
+L.OTabAbout		= "Sobre"
 
 L.TabCategory_Options	 	= "Opciones generales"
 L.TabCategory_BFA	 		= "Battle for Azeroth"
@@ -108,6 +113,7 @@ L.Tab_GeneralMessages 		= "Mensajes generales"
 L.CoreMessages				= "Opciones de mensajes del módulo general"
 L.ShowPizzaMessage 			= "Mostrar avisos de temporizadores en el chat"
 L.ShowAllVersions	 		= "Mostrar versión de DBM de cada miembro del grupo en el chat al hacer comprobaciones de versión. Si se deshabilita seguirá mostrando quién lo tiene desactualizado."
+L.ShowReminders             = "Mostrar mensajes recordatorios para recomendaciones, mods faltantes o mensajes de revisión"
 L.CombatMessages			= "Opciones de mensajes de combate"
 L.ShowEngageMessage 		= "Mostrar mensajes de inicio de encuentro en el chat"
 L.ShowDefeatMessage 		= "Mostrar mensajes de victoria y derrota en el chat"
