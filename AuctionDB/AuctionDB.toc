@@ -2,7 +2,7 @@
 ## Title: Auction House DataBase (AHDB)
 ## Notes: Auction House DataBase, records DB history and offline queries, for classic and more (|cFF99E5FF/ahdb|r)
 ## Author: MooreaTV moorea@ymail.com
-## Version: v1.02.02
+## Version: v1.03.01
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariables: AuctionDBSaved

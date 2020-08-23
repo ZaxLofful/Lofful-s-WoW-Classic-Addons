@@ -47,12 +47,35 @@ function ML:ItemLinkToId(link)
   return short
 end
 
+-- is it just the link or info+link (v'5'ish)
+function ML:HasItemInfo(link)
+  -- link starts with |
+  return link:sub(1, 1) ~= "|"
+end
+
+function ML:AddItemInfo(link)
+  local _, _, itemRarity, _, itemMinLevel, _, _, itemStackCount, _, _,
+    itemSellPrice, itemClassID, itemSubClassID = GetItemInfo(link)
+  if not itemRarity then
+    -- not yet avail
+    return link, 0
+  end
+  return string.format("%d,%d,%d,%d,%d,%d%s",itemSellPrice, itemStackCount, itemClassID,
+    itemSubClassID, itemRarity, itemMinLevel, link), 1
+end
+
 -- when called form batch conversion, price is nil/not specified
 function ML:AddToItemDB(link, price)
   local key = self:ItemLinkToId(link)
   local idb = self.savedVar[self.itemDBKey]
   local existing = idb[key]
+  local added
   if existing then
+    if not self:HasItemInfo(existing) then
+      idb[key], added = self:AddItemInfo(link)
+      idb._infoCount_ = idb._infoCount_ + added
+      self:Debug("item key %: % had no info, added %", idb._count_, key, link, added)
+    end
     -- instance difficulty id changes (without non cosmetic impact) and so does the linklevel/specid
     -- depending on which character scans... so only for dev/debug mode
     if ((price == nil) or (self.debug and self.debug > 3)) and link ~= existing then
@@ -64,8 +87,9 @@ function ML:AddToItemDB(link, price)
     return key -- already in there
   end
   idb._count_ = idb._count_ + 1 -- lua doesn't expose the number of entries (!)
-  idb[key] = link
-  self:Debug("New item #% key %: %", idb._count_, key, link)
+  idb[key], added = self:AddItemInfo(link)
+  idb._infoCount_ = idb._infoCount_ + added
+  self:Debug("New item #% key %: %  info %", idb._count_, key, link, added)
   if price and self.showNewItems then
     local newIdx = idb._count_ - self.itemDBStartingCount
     if newIdx <= self.showNewItems then
@@ -74,7 +98,7 @@ function ML:AddToItemDB(link, price)
         extra = self.L[" (maximum reached, won't show more for this scan)"]
       end
       self:PrintDefault(
-        self.name .. " " .. self.L["New item #% (%): "] .. link .. " " .. GetCoinTextureString(price) .. extra, newIdx,
+        self.name .. " " .. self.L["New item #% (%): "] .. idb[key] .. " " .. GetCoinTextureString(price) .. extra, newIdx,
         idb._count_)
       self:Yield(0) -- if we print stuff we (seem to) need to yield
     end
@@ -166,9 +190,10 @@ end
 function ML:InitItemDB(clearAHtoo)
   self.savedVar[self.itemDBKey] = {}
   local itemDB = self.savedVar[self.itemDBKey]
-  itemDB._formatVersion_ = 4 -- shorterKey4 = fullLink associative array
+  itemDB._formatVersion_ = 5 -- shorterKey4 = fullLink associative array + iteminfo prefixed
   itemDB._locale_ = GetLocale()
   itemDB._count_ = 0
+  itemDB._infoCount_ = 0
   itemDB._created_ = GetServerTime()
   -- also clear the ah array itself
   if clearAHtoo and self.savedVar.ah then
@@ -183,8 +208,22 @@ function ML:CheckAndConvertItemDB()
     self:Error("Erasing unknown/past Item DB format %", itemDB._formatVersion_)
     return self:InitItemDB(true)
   end
+  if itemDB._formatVersion_ == 5 then
+    local locale = GetLocale()
+    if itemDB._locale_ ~= locale then
+      self:Error(
+        "Item DB Locale mismatch! % vs %. item names will be wrong/there will be errors... consider resetting the addon...",
+        itemDB._locale_, locale)
+      itemDB._locale_ = locale
+    end
+    -- good current version
+    return itemDB
+  end
   if itemDB._formatVersion_ == 4 then
     local locale = GetLocale()
+    if not itemDB._infoCount_  then
+      itemDB._infoCount_ = 0
+    end
     if not itemDB._locale_ then
       itemDB._locale_ = locale -- can be removed at version5
     elseif itemDB._locale_ ~= locale then
@@ -194,6 +233,8 @@ function ML:CheckAndConvertItemDB()
       itemDB._locale_ = locale
     end
     -- good current version
+    self:Warning("Upgraded item db v% to v5 - % items", itemDB._formatVersion_, itemDB._count_)
+    itemDB._formatVersion_ = 5
     return itemDB
   end
   -- version 1: convert to v2
@@ -269,7 +310,7 @@ function ML:AHSaveAll(dontActuallyQuery)
     return
   end
   local itemDB = self:AHSetupEnv()
-  self:Debug("Starting itemDB has % items (was %)", itemDB._count_, self.itemDBStartingCount)
+  self:Debug("Starting itemDB has % items, % with info (was %)", itemDB._count_, itemDB._infoCount_, self.itemDBStartingCount)
   self.itemDBStartingCount = itemDB._count_
   self.ahStartTS = debugprofilestop()
   self.ahResult = wipe(self.ahResult)
@@ -302,12 +343,12 @@ function ML:coroutineRunDump(fromEvent)
     self:Warning("Bug? coroutine already existing...")
   end
   self.ahCoroutine = coroutine.create(function()
-    self:Debug(1, "coroutine % started for dump %", id, fromEvent)
+    self:Debug(3, "coroutine % started for dump %", id, fromEvent)
     self:AHdump(fromEvent)
-    self:Debug(1, "coroutine % about to end for dump %", id, fromEvent)
+    self:Debug(3, "coroutine % about to end for dump %", id, fromEvent)
     self.ahCoroutine = nil
   end)
-  self:Debug(1, "coroutine % created for dump %", id, fromEvent)
+  self:Debug(3, "coroutine % created for dump %", id, fromEvent)
   coroutine.resume(self.ahCoroutine)
 end
 
@@ -315,12 +356,12 @@ ML.EventHdlrs.AUCTION_ITEM_LIST_UPDATE = function(frame, _event, _name)
   local addonP = frame.addonPtr
   addonP:Debug(5, "AUCTION_ITEM_LIST_UPDATE Event received - in ah wait %", addonP.waitingForAH)
   if addonP.waitingForAH then
-    addonP:Debug(2, "Event received, waiting for items for AH, at % got % - already in is %", addonP.ahResumeAt,
+    addonP:Debug(3, "Event received, waiting for items for AH, at % got % - already in is %", addonP.ahResumeAt,
                  #addonP.ahResult, addonP.AHinDump)
     if not addonP.AHinDump then
       addonP:coroutineRunDump(true)
     else
-      addonP:Debug(1, "Skipping item list even because we already are inside AHdump... %", addonP.ahResumeAt)
+      addonP:Debug(3, "Skipping item list even because we already are inside AHdump... %", addonP.ahResumeAt)
     end
   end
 end
@@ -333,7 +374,7 @@ function ML:AHrestoreNormal()
   self.ahResumeAt = nil
   self.ahRestarts = 0
   if self.ahTimer then
-    self:Debug(2, "cancelling previous timer, from restore normal")
+    self:Debug(3, "cancelling previous timer, from restore normal")
     self.ahTimer:Cancel()
     self.ahTimer = nil
   end
@@ -398,9 +439,9 @@ function ML:ShouldYield()
   local shouldYield = (self.yieldFrequency > 0) and (self.operationsCount % self.yieldFrequency == 0)
   self.operationsCount = self.operationsCount + 1 -- change it before we yield in case we reenter
   if shouldYield then
-    self:Debug(1, "yielding after % operations", self.operationsCount)
+    self:Debug(3, "yielding after % operations", self.operationsCount)
     self:Yield()
-    self:Debug(1, "resuming after yield")
+    self:Debug(3, "resuming after yield")
   end
 end
 
@@ -492,7 +533,7 @@ function ML:extractAuctionData(auction)
 end
 
 function ML:AHdump(fromEvent)
-  self:Debug(2, "AHdump call, fromEvent = %", fromEvent)
+  self:Debug(3, "AHdump call, fromEvent = %", fromEvent)
   if not self.waitingForAH then
     self:Warning("Not expecting AHdump() call...")
     return
@@ -697,8 +738,8 @@ function ML:AHdump(fromEvent)
   entry.itemDBcount = itemDB._count_
   entry.missingSellers = self.unknownOwners
   self:PrintInfo(self.name .. self.L[": Auction scan complete and captured for % listings in % s (% auctions/sec)."] ..
-                   "\n" .. self.L["% new items in DB, now % entries. % missing seller info."], count, elapsed, speed,
-                 newItems, itemDB._count_, self.unknownOwners)
+                   "\n" .. self.L["% new items in DB, now % entries (% with info). % missing seller info."], count, elapsed, speed,
+                 newItems, itemDB._count_, itemDB._infoCount_, self.unknownOwners)
   self:AHrestoreNormal()
   self:AHendOfScanCB()
   self.AHinDump = false

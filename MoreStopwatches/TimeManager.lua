@@ -178,7 +178,8 @@ function MoreStopwatches.Init()
 				local minute = _G[StopwatchTicker:GetName().."Minute"]:GetText();
 				local second = _G[StopwatchTicker:GetName().."Second"]:GetText();
 				local timer = hour .. ":" .. minute .. ":" .. second
-				editBox:Insert(timer);
+				local label = gsub(self:GetName(), MoreStopwatches.FRAME_PREFIX, "");
+				editBox:Insert(label .. ": " .. timer);
 			end;
 		end;
 

@@ -8,12 +8,14 @@ XPerl_RequestConfig(function(new)
 	conf = new
 end, "$Revision:  $")
 
+local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
 local GetNumSubgroupMembers = GetNumSubgroupMembers
 local GetNumGroupMembers = GetNumGroupMembers
 local UnitIsGroupAssistant = UnitIsGroupAssistant
 
 local classOrder
-if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
+if IsClassic then
 	classOrder = {"WARRIOR", "ROGUE", "HUNTER", "DRUID", "SHAMAN", "PALADIN", "PRIEST", "MAGE", "WARLOCK", "MONK"}
 else
 	classOrder = {"WARRIOR", "DEATHKNIGHT", "ROGUE", "HUNTER", "DRUID", "SHAMAN", "PALADIN", "PRIEST", "MAGE", "WARLOCK", "MONK", "DEMONHUNTER"}

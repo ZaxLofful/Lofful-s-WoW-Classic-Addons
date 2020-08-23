@@ -570,34 +570,17 @@ local function OnPlayerAlive()
     checkForUnlearnedProfession()
 end
 
-local function OnTradeSkillClose()
-	addon:UnregisterEvent("TRADE_SKILL_CLOSE")
-	addon.isOpen = nil
-end
-
-local function OnTradeSkillShow()
-    -- can't link tradeskills from other players in Classic, so this line is not needed
-	-- if C_TradeSkillUI.IsTradeSkillLinked() or C_TradeSkillUI.IsTradeSkillGuild() or C_TradeSkillUI.IsNPCCrafting() then return end
-    
-    if (addon.isOpen) then return end
-              
-	addon:RegisterEvent("TRADE_SKILL_CLOSE", OnTradeSkillClose)
-	addon.isOpen = true
+local function OnTradeSkillShow()    
     ClassicScanProfessionInfo();
 end
 
 local function OnCraftClose()
 	addon:UnregisterEvent("CRAFT_CLOSE")
-	addon.isOpen = nil
 end
 
 -- This one is for Enchanting. For some reason Enchanting isn't programmed as a "tradeskill"
-local function OnCraftShow()
-    -- To prevent issues caused by players jumping from one open profession window to another without closing the original first.
-    if (addon.isOpen) then return end
-     
+local function OnCraftShow()     
     addon:RegisterEvent("CRAFT_CLOSE", OnCraftClose)
-	addon.isOpen = true
     ClassicScanProfessionInfo(true);
 end
 
@@ -619,14 +602,14 @@ local skillUpMsg = gsub(ERR_SKILL_UP_SI, arg1pattern, "(.+)")
 skillUpMsg = gsub(skillUpMsg, arg2pattern, "(%%d+)")
 
 local function OnChatMsgSkill(self, msg)
-	if msg and addon.isOpen then	-- point gained while ts window is open ? rescan
+	if msg then	-- point gained while ts window is open ? rescan
 		local skill = msg:match(skillUpMsg)
-        -- TODO: check if the skillup was for the currently open profession pane
-		if skill then -- and skill == --C_TradeSkillUI.GetTradeSkillLine() then	-- if we gained a skill point in the currently opened profession pane, rescan
+		if skill and (skill == GetTradeSkillLine()) then
 			ScanTradeSkills()
+        elseif skill and (skill == (GetCraftDisplaySkillLine())) then
+            ScanTradeSkills(true)
 		end
-	end
---	ScanProfessionLinks() -- added to update skills upon firing of skillup event 
+	end 
 end
 
 
@@ -921,6 +904,7 @@ end
 -- will merge reference database data into the character table, creating a new table in the process, so the original variables aren't affected
 function _CraftsPrepareCharacterTableForSharing(characterTable)
     local newTable = {}
+    local oneTimeError = false
     if characterTable["Professions"] then
         newTable["Professions"] = {}
         for professionName, professionTable in pairs(characterTable["Professions"]) do
@@ -955,21 +939,27 @@ function _CraftsPrepareCharacterTableForSharing(characterTable)
                     newTable.Professions[professionName].Crafts[categoryID] = {}
                     for craftID, craftTable in pairs(categoryTable) do
                         newTable.Professions[professionName].Crafts[categoryID][craftID] = {}
-                        if craftTable["color"] then
-                            newTable.Professions[professionName].Crafts[categoryID][craftID].color = craftTable["color"]
-                        end
-                        if craftTable["isLearned"] then
-                            newTable.Professions[professionName].Crafts[categoryID][craftID].isLearned = craftTable["isLearned"]
-                        end
-                        if craftTable["recipeID"] then
-                            newTable.Professions[professionName].Crafts[categoryID][craftID].recipeID = craftTable["recipeID"]
-                            newTable.Professions[professionName].Crafts[categoryID][craftID].reagents = _GetCraftReagents(craftTable["recipeID"])
-                            local resultItems = addon.ref.global.ResultItems[craftTable["recipeID"]]
-                            if resultItems then
-                                newTable.Professions[professionName].Crafts[categoryID][craftID].resultItems = {}
-                                newTable.Professions[professionName].Crafts[categoryID][craftID].resultItems.name = resultItems.name
-                                newTable.Professions[professionName].Crafts[categoryID][craftID].resultItems.itemID = resultItems.itemID
-                                newTable.Professions[professionName].Crafts[categoryID][craftID].resultItems.maxMade = resultItems.maxMade
+                        if type(craftTable) == "number" then
+                            if not oneTimeError then
+                                print("Altoholic: Warning - you have outdated Profession data for one of your characters. Please log into your characters and open all their profession books.")
+                            end
+                        else
+                            if craftTable["color"] then
+                                newTable.Professions[professionName].Crafts[categoryID][craftID].color = craftTable["color"]
+                            end
+                            if craftTable["isLearned"] then
+                                newTable.Professions[professionName].Crafts[categoryID][craftID].isLearned = craftTable["isLearned"]
+                            end
+                            if craftTable["recipeID"] then
+                                newTable.Professions[professionName].Crafts[categoryID][craftID].recipeID = craftTable["recipeID"]
+                                newTable.Professions[professionName].Crafts[categoryID][craftID].reagents = _GetCraftReagents(craftTable["recipeID"])
+                                local resultItems = addon.ref.global.ResultItems[craftTable["recipeID"]]
+                                if resultItems then
+                                    newTable.Professions[professionName].Crafts[categoryID][craftID].resultItems = {}
+                                    newTable.Professions[professionName].Crafts[categoryID][craftID].resultItems.name = resultItems.name
+                                    newTable.Professions[professionName].Crafts[categoryID][craftID].resultItems.itemID = resultItems.itemID
+                                    newTable.Professions[professionName].Crafts[categoryID][craftID].resultItems.maxMade = resultItems.maxMade
+                                end
                             end
                         end
                     end
@@ -1089,7 +1079,6 @@ function addon:OnEnable()
     
     hooksecurefunc("AbandonSkill", checkForUnlearnedProfession)
 	
---	addon:SetupOptions()
 	ClearExpiredProfessions()	-- automatically cleanup guild profession links that are from an older version
 	LocalizeProfessionSpellIDs()
 end
@@ -1104,6 +1093,5 @@ function addon:OnDisable()
 end
 
 function addon:IsTradeSkillWindowOpen()
-	-- note : maybe there's a function in the WoW API to test this, but I did not find it :(
-	return addon.isOpen
+	return (GetCraftDisplaySkillLine()) or ((GetTradeSkillLine()) ~= "UNKNOWN")
 end

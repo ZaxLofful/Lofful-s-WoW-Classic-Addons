@@ -4,8 +4,10 @@ _G[addonName] = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "A
 
 local addon = _G[addonName]
 
-addon.Version = "v1.13.023"
-addon.VersionNum = 113023
+addon.VersionNum = GetAddOnMetadata("Altoholic", "Version")
+local pattern = ".*(%d+).*(%d%d).*(%d).*(%d%d%d).*"
+local expansionID, patchID, subpatchID, versionID = addon.VersionNum:match(pattern)
+addon.Version = "v"..expansionID.."."..patchID.."."..subpatchID.."."..versionID
 
 if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then
     print("Altoholic error: You are trying to run the Classic version of this addon on Retail.")
@@ -81,7 +83,7 @@ local AddonDB_Defaults = {
 			["UI.Tabs.Summary.CurrentMode"] = 1,								-- current mode (1 = account summary, 2 = bags, ...)
 			["UI.Tabs.Summary.CurrentColumn"] = "Name",						-- current column (default = "Name")
 			["UI.Tabs.Summary.CurrentRealms"] = 2,								-- selected realms (current/all in current/all accounts)
-			["UI.Tabs.Summary.CurrentFactions"] = 3,							-- 1 = Alliance, 2 = Horde, 3 = Both
+			["UI.Tabs.Summary.CurrentFactions"] = 3,							-- 1 = Alliance, 2 = Horde, 3 = Both, 4 = Match the faction of the currently logged in character
 			["UI.Tabs.Summary.CurrentLevels"] = 1,								-- 1 = All
 			["UI.Tabs.Summary.CurrentLevelsMin"] = 1,							
 			["UI.Tabs.Summary.CurrentLevelsMax"] = 60,					
@@ -359,6 +361,7 @@ local tabList = {
 	"Search",
 	"Guild",
 	"Grids",
+    "Agenda",
 }
 
 local frameToID = {}

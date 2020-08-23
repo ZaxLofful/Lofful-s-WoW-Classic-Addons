@@ -17,6 +17,8 @@ end, "$Revision:  $")
 
 local percD = "%d"..PERCENT_SYMBOL
 
+local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
 local format = format
 
 local UnitHealth = UnitHealth
@@ -624,7 +626,7 @@ local function UpdateAssignedRoles(self)
 	local icon = self.nameFrame.roleIcon
 	local isTank, isHealer, isDamage
 	local inInstance, instanceType = IsInInstance()
-	if (WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and instanceType == "party") then
+	if not IsClassic and instanceType == "party" then
 		-- No point getting it otherwise, as they can be wrong. Usually the values you had
 		-- from previous instance if you're running more than one with the same people
 
@@ -740,7 +742,7 @@ local function XPerl_Party_UpdatePVP(self)
 	elseif pconf.pvpIcon and factionGroup and factionGroup ~= "Neutral" and UnitIsPVP(partyid) then
 		pvpIcon:SetTexture("Interface\\TargetingFrame\\UI-PVP-"..factionGroup)
 
-		if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitIsMercenary(partyid) then
+		if not IsClassic and UnitIsMercenary(partyid) then
 			if factionGroup == "Horde" then
 				pvpIcon:SetTexture("Interface\\TargetingFrame\\UI-PVP-Alliance")
 			elseif factionGroup == "Alliance" then
@@ -856,7 +858,7 @@ end
 local function XPerl_Party_UpdateRange(self, overrideUnit)
 	local partyid = overrideUnit or self.partyid
 	if (partyid) then
-		if (not pconf.range30yard or CheckInteractDistance(partyid, 1) or not UnitIsConnected(partyid)) then
+		if (not pconf.range30yard or CheckInteractDistance(partyid, 4) or not UnitIsConnected(partyid)) then
 			self.nameFrame.rangeIcon:Hide()
 		else
 			self.nameFrame.rangeIcon:Show()
@@ -901,7 +903,7 @@ local function CheckRaid()
 		local singleGroup = XPerl_Party_SingleGroup()
 
 		if (not pconf or ((pconf.inRaid and IsInRaid()) or (pconf.smallRaid and singleGroup) or (GetNumGroupMembers() > 0 and not IsInRaid()))) then -- or GetNumGroupMembers() > 0
-			if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+			if not IsClassic then
 				if not C_PetBattles.IsInBattle() then
 					if (not partyHeader:IsShown()) then
 						partyHeader:Show()
@@ -928,7 +930,7 @@ end
 local function XPerl_Party_TargetUpdateHealth(self)
 	local tf = self.targetFrame
 	local targetid = self.targetid
-	local hp, hpMax, heal, abosrb = UnitIsGhost(targetid) and 1 or (UnitIsDead(targetid) and 0 or UnitHealth(targetid)), UnitHealthMax(targetid), WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitGetIncomingHeals(targetid), WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitGetTotalAbsorbs(targetid)
+	local hp, hpMax, heal, abosrb = UnitIsGhost(targetid) and 1 or (UnitIsDead(targetid) and 0 or UnitHealth(targetid)), UnitHealthMax(targetid), not IsClassic and UnitGetIncomingHeals(targetid), not IsClassic and UnitGetTotalAbsorbs(targetid)
 	tf.lastHP, tf.lastHPMax, tf.lastHeal, tf.lastAbsorb = hp, hpMax, heal, abosrb
 	tf.lastUpdate = GetTime()
 
@@ -1059,7 +1061,7 @@ function XPerl_Party_OnUpdate(self, elapsed)
 		end
 
 		if (pconf.target.large and self.targetFrame:IsShown()) then
-			local hp, hpMax, heal, absorb = UnitIsGhost(targetid) and 1 or (UnitIsDead(targetid) and 0 or UnitHealth(targetid)), UnitHealthMax(targetid), WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitGetIncomingHeals(targetid), WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitGetTotalAbsorbs(targetid)
+			local hp, hpMax, heal, absorb = UnitIsGhost(targetid) and 1 or (UnitIsDead(targetid) and 0 or UnitHealth(targetid)), UnitHealthMax(targetid), not IsClassic and UnitGetIncomingHeals(targetid), not IsClassic and UnitGetTotalAbsorbs(targetid)
 			if (hp ~= self.targetFrame.lastHP or hpMax ~= self.targetFrame.lastHPMax or heal ~= self.targetFrame.lastHeal or absorb ~= self.targetFrame.lastAbsorb or GetTime() > self.targetFrame.lastUpdate + 5000) then
 				XPerl_Party_TargetUpdateHealth(self)
 			end

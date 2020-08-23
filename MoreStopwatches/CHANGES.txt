@@ -1,12 +1,12 @@
-tag 97e02305327503d0e887075824a486fe9c5b8546 v1.17c
+tag ea09734264658a93ba53aa4c4fee929245c04d8f v1.18c
 Author:	André Wählisch <AndreWaehlisch@users.noreply.github.com>
-Date:	Fri May 8 12:27:49 2020 +0200
+Date:	Mon Aug 3 02:05:47 2020 +0200
 
-both retail and classic versions should be compatible again
+Add workaround for Tukui users. Shift-click a timer with some open chatbox will paste the name in addition to the current time now.
 
-commit 277cf27e2b8970e526f29e17badbea55f42d438e
+commit de7ea1bdc3cb325167d5f265ead8a778a59df7d9
 Author: André Wählisch <AndreWaehlisch@users.noreply.github.com>
-Date:   Fri May 8 12:22:31 2020 +0200
+Date:   Mon Aug 3 01:49:15 2020 +0200
 
-    better solution to the missing STOPWATCH entry in SlashCmdList
+    workaround for Tukui overwriting SlashCmdList
 

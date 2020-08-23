@@ -13,6 +13,8 @@ end, "$Revision:  $")
 
 --local new, del, copy = XPerl_GetReusableTable, XPerl_FreeTable, XPerl_CopyTable
 
+local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
 local GetNumGroupMembers = GetNumGroupMembers
 
 local localGroups = LOCALIZED_CLASS_NAMES_MALE
@@ -145,7 +147,7 @@ end
 local function XPerl_RaidPets_UpdateName(self)
 	local partyid = SecureButton_GetUnit(self)
 	local name
-	if (self.ownerid and WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and (UnitInVehicle(self.ownerid) or UnitHasVehicleUI(self.ownerid))) then
+	if (self.ownerid and not IsClassic and (UnitInVehicle(self.ownerid) or UnitHasVehicleUI(self.ownerid))) then
 		name = UnitName(self.ownerid)
 		if (name) then
 			self.text:SetFormattedText("<%s>", name)

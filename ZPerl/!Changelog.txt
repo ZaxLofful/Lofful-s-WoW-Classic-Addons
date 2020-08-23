@@ -1,3 +1,9 @@
+**r1224**
+* Various buff/debuff related fixes.
+
+**r1218**
+* Fixed enemy player buffs on Classic.
+
 **r1209**
 * Update for Classic 1.13.5.
 * Update libraries.

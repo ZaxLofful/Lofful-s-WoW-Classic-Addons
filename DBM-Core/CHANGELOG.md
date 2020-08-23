@@ -1,68 +1,57 @@
 # Deadly Boss Mods Core
 
-## [1.13.53](https://github.com/DeadlyBossMods/DBM-Classic/tree/1.13.53) (2020-07-14)
-[Full Changelog](https://github.com/DeadlyBossMods/DBM-Classic/compare/1.13.52...1.13.53) [Previous Releases](https://github.com/DeadlyBossMods/DBM-Classic/releases)
+## [1.13.57](https://github.com/DeadlyBossMods/DBM-Classic/tree/1.13.57) (2020-08-18)
+[Full Changelog](https://github.com/DeadlyBossMods/DBM-Classic/compare/1.13.56...1.13.57) [Previous Releases](https://github.com/DeadlyBossMods/DBM-Classic/releases)
 
-- Prep new Release  
-- Update localization.br.lua (#334)  
-- Actually reset position with reset button  
-- Fix a : that somehow got removed  
-- Add a reset to default options button to the warning options  
-- Update koKR (Classic) (#333)  
-    * Update koKR (Classic)  
-    * Update koKR  
-    * Update koKR (Classic)  
+- Update localization.cn.lua (#477)  
+- Prep new classic release  
+- Infoframe should work with option, but the tentacles table needs to be a local variable. mod.vb doesn't support tables yet in sync methods so syncing it would cause errors, also wipe it on pull so lingering tentacles wouldn't show from previous pull after a wipe  
+- cthun/tentacle: fixup a couple errors, still not exposing infoframe (#478)  
+- Update localization.tw.lua (#475)  
+- Fix editbox backdrop (#474)  
+    The editbox already has a backdrop defined as part of InputBoxTemplate, this is causing a 2nd one to overlay on top, but outpositioned.  
+- Update koKR (Classic) (#472)  
     * Update koKR (Classic)  
-- Update localization.cn.lua (#330)  
-    local dateTable = date("*t")  
-    if dateTable.day and dateTable.month and dateTable.day == 1 and dateTable.month == 4 then  
-    	L.DEADLY\_BOSS\_MODS				= "Harmless Boss Mods"  
-    	L.DBM							= "HBM"  
-    What is the use?  
-- Update WBA sync for whisperSyncHandlers for version 4 (#331)  
-- Update localization.br.lua (#329)  
-    * Update localization.br.lua  
-    * Update localization.br.lua  
-    Co-authored-by: QartemisT <63267788+QartemisT@users.noreply.github.com>  
-- Update localization.fr.lua (#328)  
-    * Update localization.fr.lua  
-    * Update localization.fr.lua  
-    Co-authored-by: QartemisT <63267788+QartemisT@users.noreply.github.com>  
-- Update Classic BW version check, which has been neglected for a while.  
-- tweak against mallcious intent  
-- Remove limiter, since it wasn't working anyways  
-- Hey, I found a solution for Harmless Boss Mods :kappa: (#327)  
-- Update localization.fr.lua (#322)  
-- Update localization.br.lua (#324)  
-- add ZG Buff yell timers and fixup say (#325)  
-- Add further protection to clocks going backwards during daylight savings time ending  
-- Fixed speed clear timers to be based on GetServerTime instead of GetTime() to resolve issues where syncing or even rebooting computer in middle of a run could cause the timer to get all screwed up.  
-    As a result, this update also wipes Molten Core  timer data once again to remove any corrupted/bad stored timers. Sorry about this, but it shouldn't need resetting again. BWL data luckily should NOT need resetting since it never used syncing (which is something I need to add later so it supports timer recovery just like MC and AQ40 do)  
-- Update localization.br.lua (#323)  
-- Fix regressions to range checker where all the retail values were written over the classic values. Range checker should now only show the ranges classic supports, not ones retail does.  
-- Increase Ragnaros range check (#312)  
-- Update localization.fr.lua (#320)  
-- Update localization.es.lua (#321)  
-- Update koKR (Classic) (#319)  
-    * Update koKR (Classic)  
-    * Update koKR  
-- Fixed regression that caused the major patch force disable code to never run do to incorrect placement of a nil check from a previous fix  
-- Fix #317 (#318)  
-- Support locale for WBE, WBD, GCB, GCE (#314)  
-- Update localization.fr.lua (#315)  
-- Update localization.br.lua (#316)  
-- Update localization.fr.lua (#313)  
-    * Update localization.fr.lua  
-    * Update localization.fr.lua  
-- Update localization.es.lua (#311)  
-- Update koKR (Classic) (#310)  
-- Update localization.fr.lua (#309)  
-- Update localization.fr.lua (#308)  
-- Adjust Ramstein add timer after more testing (#307)  
-- Update travis  
-- Update localization.fr.lua (#306)  
-- Update localization.br.lua (#305)  
-- Update localization.es.lua (#304)  
-- Update localization.mx.lua (#303)  
-- Add timer for black guards after Ramstein death (#302)  
-- Bump alpha revision and remove hudmap duplication for questie. I left that in release since not everyone adopted questie 6.0 yet, but the NEXT dbm release (and current alpha cycle) will expect updated mods.  
+- Fix a typo  
+- Fix checking wrong GUID on birth spell casts, which result in not finding tentacle IDs  
+- Fix tentical removal  
+- Update localization.cn.lua (#470)  
+- Fix incorrect GetShapeshiftFormID ID  
+- Tidy up some  
+- Tentacle Spawn Timer (#469)  
+- core: add tank to arms/ret spec role and check for tank stance in IsTank (#466)  
+- bump all of the tank option versions (#467)  
+- Odd that was missed in the PR, that wasn't something I introduced in last commit.  
+    Also added minsync revision to block syncs from the 2 or so alphas that may include mobname  
+- Few changes to Tentacle Infoframe  
+     - Tentacle name is now localized. Getting name from sender would be problematic if sender played different language from reciever  
+     - Removed unneeded local function. Since it was only called in one spot, didn't need to be split off.  
+     - Saved a few bytes with self over mod usage.  
+     - Put the arg names in OnSync handler and removed unnessesary shadowing of them while still having robust nil checks.  
+     - Moved all moving parts of infoframe into same section. locals are generally declared at top of mod but only if they are used in multiple parts of it (for example if infoframe has updates in multiple places), otherwise they belong with section they are use. Option locals being the exception since finding those at top of mod helps  maintenance/updating of mod options without digging through mod to find all of them. (Not all older mods are good examples of this, as many of them were written over a decade ago and just updated for classic.)  
+- core/IsHealer: allow any druid spec to be a healer but check for form (#468)  
+- AQ40 Add support for Stomach Tentacle health monitoring outside of it (#460)  
+- Remove unused  
+- Update localization.cn.lua (#462)  
+- Improve eye tentacle spawn detection/timers, Closes #463  
+- aq/cthun: delay the eye beam target scanner a little (#459)  
+- Update localization.ru.lua (#458)  
+- Update localization.es.lua (#457)  
+- Update localization.mx.lua (#456)  
+- Update localization.de.lua (#455)  
+- Update localization.fr.lua (#454)  
+- Apply new lower restrictions for max targets announcements can show before they begin target aggregation.  
+     - General announcements changed from 7 target cap to 6 (allowing up to a max of 2 pairs)  
+     - Special announcements changed from 7 target cap to 5 (maxing out on the size of a 5 man party)  
+- because of accuracy issues, cthun eye target features will be restricted to debug mode for dev testing only. Everyone else should not be shown inaccurate information  
+- Fixed PlaySound not having the no sound check  
+- Sync profile change from retail  
+    Changed icon for speed timers from a string to a number, since it's calling timer object directly, api expects it to be a number, not a string. it's only core that expects it to be a string  
+- Update localization.es.lua (#453)  
+- Update localization.mx.lua (#452)  
+- Fixed a bug that caused Whirlwind special warning to never show on Sartura. However, with the bug fixed, it should now be off by default since that's the expected behavior now  
+- Fix name  
+- Added frenzy dispel warning to Huhuran  
+    Removed Frenzy buff active timer.  
+- Update koKR (Classic) (#450)  
+- Explain the teleport timer at least for short term  

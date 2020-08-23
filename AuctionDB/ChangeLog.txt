@@ -4,6 +4,16 @@ Coming next:
 - Your input/suggestions welcome !
 - See open issues for ideas https://github.com/mooreatv/AuctionDB/issues
 
+v1.03.01 Aug 8th 2020
+- Misc dev mode improvements: Seen filter for lowbid is now a set and corrected whisper message.
+
+v1.03.00 July 24th 2020
+- Auction Item Database schema v5, now contains itemSellPrice, itemStackCount, itemClassID,
+  itemSubClassID, itemRarity, itemMinLevel prefix before the link (MoLib change)
+- The internal item database will enrich automatically with item info as you scan but if you have
+  a large one you want to manually update, do `/ahdb infoscan` a few times (wait a bit and /reload in between)
+- See the matching schema change in https://github.com/mooreatv/AHDBapp
+
 v1.02.02 July 8th 2020
 - Updated for Classic 1.13.5
 - [bfa] doesn't yet work with the recent AH revamp of BfA 8.3

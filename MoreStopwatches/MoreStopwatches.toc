@@ -1,8 +1,8 @@
-## Interface: 11304
+## Interface: 11305
 
 ## Title: More Stopwatches
 
-## Version: v1.17c
+## Version: v1.18c
 
 ## Notes: Provides as many stopwatches as you like.
 
@@ -11,6 +11,8 @@
 ## Author: |cffFF7D0AHoochie|r @EU-Lucifron
 
 ## SavedVariablesPerCharacter: MoreStopwatchesSave
+
+## OptionalDeps: Tukui
 
 MoreStopwatchesCore.lua
 TimeManager.lua

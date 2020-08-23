@@ -1501,6 +1501,9 @@ function WeakAuras.CreatePvPTalentCache()
 end
 
 function WeakAuras.CountWagoUpdates()
+  if not (WeakAurasCompanion and WeakAurasCompanion.slugs) then
+    return 0
+  end
   local WeakAurasSaved = WeakAurasSaved
   local updatedSlugs, updatedSlugsCount = {}, 0
   for id, aura in pairs(WeakAurasSaved.displays) do
@@ -2260,6 +2263,7 @@ if not WeakAuras.IsClassic() then
   loadFrame:RegisterEvent("PET_BATTLE_OPENING_START");
   loadFrame:RegisterEvent("PET_BATTLE_CLOSE");
   loadFrame:RegisterEvent("VEHICLE_UPDATE");
+  loadFrame:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR")
   loadFrame:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR");
   loadFrame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
   loadFrame:RegisterEvent("CHALLENGE_MODE_START")
@@ -7454,12 +7458,22 @@ function WeakAuras.FindUnusedId(prefix)
 end
 
 function WeakAuras.SetModel(frame, model_path, model_fileId, isUnit, isDisplayInfo)
-  if isDisplayInfo then
-    pcall(frame.SetDisplayInfo, frame, tonumber(model_fileId))
-  elseif isUnit then
-    pcall(frame.SetUnit, frame, model_fileId)
+  if WeakAuras.IsClassic() then
+    if isDisplayInfo then
+      pcall(frame.SetDisplayInfo, frame, tonumber(model_path))
+    elseif isUnit then
+      pcall(frame.SetUnit, frame, model_path)
+    else
+      pcall(frame.SetModel, frame, model_path)
+    end
   else
-    pcall(frame.SetModel, frame, tonumber(model_fileId))
+    if isDisplayInfo then
+      pcall(frame.SetDisplayInfo, frame, tonumber(model_fileId))
+    elseif isUnit then
+      pcall(frame.SetUnit, frame, model_fileId)
+    else
+      pcall(frame.SetModel, frame, tonumber(model_fileId))
+    end
   end
 end
 
@@ -7581,6 +7595,7 @@ end
 
 local ownRealm = select(2, UnitFullName("player"))
 function WeakAuras.UnitNameWithRealm(unit)
+  ownRealm = ownRealm or select(2, UnitFullName("player"))
   local name, realm = UnitFullName(unit)
   return name or "", realm or ownRealm or ""
 end

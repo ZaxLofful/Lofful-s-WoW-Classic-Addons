@@ -36,6 +36,8 @@ end
 
 --local new, del, copy = XPerl_GetReusableTable, XPerl_FreeTable, XPerl_CopyTable
 
+local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
 local format = format
 local strsub = strsub
 
@@ -83,7 +85,7 @@ for k, v in pairs(localGroups) do
 end
 
 local resSpells
-if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
+if IsClassic then
 	resSpells = {
 		[GetSpellInfo(2006)] = true,			-- Resurrection
 		[GetSpellInfo(2008)] = true,			-- Ancestral Spirit
@@ -167,7 +169,7 @@ function XPerl_Raid_OnLoad(self)
 		tinsert(raidHeaders, _G[XPERL_RAIDGRP_PREFIX..i])
 	end
 
-	if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+	if not IsClassic then
 		self.state = CreateFrame("Frame", nil, nil, "SecureHandlerStateTemplate")
 		self.state:SetFrameRef("ZPerlRaidHeader1", _G[XPERL_RAIDGRP_PREFIX..1])
 		self.state:SetFrameRef("ZPerlRaidHeader2", _G[XPERL_RAIDGRP_PREFIX..2])
@@ -825,9 +827,9 @@ end
 -- GetShowCast
 local function GetShowCast(self)
 	if (rconf.buffs.enable) then
-		return "b", (rconf.buffs.castable == 1) and "RAID"
+		return "b", (rconf.buffs.castable == 1) and "HELPFUL|RAID" or "HELPFUL"
 	elseif (rconf.debuffs.enable) then
-		return "d", (rconf.buffs.castable == 1) and "RAID"
+		return "d", (rconf.buffs.castable == 1) and "HARMFUL|RAID" or "HARMFUL"
 	end
 end
 
@@ -1220,7 +1222,7 @@ function XPerl_Raid_UpdateDisplay(self)
 		XPerl_Raid_UpdateManaType(self)
 		XPerl_Raid_UpdateMana(self)
 	end
-	if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+	if not IsClassic then
 		XPerl_Raid_RoleUpdate(self, UnitGroupRolesAssigned(self.partyid))
 	end
 	XPerl_Raid_UpdatePlayerFlags(self)
@@ -1260,7 +1262,7 @@ function XPerl_Raid_HideShowRaid()
 
 	for i = 1, WoWclassCount do
 		if (rconf.group[i] and enable and (i < 9 or rconf.sortByClass) and not singleGroup) then
-			if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and not C_PetBattles.IsInBattle() then
+			if not IsClassic and not C_PetBattles.IsInBattle() then
 				if (not raidHeaders[i]:IsShown()) then
 					raidHeaders[i]:Show()
 				end
@@ -1310,7 +1312,7 @@ local function DisableCompactRaidFrames()
 	SetRaidProfileOption(CompactUnitFrameProfiles.selectedProfile, "autoActivate10Players", false)
 	SetRaidProfileOption(CompactUnitFrameProfiles.selectedProfile, "autoActivate15Players", false)
 	SetRaidProfileOption(CompactUnitFrameProfiles.selectedProfile, "autoActivate40Players", false)
-	if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
+	if IsClassic then
 		SetRaidProfileOption(CompactUnitFrameProfiles.selectedProfile, "autoActivate20Players", false)
 	else
 		SetRaidProfileOption(CompactUnitFrameProfiles.selectedProfile, "autoActivate25Players", false)
@@ -1475,7 +1477,7 @@ function XPerl_Raid_Events:GROUP_ROSTER_UPDATE()
 	BuildGuidMap()
 	if (IsInRaid() or (IsInGroup() and rconf.inParty)) then
 		XPerl_Raid_Frame:Show()
-		if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+		if not IsClassic then
 			if (rconf.raid_role) then
 				for i, frame in pairs(FrameArray) do
 					if (frame.partyid) then
@@ -2450,7 +2452,7 @@ local function SetMainHeaderAttributes(self)
 end
 
 local function DefaultRaidClasses()
-	if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
+	if IsClassic then
 		return {
 			{enable = true, name = "WARRIOR"},
 			--{enable = true, name = "DEATHKNIGHT"},
@@ -2530,7 +2532,7 @@ function XPerl_Raid_ChangeAttributes()
 
 	rconf.anchor = (rconf and rconf.anchor) or "TOP"
 
-	for i = 1, rconf.sortByClass and WoWclassCount or (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC and 9 or 12) do
+	for i = 1, rconf.sortByClass and WoWclassCount or (IsClassic and 9 or 12) do
 		local groupHeader = raidHeaders[i]
 
 		-- Hide this when we change attributes, so the whole re-calc is only done once, instead of for every attribute change

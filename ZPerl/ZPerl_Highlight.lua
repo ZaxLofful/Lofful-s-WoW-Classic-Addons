@@ -15,20 +15,24 @@ if LCC then
     UnitChannelInfo = function(unit) return LCC:UnitChannelInfo(unit); end
 end
 
-local GetNumSubgroupMembers = GetNumSubgroupMembers
+local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
 local GetNumGroupMembers = GetNumGroupMembers
+local GetNumSubgroupMembers = GetNumSubgroupMembers
 local GetTime = GetTime
-local UnitBuff = UnitBuff
+local UnitAura = UnitAura
 local UnitClass = UnitClass
+local UnitGUID = UnitGUID
 local UnitInParty = UnitInParty
 local UnitInRaid = UnitInRaid
-local UnitGUID = UnitGUID
-local UnitPlayerOrPetInRaid = UnitPlayerOrPetInRaid
-local UnitPlayerOrPetInParty = UnitPlayerOrPetInParty
 local UnitName = UnitName
+local UnitPlayerOrPetInParty = UnitPlayerOrPetInParty
+local UnitPlayerOrPetInRaid = UnitPlayerOrPetInRaid
+
+
+local band = bit.band
 local cos = math.cos
 local sin = math.sin
-local band = bit.band
 
 local new, del, copy = XPerl_GetReusableTable, XPerl_FreeTable, XPerl_CopyTable
 
@@ -610,7 +614,7 @@ end
 function xpHigh:GetMyHotTime(unit)
 	local maxDur, maxTimeLeft = 0, 0
 	for i = 1, 40 do
-		local name, _, _, _, dur, endTime = UnitBuff(unit, i, "PLAYER")
+		local name, _, _, _, dur, endTime = UnitAura(unit, i, "HELPFUL|PLAYER")
 		if (not name) then
 			break
 		end
@@ -688,7 +692,7 @@ end
 -- xpHigh:HasMyHOT(unit)
 function xpHigh:HasMyHOT(unit)
 	for i = 1, 40 do
-		local name = UnitBuff(unit, i, "PLAYER")
+		local name = UnitAura(unit, i, "HELPFUL|PLAYER")
 		if (not name) then
 			break
 		end
@@ -728,7 +732,7 @@ end
 -- GetMyPomEndTime
 function xpHigh:GetMyPomEndTime(unit)
 	for i = 1, 40 do
-		local name, _, _, _, _, endTime = UnitBuff(unit, i, "PLAYER")
+		local name, _, _, _, _, endTime = UnitAura(unit, i, "HELPFUL|PLAYER")
 		if (not name) then
 			break
 		end
@@ -1403,14 +1407,14 @@ function xpHigh.clEvents:SPELL_PERIODIC_HEAL(timestamp, event, srcGUID, srcName,
 
 					local index = 40
 					for i = 1, 39 do
-						local _, _, _, _, _, _, _, _, _, ID = UnitBuff(checkName, i, "PLAYER")
+						local _, _, _, _, _, _, _, _, _, ID = UnitAura(checkName, i, "HELPFUL|PLAYER")
 						if ID == spellID then
 							index = i
 							break
 						end
 					end
 
-					local _, _, _, _, _, endTime, isMine = UnitBuff(checkName, index, "PLAYER")
+					local _, _, _, _, _, endTime, isMine = UnitAura(checkName, index, "HELPFUL|PLAYER")
 
 					if (isMine) then
 						-- Figure out how many seconds are left in the HOT so we can ensure the flashy only stays up as long as the HOT is active
@@ -1606,7 +1610,7 @@ end
 -- xpHigh:HasMyPomPom(unit)
 function xpHigh:HasMyPomPom(unit)
 	for i = 1, 40 do
-		local name, _, _, _, _, endTime = UnitBuff(unit, i, "PLAYER")
+		local name, _, _, _, _, endTime = UnitAura(unit, i, "HELPFUL|PLAYER")
 		if (not name) then
 			break
 		end
@@ -1619,7 +1623,7 @@ end
 -- xpHigh:HasMyShield(unit)
 function xpHigh:HasMyShield(unit)
 	for i = 1, 40 do
-		local name, _, _, _, _, endTime = UnitBuff(unit, i, "PLAYER")
+		local name, _, _, _, _, endTime = UnitAura(unit, i, "HELPFUL|PLAYER")
 		if (not name) then
 			break
 		end
@@ -1704,7 +1708,7 @@ function xpHigh:UNIT_AURA(unit)
 	if (conf.highlight.HOTCOUNT) then
 		local hotCount = 0
 		for i = 1, 40 do
-			local name = UnitBuff(unit, i)
+			local name = UnitAura(unit, i, "HELPFUL")
 			if (not name) then
 				break
 			end
@@ -1777,7 +1781,7 @@ function xpHigh:OptionChange()
 		self:ClearAll("SHIELD")
 	end
 
-	if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+	if not IsClassic then
 		if (conf.highlight.enable and conf.highlight.HEAL) then
 			events = true
 			self:RegisterEvent("UNIT_HEAL_PREDICTION")

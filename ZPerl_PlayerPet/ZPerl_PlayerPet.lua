@@ -12,6 +12,8 @@ XPerl_RequestConfig(function(new)
 	end
 end, "$Revision:  $")
 
+local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
 local XPerl_Player_Pet_HighlightCallback
 
 -- XPerl_Player_Pet_OnLoad
@@ -163,7 +165,7 @@ function XPerl_Player_Pet_OnLoad(self)
 	self:SetScript("OnShow", XPerl_Unit_UpdatePortrait)
 
 	if (XPerl_ArcaneBar_RegisterFrame) then
-		XPerl_ArcaneBar_RegisterFrame(self.nameFrame, (WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitHasVehicleUI("player")) and "player" or "pet")
+		XPerl_ArcaneBar_RegisterFrame(self.nameFrame, (not IsClassic and UnitHasVehicleUI("player")) and "player" or "pet")
 	end
 
 	XPerl_RegisterHighlight(self.highlight, 2)
@@ -330,7 +332,7 @@ end
 -- Happiness --
 ---------------
 function XPerl_Player_Pet_SetHappiness(self)
-	if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+	if not IsClassic then
 		return
 	end
 
@@ -368,7 +370,7 @@ end
 
 -- XPerl_Player_Pet_Update_Control
 local function XPerl_Player_Pet_Update_Control(self)
-	if (UnitIsCharmed(self.partyid) and WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and not UnitInVehicle("player")) then
+	if (UnitIsCharmed(self.partyid) and not IsClassic and not UnitInVehicle("player")) then
 		self.nameFrame.warningIcon:Show()
 	else
 		self.nameFrame.warningIcon:Hide()
@@ -557,7 +559,7 @@ end
 
 -- PLAYER_ENTERING_WORLD
 function XPerl_Player_Pet_Events:PLAYER_ENTERING_WORLD()
-	if (WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitHasVehicleUI("player")) then
+	if (not IsClassic and UnitHasVehicleUI("player")) then
 		self.partyid = "player"
 		self:SetAttribute("unit", "player")
 	else

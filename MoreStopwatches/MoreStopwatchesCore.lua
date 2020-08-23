@@ -1,5 +1,6 @@
 --global tabel
 MoreStopwatches = {};
+MoreStopwatches.FRAME_PREFIX = "MoreStopwatches_";
 MoreStopwatches.timerList = {}; -- lookup table of all timers
 MoreStopwatches.timerList_sorted = {}; -- ordered list of all timers
 MoreStopwatches.Addon_Initialized = false; -- ADDON_LOADED fired for our addon
@@ -19,10 +20,21 @@ local function blizzardTimeManagerHooks()
 
 	-- classic WoW (version 11302) seems to not have SlashCmdList["STOPWATCH"], so create that. take notice, that some addons (seen in ElvUI) map, e.g., Stopwatch_Toggle to SlashCmdList.STOPWATCH, so it >may< already exist
 	if ( not SlashCmdList.STOPWATCH ) then
-		SlashCmdList.STOPWATCH = (function() end); -- insert a noop
+		SlashCmdList["STOPWATCH"] = (function() end); -- insert a noop
 	end;
 
-	--hook the blizzard /timer (also /sw and /stopwatch) slash command, this is where we do our magic
+	-- weird workaround for Tukui overwriting SlashCmdList on PLAYER_LOGIN
+	local myFrame = CreateFrame("Frame");
+	myFrame:RegisterEvent("PLAYER_ENTERING_WORLD");
+	myFrame:SetScript("OnEvent", function()
+		if ( SlashCmdList.STOPWATCH == Stopwatch_Toggle ) then
+			SlashCmdList["STOPWATCH"] = (function() end); -- insert a noop
+			hooksecurefunc(SlashCmdList, "STOPWATCH", MoreStopwatches.Slash);
+		end;
+		myFrame:UnregisterAllEvents();
+	end)
+
+	-- hook the blizzard /timer (also /sw and /stopwatch) slash command, this is where we do our magic
 	hooksecurefunc(SlashCmdList, "STOPWATCH", MoreStopwatches.Slash);
 end;
 
@@ -31,9 +43,6 @@ local startup = CreateFrame("Frame");
 startup:RegisterEvent("ADDON_LOADED");
 startup:SetScript("OnEvent",function(self, event, addonName)
 	if ( addonName == "MoreStopwatches" ) then
-		--locals
-		local FRAME_PREFIX = "MoreStopwatches_";
-
 		--debug stuff
 		local function debug(...)
 			if ( MoreStopwatches.debugEnabled ) then
@@ -231,7 +240,7 @@ startup:SetScript("OnEvent",function(self, event, addonName)
 				debug("Timer already exists. Reusing.");
 			else
 				--...or create a new timer if not
-				timer = CreateFrame("Frame", FRAME_PREFIX .. timerName, UIParent, "MoreStopwatchesTemplate");
+				timer = CreateFrame("Frame", MoreStopwatches.FRAME_PREFIX .. timerName, UIParent, "MoreStopwatchesTemplate");
 				debug("New timer created.");
 			end;
 
@@ -385,7 +394,8 @@ startup:SetScript("OnEvent",function(self, event, addonName)
 
 					if ( restoreTime < 6000 ) then
 						--strip frame-prefix to get timer label
-						local label = gsub(frameName, FRAME_PREFIX, "");
+
+						local label = gsub(frameName, MoreStopwatches.FRAME_PREFIX, "");
 
 						--simulate slash command (and pause button if it was not playing on save)
 						MoreStopwatches.Slash(string.format("%f true %s", restoreTime, label), tab.playing and "PLAYING" or "PAUSED", tab.savedPosition);

@@ -26,7 +26,7 @@ ADB.debugLocalization = false -- TODO: remove this line when dealing with locali
 -- ADB.debug = 9 -- to debug before saved variables are loaded
 
 ADB.slashCmdName = "ahdb"
-ADB.addonHash = "6ae3359"
+ADB.addonHash = "caba7af"
 ADB.savedVarName = "AuctionDBSaved"
 ADB.name = "AHDB"
 -- ADB.author = "MooreaTv" -- override default author
@@ -173,17 +173,20 @@ function ADB:ScanFrame()
 
 end
 -- Thresholds - TODO: add ui for thresholds
-ADB.buyoutProfit = 48 -- 19 copper
-ADB.bidProfit = 78 -- 69 copper
+ADB.buyoutProfit = 48 -- 48 copper
+ADB.bidProfit = 78 -- 78 copper
+ADB.lowBid = 10 -- display low bids on items without vendor price
+ADB.lowBidTime = 3 -- only 30,2h,8h for low bids
+ADB.seenLowBid = {} -- avoid spamming for hundreds of same
 
 -- ADB.sendTo = "OFFICER"
 
 function ADB:checkAuction(timeLeft, itemCount, minBid, buyoutPrice, bidAmount, minIncrement, ourBid, itemLink,
                           _auctionIndex)
   local _, _, _, _, _, _, _, _, _, _, vendorUnitPrice = GetItemInfo(itemLink)
-  if not vendorUnitPrice or vendorUnitPrice <= 0 then
-    ADB:Debug(4, "no vendor unit price (yet?) for % : %", itemLink, vendorUnitPrice)
-    return -- not vendorable
+  if not vendorUnitPrice then
+    ADB:Debug(1, "no vendor unit price (yet?) for % : %", itemLink, vendorUnitPrice)
+    return -- no data
   end
   if buyoutPrice > 0 then
     local vendorProfit = vendorUnitPrice * itemCount - buyoutPrice
@@ -201,10 +204,8 @@ function ADB:checkAuction(timeLeft, itemCount, minBid, buyoutPrice, bidAmount, m
           SendChatMessage(msg, ADB.sendTo)
         end
       end
+      return
     end
-  end
-  if timeLeft ~= 1 then
-    return -- don't look at bid for longer auctions
   end
   -- bid check, includes increment
   local bid = minBid
@@ -212,7 +213,7 @@ function ADB:checkAuction(timeLeft, itemCount, minBid, buyoutPrice, bidAmount, m
     bid = bidAmount + minIncrement
   end
   local vendorProfit = vendorUnitPrice * itemCount - bid
-  if vendorProfit > ADB.bidProfit then
+  if timeLeft == 1 and vendorProfit > ADB.bidProfit then
     ADB:Debug("vendor bid: % bidProfit=% vup=% bid=% itemCount=% isOurBid=%", itemLink, vendorProfit, vendorUnitPrice,
               bid, itemCount, ourBid)
     if not ourBid then
@@ -225,6 +226,20 @@ function ADB:checkAuction(timeLeft, itemCount, minBid, buyoutPrice, bidAmount, m
                          GetCoinText(vendorProfit), itemCount)
         SendChatMessage(tmsg, ADB.sendTo)
       end
+    end
+    return
+  end
+  if vendorUnitPrice == 0 and bid < ADB.lowBid and not ourBid and timeLeft <= ADB.lowBidTime then
+    if ADB.seenLowBid[itemLink] then
+      ADB:Debug(2, "repeated lowbid on " .. itemLink)
+      return
+    end
+    ADB.seenLowBid[itemLink] = true
+    ADB:PrintDefault("AHDB: |cFF8742f5Low bid|r Auction " .. itemLink .. "x% bid " .. GetCoinTextureString(bid), itemCount)
+    -- Send to sendTo  -- GetCoinText
+    if ADB.sendTo then
+      local tmsg = ADB:format("AHDB: Low bid Auction " .. itemLink .. "x% bid " .. GetCoinText(bid), itemCount)
+      SendChatMessage(tmsg, ADB.sendTo)
     end
   end
 end
@@ -387,9 +402,40 @@ function ADB:MaybeStartScan(msg, nowarning)
 end
 
 function ADB:AHendOfScanCB()
+  ADB.seenLowBid = {}
   if ADB.autoSave then
     -- C_UI.Reload()
     ADB:Execute("/reload", L["Save the scan data to SavedVariables"], true)
+  end
+end
+
+function ADB:ItemInfoScan()
+  local idb = self.savedVar[self.itemDBKey]
+  ADB:PrintDefault(L["Scanning item db for item info, starting with % items, % with info"], idb._count_, idb._infoCount_)
+  local count = 0
+  local infoCount = 0
+  for key, link in pairs(idb) do
+    if key:sub(1,1) == "_" then
+      ADB:PrintDefault(L["Meta information key % value %"], key, link)
+    else
+      count = count + 1
+      if ADB:HasItemInfo(link) then
+        infoCount = infoCount + 1
+      else
+        local added
+        idb[key], added = ADB:AddItemInfo(link)
+        infoCount = infoCount + added
+        idb._infoCount_ = idb._infoCount_ + added
+      end
+    end
+  end
+  ADB:PrintDefault(L["Found % total items and % with info"], count, infoCount)
+  if idb._count_ ~= count then
+    ADB:Warning("Mismatch in count % vs %", count, idb._count_)
+  end
+  if idb._infoCount_ ~= infoCount then
+    ADB:Warning("Fixing mismatch in info count % (was %)", infoCount, idb._infoCount_)
+    idb._infoCount_ = infoCount
   end
 end
 
@@ -416,15 +462,17 @@ function ADB.Slash(arg) -- can't be a : because used directly as slash command
     local subText = L["Please submit on discord or https://|cFF99E5FFbit.ly/ahbug|r or email"]
     ADB:PrintDefault(L["AHDB bug report open: "] .. subText)
     -- base molib will add version and date/timne
-    ADB:BugReport(subText, "6ae3359\n\n" .. L["Bug report from slash command"])
+    ADB:BugReport(subText, "caba7af\n\n" .. L["Bug report from slash command"])
   elseif cmd == "v" then
     -- version
-    ADB:PrintDefault("AHDB " .. ADB.manifestVersion .. " (6ae3359) by MooreaTv (moorea@ymail.com)")
+    ADB:PrintDefault("AHDB " .. ADB.manifestVersion .. " (caba7af) by MooreaTv (moorea@ymail.com)")
   elseif cmd == "s" then
     -- scan
     ADB:AHSaveAll()
   elseif ADB:StartsWith(arg, "context") then
     ADB:AHContext()
+  elseif ADB:StartsWith(arg, "infoscan") then
+    ADB:ItemInfoScan()
   elseif cmd == "c" then
     -- Show config panel
     -- InterfaceOptionsList_DisplayPanel(ADB.optionsPanel)
@@ -467,7 +515,7 @@ function ADB:CreateOptionsPanel()
   p:addText(L["AHDB options"], "GameFontNormalLarge"):Place()
   p:addText(L["Auction House DataBase: records DB history, offline queries and more."]):Place()
   p:addText(L["These options let you control the behavior of AHDB"] .. " " .. ADB.manifestVersion ..
-              " 6ae3359"):Place()
+              " caba7af"):Place()
 
   local autoScan = p:addCheckBox(L["Auto Scan"],
                                  L["Automatically scan the AH whenever possible, unless the |cFF99E5FFShift|r key is held"])

@@ -223,6 +223,19 @@
 								</Anchor>
 							</Anchors>
 						</Texture>
+						<!-- Leader Icon -->
+						<Texture name="$parentassistIcon" file="Interface\GroupFrame\UI-Group-AssistantIcon" hidden="true">
+							<Size>
+								<AbsDimension x="16" y="16"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOP">
+									<Offset>
+										<AbsDimension x="0" y="7"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</Texture>
 						<!-- Master Loot Icon -->
 						<Texture name="$parentmasterIcon" file="Interface\GroupFrame\UI-Group-MasterLooter" hidden="true">
 							<Size>

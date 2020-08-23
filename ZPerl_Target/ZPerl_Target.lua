@@ -25,6 +25,16 @@ XPerl_RequestConfig(function(new)
 	end
 end, "$Revision:  $")
 
+local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+local LCD = IsClassic and LibStub and LibStub("LibClassicDurations")
+if IsClassic then
+	LCD.RegisterCallback("ZPerl", "UNIT_BUFF", function(event, unit)
+		if unit == "target" then
+			XPerl_Target_Events:UNIT_AURA(event, unit)
+		end
+	end)
+end
+
 -- Upvalues
 local _G = _G
 local bit_band = bit.band
@@ -52,14 +62,12 @@ local NotifyInspect = NotifyInspect
 local PlaySound = PlaySound
 local RegisterUnitWatch = RegisterUnitWatch
 local UnitBattlePetType = UnitBattlePetType
-local UnitBuff = UnitBuff
 local UnitCanAssist = UnitCanAssist
 local UnitCanAttack = UnitCanAttack
 local UnitClass = UnitClass
 local UnitClassBase = UnitClassBase
 local UnitClassification = UnitClassification
 local UnitCreatureType = UnitCreatureType
-local UnitDebuff = UnitDebuff
 local UnitExists = UnitExists
 local UnitFactionGroup = UnitFactionGroup
 local UnitGUID = UnitGUID
@@ -160,7 +168,7 @@ function XPerl_Target_OnLoad(self, partyid)
 		self.statsFrame.focusTarget:SetVertexColor(0.7, 1, 1, 0.5)
 
 		self:RegisterEvent("PLAYER_TARGET_CHANGED")
-		if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+		if not IsClassic then
 			self:RegisterEvent("PLAYER_FOCUS_CHANGED")
 		end
 
@@ -171,7 +179,7 @@ function XPerl_Target_OnLoad(self, partyid)
 	else
 		XPerl_BlizzFrameDisable(FocusFrame)
 
-		if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+		if not IsClassic then
 			self:RegisterEvent("PLAYER_FOCUS_CHANGED")
 		end
 		self:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -329,12 +337,12 @@ end
 function XPerl_Target_UpdateCombo(self)
 	-- Anticipation
 	--[[local name = GetSpellInfo(114015)
-	local _, _, count = UnitAura("player", name)
+	local _, _, count = UnitAura("player", name, "HELPFUL")
 	if not count then
 		count = 0
 	end]]
-	local combopoints = UnitPower((WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitHasVehicleUI("player")) and "vehicle" or "player", Enum.PowerType.ComboPoints)
-	--local combopoints = GetComboPoints((WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitHasVehicleUI("player")) and "vehicle" or "player", self.partyid) + count
+	local combopoints = UnitPower((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player", Enum.PowerType.ComboPoints)
+	--local combopoints = GetComboPoints((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player", self.partyid) + count
 	local r, g, b = GetComboColour(combopoints)
 	if (tconf.combo.enable) then
 		--self.cpFrame:Hide()
@@ -365,34 +373,10 @@ function XPerl_Target_UpdateCombo(self)
 	end
 end
 
--- XPerl_UnitDebuffInformation
---[[local function TargetDebuffInformation(debuff)
-	local name, _, count = UnitDebuff("target", debuff)
-	return name and count or 0
-end--]]
-
----------------------
---Debuffs          --
----------------------
---[[local XPERL_SPELL_SUNDER	= GetSpellInfo(58567)		-- Sunder Armorn
-local XPERL_SPELL_SHADOWV	= GetSpellInfo(15258)		-- Shadow Vulnerability
-local XPERL_SPELL_FIREV		= GetSpellInfo(22959)		-- Fire Vulnerability
-local XPERL_SPELL_WINTERCH	= GetSpellInfo(12579)		-- Winter's Chill]]
-
 local function XPerl_Target_DebuffUpdate(self)
 	local partyid = self.partyid
-	if (GetComboPoints((WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitHasVehicleUI("player")) and "vehicle" or "player", partyid) == 0) then
+	if (GetComboPoints((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player", partyid) == 0) then
 		local numDebuffs = 0
-		--[[if (playerClass == "WARRIOR") then
-			numDebuffs = TargetDebuffInformation(XPERL_SPELL_SUNDER)
-		elseif (playerClass == "MAGE") then
-			if (select(5, GetTalentTabInfo(3)) > select(5, GetTalentTabInfo(2))) then
-				numDebuffs = TargetDebuffInformation(XPERL_SPELL_WINTERCH)
-			else
-				numDebuffs = TargetDebuffInformation(XPERL_SPELL_FIREV)
-			end
-		end]]
-
 		local r, g, b = GetComboColour(numDebuffs)
 		if (tconf.combo.enable) then
 			self.cpFrame:Hide()
@@ -434,7 +418,7 @@ local function XPerl_Target_UpdatePVP(self)
 	elseif self.conf.pvpIcon and factionGroup and factionGroup ~= "Neutral" and UnitIsPVP(partyid) then
 		pvpIcon.icon:SetTexture("Interface\\TargetingFrame\\UI-PVP-"..factionGroup)
 
-		if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitIsMercenary(partyid) then
+		if not IsClassic and UnitIsMercenary(partyid) then
 			if factionGroup == "Horde" then
 				pvpIcon.icon:SetTexture("Interface\\TargetingFrame\\UI-PVP-Alliance")
 			elseif factionGroup == "Alliance" then
@@ -676,7 +660,7 @@ do
 		LTQ:RegisterCallback("TalentQuery_Ready", TalentQuery_Ready)
 	else
 		hooksecurefunc("NotifyInspect", function(unit)
-			if (UnitIsUnit("player", unit) or (WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitInVehicle(unit)) or not (UnitExists(unit) and CanInspect(unit) and UnitIsVisible(unit) and UnitIsConnected(unit) and CheckInteractDistance(unit, 4))) then
+			if (UnitIsUnit("player", unit) or (not IsClassic and UnitInVehicle(unit)) or not (UnitExists(unit) and CanInspect(unit) and UnitIsVisible(unit) and UnitIsConnected(unit) and CheckInteractDistance(unit, 4))) then
 				return
 			end
 			lastInspectUnit = unit
@@ -716,7 +700,7 @@ do
 						name1, name2, name3, group = unpack(cached)
 					elseif (inspectReady and guid == UnitGUID(partyid)) then
 						local remoteInspectNeeded = not UnitIsUnit("player", partyid) or nil
-						if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+						if not IsClassic then
 							group =  GetInspectSpecialization("target")
 							local _, spec = GetSpecializationInfoByID(group)
 							name1 = group and spec or "None"
@@ -777,7 +761,7 @@ local function XPerl_Target_UpdateType(self)
 	self.typeFramePlayer:Hide()
 
 
-	if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and (UnitIsWildBattlePet(partyid) or UnitIsBattlePetCompanion(partyid)) then
+	if not IsClassic and (UnitIsWildBattlePet(partyid) or UnitIsBattlePetCompanion(partyid)) then
 		self.creatureTypeFrame.text:SetText(PET_TYPE_SUFFIX[UnitBattlePetType(partyid)])
 	else
 		self.creatureTypeFrame.text:SetText(targettype)
@@ -1070,7 +1054,7 @@ end
 
 -- XPerl_Target_Update_Range
 function XPerl_Target_Update_Range(self)
-	if (not tconf.range30yard or CheckInteractDistance(self.partyid, 1) or not UnitIsConnected(self.partyid)) then
+	if (not tconf.range30yard or CheckInteractDistance(self.partyid, 4) or not UnitIsConnected(self.partyid)) then
 		self.nameFrame.rangeIcon:Hide()
 	else
 		self.nameFrame.rangeIcon:Show()
@@ -1809,16 +1793,16 @@ function XPerl_Target_Set_Bits(self)
 end
 
 function XPerl_Target_ComboFrame_Update()
-	--local comboPoints = GetComboPoints((WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitHasVehicleUI("player")) and "vehicle" or "player")
-	local comboPoints = UnitPower((WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitHasVehicleUI("player")) and "vehicle" or "player", Enum.PowerType.ComboPoints)
-	if comboPoints > 0 and UnitCanAttack((WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitHasVehicleUI("player")) and "vehicle" or "player", "target") then
+	--local comboPoints = GetComboPoints((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player")
+	local comboPoints = UnitPower((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player", Enum.PowerType.ComboPoints)
+	if comboPoints > 0 and UnitCanAttack((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player", "target") then
 		if not ComboFrame:IsShown() then
 			ComboFrame:Show()
 			UIFrameFadeIn(ComboFrame, COMBOFRAME_FADE_IN)
 		end
 
 		local fadeInfo = { }
-		for i = 1, WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and 8 or 5 do
+		for i = 1, not IsClassic and 8 or 5 do
 			local comboPoint = _G["ComboPoint"..i]
 			if i < 6 then
 				comboPoint:Show()
@@ -1865,7 +1849,7 @@ end
 function XPerl_Target_Set_BlizzCPFrame(self)
 	if tconf.combo.blizzard then
 		ComboFrame:ClearAllPoints()
-		for i = 1, WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and 9 or 5 do
+		for i = 1, not IsClassic and 9 or 5 do
 			local combo = _G["ComboPoint"..i]
 			if i < 9 then
 				combo:ClearAllPoints()
@@ -1888,7 +1872,7 @@ function XPerl_Target_Set_BlizzCPFrame(self)
 			ComboPoint3:SetPoint("LEFT", ComboPoint2, "RIGHT", 0, 1)
 			ComboPoint4:SetPoint("LEFT", ComboPoint3, "RIGHT", 0, -1)
 			ComboPoint5:SetPoint("LEFT", ComboPoint4, "RIGHT", 0, -1)
-			if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+			if not IsClassic then
 				ComboPoint6:SetPoint("TOPLEFT", ComboPoint2, "BOTTOMLEFT", 0, 0)
 				ComboPoint7:SetPoint("TOPLEFT", ComboPoint3, "BOTTOMLEFT", 0, 0)
 				ComboPoint8:SetPoint("TOPLEFT", ComboPoint4, "BOTTOMLEFT", 0, 0)
@@ -1900,7 +1884,7 @@ function XPerl_Target_Set_BlizzCPFrame(self)
 			ComboPoint3:SetPoint("LEFT", ComboPoint2, "RIGHT", 0, -1)
 			ComboPoint4:SetPoint("LEFT", ComboPoint3, "RIGHT", 0, 1)
 			ComboPoint5:SetPoint("LEFT", ComboPoint4, "RIGHT", 0, 1)
-			if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+			if not IsClassic then
 				ComboPoint6:SetPoint("BOTTOMLEFT", ComboPoint2, "TOPLEFT", 0, 0)
 				ComboPoint7:SetPoint("BOTTOMLEFT", ComboPoint3, "TOPLEFT", 0, 0)
 				ComboPoint8:SetPoint("BOTTOMLEFT", ComboPoint4, "TOPLEFT", 0, 0)
@@ -1912,7 +1896,7 @@ function XPerl_Target_Set_BlizzCPFrame(self)
 			ComboPoint3:SetPoint("BOTTOM", ComboPoint2, "TOP", -1, 0)
 			ComboPoint4:SetPoint("BOTTOM", ComboPoint3, "TOP", 1, 0)
 			ComboPoint5:SetPoint("BOTTOM", ComboPoint4, "TOP", 1, 0)
-			if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+			if not IsClassic then
 				ComboPoint6:SetPoint("TOPLEFT", ComboPoint2, "TOPRIGHT", 0, 0)
 				ComboPoint7:SetPoint("TOPLEFT", ComboPoint3, "TOPRIGHT", 0, 0)
 				ComboPoint8:SetPoint("TOPLEFT", ComboPoint4, "TOPRIGHT", 0, 0)
@@ -1924,7 +1908,7 @@ function XPerl_Target_Set_BlizzCPFrame(self)
 			ComboPoint3:SetPoint("BOTTOM", ComboPoint2, "TOP", 1, 0)
 			ComboPoint4:SetPoint("BOTTOM", ComboPoint3, "TOP", -1, 0)
 			ComboPoint5:SetPoint("BOTTOM", ComboPoint4, "TOP", -1, 0)
-			if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+			if not IsClassic then
 				ComboPoint6:SetPoint("TOPRIGHT", ComboPoint2, "TOPLEFT", 0, 0)
 				ComboPoint7:SetPoint("TOPRIGHT", ComboPoint3, "TOPLEFT", 0, 0)
 				ComboPoint8:SetPoint("TOPRIGHT", ComboPoint4, "TOPLEFT", 0, 0)
@@ -1936,7 +1920,7 @@ function XPerl_Target_Set_BlizzCPFrame(self)
 			ComboPoint3:SetPoint("LEFT", ComboPoint2, "RIGHT", 0, 1)
 			ComboPoint4:SetPoint("LEFT", ComboPoint3, "RIGHT", 0, -1)
 			ComboPoint5:SetPoint("LEFT", ComboPoint4, "RIGHT", 0, -1)
-			if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+			if not IsClassic then
 				ComboPoint6:SetPoint("TOPLEFT", ComboPoint2, "BOTTOMLEFT", 0, 0)
 				ComboPoint7:SetPoint("TOPLEFT", ComboPoint3, "BOTTOMLEFT", 0, 0)
 				ComboPoint8:SetPoint("TOPLEFT", ComboPoint4, "BOTTOMLEFT", 0, 0)

@@ -16,8 +16,9 @@ local XTitle
 local pendingTankListChange -- If in combat when tank list changes, then we'll defer it till next time we're out of combat
 local conf
 
-local GetNumGroupMembers = GetNumGroupMembers
+local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
+local GetNumGroupMembers = GetNumGroupMembers
 
 if type(RegisterAddonMessagePrefix) == "function" then
 	RegisterAddonMessagePrefix("CTRA")
@@ -415,7 +416,7 @@ function XPerl_MTRosterChanged()
 		-- Scan roster, adding any new ones, and removing found ones from old tanks list
 		for i = 1, GetNumGroupMembers() do
 			local unitid = "raid"..i
-			if ((WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC and UnitGroupRolesAssigned(unitid) == "TANK") or GetPartyAssignment("maintank", unitid)) then
+			if ((not IsClassic and UnitGroupRolesAssigned(unitid) == "TANK") or GetPartyAssignment("maintank", unitid)) then
 				local name = GetUnitName(unitid, true)
 				local name2, realm = UnitName(unitid)
 				if (name ~= name2) then

@@ -2,6 +2,8 @@
 -- Author: Resike
 -- License: GNU GPL v3, 18 October 2014
 
+local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
 local max = max
 local pairs = pairs
 local strfind = strfind
@@ -13,7 +15,7 @@ local GetTime = GetTime
 local InCombatLockdown = InCombatLockdown
 local RegisterUnitWatch = RegisterUnitWatch
 local UnitAffectingCombat = UnitAffectingCombat
-local UnitBuff = UnitBuff
+local UnitAura = UnitAura
 local UnitClassification = UnitClassification
 local UnitExists = UnitExists
 local UnitFactionGroup = UnitFactionGroup
@@ -91,7 +93,7 @@ function ZPerl_TargetTarget_OnLoad(self)
 	elseif (self == XPerl_FocusTarget) then
 		self.parentid = "focus"
 		self.partyid = "focustarget"
-		if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
+		if not IsClassic then
 			self:RegisterEvent("PLAYER_FOCUS_CHANGED")
 		end
 		for i, event in pairs(events) do
@@ -567,7 +569,7 @@ function XPerl_TargetTarget_Update(self)
 					offset = 0
 				end
 				offset = offset + 20
-				if UnitBuff("targettarget", 9) then
+				if UnitAura("targettarget", 9, "HELPFUL") then
 					offset = offset + 20
 				end
 			end

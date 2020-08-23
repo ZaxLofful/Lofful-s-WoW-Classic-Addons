@@ -952,6 +952,7 @@ data["Gnomeregan"] = {
 				{ 7,  9488 }, -- Oscillating Power Hammer
 				{ 8,  9486 }, -- Supercharger Battle Axe
 				{ 9,  9490 }, -- Gizmotron Megachopper
+				{ 11, 9489 }, -- Gyromatic Icemaker
 				{ 16, 9327 }, -- Security DELTA Data Access Card
 				{ 18, 7191 }, -- Fused Wiring
 				{ 19, 9308 }, -- Grime-Encrusted Object
@@ -2570,7 +2571,7 @@ data["BlackrockDepths"] = {
 			DisplayIDs = {{8761}},
 			AtlasMapBossID = 5,
 			[NORMAL_DIFF] = {
-				{ 1,  11623 }, -- Spritecaster Cape
+				{ 1,  11626 }, -- Blackveil Cape
 				{ 2,  11624 }, -- Kentic Amice
 				{ 3,  22240 }, -- Greaves of Withering Despair
 				{ 4,  11625 }, -- Enthralled Sphere
@@ -2585,7 +2586,7 @@ data["BlackrockDepths"] = {
 			DisplayIDs = {{9212}},
 			AtlasMapBossID = 6,
 			[NORMAL_DIFF] = {
-				{ 1,  11626 }, -- Blackveil Cape
+				{ 1,  11623 }, -- Spritecaster Cape
 				{ 2,  11627 }, -- Fleetfoot Greaves
 				{ 3,  11628 }, -- Houndmaster's Bow
 				{ 4,  11629 }, -- Houndmaster's Rifle
@@ -2600,13 +2601,9 @@ data["BlackrockDepths"] = {
 			AtlasMapBossID = 6,
 			[NORMAL_DIFF] = {
 				{ 1,  11726 }, -- Savage Gladiator Chain
-				{ 2,  11729 }, -- Savage Gladiator Helm
-				{ 3,  11730 }, -- Savage Gladiator Grips
-				{ 4,  11728 }, -- Savage Gladiator Leggings
-				{ 5,  11731 }, -- Savage Gladiator Greaves
-				{ 7,  22271 }, -- Leggings of Frenzied Magic
-				{ 8,  22257 }, -- Bloodclot Band
-				{ 9,  22266 }, -- Flarethorn
+				{ 2,  22271 }, -- Leggings of Frenzied Magic
+				{ 3,  22257 }, -- Bloodclot Band
+				{ 4,  22266 }, -- Flarethorn
 			},
 		},
 		{ -- BRDGrizzle
@@ -2634,6 +2631,7 @@ data["BlackrockDepths"] = {
 				{ 1,  11685 }, -- Splinthide Shoulders
 				{ 2,  11679 }, -- Rubicund Armguards
 				{ 4,  11686 }, -- Girdle of Beastial Fury
+				{ 5,  11730 }, -- Savage Gladiator Grips
 			},
 		},
 		{ -- BRDOkthor
@@ -2645,7 +2643,8 @@ data["BlackrockDepths"] = {
 			[NORMAL_DIFF] = {
 				{ 1,  11665 }, -- Ogreseer Fists
 				{ 2,  11662 }, -- Ban'thok Sash
-				{ 3,  11824 }, -- Cyclopean Band
+				{ 3,  11728 }, -- Savage Gladiator Leggings
+				{ 4,  11824 }, -- Cyclopean Band
 			},
 		},
 		{ -- BRDAnubshiah
@@ -2658,6 +2657,7 @@ data["BlackrockDepths"] = {
 				{ 1,  11678 }, -- Carapace of Anub'shiah
 				{ 2,  11677 }, -- Graverot Cape
 				{ 3,  11675 }, -- Shadefiend Boots
+				{ 4,  11731 }, -- Savage Gladiator Greaves
 			},
 		},
 		{ -- BRDHedrum
@@ -2670,6 +2670,7 @@ data["BlackrockDepths"] = {
 				{ 1,  11633 }, -- Spiderfang Carapace
 				{ 2,  11634 }, -- Silkweb Gloves
 				{ 3,  11635 }, -- Hookfang Shanker
+				{ 4,  11729 }, -- Savage Gladiator Helm
 			},
 		},
 		-- RING END
@@ -2808,7 +2809,7 @@ data["BlackrockDepths"] = {
 			[NORMAL_DIFF] = {
 				{ 1,  11820 }, -- Royal Decorated Armor
 				{ 2,  11821 }, -- Warstrife Leggings
-				{ 3,  11815 }, -- Hand of Justice
+				{ 3, 11810 }, -- Force of Will
 				{ 4,  11817 }, -- Lord General's Sword
 				{ 5,  11816 }, -- Angerforge's Battle Axe
 				{ 6,  11841 }, -- Senior Designer's Pantaloons
@@ -2866,11 +2867,10 @@ data["BlackrockDepths"] = {
 			DisplayIDs = {{8177}},
 			AtlasMapBossID = 15,
 			[NORMAL_DIFF] = {
-				{ 1,  11746 }, -- Golem Skull Helm
-				{ 2,  22212 }, -- Golem Fitted Pauldrons
-				{ 3,  11745 }, -- Fists of Phalanx
-				{ 4, 11744 }, -- Bloodfist
-				{ 5, 11743 }, -- Rockfist
+				{ 1,  22212 }, -- Golem Fitted Pauldrons
+				{ 2,  11745 }, -- Fists of Phalanx
+				{ 3, 11744 }, -- Bloodfist
+				{ 4, 11743 }, -- Rockfist
 			},
 		},
 		{ -- BRDFlamelash
@@ -2931,10 +2931,11 @@ data["BlackrockDepths"] = {
 			DisplayIDs = {{12162}},
 			AtlasMapBossID = 20,
 			[NORMAL_DIFF] = {
-				{ 1,  11935 }, -- Magmus Stone
-				{ 2,  22395 }, -- Totem of Rage
-				{ 3,  22400 }, -- Libram of Truth
-				{ 4,  22208 }, -- Lavastone Hammer
+				{ 1,  11746 }, -- Golem Skull Helm
+				{ 2,  11935 }, -- Magmus Stone
+				{ 3,  22395 }, -- Totem of Rage
+				{ 4,  22400 }, -- Libram of Truth
+				{ 5,  22208 }, -- Lavastone Hammer
 			},
 		},
 		{ -- BRDPrincess
@@ -2960,17 +2961,16 @@ data["BlackrockDepths"] = {
 			AtlasMapBossID = 21,
 			[NORMAL_DIFF] = {
 				{ 1,  11684 }, -- Ironfoe
-				{ 3,  16724 }, -- Lightforge Gauntlets
-				{ 4,  11933 }, -- Imperial Jewel
-				{ 5,  11930 }, -- The Emperor's New Cape
-				{ 6,  11924 }, -- Robes of the Royal Crown
-				{ 7,  22204 }, -- Wristguards of Renown
-				{ 8,  22207 }, -- Sash of the Grand Hunt
-				{ 9,  11934 }, -- Emperor's Seal
-				{ 10, 11810 }, -- Force of Will
-				{ 11, 11928 }, -- Thaurissan's Royal Scepter
-				{ 12, 11931 }, -- Dreadforge Retaliator
-				{ 13, 11932 }, -- Guiding Stave of Wisdom
+				{ 3,  11933 }, -- Imperial Jewel
+				{ 4,  11930 }, -- The Emperor's New Cape
+				{ 5,  11924 }, -- Robes of the Royal Crown
+				{ 6,  22204 }, -- Wristguards of Renown
+				{ 7,  22207 }, -- Sash of the Grand Hunt
+				{ 8,  11934 }, -- Emperor's Seal
+				{ 9,  11815 }, -- Hand of Justice
+				{ 10, 11928 }, -- Thaurissan's Royal Scepter
+				{ 11, 11931 }, -- Dreadforge Retaliator
+				{ 12, 11932 }, -- Guiding Stave of Wisdom
 				{ 16, 12033 }, -- Thaurissan Family Jewels
 			},
 		},
@@ -3071,13 +3071,14 @@ data["LowerBlackrockSpire"] = {
 			DisplayIDs = {{11565}},
 			AtlasMapBossID = 5,
 			[NORMAL_DIFF] = {
-				{ 1,  13166 }, -- Slamshot Shoulders
-				{ 2,  13168 }, -- Plate of the Shaman King
-				{ 3,  13170 }, -- Skyshroud Leggings
-				{ 4,  13169 }, -- Tressermane Leggings
-				{ 5,  13167 }, -- Fist of Omokk
-				{ 7,  12336 }, -- Gemstone of Spirestone
-				{ 9, 12534 }, -- Omokk's Head
+				{ 1,  16670 }, -- Boots of Elements
+				{ 3,  13166 }, -- Slamshot Shoulders
+				{ 4,  13168 }, -- Plate of the Shaman King
+				{ 5,  13170 }, -- Skyshroud Leggings
+				{ 6,  13169 }, -- Tressermane Leggings
+				{ 7,  13167 }, -- Fist of Omokk
+				{ 8,  12336 }, -- Gemstone of Spirestone
+				{ 16, 12534 }, -- Omokk's Head
 			},
 		},
 		{ -- LBRSSpirestoneBattleLord
@@ -3132,12 +3133,11 @@ data["LowerBlackrockSpire"] = {
 			[NORMAL_DIFF] = {
 				{ 1,  16676 }, -- Beaststalker's Gloves
 				{ 3,  13177 }, -- Talisman of Evasion
-				{ 4,  13178 }, -- Rosewine Circle
-				{ 5,  13179 }, -- Brazecore Armguards
-				{ 6,  22231 }, -- Kayser's Boots of Precision
-				{ 7,  13173 }, -- Flightblade Throwing Axe
-				{ 8,  12582 }, -- Keris of Zul'Serak
-				{ 10,  12335 }, -- Gemstone of Smolderthorn
+				{ 4,  13179 }, -- Brazecore Armguards
+				{ 5,  22231 }, -- Kayser's Boots of Precision
+				{ 6,  13173 }, -- Flightblade Throwing Axe
+				{ 7,  12582 }, -- Keris of Zul'Serak
+				{ 9,  12335 }, -- Gemstone of Smolderthorn
 			},
 		},
 		{ -- LBRSGrimaxe
@@ -3190,11 +3190,11 @@ data["LowerBlackrockSpire"] = {
 			DisplayIDs = {{11583}},
 			AtlasMapBossID = 15,
 			[NORMAL_DIFF] = {
-				{ 1,  16670 }, -- Boots of Elements
-				{ 3,  13258 }, -- Slaghide Gauntlets
-				{ 4,  22232 }, -- Marksman's Girdle
-				{ 5,  13259 }, -- Ribsteel Footguards
-				{ 7,  18784 }, -- Top Half of Advanced Armorsmithing: Volume III
+				{ 1,  13258 }, -- Slaghide Gauntlets
+				{ 2,  22232 }, -- Marksman's Girdle
+				{ 3,  13259 }, -- Ribsteel Footguards
+				{ 4,  13178 }, -- Rosewine Circle
+				{ 16,  18784 }, -- Top Half of Advanced Armorsmithing: Volume III
 			},
 		},
 		{ -- LBRSZigris
@@ -4512,10 +4512,11 @@ data["Stratholme"] = {
 			AtlasMapBossID = 3,
 			specialType = "rare",
 			[NORMAL_DIFF] = {
-				{ 1,  13378 }, -- Songbird Blouse
-				{ 2,  13384 }, -- Rainbow Girdle
-				{ 3,  13383 }, -- Woollies of the Prancing Minstrel
-				{ 4,  13379 }, -- Piccolo of the Flaming Fire
+				{ 1,  16682 }, -- Magister's Boots
+				{ 3,  13378 }, -- Songbird Blouse
+				{ 4,  13384 }, -- Rainbow Girdle
+				{ 5,  13383 }, -- Woollies of the Prancing Minstrel
+				{ 6,  13379 }, -- Piccolo of the Flaming Fire
 			},
 		},
 		{ -- STRATTheUnforgiven
@@ -4541,10 +4542,11 @@ data["Stratholme"] = {
 			DisplayIDs = {{571}},
 			AtlasMapBossID = 6,
 			[NORMAL_DIFF] = {
-				{ 1,  13400 }, -- Vambraces of the Sadist
-				{ 2,  13403 }, -- Grimgore Noose
-				{ 3,  13402 }, -- Timmy's Galoshes
-				{ 4,  13401 }, -- The Cruel Hand of Timmy
+				{ 1,  16724 }, -- Lightforge Gauntlets
+				{ 3,  13400 }, -- Vambraces of the Sadist
+				{ 4,  13403 }, -- Grimgore Noose
+				{ 5,  13402 }, -- Timmy's Galoshes
+				{ 6,  13401 }, -- The Cruel Hand of Timmy
 			},
 		},
 		{ -- STRATMalorsStrongbox
@@ -4800,13 +4802,12 @@ data["Stratholme"] = {
 			DisplayIDs = {{10669}},
 			AtlasMapBossID = "6'",
 			[NORMAL_DIFF] = {
-				{ 1,  16682 }, -- Magister's Boots
-				{ 3,  13390 }, -- The Postmaster's Band
-				{ 4,  13388 }, -- The Postmaster's Tunic
-				{ 5,  13389 }, -- The Postmaster's Trousers
-				{ 6,  13391 }, -- The Postmaster's Treads
-				{ 7,  13392 }, -- The Postmaster's Seal
-				{ 8,  13393 }, -- Malown's Slam
+				{ 1,  13390 }, -- The Postmaster's Band
+				{ 2,  13388 }, -- The Postmaster's Tunic
+				{ 3,  13389 }, -- The Postmaster's Trousers
+				{ 4,  13391 }, -- The Postmaster's Treads
+				{ 5,  13392 }, -- The Postmaster's Seal
+				{ 6,  13393 }, -- Malown's Slam
 			},
 		},
 		{ -- STRATTrash
@@ -5753,17 +5754,18 @@ data["Zul'Gurub"] = {
 				{ 2,  20257, [ATLASLOOT_IT_ALLIANCE] = 20264 }, -- Seafury Gauntlets
 				--{ 3,  20264, [ATLASLOOT_IT_HORDE] = 20257 }, -- Peacekeeper Gauntlets
 				{ 3,  19855 }, -- Bloodsoaked Legplates
-				{ 6,  19876 }, -- Soul Corrupter's Necklace
-				{ 7,  19856 }, -- The Eye of Hakkar
-				{ 8,  19861 }, -- Touch of Chaos
-				{ 9,  19853 }, -- Gurubashi Dwarf Destroyer
-				{ 10, 19862 }, -- Aegis of the Blood God
-				{ 11, 19864 }, -- Bloodcaller
-				{ 12, 19865 }, -- Warblade of the Hakkari
-				{ 13, 19852 }, -- Ancient Hakkari Manslayer
-				{ 14, 19859 }, -- Fang of the Faceless
-				{ 15, 19854 }, -- Zin'rokh, Destroyer of Worlds
-				{ 16, 19802 }, -- Heart of Hakkar
+				{ 4,  19876 }, -- Soul Corrupter's Necklace
+				{ 5,  19856 }, -- The Eye of Hakkar
+				{ 7, 19802 }, -- Heart of Hakkar
+				{ 16,  19861 }, -- Touch of Chaos
+				{ 17,  19853 }, -- Gurubashi Dwarf Destroyer
+				{ 18, 19862 }, -- Aegis of the Blood God
+				{ 19, 19864 }, -- Bloodcaller
+				{ 20, 19865 }, -- Warblade of the Hakkari
+				{ 21, 19866 }, -- Warblade of the Hakkari
+				{ 22, 19852 }, -- Ancient Hakkari Manslayer
+				{ 23, 19859 }, -- Fang of the Faceless
+				{ 24, 19854 }, -- Zin'rokh, Destroyer of Worlds
 			},
 		},
 		{ -- ZGShared
@@ -6177,6 +6179,10 @@ data["TheRuinsofAhnQiraj"] = { -- AQ20
 				{ 5,  21494 }, -- Southwind's Grasp
 				{ 6,  21495 }, -- Legplates of the Qiraji Command
 				{ 7,  21497 }, -- Boots of the Qiraji General
+				{ 9,  "INV_Box_01", nil, AL["Trash"] },
+				{ 10,  21810 }, -- Treads of the Wandering Nomad
+				{ 11,  21809 }, -- Fury of the Forgotten Swarm
+				{ 12,  21806 }, -- Gavel of Qiraji Authority
 				{ 19, 20885 }, -- Qiraji Martial Drape
 				{ 20, 20889 }, -- Qiraji Regal Drape
 				{ 21, 20888 }, -- Qiraji Ceremonial Ring
