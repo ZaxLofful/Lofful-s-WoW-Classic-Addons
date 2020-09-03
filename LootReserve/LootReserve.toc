@@ -1,0 +1,19 @@
+## Interface: 11305
+## Title: LootReserve
+## Version: 2020-08-19
+## Author: Tagar-NethergardeKeep
+## SavedVariables: LootReserveGlobalSave
+## SavedVariablesPerCharacter: LootReserveCharacterSave
+
+embeds.xml
+
+LootReserve.lua
+Constants.lua
+Client.lua
+Server.lua
+Comm.lua
+Data.lua
+Common.xml
+ClientWindow.xml
+ServerWindow.xml
+RollRequestWindow.xml

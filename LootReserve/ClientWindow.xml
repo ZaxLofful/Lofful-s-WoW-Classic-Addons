@@ -1,0 +1,304 @@
+<Ui xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.blizzard.com/wow/ui/">
+	<Script file="ClientWindow.lua" />
+	<CheckButton name="LootReserveCategoryListButtonTemplate" virtual="true">
+		<Size y="18" />
+		<Layers>
+			<Layer>
+				<FontString parentKey="Text" inherits="GameFontWhite" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="5" />
+						<Anchor point="BOTTOMRIGHT" x="-5" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<HighlightTexture file="Interface\QUESTFRAME\UI-QuestTitleHighlight" alphaMode="ADD" />
+		<CheckedTexture file="Interface\QUESTFRAME\UI-QuestTitleHighlight" alphaMode="ADD" />
+	</CheckButton>
+	<CheckButton name="LootReserveCategoryListHeaderTemplate" virtual="true">
+		<Size y="28" />
+		<Layers>
+			<Layer>
+				<FontString parentKey="Text" inherits="GameFontNormal">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="5" y="-10" />
+						<Anchor point="BOTTOMRIGHT" x="-5" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<HighlightTexture file="Interface\QUESTFRAME\UI-QuestTitleHighlight" alphaMode="ADD" />
+		<CheckedTexture file="Interface\QUESTFRAME\UI-QuestTitleHighlight" alphaMode="ADD" />
+	</CheckButton>
+	<CheckButton name="LootReserveCategoryListSeparatorTemplate" virtual="true">
+		<Size y="6" />
+		<Layers>
+			<Layer>
+				<Texture alpha="0.25" file="Interface\QUESTFRAME\UI-QuestLogTitleHighlight" alphaMode="ADD">
+					<Size y="2" />
+					<Anchors>
+						<Anchor point="LEFT" x="15" />
+						<Anchor point="RIGHT" x="-15" />
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</CheckButton>
+	<Frame name="LootReserveLootListTemplate" virtual="true" enableMouse="true">
+		<Size y="44" />
+		<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border">
+			<EdgeSize val="16" />
+			<BorderColor r="1" g="0.82" b="0" a="0" />
+		</Backdrop>
+		<Frames>
+			<Frame parentKey="ReserveFrame">
+				<Size x="112" y="32" />
+				<Anchors>
+					<Anchor point="RIGHT" x="-6" y="0" />
+				</Anchors>
+				<Frames>
+					<Button parentKey="ReserveButton" inherits="UIPanelButtonTemplate" text="Reserve">
+						<Size x="75" y="23" />
+						<Anchors>
+							<Anchor point="RIGHT" />
+						</Anchors>
+						<Scripts>
+							<OnClick>
+								LootReserve.Client:Reserve(self:GetParent():GetParent().Item);
+							</OnClick>
+						</Scripts>
+					</Button>
+					<Button parentKey="CancelReserveButton" inherits="UIPanelButtonTemplate" hidden="true" text="Cancel">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeKey="$parent.ReserveButton" />
+							<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ReserveButton" />
+						</Anchors>
+						<Scripts>
+							<OnClick>
+								LootReserve.Client:CancelReserve(self:GetParent():GetParent().Item);
+							</OnClick>
+						</Scripts>
+					</Button>
+					<Button parentKey="ReserveIcon">
+						<Size x="32" y="32" />
+						<Anchors>
+							<Anchor point="RIGHT" relativeKey="$parent.ReserveButton" relativePoint="LEFT" x="-5" />
+						</Anchors>
+						<Layers>
+							<Layer>
+								<Texture parentKey="One" setAllPoints="true" file="Interface\RAIDFRAME\ReadyCheck-Ready" />
+								<Texture parentKey="Many" setAllPoints="true" file="Interface\BUTTONS\UI-GroupLoot-Dice-Up" />
+								<FontString parentKey="Number" inherits="GameFontNormalLarge" setAllPoints="true" />
+							</Layer>
+							<Layer level="OVERLAY">
+								<FontString parentKey="NumberMany" inherits="GameFontNormal" justifyV="BOTTOM" justifyH="RIGHT" setAllPoints="true" />
+							</Layer>
+						</Layers>
+						<Scripts>
+							<OnEnter>
+								local item = self:GetParent():GetParent().Item;
+								local reservers = LootReserve.Client:GetItemReservers(item);
+
+								if LootReserve.Client:IsItemReservedByMe(item) and #reservers == 1 then
+									GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+									GameTooltip:SetText("Reserved only by you", GREEN_FONT_COLOR.r, GREEN_FONT_COLOR.g, GREEN_FONT_COLOR.b, 1);
+									GameTooltip:AddLine("Unless someone else reserves it - you will receive it if it drops.", HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, 1, 1);
+								elseif #reservers &gt; 0 then
+									local text = "It will be rolled among all contenders if it drops:";
+									for _, player in ipairs(reservers) do
+										text = text .. "|n" .. LootReserve:ColoredPlayer(player);
+									end
+									GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+									GameTooltip:SetText(format("Reserved by %d |4player:players;", #reservers));
+									GameTooltip:AddLine(text, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, 1, 1);
+								else
+									return;
+								end
+
+								GameTooltip:Show();
+							</OnEnter>
+							<OnLeave function="GameTooltip_Hide" />
+						</Scripts>
+					</Button>
+				</Frames>
+			</Frame>
+			<Button parentKey="ItemFrame" inherits="LootReserveItemButtomTemplate">
+				<KeyValues>
+					<KeyValue key="tooltipRight" value="true" type="boolean" />
+				</KeyValues>
+				<Anchors>
+					<Anchor point="LEFT" x="6" />
+					<Anchor point="RIGHT" relativeKey="$parent.ReserveFrame" relativePoint="LEFT" x="-5" />
+				</Anchors>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnUpdate>
+				local hovered = self:IsMouseOver() and self:GetParent():GetParent():IsMouseOver();
+				if self.hovered ~= hovered then
+					self.hovered = hovered;
+					local r, g, b = self:GetBackdropBorderColor();
+					self:SetBackdropBorderColor(r, g, b, hovered and 1 or 0);
+				end
+			</OnUpdate>
+		</Scripts>
+	</Frame>
+	<Frame name="LootReserveClientWindow" parent="UIParent" inherits="BasicFrameTemplateWithInset" toplevel="true" movable="true" resizable="true" enableMouse="true" clampedToScreen="true" hidden="true">
+		<Size x="650" y="450" />
+		<Anchors>
+			<Anchor point="CENTER" />
+		</Anchors>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="RemainingTextGlow" alpha="0.25" file="Interface\CHATFRAME\ChatFrameTab-NewMessage" alphaMode="ADD">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="16" y="-27" />
+						<Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" x="-16" y="-60" />
+					</Anchors>
+					<TexCoords left="0" right="1" top="0.5" bottom="1"/>
+					<Color r="1" g="0" b="0" />
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<FontString parentKey="RemainingText" inherits="GameFontNormalHuge" justifyH="LEFT">
+					<Size y="20" />
+					<Anchors>
+						<Anchor point="TOP" y="-36" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button inherits="LootReserveCommonFrameMovingHeaderTemplate" />
+			<Button inherits="LootReserveCommonFrameSizeGrabberTemplate" />
+			<Button parentKey="ButtonSettings" inherits="UIMenuButtonStretchTemplate" frameLevel="100">
+				<Size x="20" y="20" />
+				<Anchors>
+					<Anchor point="TOPLEFT" y="-1" />
+				</Anchors>
+				<Layers>
+					<Layer>
+						<Texture parentKey="Icon" file="Interface\Buttons\UI-OptionsButton">
+							<Size x="14" y="14" />
+							<Anchors>
+								<Anchor point="CENTER" />
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+				<HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD" />
+				<Scripts>
+					<OnLoad>
+						self:SetPushedTextOffset(1, -1);
+					</OnLoad>
+					<OnClick>
+						local cooldown = math.max(0, (LootReserve.Client.ServerSearchTimeoutTime or 0) - time());
+						local menu =
+						{
+							{ text = format("Current Server: %s", LootReserve.Client.SessionServer and LootReserve:ColoredPlayer(LootReserve.Client.SessionServer) or "|cFF808080Not Connected|r"), isTitle = true },
+							{ text = format("Search For Server%s", cooldown > 0 and format(" (%d |4sec:secs; cooldown)", cooldown) or ""), disabled = cooldown > 0, func = function() LootReserve.Client:SearchForServer(); end },
+							LootReserve:MakeMenuSeparator(),
+							{ text = "Roll Request Popup", isTitle = true },
+							{ text = "Show Popup", checked = LootReserve.Client.Settings.RollRequestShow, notCheckable = false, keepShownOnClick = true, func = function() LootReserve.Client.Settings.RollRequestShow = not LootReserve.Client.Settings.RollRequestShow; end },
+							{ text = "Show For Unusable Items", checked = LootReserve.Client.Settings.RollRequestShowUnusable, notCheckable = false, keepShownOnClick = true, func = function() LootReserve.Client.Settings.RollRequestShowUnusable = not LootReserve.Client.Settings.RollRequestShowUnusable; end },
+							{ text = "Glow Only For Reserved Items", checked = LootReserve.Client.Settings.RollRequestGlowOnlyReserved, notCheckable = false, keepShownOnClick = true, func = function() LootReserve.Client.Settings.RollRequestGlowOnlyReserved = not LootReserve.Client.Settings.RollRequestGlowOnlyReserved; end },
+							LootReserve:MakeMenuSeparator(),
+							{ text = "Close" },
+						};
+						LootReserve:OpenMenu(menu, self:GetParent().Menu, self);
+					</OnClick>
+					<OnMouseDown>
+						self.Icon:SetPoint("CENTER", self, "CENTER", self:GetPushedTextOffset());
+					</OnMouseDown>
+					<OnMouseUp>
+						self.Icon:SetPoint("CENTER", self, "CENTER");
+					</OnMouseUp>
+					<OnEnter>
+						GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+						GameTooltip:SetText("Settings");
+					</OnEnter>
+					<OnLeave function="GameTooltip_Hide" />
+				</Scripts>
+			</Button>
+			<Frame parentKey="Menu" inherits="UIDropDownMenuTemplate" hidden="true" />
+			<StatusBar parentKey="Duration" inherits="LootReserveDurationStatusBar">
+				<KeyValues>
+					<KeyValue key="server" value="false" type="boolean" />
+				</KeyValues>
+				<Size y="8" />
+				<Anchors>
+					<Anchor point="TOPLEFT" x="19" y="-63" />
+					<Anchor point="TOPRIGHT" x="-19" y="-63" />
+				</Anchors>
+			</StatusBar>
+			<EditBox parentKey="Search" inherits="SearchBoxTemplate">
+				<Size x="193" y="20" />
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.Duration" relativePoint="BOTTOMLEFT" x="3" y="-3" />
+				</Anchors>
+				<Scripts>
+					<OnTextChanged inherit="prepend">
+						if #self:GetText() > 0 then
+							for _, frame in ipairs(self:GetParent().Categories.Scroll.Container.Frames) do
+								if frame.Category.Search then
+									frame:Click();
+								end
+							end
+						end
+						LootReserve.Client:UpdateLootList();
+					</OnTextChanged>
+				</Scripts>
+			</EditBox>
+			<Frame parentKey="Categories">
+				<Anchors>
+					<Anchor point="TOPRIGHT" relativeKey="$parent.Search" relativePoint="BOTTOMRIGHT" x="1" />
+					<Anchor point="BOTTOMLEFT" x="16" y="16" />
+				</Anchors>
+				<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border">
+					<BackgroundInsets left="5" right="5" top="5" bottom="5" />
+					<EdgeSize val="16" />
+				</Backdrop>
+				<Frames>
+					<ScrollFrame parentKey="Scroll" inherits="LootReserveScrollTemplate">
+						<Anchors>
+							<Anchor point="TOPLEFT" x="5" y="-5" />
+							<Anchor point="BOTTOMRIGHT" x="-27" y="5" />
+						</Anchors>
+					</ScrollFrame>
+				</Frames>
+			</Frame>
+			<Frame parentKey="Loot">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.Search" relativePoint="TOPRIGHT" />
+					<Anchor point="BOTTOMRIGHT" x="-16" y="16" />
+				</Anchors>
+				<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border">
+					<BackgroundInsets left="5" right="5" top="5" bottom="5" />
+					<EdgeSize val="16" />
+				</Backdrop>
+				<Frames>
+					<ScrollFrame parentKey="Scroll" inherits="LootReserveScrollTemplate">
+						<Anchors>
+							<Anchor point="TOPLEFT" x="5" y="-5" />
+							<Anchor point="BOTTOMRIGHT" x="-27" y="5" />
+						</Anchors>
+					</ScrollFrame>
+				</Frames>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				LootReserve.Client:OnWindowLoad(self);
+				table.insert(UISpecialFrames, self:GetName());
+			</OnLoad>
+			<OnShow>
+				PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN);
+			</OnShow>
+			<OnHide>
+				CloseMenus();
+				PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE);
+				DEFAULT_CHAT_FRAME:AddMessage("Loot Reserve window can be reopened by typing |cFFFFD200/reserve|r", 1, 1, 1);
+			</OnHide>
+		</Scripts>
+	</Frame>
+</Ui>

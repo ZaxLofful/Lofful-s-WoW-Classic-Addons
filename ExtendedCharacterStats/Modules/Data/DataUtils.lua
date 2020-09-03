@@ -11,8 +11,11 @@ function DataUtils:Round(num, decimalPlaces)
 end
 
 function DataUtils:IsShapeshifted()
-    for i = 0, 40 do
+    for i = 1, 40 do
         local _, _, _, _, _, _, _, _, _, spellId, _ = UnitAura("player", i, "HELPFUL", "PLAYER")
+        if spellId == nil then
+            break
+        end
         if spellId == 5487 or spellId == 9634 or spellId == 768 then
             return true
         end
@@ -26,4 +29,23 @@ function DataUtils:GetMissChanceByDifference(weaponSkill, defenseValue)
     else
         return 7 + (defenseValue - weaponSkill - 10) * 0.4
     end
+end
+
+function DataUtils:GetEnchantForEquipSlot(equipSlot)
+    local slotId, _ = GetInventorySlotInfo(equipSlot)
+    local itemLink = GetInventoryItemLink("player", slotId)
+
+    return DataUtils:GetEnchantFromItemLink(itemLink)
+end
+
+function DataUtils:GetEnchantFromItemLink(itemLink)
+    if itemLink then
+        local _, itemStringLink = GetItemInfo(itemLink)
+        if itemStringLink then
+            local _, _, enchant = string.find(itemStringLink, "item:%d+:(%d*)")
+            return enchant
+        end
+    end
+
+    return nil
 end

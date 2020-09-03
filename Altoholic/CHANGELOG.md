@@ -1,7 +1,7 @@
 # Altoholic Classic - Fork by Teelo
 
-## [1.13.5.035](https://github.com/teelolws/Altoholic-Classic/tree/1.13.5.035) (2020-08-23)
-[Full Changelog](https://github.com/teelolws/Altoholic-Classic/compare/1.13.5.034...1.13.5.035) [Previous Releases](https://github.com/teelolws/Altoholic-Classic/releases)
+## [Classic-v1.13.5-039](https://github.com/teelolws/Altoholic-Classic/tree/Classic-v1.13.5-039) (2020-09-01)
+[Full Changelog](https://github.com/teelolws/Altoholic-Classic/compare/Classic-v1.13.5-038...Classic-v1.13.5-039) [Previous Releases](https://github.com/teelolws/Altoholic-Classic/releases)
 
-- Version 035  
-- Fix Lua error: added Blizzard\_TalentUI as dependency  
+- Classic-v1.13.5-039  
+- German translation fix  
