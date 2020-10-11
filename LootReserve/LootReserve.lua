@@ -2,7 +2,7 @@
 
 LootReserve = LibStub("AceAddon-3.0"):NewAddon("LootReserve", "AceComm-3.0");
 LootReserve.Version = GetAddOnMetadata(addon, "Version");
-LootReserve.MinAllowedVersion = "2020-07-21";
+LootReserve.MinAllowedVersion = "2020-09-04";
 LootReserve.LatestKnownVersion = LootReserve.Version;
 LootReserve.Enabled = true;
 
@@ -31,6 +31,7 @@ LootReserveGlobalSave =
     {
         NewSessionSettings = nil,
         Settings = nil,
+        GlobalProfile = nil,
     },
 };
 
@@ -131,8 +132,7 @@ function LootReserve:RegisterUpdate(handler)
     end);
 end
 
-function LootReserve:RegisterEvent(event, handler)
-    LootReserve.EventFrame:RegisterEvent(event);
+function LootReserve:RegisterEvent(...)
     if not LootReserve.EventFrame.RegisteredEvents then
         LootReserve.EventFrame.RegisteredEvents = { };
         LootReserve.EventFrame:SetScript("OnEvent", function(self, event, ...)
@@ -145,8 +145,24 @@ function LootReserve:RegisterEvent(event, handler)
         end);
     end
 
-    LootReserve.EventFrame.RegisteredEvents[event] = LootReserve.EventFrame.RegisteredEvents[event] or { };
-    table.insert(LootReserve.EventFrame.RegisteredEvents[event], handler);
+    local params = select("#", ...);
+
+    local handler = select(params, ...);
+    if type(handler) ~= "function" then
+        error("LootReserve:RegisterEvent: The last passed parameter must be the handler function");
+        return;
+    end
+
+    for i = 1, params - 1 do
+        local event = select(i, ...);
+        if type(event) == "string" then
+            LootReserve.EventFrame:RegisterEvent(event);
+            LootReserve.EventFrame.RegisteredEvents[event] = LootReserve.EventFrame.RegisteredEvents[event] or { };
+            table.insert(LootReserve.EventFrame.RegisteredEvents[event], handler);
+        else
+            error("LootReserve:RegisterEvent: All but the last passed parameters must be event names");
+        end
+    end
 end
 
 function LootReserve:OpenMenu(menu, menuContainer, anchor)
@@ -167,6 +183,18 @@ function LootReserve:OpenMenu(menu, menuContainer, anchor)
     end
     FixMenu(menu);
     EasyMenu(menu, menuContainer, anchor, 0, 0, "MENU");
+end
+
+function LootReserve:OpenSubMenu(arg1)
+    for i = 1, UIDROPDOWNMENU_MAXBUTTONS do
+        local button = _G["DropDownList1Button"..i];
+        if button and button.arg1 == arg1 then
+            local arrow = _G[button:GetName().."ExpandArrow"];
+            if arrow then
+                arrow:Click();
+            end
+        end
+    end
 end
 
 -- Used to prevent LootReserve:SendChatMessage from breaking a hyperlink into multiple segments if the message is too long
@@ -204,6 +232,17 @@ function LootReserve:SendChatMessage(text, channel, target)
     end
 end
 
+function LootReserve:GetNumClasses()
+    return 11;
+end
+
+function LootReserve:GetClassInfo(classID)
+    local info = C_CreatureInfo.GetClassInfo(classID);
+    if info then
+        return info.className, info.classFile, info.classID;
+    end
+end
+
 function LootReserve:IsPlayerOnline(player)
     for i = 1, MAX_RAID_MEMBERS do
         local name, _, _, _, _, _, _, online = GetRaidRosterInfo(i);
@@ -227,7 +266,7 @@ function LootReserve:GetPlayerClassColor(player)
             return colors.colorStr;
         end
     end
-    return "ff808080";
+    return "FF808080";
 end
 
 function LootReserve:GetRaidUnitID(player)
@@ -316,6 +355,19 @@ function LootReserve:IsItemUsable(item)
     return true;
 end
 
+function LootReserve:IsLootingItem(item)
+    for i = 1, GetNumLootItems() do
+        local link = GetLootSlotLink(i);
+        if link then
+            local id = tonumber(link:match("item:(%d+)"));
+            if id and id == item then
+                return true;
+            end
+        end
+    end
+    return false;
+end
+
 function LootReserve:TransformSearchText(text)
     text = self:StringTrim(text, "[%s%[%]]");
     text = text:upper();
@@ -326,6 +378,29 @@ end
 function LootReserve:StringTrim(str, chars)
     chars = chars or "%s"
     return (str:match("^" .. chars .. "*(.-)" .. chars .. "*$"));
+end
+
+function LootReserve:Deepcopy(orig)
+    if type(orig) == 'table' then
+        local copy = { };
+        for orig_key, orig_value in next, orig, nil do
+            copy[self:Deepcopy(orig_key)] = self:Deepcopy(orig_value)
+        end
+        setmetatable(copy, self:Deepcopy(getmetatable(orig)))
+        return copy;
+    else
+        return orig;
+    end
+end
+
+function LootReserve:TableRemove(tbl, item)
+    for index, i in ipairs(tbl) do
+        if i == item then
+            table.remove(tbl, index);
+            return true;
+        end
+    end
+    return false;
 end
 
 function LootReserve:Contains(table, item)

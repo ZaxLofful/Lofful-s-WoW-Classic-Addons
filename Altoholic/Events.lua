@@ -131,23 +131,23 @@ local eventTypes = {
 	[TIMER_LINE] = {
 		GetReadyNowWarning = function(self, event)
 				local character = DataStore:GetCharacter(event.char, event.realm)
-				local item = DataStore:GetItemCooldownInfo(character, event.parentID)
+				local item = GetItemInfo(event.parentID)
 				if item then
 					return format(L["%s is now ready (%s on %s)"], item, event.char, event.realm)
 				end
 			end,
 		GetReadySoonWarning = function(self, event, minutes)
 				local character = DataStore:GetCharacter(event.char, event.realm)
-				local item = DataStore:GetItemCooldownInfo(character, event.parentID)
+				local item = GetItemInfo(event.parentID)
 				if item then
 					return format(L["%s will be ready in %d minutes (%s on %s)"], item, minutes, event.char, event.realm)
 				end
 			end,
 		GetInfo = function(self, event)
 				local character = DataStore:GetCharacter(event.char, event.realm)
-				local item = DataStore:GetItemCooldownInfo(character, event.parentID)
+				local item = GetItemInfo(event.parentID)
 				local expiresIn = GetEventExpiry(event)
-				return title, format("%s %s", COOLDOWN_REMAINING, Altoholic:GetTimeString(expiresIn))
+				return item, format("%s %s", COOLDOWN_REMAINING, Altoholic:GetTimeString(expiresIn))
 			end,
 	},
 	[SHARED_CD_LINE] = {
@@ -389,7 +389,6 @@ function ns:BuildList()
 				for professionName, profession in pairs(professions) do
 					local supportsSharedCD
 					if professionName == GetSpellInfo(2259) or			-- alchemy
-						professionName == GetSpellInfo(3908) or 			-- tailoring
 						professionName == GetSpellInfo(2575) then			-- mining
 						supportsSharedCD = true		-- current profession supports shared cooldowns
 					end
@@ -412,6 +411,22 @@ function ns:BuildList()
 					end
 				end
 			end
+            
+            -- Salt Shaker
+            local containers = DataStore:GetContainers(character)
+            if containers then
+                for containerID, container in pairs(containers) do
+                    for slotID = 1, container.size do
+                        if (DataStore:GetSlotInfo(container, slotID)) == 15846 then
+                            local startTime, totalTime = DataStore:GetContainerCooldownInfo(container, slotID)
+                            if startTime then
+                                local timeRemaining = totalTime + startTime - GetTime()
+                                AddEvent(TIMER_LINE, date("%Y-%m-%d", time() + timeRemaining), date("%H:%M", time() + timeRemaining), characterName, realm, 15846, select(2, GetItemInfo(15846)))
+                            end
+                        end
+                    end
+                end
+            end
 			
 			-- Saved Instances
 			local dungeons = DataStore:GetSavedInstances(character)

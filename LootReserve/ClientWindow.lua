@@ -6,6 +6,10 @@ function LootReserve.Client:UpdateReserveStatus()
         self.Window.RemainingText:SetText("|cFF808080Loot reserves are no longer being accepted|r");
         --self.Window.RemainingTextGlow:SetVertexColor(1, 0, 0, 0.15);
         -- animated in LootReserve.Client:OnWindowLoad instead
+    elseif self.Locked then
+        self.Window.RemainingText:SetText("|cFF808080You are locked-in and cannot change your reserves|r");
+        --self.Window.RemainingTextGlow:SetVertexColor(1, 0, 0, 0.15);
+        -- animated in LootReserve.Client:OnWindowLoad instead
     else
         local reserves = LootReserve.Client:GetRemainingReserves();
         self.Window.RemainingText:SetText(format("You can reserve|cFF%s %d |rmore |4item:items;", reserves > 0 and "00FF00" or "FF0000", reserves));
@@ -21,7 +25,7 @@ function LootReserve.Client:UpdateReserveStatus()
     for i, frame in ipairs(list.Frames) do
         local item = frame.Item;
         if item ~= 0 then
-            frame.ReserveFrame.ReserveButton:SetShown(self.SessionServer and not self:IsItemReservedByMe(item) and self:HasRemainingReserves());
+            frame.ReserveFrame.ReserveButton:SetShown(self.SessionServer and not self:IsItemReservedByMe(item) and self:HasRemainingReserves() and LootReserve.ItemConditions:TestPlayer("player", item, false));
             frame.ReserveFrame.CancelReserveButton:SetShown(self.SessionServer and self:IsItemReservedByMe(item) and self.AcceptingReserves);
             frame.ReserveFrame.ReserveIcon.One:Hide();
             frame.ReserveFrame.ReserveIcon.Many:Hide();
@@ -29,18 +33,20 @@ function LootReserve.Client:UpdateReserveStatus()
             frame.ReserveFrame.ReserveIcon.NumberMany:Hide();
 
             local pending = self:IsItemPending(item);
-            frame.ReserveFrame.ReserveButton:SetEnabled(not pending);
-            frame.ReserveFrame.CancelReserveButton:SetEnabled(not pending);
+            frame.ReserveFrame.ReserveButton:SetEnabled(not pending and not self.Locked);
+            frame.ReserveFrame.CancelReserveButton:SetEnabled(not pending and not self.Locked);
 
             if self.SessionServer then
                 local reservers = self:GetItemReservers(item);
                 if self:IsItemReservedByMe(item) then
-                    if #reservers == 1 then
+                    if #reservers == 1 and not self.Blind then
                         frame.ReserveFrame.ReserveIcon.One:Show();
                     else
                         frame.ReserveFrame.ReserveIcon.Many:Show();
-                        frame.ReserveFrame.ReserveIcon.NumberMany:SetText(tostring(#reservers));
-                        frame.ReserveFrame.ReserveIcon.NumberMany:Show();
+                        if not self.Blind then
+                            frame.ReserveFrame.ReserveIcon.NumberMany:SetText(tostring(#reservers));
+                            frame.ReserveFrame.ReserveIcon.NumberMany:Show();
+                        end
                     end
                 else
                     if #reservers > 0 then
@@ -62,7 +68,6 @@ function LootReserve.Client:UpdateLootList()
     local list = self.Window.Loot.Scroll.Container;
     list.Frames = list.Frames or { };
     list.LastIndex = 0;
-    list.ContentHeight = 0;
     
     local function createFrame(item, source)
         list.LastIndex = list.LastIndex + 1;
@@ -84,8 +89,13 @@ function LootReserve.Client:UpdateLootList()
         frame.Item = item;
 
         if item == 0 then
-            frame:SetHeight(16);
-            frame:Hide();
+            if list.LastIndex <= 1 or not list.Frames[list.LastIndex - 1]:IsShown() then
+                frame:SetHeight(0.00001);
+                frame:Hide();
+            else
+                frame:SetHeight(16);
+                frame:Hide();
+            end
         else
             frame:SetHeight(44);
             frame:Show();
@@ -100,8 +110,6 @@ function LootReserve.Client:UpdateLootList()
             frame.ItemFrame.Name:SetText((link or name or "|cFFFF4000Loading...|r"):gsub("[%[%]]", ""));
             frame.ItemFrame.Misc:SetText(source or type);
         end
-
-        list.ContentHeight = list.ContentHeight + frame:GetHeight();
     end
 
     local function matchesFilter(item, filter)
@@ -126,19 +134,30 @@ function LootReserve.Client:UpdateLootList()
         for item in pairs(self.ItemReserves) do
             if self.SelectedCategory.Reserves == "my" and self:IsItemReservedByMe(item) then
                 createFrame(item);
-            elseif self.SelectedCategory.Reserves == "all" and self:IsItemReserved(item) then
+            elseif self.SelectedCategory.Reserves == "all" and self:IsItemReserved(item) and not self.Blind then
                 createFrame(item);
             end
         end
     elseif self.SelectedCategory and self.SelectedCategory.Search and filter then
         local missing = false;
         local uniqueItems = { };
+        for item, conditions in pairs(self.ItemConditions) do
+            if item ~= 0 and conditions.Custom and (not self.LootCategory or conditions.Custom == self.LootCategory) and not uniqueItems[item] and LootReserve.ItemConditions:TestPlayer("player", item, false) then
+                uniqueItems[item] = true;
+                local match = matchesFilter(item, filter);
+                if match then
+                    createFrame(item, "Custom Item");
+                elseif match == nil then
+                    missing = true;
+                end
+            end
+        end
         for id, category in LootReserve:Ordered(LootReserve.Data.Categories) do
             if category.Children and (not self.LootCategory or id == self.LootCategory) then
                 for _, child in ipairs(category.Children) do
                     if child.Loot then
                         for _, item in ipairs(child.Loot) do
-                            if item ~= 0 and not uniqueItems[item] then
+                            if item ~= 0 and not uniqueItems[item] and LootReserve.ItemConditions:TestPlayer("player", item, false) then
                                 uniqueItems[item] = true;
                                 local match = matchesFilter(item, filter);
                                 if match then
@@ -157,16 +176,31 @@ function LootReserve.Client:UpdateLootList()
                 self:UpdateLootList();
             end);
         end
+    elseif self.SelectedCategory and self.SelectedCategory.Custom then
+        for item, conditions in pairs(self.ItemConditions) do
+            if item ~= 0 and conditions.Custom and (not self.LootCategory or conditions.Custom == self.LootCategory) and LootReserve.ItemConditions:TestPlayer("player", item, false) then
+                createFrame(item);
+            end
+        end
     elseif self.SelectedCategory and self.SelectedCategory.Loot then
         for _, item in ipairs(self.SelectedCategory.Loot) do
-            createFrame(item);
+            if LootReserve.ItemConditions:TestPlayer("player", item, false) then
+                createFrame(item);
+            end
         end
     end
     for i = list.LastIndex + 1, #list.Frames do
         list.Frames[i]:Hide();
     end
 
-    list:SetSize(list:GetParent():GetWidth(), math.max(list.ContentHeight, list:GetParent():GetHeight()));
+    if self.Blind and not list.BlindHint then
+        list.BlindHint = CreateFrame("Frame", nil, list, "LootReserveLootBlindHint");
+    end
+    if list.BlindHint then
+        list.BlindHint:SetShown(self.Blind and self.SelectedCategory and self.SelectedCategory.Reserves == "all");
+    end
+
+    list:GetParent():UpdateScrollChildRect();
 
     self:UpdateReserveStatus();
 end
@@ -175,7 +209,6 @@ function LootReserve.Client:UpdateCategories()
     local list = self.Window.Categories.Scroll.Container;
     list.Frames = list.Frames or { };
     list.LastIndex = 0;
-    list.ContentHeight = 0;
     
     local function createButton(id, category)
         list.LastIndex = list.LastIndex + 1;
@@ -212,8 +245,6 @@ function LootReserve.Client:UpdateCategories()
                 frame:SetScript("OnClick", function(frame) self:OnCategoryClick(frame); end);
             end
         end
-
-        list.ContentHeight = list.ContentHeight + frame:GetHeight();
     end
     
     local function createCategoryButtonsRecursively(id, category)
@@ -222,7 +253,9 @@ function LootReserve.Client:UpdateCategories()
         end
         if category.Children then
             for i, child in ipairs(category.Children) do
-                createCategoryButtonsRecursively(id, child);
+                if not child.Edited then
+                    createCategoryButtonsRecursively(id, child);
+                end
             end
         end
     end
@@ -232,12 +265,10 @@ function LootReserve.Client:UpdateCategories()
     end
 
     local needsSelect = not self.SelectedCategory;
-    list.ContentHeight = 0;
     for i, frame in ipairs(list.Frames) do
-        if i <= list.LastIndex and (frame.CategoryID < 0 or not self.LootCategory or frame.CategoryID == self.LootCategory) then
+        if i <= list.LastIndex and (frame.CategoryID < 0 or not self.LootCategory or frame.CategoryID == self.LootCategory) and (not frame.Category.Custom or LootReserve.ItemConditions:HasCustom(false)) then
             frame:SetHeight(frame.DefaultHeight);
             frame:Show();
-            list.ContentHeight = list.ContentHeight + frame.DefaultHeight;
         else
             frame:Hide();
             frame:SetHeight(0.00001);
@@ -263,11 +294,11 @@ function LootReserve.Client:UpdateCategories()
         end
     end
 
-    list:SetPoint("TOPLEFT");
-    list:SetSize(list:GetParent():GetWidth(), math.max(list.ContentHeight, list:GetParent():GetHeight()));
+    list:GetParent():UpdateScrollChildRect();
 end
 
 function LootReserve.Client:OnCategoryClick(button)
+    PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
     if not button.Category.Search then
         self.Window.Search:ClearFocus();
     end
@@ -300,7 +331,7 @@ function LootReserve.Client:OnWindowLoad(window)
     self:UpdateReserveStatus();
     LootReserve:RegisterUpdate(function(elapsed)
         if not self.SessionServer then
-        elseif not self.AcceptingReserves then
+        elseif not self.AcceptingReserves or self.Locked then
             local r, g, b, a = self.Window.RemainingTextGlow:GetVertexColor();
             elapsed = math.min(elapsed, 1);
             r = r + (1 - r) * elapsed / 0.5;

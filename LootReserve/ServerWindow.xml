@@ -231,13 +231,16 @@
 		<Scripts>
 			<OnLoad>
 				self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-				SecureUnitButton_OnLoad(self, nil, function()
-					local unit = self:GetAttribute("unit");
-					if unit then
-						UIDropDownMenu_Initialize(self.DropDown, function(self) UnitPopup_ShowMenu(UIDROPDOWNMENU_OPEN_MENU or self, "PLAYER", unit); end, "MENU");
-						ToggleDropDownMenu(nil, nil, self.DropDown, "cursor", 0, 0);
-					end
-				end);
+				self.init = function(self)
+					self.init = nil;
+					SecureUnitButton_OnLoad(self, nil, function()
+						local unit = self:GetAttribute("unit");
+						if unit then
+							UIDropDownMenu_Initialize(self.DropDown, function(self) UnitPopup_ShowMenu(UIDROPDOWNMENU_OPEN_MENU or self, "PLAYER", unit); end, "MENU");
+							ToggleDropDownMenu(nil, nil, self.DropDown, "cursor", 0, 0);
+						end
+					end);
+				end
 			</OnLoad>
 		</Scripts>
 	</Button>
@@ -308,6 +311,9 @@
 									table.insert(menu, #menu - 1,
 									{
 										text = "Advance Automatically",
+										tooltipTitle = "Advance Automatically",
+										tooltipText = "Advance to the next stage when the timer expires if nobody rolled.",
+										tooltipOnButton = true,
 										checked = LootReserve.Server.Settings.RollAdvanceOnExpire,
 										notCheckable = false,
 										keepShownOnClick = true,
@@ -317,10 +323,58 @@
 								table.insert(menu, #menu - 1,
 								{
 									text = "End Automatically",
+									tooltipTitle = "End Automatically",
+									tooltipText = "Announce the winner and end the roll when the timer expires.",
+									tooltipOnButton = true,
 									checked = LootReserve.Server.Settings.RollFinishOnExpire,
 									notCheckable = false,
 									keepShownOnClick = true,
 									func = function() LootReserve.Server.Settings.RollFinishOnExpire = not LootReserve.Server.Settings.RollFinishOnExpire; end,
+								});
+							end
+							if not LootReserve.Server.RequestedRoll.Custom and not LootReserve.Server.RequestedRoll.RaidRoll then
+								if not separator then
+									table.insert(menu, #menu - 1, LootReserve:MakeMenuSeparator());
+									separator = true;
+								end
+								table.insert(menu, #menu - 1,
+								{
+									text = "Skip Roll if Not Contested",
+									tooltipTitle = "Skip Roll if Not Contested",
+									tooltipText = "Just announce the winner instead of rolling on the item if it's reserved by only one player.",
+									tooltipOnButton = true,
+									checked = LootReserve.Server.Settings.RollSkipNotContested,
+									notCheckable = false,
+									keepShownOnClick = true,
+									func = function() LootReserve.Server.Settings.RollSkipNotContested = not LootReserve.Server.Settings.RollSkipNotContested; LootReserve.Server:TryFinishRoll(); end,
+								});
+								table.insert(menu, #menu - 1,
+								{
+									text = "End Automatically",
+									tooltipTitle = "End Automatically",
+									tooltipText = "Announce the winner and end the roll as soon as all reserving players rolled.",
+									tooltipOnButton = true,
+									checked = LootReserve.Server.Settings.RollFinishOnAllReservingRolled,
+									notCheckable = false,
+									keepShownOnClick = true,
+									func = function() LootReserve.Server.Settings.RollFinishOnAllReservingRolled = not LootReserve.Server.Settings.RollFinishOnAllReservingRolled; LootReserve.Server:TryFinishRoll(); end,
+								});
+							end
+							if LootReserve.Server.RequestedRoll.RaidRoll then
+								if not separator then
+									table.insert(menu, #menu - 1, LootReserve:MakeMenuSeparator());
+									separator = true;
+								end
+								table.insert(menu, #menu - 1,
+								{
+									text = "End Automatically",
+									tooltipTitle = "End Automatically",
+									tooltipText = "Instantly announce the winner and end the raid-roll.",
+									tooltipOnButton = true,
+									checked = LootReserve.Server.Settings.RollFinishOnRaidRoll,
+									notCheckable = false,
+									keepShownOnClick = true,
+									func = function() LootReserve.Server.Settings.RollFinishOnRaidRoll = not LootReserve.Server.Settings.RollFinishOnRaidRoll; LootReserve.Server:TryFinishRoll(); end,
 								});
 							end
 							
@@ -378,7 +432,7 @@
 					<Anchor point="BOTTOMRIGHT" x="-6" y="6" />
 				</Anchors>
 				<Layers>
-					<Layer layer="OVERLAY">
+					<Layer level="OVERLAY">
 						<FontString parentKey="HeaderRoll" inherits="GameFontNormalSmall" text="Roll" justifyH="CENTER">
 							<Size x="32" y="12" />
 							<Anchors>
@@ -401,7 +455,7 @@
 							<Color r="0.5" g="0.5" b="0.5" />
 						</FontString>
 					</Layer>
-					<Layer layer="ARTWORK">
+					<Layer level="ARTWORK">
 						<Texture parentKey="HeaderGlow" alpha="0.25" file="Interface\CHATFRAME\ChatFrameTab-NewMessage" alphaMode="ADD">
 							<Size y="12" />
 							<Anchors>
@@ -566,12 +620,11 @@
 						]]
 
 						-- Roll Phases
-						local phases = { "Main-Spec", "Off-Spec", "Reputation", "Profession", "Looks", "Vendor" };
 						local phaseMenu = { };
 						for _, contains in ipairs({ true, false }) do
 							local first = true;
 							local i = 0;
-							for _, phase in ipairs(contains and LootReserve.Server.Settings.RollPhases or phases) do
+							for _, phase in ipairs(contains and LootReserve.Server.Settings.RollPhases or LootReserve.Server.Settings.Phases) do
 								if LootReserve:Contains(LootReserve.Server.Settings.RollPhases, phase) == contains then
 									if #phaseMenu > 0 and first then
 										table.insert(phaseMenu, LootReserve:MakeMenuSeparator());
@@ -580,7 +633,7 @@
 									i = i + 1;
 									table.insert(phaseMenu,
 									{
-										text = contains and format("%d. %s", i, phase) or phase,
+										text = contains and format("|cFF00FF00%d. %s|r", i, phase) or phase,
 										arg1 = phase,
 										arg2 = contains,
 										func = function(info, phase, contains)
@@ -596,15 +649,7 @@
 											end
 											CloseMenus();
 											self:Click();
-											for i = 1, UIDROPDOWNMENU_MAXBUTTONS do
-												local button = _G["DropDownList1Button"..i];
-												if button and button.arg1 == "!Phases" then
-													local arrow = _G[button:GetName().."ExpandArrow"];
-													if arrow then
-														arrow:Click();
-													end
-												end
-											end
+											LootReserve:OpenSubMenu("#phases");
 										end,
 										checked = contains,
 										notCheckable = false,
@@ -612,6 +657,29 @@
 								end
 							end
 						end
+						if #phaseMenu > 0 then
+							table.insert(phaseMenu, LootReserve:MakeMenuSeparator());
+						end
+						table.insert(phaseMenu, { text = "Manage", isTitle = true });
+						table.insert(phaseMenu, { text = "Add...", func = function()
+							CloseMenus();
+							StaticPopup_Show("LOOTRESERVE_NEW_PHASE_NAME");
+						end });
+						local removePhasesMenu = { };
+						for _, phase in ipairs(LootReserve.Server.Settings.Phases) do
+							table.insert(removePhasesMenu, { text = phase, arg1 = phase, func = function(info)
+								LootReserve:TableRemove(LootReserve.Server.Settings.Phases, info.arg1);
+								LootReserve:TableRemove(LootReserve.Server.Settings.RollPhases, info.arg1);
+								CloseMenus();
+								self:Click();
+								LootReserve:OpenSubMenu("#phases");
+							end });
+						end
+						table.insert(phaseMenu, { text = "Remove...", keepShownOnClick = true, hasArrow = true, menuList = removePhasesMenu });
+						table.insert(phaseMenu, { text = "Reset", func = function()
+							CloseMenus();
+							StaticPopup_Show("LOOTRESERVE_CONFIRM_RESET_PHASES");
+						end });
 
 						-- Roll Duration
 						local function FormatTime(time)
@@ -623,8 +691,21 @@
 							{
 								text = FormatTime(time),
 								arg1 = time,
-								func = function(info, time) LootReserve.Server.Settings.RollDuration = time; CloseMenus(); self:Click(); end,
+								func = function(info, time) LootReserve.Server.Settings.RollDuration = time; CloseMenus(); self:Click(); LootReserve:OpenSubMenu("#duration"); end,
 								checked = LootReserve.Server.Settings.RollDuration == time,
+								notCheckable = false,
+							});
+						end
+						table.insert(durationMenu, LootReserve:MakeMenuSeparator());
+						table.insert(durationMenu, { text = "Countdown", isTitle = true });
+						for _, time in ipairs({ 0, 3, 5, 10 }) do
+							time = time ~= 0 and time or nil;
+							table.insert(durationMenu,
+							{
+								text = time and format("%d secs", time) or "Disabled",
+								arg1 = time,
+								func = function(info, time) LootReserve.Server.Settings.RollCountdown = time; CloseMenus(); self:Click(); LootReserve:OpenSubMenu("#duration"); end,
+								checked = LootReserve.Server.Settings.RollCountdown == time,
 								notCheckable = false,
 							});
 						end
@@ -636,10 +717,32 @@
 							{ text = "Among All Players", func = StartRoll },
 							{ text = "Auto Raid-Roll", func = RaidRoll },
 							LootReserve:MakeMenuSeparator(),
+							{ text = "Settings for \"Reserving Players\"", isTitle = true },
+							{
+								text = "Skip Roll if Not Contested",
+								tooltipTitle = "Skip Roll if Not Contested",
+								tooltipText = "Just announce the winner instead of rolling on the item if it's reserved by only one player.",
+								tooltipOnButton = true,
+								checked = LootReserve.Server.Settings.RollSkipNotContested,
+								notCheckable = false,
+								keepShownOnClick = true,
+								func = function() LootReserve.Server.Settings.RollSkipNotContested = not LootReserve.Server.Settings.RollSkipNotContested; end,
+							},
+							{
+								text = "End Automatically",
+								tooltipTitle = "End Automatically",
+								tooltipText = "Announce the winner and end the roll as soon as all reserving players rolled.",
+								tooltipOnButton = true,
+								checked = LootReserve.Server.Settings.RollFinishOnAllReservingRolled,
+								notCheckable = false,
+								keepShownOnClick = true,
+								func = function() LootReserve.Server.Settings.RollFinishOnAllReservingRolled = not LootReserve.Server.Settings.RollFinishOnAllReservingRolled; end,
+							},
+							LootReserve:MakeMenuSeparator(),
 							{ text = "Settings for \"All Players\"", isTitle = true },
 							{
 								text = format(LootReserve.Server.Settings.RollUsePhases and "Roll For: |cFF00FF00%s|r" or "Roll For...", strjoin(", ", unpack(LootReserve.Server.Settings.RollPhases))),
-								arg1 = "!Phases",
+								arg1 = "#phases",
 								checked = LootReserve.Server.Settings.RollUsePhases,
 								notCheckable = false,
 								keepShownOnClick = true,
@@ -648,7 +751,8 @@
 								menuList = phaseMenu,
 							},
 							{
-								text = format(LootReserve.Server.Settings.RollLimitDuration and "Limit Duration: |cFF00FF00%s|r" or "Limit Duration", FormatTime(LootReserve.Server.Settings.RollDuration)),
+								text = format(LootReserve.Server.Settings.RollLimitDuration and (LootReserve.Server.Settings.RollCountdown and "Limit Duration: |cFF00FF00%s|r|cFF808080 (%d secs C/D)|r" or "Limit Duration: |cFF00FF00%s|r") or "Limit Duration", FormatTime(LootReserve.Server.Settings.RollDuration), LootReserve.Server.Settings.RollCountdown),
+								arg1 = "#duration",
 								checked = LootReserve.Server.Settings.RollLimitDuration,
 								notCheckable = false,
 								keepShownOnClick = true,
@@ -658,6 +762,9 @@
 							},
 							{
 								text = "Advance Automatically",
+								tooltipTitle = "Advance Automatically",
+								tooltipText = "Advance to the next stage when the timer expires if nobody rolled.",
+								tooltipOnButton = true,
 								disabled = not LootReserve.Server.Settings.RollUsePhases or #LootReserve.Server.Settings.RollPhases &lt;= 1 or not LootReserve.Server.Settings.RollLimitDuration,
 								checked = LootReserve.Server.Settings.RollAdvanceOnExpire,
 								notCheckable = false,
@@ -666,11 +773,26 @@
 							},
 							{
 								text = "End Automatically",
+								tooltipTitle = "End Automatically",
+								tooltipText = "Announce the winner and end the roll when the timer expires.",
+								tooltipOnButton = true,
 								disabled = not LootReserve.Server.Settings.RollLimitDuration,
 								checked = LootReserve.Server.Settings.RollFinishOnExpire,
 								notCheckable = false,
 								keepShownOnClick = true,
 								func = function() LootReserve.Server.Settings.RollFinishOnExpire = not LootReserve.Server.Settings.RollFinishOnExpire; end,
+							},
+							LootReserve:MakeMenuSeparator(),
+							{ text = "Settings for \"Raid-Roll\"", isTitle = true },
+							{
+								text = "End Automatically",
+								tooltipTitle = "End Automatically",
+								tooltipText = "Instantly announce the winner and end the raid-roll.",
+								tooltipOnButton = true,
+								checked = LootReserve.Server.Settings.RollFinishOnRaidRoll,
+								notCheckable = false,
+								keepShownOnClick = true,
+								func = function() LootReserve.Server.Settings.RollFinishOnRaidRoll = not LootReserve.Server.Settings.RollFinishOnRaidRoll; end,
 							},
 							LootReserve:MakeMenuSeparator(),
 							{ text = "Cancel" },
@@ -762,7 +884,7 @@
 											end
 											return
 											{
-												text = format("|T%d:0|t %s%s", texture, (link or "|cFFFF0000Loading...|r"):gsub("[%[%]]", ""), count and format("|cFF808080 x%d|r", count) or "");
+												text = format("|T%d:0|t %s%s", texture, (link or "|cFFFF0000Loading...|r"):gsub("[%[%]]", ""), count and format("|cFF808080 x%d|r", count) or ""),
 												arg1 = item,
 												func = SelectItem,
 												notCheckable = true,
@@ -963,7 +1085,7 @@
 			<Button parentKey="MenuButton" hidden="true">
 				<Size x="12" y="12" />
 				<Anchors>
-					<Anchor point="RIGHT" />
+					<Anchor point="RIGHT" x="-2" />
 				</Anchors>
 				<NormalTexture file="Interface\Buttons\UI-OptionsButton" />
 				<PushedTexture file="Interface\Buttons\UI-OptionsButton" alpha="0.25" />
@@ -998,26 +1120,8 @@
 		<Frames>
 			<Button inherits="LootReserveCommonFrameMovingHeaderTemplate" />
 			<Button inherits="LootReserveCommonFrameSizeGrabberTemplate" />
-			<Button parentKey="ButtonSettings" inherits="UIMenuButtonStretchTemplate" frameLevel="100">
-				<Size x="20" y="20" />
-				<Anchors>
-					<Anchor point="TOPLEFT" y="-1" />
-				</Anchors>
-				<Layers>
-					<Layer>
-						<Texture parentKey="Icon" file="Interface\Buttons\UI-OptionsButton">
-							<Size x="14" y="14" />
-							<Anchors>
-								<Anchor point="CENTER" />
-							</Anchors>
-						</Texture>
-					</Layer>
-				</Layers>
-				<HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD" />
+			<Button inherits="LootReserveSettingsButtonTemplate">
 				<Scripts>
-					<OnLoad>
-						self:SetPushedTextOffset(1, -1);
-					</OnLoad>
 					<OnClick>
 						local function GetSettingContainerAndKey(setting)
 							if type(setting) == "table" then
@@ -1056,6 +1160,7 @@
 								tooltipTitle = tooltip and text or nil,
 								tooltipText = tooltip,
 								tooltipOnButton = true,
+								DisableIf = function(self, condition) self.disabled = condition; return self; end,
 							};
 						end
 						local function MakeMenuToggle(text, setting, tooltip, callback)
@@ -1089,6 +1194,24 @@
 							CloseMenus();
 							self:Click();
 						end
+						local function RefreshWinToGuildThreshold()
+							CloseMenus();
+							self:Click();
+							LootReserve:OpenSubMenu("#guild");
+						end
+						local function ToggleGlobalProfile(enabled)
+							if enabled then
+								LootReserve.Server.Settings.UseGlobalProfile = false;
+								CloseMenus();
+								self:Click();
+								StaticPopup_Show("LOOTRESERVE_CONFIRM_GLOBAL_PROFILE_ENABLE");
+							else
+								LootReserve.Server.Settings.UseGlobalProfile = true;
+								CloseMenus();
+								self:Click();
+								StaticPopup_Show("LOOTRESERVE_CONFIRM_GLOBAL_PROFILE_DISABLE");
+							end
+						end
 
 						local function MakeChatColoredText(text, chatType)
 							local info = ChatTypeInfo[chatType or "RAID_WARNING"];
@@ -1111,36 +1234,41 @@
 								MakeMenuToggle("Reserves Started",              { "ChatAsRaidWarning", LootReserve.Constants.ChatAnnouncement.SessionStart              }, MakeRaidWarningTooltip("when starting to accept reserves")),
 								MakeMenuToggle("Reserves Resumed",              { "ChatAsRaidWarning", LootReserve.Constants.ChatAnnouncement.SessionResume             }, MakeRaidWarningTooltip("when resuming reserves")),
 								MakeMenuToggle("Reserves Stopped",              { "ChatAsRaidWarning", LootReserve.Constants.ChatAnnouncement.SessionStop               }, MakeRaidWarningTooltip("when stopping reserves")),
+								MakeMenuToggle("Blind Reserves Toggled",        { "ChatAsRaidWarning", LootReserve.Constants.ChatAnnouncement.SessionBlindToggle        }, MakeRaidWarningTooltip("when enabling or disabling blind reserves")),
 								MakeMenuToggle("Announce Instructions",         { "ChatAsRaidWarning", LootReserve.Constants.ChatAnnouncement.SessionInstructions       }, MakeRaidWarningTooltip("when manually announcing reserve instructions")),
 								MakeMenuToggle("Roll on an Item",               { "ChatAsRaidWarning", LootReserve.Constants.ChatAnnouncement.RollStartCustom           }, MakeRaidWarningTooltip("when starting an item roll")),
 								MakeMenuToggle("Roll on a Reserved Item",       { "ChatAsRaidWarning", LootReserve.Constants.ChatAnnouncement.RollStartReserved         }, MakeRaidWarningTooltip("when starting a roll on a reserved item")),
+								MakeMenuToggle("Roll Countdown",                { "ChatAsRaidWarning", LootReserve.Constants.ChatAnnouncement.RollCountdown             }, MakeRaidWarningTooltip("when the roll timer is nearing its end (if countdown was enabled for this roll)")),
 								MakeMenuToggle("Roll Winner",                   { "ChatAsRaidWarning", LootReserve.Constants.ChatAnnouncement.RollWinner                }, MakeRaidWarningTooltip("when the rolled item is won by a player")),
 								MakeMenuToggle("Roll Tie",                      { "ChatAsRaidWarning", LootReserve.Constants.ChatAnnouncement.RollTie                   }, MakeRaidWarningTooltip("when a roll ended in a tie and tied players need to roll again")),
 							} },
-							MakeMenuToggle("Send Reserve Updates", "ChatUpdates",  "Send whispers to players without addons if someone else reserves or cancels the reserve of the items that they have reserved as well."),
-							MakeMenuToggle("Slow Chat Messages",   "ChatThrottle", "Slow down broadcasting of Raid and Whisper messages. Will lead to some messages being delivered late. Enable only if WoW servers are blocking your messages under suspicion of spam."),
+							{ text = format("Announce to %s...", MakeChatColoredText("/guild", "GUILD")), arg1 = "#guild", keepShownOnClick = true, hasArrow = true, menuList = {
+								MakeMenuToggle("Roll Winner", "ChatAnnounceWinToGuild", format("Broadcast to %s when the rolled item is won by a guild member.", MakeChatColoredText("/guild", "GUILD")), RefreshWinToGuildThreshold),
+								LootReserve:MakeMenuSeparator(),
+								{ text = "Quality Threshold", isTitle = true, disabled = not LootReserve.Server.Settings.ChatAnnounceWinToGuild },
+								MakeMenuRadio(LootReserve.Server.Settings.ChatAnnounceWinToGuild and format("%s%s|r", ITEM_QUALITY_COLORS[4].hex, ITEM_QUALITY4_DESC) or ITEM_QUALITY4_DESC, "ChatAnnounceWinToGuildThreshold", 4, nil, RefreshWinToGuildThreshold):DisableIf(not LootReserve.Server.Settings.ChatAnnounceWinToGuild),
+								MakeMenuRadio(LootReserve.Server.Settings.ChatAnnounceWinToGuild and format("%s%s|r", ITEM_QUALITY_COLORS[3].hex, ITEM_QUALITY3_DESC) or ITEM_QUALITY3_DESC, "ChatAnnounceWinToGuildThreshold", 3, nil, RefreshWinToGuildThreshold):DisableIf(not LootReserve.Server.Settings.ChatAnnounceWinToGuild),
+								MakeMenuRadio(LootReserve.Server.Settings.ChatAnnounceWinToGuild and format("%s%s|r", ITEM_QUALITY_COLORS[2].hex, ITEM_QUALITY2_DESC) or ITEM_QUALITY2_DESC, "ChatAnnounceWinToGuildThreshold", 2, nil, RefreshWinToGuildThreshold):DisableIf(not LootReserve.Server.Settings.ChatAnnounceWinToGuild),
+								MakeMenuRadio(LootReserve.Server.Settings.ChatAnnounceWinToGuild and format("%s%s|r", ITEM_QUALITY_COLORS[1].hex, ITEM_QUALITY1_DESC) or ITEM_QUALITY1_DESC, "ChatAnnounceWinToGuildThreshold", 1, nil, RefreshWinToGuildThreshold):DisableIf(not LootReserve.Server.Settings.ChatAnnounceWinToGuild),
+								MakeMenuRadio(LootReserve.Server.Settings.ChatAnnounceWinToGuild and format("%s%s|r", ITEM_QUALITY_COLORS[0].hex, ITEM_QUALITY0_DESC) or ITEM_QUALITY0_DESC, "ChatAnnounceWinToGuildThreshold", 0, nil, RefreshWinToGuildThreshold):DisableIf(not LootReserve.Server.Settings.ChatAnnounceWinToGuild),
+							} },
+							MakeMenuToggle("Enable !reserves command", "ChatReservesList",  "Allow players to request all currently made reserves to be whispered back to them when they invoke |cFFFFFFFF!reserves|r command."),
+							MakeMenuToggle("Send Reserve Updates",     "ChatUpdates",       "Send whispers to players without addons if someone else reserves or cancels the reserve of the items that they have reserved as well."),
+							MakeMenuToggle("Slow Chat Messages",       "ChatThrottle",      "Slow down broadcasting of Raid and Whisper messages. Will lead to some messages being delivered late. Enable only if WoW servers are blocking your messages under suspicion of spam."),
 							LootReserve:MakeMenuSeparator(),
 							{ text = "Reserves Sorting", isTitle = true },
 							MakeMenuRadio("By Time",   "ReservesSorting", LootReserve.Constants.ReservesSorting.ByTime,   "Sort reserves by the time the item was first reserved in the current session.", RefreshReserves),
 							MakeMenuRadio("By Name",   "ReservesSorting", LootReserve.Constants.ReservesSorting.ByName,   "Sort reserves by the name of the item.", RefreshReserves),
 							MakeMenuRadio("By Boss",   "ReservesSorting", LootReserve.Constants.ReservesSorting.BySource, "Sort reserves by the order of the boss the item first drops from.", RefreshReserves),
-							MakeMenuRadio("By Looter", "ReservesSorting", LootReserve.Constants.ReservesSorting.ByLooter, "Sort reserves by the name of one of the players that looted this item in the current session.|n|nFade out items not looted by anyone.|cFF808080 (applies only after some items have been looted in the raid)|r", RefreshReserves),
+							MakeMenuRadio("By Looter", "ReservesSorting", LootReserve.Constants.ReservesSorting.ByLooter, "Sort reserves by the name of one of the players that looted this item in the current session.|n|nShow items from the currently looted corpse/container on top.|n|nFade out items not looted by anyone.|cFF808080 (applies only after some items have been looted in the raid)|r", RefreshReserves),
+							LootReserve:MakeMenuSeparator(),
+							{ text = "Storage", isTitle = true },
+							MakeMenuToggle("Use Global Profile", "UseGlobalProfile", "By default all the data about the active reserves session is stored per-character. Enable this to share the same session between all characters on your account.|n|nThe session from your current character will be the one propagated to others.", ToggleGlobalProfile),
 							LootReserve:MakeMenuSeparator(),
 							{ text = "Close" },
 						};
-						LootReserve:OpenMenu(menu, self:GetParent().Menu, self);
+						LootReserve:OpenMenu(menu, self.Menu, self);
 					</OnClick>
-					<OnMouseDown>
-						self.Icon:SetPoint("CENTER", self, "CENTER", self:GetPushedTextOffset());
-					</OnMouseDown>
-					<OnMouseUp>
-						self.Icon:SetPoint("CENTER", self, "CENTER");
-					</OnMouseUp>
-					<OnEnter>
-						GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-						GameTooltip:SetText("Settings");
-					</OnEnter>
-					<OnLeave function="GameTooltip_Hide" />
 				</Scripts>
 			</Button>
 			<StatusBar parentKey="Duration" inherits="LootReserveDurationStatusBar">
@@ -1243,6 +1371,8 @@
 							LootReserve:MakeMenuSeparator(),
 							{ text = "Misc", isTitle = true },
 							{ text = "Announce Instructions", disabled = not LootReserve.Server.CurrentSession or not LootReserve.Server.CurrentSession.AcceptingReserves, func = function() LootReserve.Server:BroadcastInstructions(); end },
+							{ text = "Announce All Reserves", disabled = not LootReserve.Server.CurrentSession, func = function() LootReserve.Server:SendReservesList(); end },
+							{ text = "View Players", func = function() LootReserve.Server.MembersEdit.Window:SetShown(not LootReserve.Server.MembersEdit.Window:IsShown()); end },
 							LootReserve:MakeMenuSeparator(),
 							{ text = "Cancel" },
 						};
@@ -1305,13 +1435,13 @@
 								<Anchor point="TOP" relativeKey="$parent.LabelRaidSetup" relativePoint="BOTTOM" y="-20" />
 							</Anchors>
 						</FontString>
-						<FontString parentKey="LabelCount" inherits="GameFontNormal" text="Max Reserves per Player">
+						<FontString parentKey="LabelCount" inherits="GameFontNormal" text="Reserves">
 							<Size y="20" />
 							<Anchors>
-								<Anchor point="TOP" relativeKey="$parent.LabelRaid" relativePoint="BOTTOM" y="-42" />
+								<Anchor point="TOP" relativeKey="$parent.LabelRaid" relativePoint="BOTTOM" x="-45" y="-38" />
 							</Anchors>
 						</FontString>
-						<FontString parentKey="LabelDuration" inherits="GameFontNormal" text="Select Duration">
+						<FontString parentKey="LabelDuration" inherits="GameFontNormal" text="Duration">
 							<Size y="20" />
 							<Anchors>
 								<Anchor point="TOP" relativeKey="$parent.LabelCount" relativePoint="BOTTOM" y="-30" />
@@ -1321,47 +1451,78 @@
 				</Layers>
 				<Frames>
 					<Frame name="LootReserveServerDropDownRaid" parentKey="DropDownRaid" inherits="UIDropDownMenuTemplate">
-						<Size x="160" y="32" />
+						<Size x="140" y="32" />
 						<Anchors>
-							<Anchor point="TOP" relativeKey="$parent.LabelRaid" relativePoint="BOTTOM" />
+							<Anchor point="TOP" relativeKey="$parent.LabelRaid" relativePoint="BOTTOM" x="-20" />
 						</Anchors>
 						<Scripts>
 							<OnLoad>
-								UIDropDownMenu_SetWidth(self, self:GetWidth());
-								UIDropDownMenu_JustifyText(self, "LEFT");
-								UIDropDownMenu_Initialize(self, function(frame, level, menuList)
-									local info = UIDropDownMenu_CreateInfo();
-									info.minWidth = self:GetWidth() - 40;
-									info.func = function(info)
-										LootReserve.Server.NewSessionSettings.LootCategory = info.value;
-										UIDropDownMenu_SetSelectedValue(self, info.value);
-									end
-									for id, category in LootReserve:Ordered(LootReserve.Data.Categories) do
-										if id > 0 then
-											info.text = category.Name;
-											info.value = id;
-											info.checked = LootReserve.Server.NewSessionSettings.LootCategory == id;
-											UIDropDownMenu_AddButton(info);
+								self.init = function(self)
+									self.init = nil;
+									UIDropDownMenu_SetWidth(self, self:GetWidth());
+									UIDropDownMenu_JustifyText(self, "LEFT");
+									UIDropDownMenu_Initialize(self, function(frame, level, menuList)
+										local info = UIDropDownMenu_CreateInfo();
+										info.minWidth = self:GetWidth() - 40;
+										info.func = function(info)
+											LootReserve.Server.NewSessionSettings.LootCategory = info.value;
+											LootReserve.Server.LootEdit:UpdateCategories();
+											LootReserve.Server.LootEdit:UpdateLootList();
+											LootReserve.Server.Import:SessionSettingsUpdated();
+											UIDropDownMenu_SetSelectedValue(self, info.value);
 										end
-									end
-								end);
+										for id, category in LootReserve:Ordered(LootReserve.Data.Categories) do
+											if id > 0 then
+												info.text = category.Name;
+												info.value = id;
+												info.checked = LootReserve.Server.NewSessionSettings.LootCategory == id;
+												UIDropDownMenu_AddButton(info);
+											end
+										end
+									end);
+								end
 							</OnLoad>
 						</Scripts>
 					</Frame>
-					<EditBox name="LootReserveServerDropDownCount" parentKey="EditBoxCount" inherits="InputBoxTemplate" autoFocus="false">
+					<Button name="LootReserveServerButtonLootEdit" parentKey="ButtonLootEdit" inherits="LootReserveGlowingButtonTemplate" text="Edit">
+						<Size x="40" y="24" />
+						<Anchors>
+							<Anchor point="LEFT" relativeKey="$parent.DropDownRaid" relativePoint="RIGHT" x="-16" y="2" />
+						</Anchors>
+						<Scripts>
+							<OnClick>
+								LootReserve.Server.LootEdit.Window:SetShown(not LootReserve.Server.LootEdit.Window:IsShown());
+							</OnClick>
+						</Scripts>
+					</Button>
+					<EditBox name="LootReserveServerDropDownCount" parentKey="EditBoxCount" inherits="NumericInputSpinnerTemplate" autoFocus="false">
 						<Size x="40" y="20" />
 						<Anchors>
 							<Anchor point="TOP" relativeKey="$parent.LabelCount" relativePoint="BOTTOM" />
 						</Anchors>
 						<Scripts>
 							<OnLoad>
+								self:SetMinMaxValues(1, 100);
 								self:SetJustifyH("CENTER");
-								self.Left:SetPoint("LEFT", self, "LEFT", 0, 0);
+								self.IncrementButton:SetWidth(25);
+								self.IncrementButton:SetHeight(25);
+								self.DecrementButton:SetWidth(25);
+								self.DecrementButton:SetHeight(25);
+								self.DecrementButton:SetPoint("RIGHT", self, "LEFT", 0, 0);
+								-- Hide duplicate regions
+								self.Left:Hide();
+								self.Middle:Hide();
+								self.Right:Hide();
+								-- Move inherited region
+								local _, _, left = self:GetRegions();
+								left:SetPoint("LEFT", self, "LEFT", 0, 0);
 							</OnLoad>
-							<OnTextChanged>
+							<OnTextChanged inherit="prepend">
 								local count = tonumber(self:GetText());
 								if count and count > 0 then
 									LootReserve.Server.NewSessionSettings.MaxReservesPerPlayer = count;
+									LootReserve.Server.MembersEdit:UpdateMembersList();
+									LootReserve.Server.Import:SessionSettingsUpdated();
 								else
 									self:SetText("");
 								end
@@ -1369,29 +1530,87 @@
 							<OnEnterPressed method="ClearFocus" />
 						</Scripts>
 					</EditBox>
+					<CheckButton parentKey="CheckButtonBlind" inherits="LootReserveCheckBoxTemplate">
+						<KeyValues>
+							<KeyValue key="text" value="Blind" type="string" />
+							<KeyValue key="tooltipText" value="Blind Reserves" type="string" />
+							<KeyValue key="tooltipSubtext" value="Don't show to players what others are reserving.|n|nMassively increases the amount of addon communications, may cause delays." type="string" />
+						</KeyValues>
+						<Anchors>
+							<Anchor point="LEFT" relativeKey="$parent.EditBoxCount" relativePoint="RIGHT" x="40" y="-1" />
+						</Anchors>
+						<Scripts>
+							<OnClick inherit="prepend">
+								LootReserve.Server.NewSessionSettings.Blind = self:GetChecked();
+								if LootReserve.Server.CurrentSession then
+									LootReserve.Server.CurrentSession.Settings.Blind = self:GetChecked();
+									LootReserve.Comm:BroadcastSessionInfo();
+									if LootReserve.Server.CurrentSession.Settings.ChatFallback then
+										LootReserve:SendChatMessage(LootReserve.Server.CurrentSession.Settings.Blind and "Blind reserves enabled, you can no longer see what other players have reserved" or "Blind reserves disabled, to see what other players reserved - whisper me:  !reserve", LootReserve.Server:GetChatChannel(LootReserve.Constants.ChatAnnouncement.SessionBlindToggle));
+									end
+								end
+							</OnClick>
+						</Scripts>
+					</CheckButton>
+					<CheckButton parentKey="CheckButtonLock" inherits="LootReserveCheckBoxTemplate">
+						<KeyValues>
+							<KeyValue key="text" value="Lock-in" type="string" />
+							<KeyValue key="tooltipText" value="Reserves Lock-in" type="string" />
+							<KeyValue key="tooltipSubtext" value="All reserves (made or missed) are final and cannot be changed after the server stops accepting reserves, even if the session is later resumed. New players, who haven't yet participated in reserves, will be allowed to make them.|n|nThe state of player lock-ins can be viewed and adjusted by clicking the button below." type="string" />
+						</KeyValues>
+						<Anchors>
+							<Anchor point="TOP" relativeKey="$parent.CheckButtonBlind" relativePoint="BOTTOM" y="0" />
+						</Anchors>
+						<Scripts>
+							<OnClick inherit="prepend">
+								LootReserve.Server.NewSessionSettings.Lock = self:GetChecked();
+								if LootReserve.Server.CurrentSession then
+									LootReserve.Server.CurrentSession.Settings.Lock = self:GetChecked();
+									if LootReserve.Server.CurrentSession.AcceptingReserves then
+										LootReserve.Comm:BroadcastSessionInfo();
+									end
+								end
+								LootReserve.Server.MembersEdit:UpdateMembersList();
+							</OnClick>
+						</Scripts>
+					</CheckButton>
+					<Button name="LootReserveServerButtonMembersEdit" parentKey="ButtonMembersEdit" inherits="LootReserveGlowingButtonTemplate" text="Players">
+						<Size x="72" y="24" />
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeKey="$parent.CheckButtonLock" relativePoint="BOTTOMLEFT" x="2" y="-2" />
+						</Anchors>
+						<Scripts>
+							<OnClick>
+								LootReserve.Server.MembersEdit.Window:SetShown(not LootReserve.Server.MembersEdit.Window:IsShown());
+							</OnClick>
+						</Scripts>
+					</Button>
 					<Frame name="LootReserveServerDropDownDuration" parentKey="DropDownDuration" inherits="UIDropDownMenuTemplate">
-						<Size x="80" y="32" />
+						<Size x="70" y="32" />
 						<Anchors>
 							<Anchor point="TOP" relativeKey="$parent.LabelDuration" relativePoint="BOTTOM" />
 						</Anchors>
 						<Scripts>
 							<OnLoad>
-								UIDropDownMenu_SetWidth(self, self:GetWidth());
-								UIDropDownMenu_JustifyText(self, "LEFT");
-								UIDropDownMenu_Initialize(self, function(frame, level, menuList)
-									local info = UIDropDownMenu_CreateInfo();
-									info.minWidth = self:GetWidth() - 40;
-									info.func = function(info)
-										LootReserve.Server.NewSessionSettings.Duration = info.value;
-										UIDropDownMenu_SetSelectedValue(self, info.value);
-									end
-									for _, time in ipairs({ 0, 10, 30, 60, 90, 120, 180, 240, 300, 600, 900, 1200, 1800, 2700, 3600 }) do
-										info.text = time == 0 and "Manual" or format("%d:%02d", math.floor(time / 60), time % 60);
-										info.value = time;
-										UIDropDownMenu_AddButton(info);
-										info.checked = false;
-									end
-								end);
+								self.init = function(self)
+									self.init = nil;
+									UIDropDownMenu_SetWidth(self, self:GetWidth());
+									UIDropDownMenu_JustifyText(self, "LEFT");
+									UIDropDownMenu_Initialize(self, function(frame, level, menuList)
+										local info = UIDropDownMenu_CreateInfo();
+										info.minWidth = self:GetWidth() - 40;
+										info.func = function(info)
+											LootReserve.Server.NewSessionSettings.Duration = info.value;
+											UIDropDownMenu_SetSelectedValue(self, info.value);
+										end
+										for _, time in ipairs({ 0, 10, 30, 60, 90, 120, 180, 240, 300, 600, 900, 1200, 1800, 2700, 3600 }) do
+											info.text = time == 0 and "Manual" or format("%d:%02d", math.floor(time / 60), time % 60);
+											info.value = time;
+											UIDropDownMenu_AddButton(info);
+											info.checked = false;
+										end
+									end);
+								end
 							</OnLoad>
 						</Scripts>
 					</Frame>
@@ -1491,6 +1710,18 @@
 					</Layer>
 				</Layers>
 			</Frame>
+			<Frame parentKey="AwaitingAuthority" hidden="true" enableMouse="true" frameLevel="1000">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.PanelSession" />
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.PanelSession" />
+				</Anchors>
+				<!--Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background-Dark" /-->
+				<Layers>
+					<Layer>
+						<FontString inherits="GameFontNormal" text="You have an active session|nbut aren't currently the raid|nleader or the master looter|n|nThe session will resume|nwhen you're assigned|none of these roles" />
+					</Layer>
+				</Layers>
+			</Frame>
 			<Frame parentKey="PanelReserves" parentArray="Panels" hidden="true">
 				<Anchors>
 					<Anchor point="TOPLEFT" x="7" y="-48" />
@@ -1500,7 +1731,7 @@
 					<ScrollFrame parentKey="Scroll" inherits="LootReserveScrollTemplate">
 						<Anchors>
 							<Anchor point="TOPLEFT" x="1" y="-1" />
-							<Anchor point="BOTTOMRIGHT" x="-23" y="1" />
+							<Anchor point="BOTTOMRIGHT" x="-17" y="1" />
 						</Anchors>
 					</ScrollFrame>
 				</Frames>
@@ -1514,7 +1745,7 @@
 					<ScrollFrame parentKey="Scroll" inherits="LootReserveScrollTemplate">
 						<Anchors>
 							<Anchor point="TOPLEFT" x="1" y="-1" />
-							<Anchor point="BOTTOMRIGHT" x="-23" y="1" />
+							<Anchor point="BOTTOMRIGHT" x="-17" y="1" />
 						</Anchors>
 					</ScrollFrame>
 				</Frames>
@@ -1528,7 +1759,7 @@
 					<ScrollFrame parentKey="Scroll" inherits="LootReserveScrollTemplate">
 						<Anchors>
 							<Anchor point="TOPLEFT" x="1" y="-1" />
-							<Anchor point="BOTTOMRIGHT" x="-23" y="1" />
+							<Anchor point="BOTTOMRIGHT" x="-17" y="1" />
 						</Anchors>
 					</ScrollFrame>
 				</Frames>
@@ -1542,7 +1773,7 @@
 					<ScrollFrame parentKey="Scroll" inherits="LootReserveScrollTemplate">
 						<Anchors>
 							<Anchor point="TOPLEFT" x="1" y="-1" />
-							<Anchor point="BOTTOMRIGHT" x="-23" y="1" />
+							<Anchor point="BOTTOMRIGHT" x="-17" y="1" />
 						</Anchors>
 					</ScrollFrame>
 				</Frames>
@@ -1554,6 +1785,9 @@
 			</OnLoad>
 			<OnShow>
 				PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN);
+				LootReserve.Server:LoadNewSessionSessings();
+				LootReserve.Server:UpdateReserveList();
+				LootReserve.Server:UpdateRollList();
 			</OnShow>
 			<OnHide>
 				CloseMenus();

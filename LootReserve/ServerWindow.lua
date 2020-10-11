@@ -1,4 +1,8 @@
+local LibCustomGlow = LibStub("LibCustomGlow-1.0");
+
 function LootReserve.Server:UpdateReserveListRolls(lockdown)
+    if not self.Window:IsShown() then return; end
+
     lockdown = lockdown or InCombatLockdown();
 
     local list = (lockdown and self.Window.PanelReservesLockdown or self.Window.PanelReserves).Scroll.Container;
@@ -46,6 +50,8 @@ function LootReserve.Server:UpdateReserveListRolls(lockdown)
 end
 
 function LootReserve.Server:UpdateReserveListChat(lockdown)
+    if not self.Window:IsShown() then return; end
+
     lockdown = lockdown or InCombatLockdown();
 
     local list = (lockdown and self.Window.PanelReservesLockdown or self.Window.PanelReserves).Scroll.Container;
@@ -70,6 +76,8 @@ function LootReserve.Server:UpdateReserveListChat(lockdown)
 end
 
 function LootReserve.Server:UpdateReserveList(lockdown)
+    if not self.Window:IsShown() then return; end
+
     lockdown = lockdown or InCombatLockdown();
 
     local filter = LootReserve:TransformSearchText(self.Window.Search:GetText());
@@ -126,16 +134,28 @@ function LootReserve.Server:UpdateReserveList(lockdown)
         frame.ItemFrame.Name:SetText((link or name or "|cFFFF4000Loading...|r"):gsub("[%[%]]", ""));
         local tracking = self.CurrentSession.LootTracking[item];
         local fade = false;
-        if tracking then
+        if LootReserve:IsLootingItem(item) then
+            frame.ItemFrame.Misc:SetText("In loot");
+            fade = false;
+            if LibCustomGlow then
+                LibCustomGlow.ButtonGlow_Start(frame.ItemFrame.IconGlow);
+            end
+        elseif tracking then
             local players = "";
             for player, count in pairs(tracking.Players) do
                 players = players .. (#players > 0 and ", " or "") .. LootReserve:ColoredPlayer(player) .. (count > 1 and format(" (%d)", count) or "");
             end
             frame.ItemFrame.Misc:SetText("Looted by " .. players);
             fade = false;
+            if LibCustomGlow then
+                LibCustomGlow.ButtonGlow_Stop(frame.ItemFrame.IconGlow);
+            end
         else
             frame.ItemFrame.Misc:SetText("Not looted");
             fade = self.Settings.ReservesSorting == LootReserve.Constants.ReservesSorting.ByLooter and next(self.CurrentSession.LootTracking) ~= nil;
+            if LibCustomGlow then
+                LibCustomGlow.ButtonGlow_Stop(frame.ItemFrame.IconGlow);
+            end
         end
         frame:SetAlpha(fade and 0.25 or 1);
 
@@ -153,6 +173,7 @@ function LootReserve.Server:UpdateReserveList(lockdown)
             end
             local unit = LootReserve:GetRaidUnitID(player) or LootReserve:GetPartyUnitID(player);
             local button = frame.ReservesFrame.Players[i];
+            if button.init then button:init(); end
             button:Show();
             button.Player = player;
             button.Unit = unit;
@@ -211,6 +232,15 @@ function LootReserve.Server:UpdateReserveList(lockdown)
         return (name or ""):upper();
     end
     local function getSortingSource(reserve)
+        local customIndex = 0;
+        for item, conditions in pairs(self.CurrentSession.Settings.ItemConditions) do
+            if conditions.Custom then
+                customIndex = customIndex + 1;
+                if item == reserve.Item then
+                    return customIndex;
+                end
+            end
+        end
         for id, category in LootReserve:Ordered(LootReserve.Data.Categories) do
             if category.Children and (not self.CurrentSession or id == self.CurrentSession.Settings.LootCategory) then
                 for childIndex, child in ipairs(category.Children) do
@@ -227,6 +257,9 @@ function LootReserve.Server:UpdateReserveList(lockdown)
         return 100000000;
     end
     local function getSortingLooter(reserve)
+        if LootReserve:IsLootingItem(reserve.Item) then
+            return "";
+        end
         local tracking = self.CurrentSession.LootTracking[reserve.Item];
         if tracking then
             for player, _ in LootReserve:Ordered(tracking.Players) do
@@ -264,7 +297,7 @@ function LootReserve.Server:UpdateReserveList(lockdown)
         list.Frames[i]:Hide();
     end
 
-    list:SetSize(list:GetParent():GetWidth(), math.max(list.ContentHeight or 0, list:GetParent():GetHeight() - 1));
+    list:GetParent():UpdateScrollChildRect();
 
     self:UpdateReserveListRolls(lockdown);
 
@@ -274,6 +307,8 @@ function LootReserve.Server:UpdateReserveList(lockdown)
 end
 
 function LootReserve.Server:UpdateRollListRolls(lockdown)
+    if not self.Window:IsShown() then return; end
+
     lockdown = lockdown or InCombatLockdown();
 
     local list = (lockdown and self.Window.PanelRollsLockdown or self.Window.PanelRolls).Scroll.Container;
@@ -319,6 +354,8 @@ function LootReserve.Server:UpdateRollListRolls(lockdown)
 end
 
 function LootReserve.Server:UpdateRollListChat(lockdown)
+    if not self.Window:IsShown() then return; end
+
     lockdown = lockdown or InCombatLockdown();
 
     local list = (lockdown and self.Window.PanelRollsLockdown or self.Window.PanelRolls).Scroll.Container;
@@ -341,6 +378,8 @@ function LootReserve.Server:UpdateRollListChat(lockdown)
 end
 
 function LootReserve.Server:UpdateRollList(lockdown)
+    if not self.Window:IsShown() then return; end
+
     lockdown = lockdown or InCombatLockdown();
 
     local filter = LootReserve:TransformSearchText(self.Window.Search:GetText());
@@ -359,11 +398,10 @@ function LootReserve.Server:UpdateRollList(lockdown)
     end
 
     local firstHistorical = true;
-    if list.HistoryHeader then
-        list.HistoryHeader:Hide();
-    else
+    if not list.HistoryHeader then
         list.HistoryHeader = CreateFrame("Frame", nil, list, "LootReserveRollHistoryHeader");
     end
+    list.HistoryHeader:Hide();
 
     local function createFrame(item, roll, historical)
         list.LastIndex = list.LastIndex + 1;
@@ -425,6 +463,7 @@ function LootReserve.Server:UpdateRollList(lockdown)
                 end
                 local unit = LootReserve:GetRaidUnitID(player) or LootReserve:GetPartyUnitID(player);
                 local button = frame.ReservesFrame.Players[last];
+                if button.init then button:init(); end
                 button:Show();
                 button.Player = player;
                 button.Unit = unit;
@@ -516,7 +555,7 @@ function LootReserve.Server:UpdateRollList(lockdown)
         list.Frames[i]:Hide();
     end
 
-    list:SetSize(list:GetParent():GetWidth(), math.max(list.ContentHeight or 0, list:GetParent():GetHeight() - 1));
+    list:GetParent():UpdateScrollChildRect();
 
     self:UpdateRollListRolls(lockdown);
 end
@@ -589,12 +628,9 @@ function LootReserve.Server:OnWindowLoad(window)
     self:UpdateServerAuthority();
     self:LoadNewSessionSessings();
 
-    local function updateAuthority() self:UpdateServerAuthority(); end
-    LootReserve:RegisterEvent("GROUP_JOINED", updateAuthority);
-    LootReserve:RegisterEvent("GROUP_LEFT", updateAuthority);
-    LootReserve:RegisterEvent("PARTY_LEADER_CHANGED", updateAuthority);
-    LootReserve:RegisterEvent("PARTY_LOOT_METHOD_CHANGED", updateAuthority);
-    LootReserve:RegisterEvent("GROUP_ROSTER_UPDATE", updateAuthority);
+    LootReserve:RegisterEvent("GROUP_JOINED", "GROUP_LEFT", "PARTY_LEADER_CHANGED", "PARTY_LOOT_METHOD_CHANGED", "GROUP_ROSTER_UPDATE", function()
+        self:UpdateServerAuthority();
+    end);
     LootReserve:RegisterEvent("GET_ITEM_INFO_RECEIVED", function(item, success)
         if item and self.CurrentSession and self.CurrentSession.ItemReserves[item] then
             self:UpdateReserveList();
@@ -613,7 +649,7 @@ function LootReserve.Server:OnWindowLoad(window)
         end
     end);
     LootReserve:RegisterEvent("PLAYER_REGEN_DISABLED", function()
-        -- Swap out the real (tained) reserves and rolls panels for slightly less functional ones, but ones that don't have taint
+        -- Swap out the real (tainted) reserves and rolls panels for slightly less functional ones, but ones that don't have taint
         if self.Window.PanelReserves:IsShown() then
             self.Window.PanelReserves:Hide();
             self.Window.PanelReservesLockdown:Show();
@@ -648,6 +684,9 @@ function LootReserve.Server:OnWindowLoad(window)
         self.Window.PanelRolls.Scroll:UpdateScrollChildRect();
         self.Window.PanelRolls.Scroll:SetVerticalScroll(self.Window.PanelRollsLockdown.Scroll:GetVerticalScroll());
     end);
+    LootReserve:RegisterEvent("LOOT_READY", "LOOT_CLOSED", "LOOT_SLOT_CHANGED", "LOOT_SLOT_CLEARED", function()
+        self:UpdateReserveList();
+    end);
 end
 
 local activeSessionChanges =
@@ -661,6 +700,7 @@ local activeSessionChanges =
     EditBoxCount = "Disable",
     LabelDuration = "Label",
     DropDownDuration = "DropDown",
+    ButtonLootEdit = "Disable",
 
     Apply = function(self, panel, active)
         for k, action in pairs(self) do
@@ -687,18 +727,24 @@ local activeSessionChanges =
 
 function LootReserve.Server:SessionStarted()
     activeSessionChanges:Apply(self.Window.PanelSession, true);
+    self.Window.PanelSession.CheckButtonBlind:SetChecked(self.CurrentSession.Settings.Blind);
+    self.Window.PanelSession.CheckButtonLock:SetChecked(self.CurrentSession.Settings.Lock);
     self.Window.PanelSession.Duration:SetShown(self.CurrentSession.Settings.Duration ~= 0);
     self.Window.PanelSession.ButtonStartSession:Hide();
     self.Window.PanelSession.ButtonStopSession:Show();
     self.Window.PanelSession.ButtonResetSession:Hide();
-    self:OnWindowTabClick(self.Window.TabReserves);
+    self:OnWindowTabClick(self.StartupAwaitingAuthority and self.Window.TabSession or self.Window.TabReserves);
     PlaySound(SOUNDKIT.GS_CHARACTER_SELECTION_ENTER_WORLD);
     self:UpdateServerAuthority();
     self:UpdateRollList();
+    self.LootEdit.Window:Hide();
+    self.Import.Window:Hide();
 end
 
 function LootReserve.Server:SessionStopped()
     activeSessionChanges:Apply(self.Window.PanelSession, true);
+    self.Window.PanelSession.CheckButtonBlind:SetChecked(self.CurrentSession.Settings.Blind);
+    self.Window.PanelSession.CheckButtonLock:SetChecked(self.CurrentSession.Settings.Lock);
     self.Window.PanelSession.Duration:SetShown(self.CurrentSession.Settings.Duration ~= 0);
     self.Window.PanelSession.ButtonStartSession:Show();
     self.Window.PanelSession.ButtonStopSession:Hide();
@@ -715,6 +761,8 @@ end
 
 function LootReserve.Server:SessionReset()
     activeSessionChanges:Apply(self.Window.PanelSession, false);
+    self.Window.PanelSession.CheckButtonBlind:SetChecked(self.NewSessionSettings.Blind);
+    self.Window.PanelSession.CheckButtonLock:SetChecked(self.NewSessionSettings.Lock);
     self.Window.PanelSession.Duration:Hide();
     self.Window.PanelSession.ButtonStartSession:Show();
     self.Window.PanelSession.ButtonStopSession:Hide();
@@ -723,22 +771,28 @@ function LootReserve.Server:SessionReset()
     self:UpdateRollList();
 end
 
-function LootReserve.Server:RollExpired()
-    local list = self.Window.PanelRolls.Scroll.Container.Frames;
-    if list and list[2] and UIDROPDOWNMENU_OPEN_MENU == list[2].Menu then
-        CloseMenus();
-    end
-    list = self.Window.PanelRollsLockdown.Scroll.Container.Frames;
-    if list and list[2] and UIDROPDOWNMENU_OPEN_MENU == list[2].Menu then
-        CloseMenus();
+function LootReserve.Server:RollEnded()
+    if UIDROPDOWNMENU_OPEN_MENU then
+        for _, panel in ipairs({ "PanelReserves", "PanelReservesLockdown", "PanelRolls", "PanelRollsLockdown" }) do
+            local list = self.Window[panel].Scroll.Container;
+            if list and list.Frames then
+                for _, frame in ipairs(list.Frames) do
+                    if UIDROPDOWNMENU_OPEN_MENU == frame.Menu then
+                        CloseMenus();
+                        return;
+                    end
+                end
+            end
+        end
     end
 end
 
 function LootReserve.Server:UpdateServerAuthority()
     local hasAuthority = self:CanBeServer();
     self.Window.PanelSession.ButtonStartSession:SetEnabled(hasAuthority);
-    self.Window.PanelSession:SetAlpha((hasAuthority or self.CurrentSession) and 1 or 0.15);
+    self.Window.PanelSession:SetAlpha((hasAuthority or self.CurrentSession and not self.StartupAwaitingAuthority) and 1 or 0.15);
     self.Window.NoAuthority:SetShown(not hasAuthority and not self.CurrentSession and self.Window.PanelSession:IsShown());
+    self.Window.AwaitingAuthority:SetShown(not hasAuthority and self.CurrentSession and self.Window.PanelSession:IsShown() and self.StartupAwaitingAuthority);
 end
 
 function LootReserve.Server:UpdateAddonUsers()
@@ -756,7 +810,10 @@ function LootReserve.Server:UpdateAddonUsers()
 end
 
 function LootReserve.Server:LoadNewSessionSessings()
+    if not self.Window:IsShown() then return; end
+    
     local function setDropDownValue(dropDown, value)
+        if dropDown.init then dropDown:init(); end
         ToggleDropDownMenu(nil, nil, dropDown);
         UIDropDownMenu_SetSelectedValue(dropDown, value);
         CloseMenus();
@@ -765,4 +822,11 @@ function LootReserve.Server:LoadNewSessionSessings()
     setDropDownValue(self.Window.PanelSession.DropDownRaid, self.NewSessionSettings.LootCategory);
     self.Window.PanelSession.EditBoxCount:SetText(tostring(self.NewSessionSettings.MaxReservesPerPlayer));
     setDropDownValue(self.Window.PanelSession.DropDownDuration, self.NewSessionSettings.Duration);
+    if self.CurrentSession then
+        self.Window.PanelSession.CheckButtonBlind:SetChecked(self.CurrentSession.Settings.Blind);
+        self.Window.PanelSession.CheckButtonLock:SetChecked(self.CurrentSession.Settings.Lock);
+    else
+        self.Window.PanelSession.CheckButtonBlind:SetChecked(self.NewSessionSettings.Blind);
+        self.Window.PanelSession.CheckButtonLock:SetChecked(self.NewSessionSettings.Lock);
+    end
 end

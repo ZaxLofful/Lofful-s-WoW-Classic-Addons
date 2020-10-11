@@ -272,7 +272,17 @@ function addon:GetRecipeOwners(professionName, link, recipeLevel)
                 -- Special case for Mechanical Squirrel: get the name of the item it creates instead
                 if (itemID == 4408) then
                     craftName = GetItemInfo(4401)
+                    if not craftName then craftName = "" end
                 end
+                
+                -- Transmutes need to search for the item created
+                local transmuteRecipeIDs = {[9305] = 6037, [12958] = 12360, [13486] = 7080, [13485] = 7082, [20761] = 7068, [13484] = 7080, [13489] = 12803, [13483] = 7076, [13488] = 7076, [13482] = 7078, [13487] = 12808, [9304] = 3577}
+                for recipeID, craftedItemID in pairs(transmuteRecipeIDs) do
+                    if (itemID == recipeID) then
+                        craftName = GetItemInfo(craftedItemID)
+                        if not craftName then craftName = "" end
+                    end
+                end 
 
                 -- is the game in French and the recipe an Enchanting recipe?
                 -- if so, change "Enchantement" to "Ench."
@@ -294,7 +304,6 @@ function addon:GetRecipeOwners(professionName, link, recipeLevel)
                     
                     if (itemID == 18260) then
                         -- Healing power
-                        -- I don't do regex, found this code snippet on: https://scripters.boards.net/thread/85/remove-multiple-spaces
                         skillName = skillName:gsub(" +"," ")
                     end
                     

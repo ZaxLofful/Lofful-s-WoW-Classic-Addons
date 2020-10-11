@@ -10,6 +10,8 @@ LootReserve.Constants =
         ItemNotReservable = 4,
         AlreadyReserved = 5,
         NoReservesLeft = 6,
+        FailedConditions = 7,
+        Locked = 8,
     },
     CancelReserveResult =
     {
@@ -20,6 +22,7 @@ LootReserve.Constants =
         ItemNotReservable = 4,
         NotReserved = 5,
         Forced = 6,
+        Locked = 7,
     },
     ReservesSorting =
     {
@@ -38,5 +41,16 @@ LootReserve.Constants =
         RollWinner = 6,
         RollTie = 7,
         SessionInstructions = 8,
+        RollCountdown = 9,
+        SessionBlindToggle = 10,
+    },
+    DefaultPhases =
+    {
+        "Main-Spec",
+        "Off-Spec",
+        "Reputation",
+        "Profession",
+        "Looks",
+        "Vendor",
     },
 };
