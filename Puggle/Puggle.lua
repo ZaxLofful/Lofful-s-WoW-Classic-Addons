@@ -7,7 +7,7 @@
 ]]--
 
 
-local puglocal_version = "2.9"  --change here, and in TOC
+local puglocal_version = "1.13.5.211"  --change here, and in TOC
 local puglocal_reqPrefix = "Puggle;"
 local puglocal_dispFrequency = 5  -- display refresh every x seconds
 local puglocal_whoFrequency = 10  -- seconds before allowing another /who
@@ -228,7 +228,7 @@ function Puggle_OnEvent(event, ...)
 	local arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg, arg9 = ...
 	
 	if event == "ADDON_LOADED" and arg1 == "Puggle" then
-		DEFAULT_CHAT_FRAME:AddMessage("Puggle v."..puglocal_version.." by Cixi@Remulos. Type /puggle or /pug to get started,")
+		DEFAULT_CHAT_FRAME:AddMessage("|cffff00ff[Puggle]|r v."..puglocal_version.." by Cixi@Remulos. Type /puggle or /pug to get started,")
 		DEFAULT_CHAT_FRAME:AddMessage("or use the minimap button to toggle the app.")
 		puglocal_loadTime = time()
 	
@@ -299,6 +299,30 @@ function Puggle_OnEvent(event, ...)
 		for ip, p in pairs(Puggle_pastPlayers) do
 			if p.faction == nil then p.faction = UnitFactionGroup("player") end
 			if p.realm == nil then p.realm = GetRealmName() end
+
+			-- fix to get all data in Player array (to allow delete of groups)
+			if p.latestlevel == nil or p.latestguild == nil or p.lateststar == nil or p.latestcmt == nil or p.latesttime == nil or p.latestfrom == nil then 
+				if p.latestlevel == nil then p.latestlevel = Puggle_enc("1")  end
+				if p.latestguild == nil then p.latestguild = Puggle_enc("") end
+				if p.lateststar == nil  then p.lateststar = Puggle_enc("0") end
+				if p.latestcmt == nil   then p.latestcmt = Puggle_enc("") end
+				if p.latesttime == nil  then p.latesttime = time() end
+				if p.latestfrom == nil  then p.latestfrom = Puggle_enc("") end
+				for ig, g in pairs(Puggle_pastGroups) do
+					local from = ""
+					for ipp, pp in pairs(g.party) do
+						if pp.player then from = Puggle_enc(pp.name) end
+						if pp.id == ip then
+							p.latestlevel = pp.level
+							p.latestguild = pp.guild
+							p.lateststar = pp.star
+							p.latestcmt = pp.cmt
+							p.latesttime = pp.time
+							p.latestfrom = from
+						end 
+					end	
+				end
+			end
 		end
 		for ig, g in pairs(Puggle_pastGroups) do
 			if g.realm == nil then g.realm = GetRealmName() end
@@ -315,6 +339,8 @@ function Puggle_OnEvent(event, ...)
 				p.gender = Puggle_enc(""..p.gender)
 				p.faction = Puggle_enc(p.faction)
 				p.realm = Puggle_enc(p.realm)
+				p.lateststar = Puggle_enc(""..p.star)
+				p.latestcmt = Puggle_enc(p.cmt)
 			end
 
 			for ig, g in pairs(Puggle_pastGroups) do
@@ -349,6 +375,8 @@ function Puggle_OnEvent(event, ...)
 			Puggle_pastPlayers[puglocal_playerToon].faction = Puggle_enc(UnitFactionGroup("player"))
 			Puggle_pastPlayers[puglocal_playerToon].player = true
 			Puggle_pastPlayers[puglocal_playerToon].realm = Puggle_enc(GetRealmName())
+			Puggle_pastPlayers[puglocal_playerToon].lateststar = Puggle_enc("0")
+			Puggle_pastPlayers[puglocal_playerToon].latestcmt = Puggle_enc("")
 		end
 
 		--pingTime = puglocal_loadTime
@@ -554,10 +582,14 @@ function Puggle_UpdateCurrentGroup()
 						end 
 
 						Puggle_pastGroups[puglocal_curGroupId].party[pInd].level = Puggle_enc(""..UnitLevel("party"..i)) --this might change while in group
+						Puggle_pastPlayers[Puggle_pastGroups[puglocal_curGroupId].party[pInd].id].latestlevel = Puggle_enc(""..UnitLevel("party"..i))
 						if Puggle_pastGroups[puglocal_curGroupId].party[pInd].guild == nil then Puggle_pastGroups[puglocal_curGroupId].party[pInd].guild = Puggle_enc("") end
 						local guildName = GetGuildInfo("party"..i)
 						if guildName == nil then guildName = "" end
-						if guildName ~= "" then Puggle_pastGroups[puglocal_curGroupId].party[pInd].guild = Puggle_enc(guildName) end
+						if guildName ~= "" then
+							Puggle_pastGroups[puglocal_curGroupId].party[pInd].guild = Puggle_enc(guildName)
+							Puggle_pastPlayers[Puggle_pastGroups[puglocal_curGroupId].party[pInd].id].latestguild = Puggle_enc(guildName)
+						end
 						if Puggle_pastGroups[puglocal_curGroupId].party[pInd].time == nil then Puggle_pastGroups[puglocal_curGroupId].party[pInd].time = puglocal_curGroupId end
 						Puggle_pastGroups[puglocal_curGroupId].party[pInd].dur = time() - Puggle_pastGroups[puglocal_curGroupId].party[pInd].time
 						
@@ -810,11 +842,14 @@ function Puggle_displayPlayers()
 	Puggle_ratedList = {}
 	local Puggle_realm = Puggle_enc(GetRealmName())
 	for ip, p in pairs(Puggle_pastPlayers) do
+--		if p.lateststar == nil then p.lateststar = Puggle_enc("0") end
+--		if p.latestcmt == nil then p.latestcmt = Puggle_enc("") end
+
 		if p.player == false and p.realm == Puggle_realm then -- don't list myself, or toons from other realms
 
 			--retrieve latest rating/level/guild
 			--for ig, g in Puggle_spairs(Puggle_pastGroups, function(t,a,b) return b > a end) do
-			local Puggle_maxLevel = 0
+--[[			local Puggle_maxLevel = 0
 			local Puggle_maxTime = 0
 			local Puggle_maxGuild = ""
 			local Puggle_maxStar = 0
@@ -838,8 +873,13 @@ function Puggle_displayPlayers()
 			--	end
 			end 
 			if Puggle_maxGuild ~= "" then Puggle_maxGuild = "< " .. Puggle_maxGuild .. " >" end
+]]--
 
-			if Puggle_maxStar > 0 then 
+			--if Puggle_maxStar > 0 then
+
+			--print(Puggle_dec(p.name)..Puggle_dec(p.lateststar))
+
+			if p.lateststar ~= Puggle_enc("0") then 	
 				Puggle_ratedList[ip] = {}
 				Puggle_ratedList[ip].name = Puggle_dec(p.name)
 				Puggle_ratedList[ip].race = Puggle_dec(p.race)
@@ -847,10 +887,10 @@ function Puggle_displayPlayers()
 				Puggle_ratedList[ip].gender = tonumber(Puggle_dec(p.gender))
 				Puggle_ratedList[ip].realm = Puggle_dec(p.realm)
 				Puggle_ratedList[ip].faction = Puggle_dec(p.faction)
-				Puggle_ratedList[ip].guild = Puggle_maxGuild
-				Puggle_ratedList[ip].level = Puggle_maxLevel
-				Puggle_ratedList[ip].last = Puggle_maxTime
-				Puggle_ratedList[ip].star = Puggle_maxStar
+				Puggle_ratedList[ip].guild = Puggle_dec(p.latestguild)
+				Puggle_ratedList[ip].level = Puggle_dec(p.latestlevel)
+				Puggle_ratedList[ip].last = p.latesttime
+				Puggle_ratedList[ip].star = tonumber(Puggle_dec(p.lateststar))
 				Puggle_ratedList[ip].from = Puggle_maxFrom
 			end
 		end
@@ -871,10 +911,11 @@ function Puggle_displayPlayers()
 			else 	return t[b][puglocal_sortPlayersBy] < t[a][puglocal_sortPlayersBy]
 			end
 		end) do
-
+		
 		-- don't list players with a level = 0, that means the groups they were in have been deleted
 		if (p.level ~= 0) then 
-
+			--print(p.name)
+			
 			-- let's find out if we need to create this playerframe or if we can reuse it
 			local exist = false
 			for _, f in ipairs(puglocal_playerframes) do if f == "puggleplayer-"..ip then exist = true end end
@@ -894,6 +935,8 @@ function Puggle_displayPlayers()
 			_G["puggleplayer-"..ip.."_last"]:SetText(""..date("%d %b %y", p.last))
 			_G["puggleplayer-"..ip.."_last"]:Show()
 			
+
+			--print(p.star)
 			Puggle_ShowStars(ip, p.star)
 
 			_G["puggleplayer-"..ip]:SetParent(Puggle_ScrollChildFramePlayers)
@@ -961,10 +1004,23 @@ function Puggle_ratePlayer(self, nb)
 		local s = Puggle_split(self:GetName(), "_")  --remove "_star" from last bit
 		local c = Puggle_split(s[1], "-")	--retrieve party id 
 		local pid = tonumber(c[2])
+		local puglocal_selectedplayer = -1;
+		
 		Puggle_rateHover(self, nb)
-
-		print("Puggle: Giving " .. nb .. " stars to " .. Puggle_dec(Puggle_pastPlayers[Puggle_pastGroups[puglocal_lastGroupId].party[pid].id].name))
 		Puggle_pastGroups[puglocal_lastGroupId].party[pid].star = Puggle_enc(""..nb)
+		puglocal_selectedplayer = Puggle_pastGroups[puglocal_lastGroupId].party[pid].id
+
+--		for ip, p in pairs(Puggle_pastPlayers) do
+--			if p.name == Puggle_enc(UnitName("player")) then puglocal_selectedplayer = ip end
+--		end
+
+--		print(Puggle_dec(Puggle_pastPlayers[puglocal_selectedplayer].name))
+		Puggle_pastPlayers[puglocal_selectedplayer].lateststar = Puggle_enc(""..nb)
+		Puggle_pastPlayers[puglocal_selectedplayer].latesttime = puglocal_lastGroupId
+		print("Puggle: Giving " .. nb .. " stars to " .. Puggle_dec(Puggle_pastPlayers[puglocal_selectedplayer].name))
+		
+		--print("Puggle: Giving " .. nb .. " stars to " .. Puggle_dec(Puggle_pastPlayers[Puggle_pastGroups[puglocal_lastGroupId].party[pid].id].name))
+		
 	end
 end
 
@@ -1002,6 +1058,30 @@ end
 
 -------------------------------------------------------------------------
 
+function Puggle_deleteAllGroups() 
+
+	StaticPopupDialogs["CONFIRM_DELETE_ALL"] = {
+		text = "Are you sure you want to delete \n*ALL* groups?",
+		button1 = "Yes",
+		button2 = "No",
+		OnAccept = function()
+			for ig, g in pairs(Puggle_pastGroups) do
+				Puggle_pastGroups[ig] = nil
+			end
+	
+--			Puggle_pastGroups[puglocal_lastGroupId] = nil
+			puglocal_lastGroupId = -1
+			Puggle_loadGroups() 
+		end,
+		timeout = 0,
+		whileDead = true,
+		hideOnEscape = true,
+		preferredIndex = 3,  -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
+	}
+	StaticPopup_Show ("CONFIRM_DELETE_ALL")
+end
+-------------------------------------------------------------------------
+
 function Puggle_addComment(self) 
 
 	local s = Puggle_split(self:GetName(), "_")  --remove "_star" from last bit
@@ -1018,10 +1098,13 @@ function Puggle_addComment(self)
 		button2 = "Cancel",
 		OnShow = function (self, data)
     		self.editBox:SetText("" .. Puggle_dec(Puggle_pastGroups[puglocal_lastGroupId].party[pid].cmt))
+			self.editBox:SetScript("OnEscapePressed", function(self) StaticPopup_Hide ("ADD_COMMENT") end)
 		end,
 		OnAccept = function (self, data, data2)
     		local text = self.editBox:GetText()
     		Puggle_pastGroups[puglocal_lastGroupId].party[pid].cmt = Puggle_enc(""..text)
+			Puggle_pastPlayers[Puggle_pastGroups[puglocal_lastGroupId].party[pid].id].latestcmt = Puggle_enc(""..text)
+			Puggle_pastPlayers[Puggle_pastGroups[puglocal_lastGroupId].party[pid].id].latesttime = puglocal_lastGroupId
 		end,
 		timeout = 0,
 		hasEditBox = true,
@@ -1044,6 +1127,7 @@ function Puggle_addGroupComment(self)
 		button2 = "Cancel",
 		OnShow = function (self, data)
     		self.editBox:SetText("" .. Puggle_dec(Puggle_pastGroups[puglocal_lastGroupId].cmt))
+			self.editBox:SetScript("OnEscapePressed", function(self) StaticPopup_Hide ("ADD_GROUP_COMMENT") end)
 		end,
 		OnAccept = function (self, data, data2)
     		local text = self.editBox:GetText()
@@ -1115,6 +1199,7 @@ function Puggle_exportGroupData(self)
 		OnShow = function (self, data)
 			self.editBox:SetText(""..encoded)
 			self.editBox:HighlightText()
+			self.editBox:SetScript("OnEscapePressed", function(self) StaticPopup_Hide ("EXPORT_GROUP") end)
 		end,
 		timeout = 0,
 		hasEditBox = true,
@@ -1542,8 +1627,8 @@ function Puggle_ToggleAllDungeons(notify)
 	end
 
 	if notify then 
-		if tog then print("Puggle: Listening to ALL dungeon requests")
-		else print("Puggle: Listening to NO dungeon requests")
+		if tog then print("|cffff00ff[Puggle]|r Listening to ALL dungeon requests")
+		else print("|cffff00ff[Puggle]|r Listening to NO dungeon requests")
 		end
 	end
 	Puggle_UpdateList()
@@ -1682,7 +1767,7 @@ function Puggle_ProcessRandom(req, sender)
 
 				if Puggle_dungeonShow[s] then 
 					if (puglocal_playerLevel >= puglocal_dungeons[s][2] and puglocal_playerLevel <= puglocal_dungeons[s][3]) or Puggle_showOnlyRelevant == false then 
-						if Puggle_showMessageOnNewRequest and not hideNotifications then DEFAULT_CHAT_FRAME:AddMessage("New Puggle request by " .. playername .. " for " .. Puggle_dungeonNames[s]) end 
+						if Puggle_showMessageOnNewRequest and not hideNotifications then DEFAULT_CHAT_FRAME:AddMessage("|cffff00ff[Puggle]|r New request by " .. playername .. " for " .. Puggle_dungeonNames[s]) end 
 						if Puggle_playSoundOnNewRequest and not hideNotifications then   PlaySoundFile("sound/interface/pickup/putdownring.ogg") end
 					end
 				end
@@ -1696,7 +1781,7 @@ function Puggle_ProcessRandom(req, sender)
 
 					if Puggle_dungeonShow[s] then 
 						if (puglocal_playerLevel >= puglocal_dungeons[s][2] and puglocal_playerLevel <= puglocal_dungeons[s][3]) or Puggle_showOnlyRelevant == false then 
-							if Puggle_showMessageOnNewRequest and not hideNotifications then DEFAULT_CHAT_FRAME:AddMessage("New Puggle request by " .. playername .. " for " .. Puggle_dungeonNames[s]) end 
+							if Puggle_showMessageOnNewRequest and not hideNotifications then DEFAULT_CHAT_FRAME:AddMessage("|cffff00ff[Puggle]|r New request by " .. playername .. " for " .. Puggle_dungeonNames[s]) end 
 							if Puggle_playSoundOnNewRequest and not hideNotifications then   PlaySoundFile("sound/interface/pickup/putdownring.ogg") end				
 						end
 					end
@@ -1790,13 +1875,14 @@ function Puggle_ExtractDungeon(req)
 			end
 		end
 		
-		if valid then 
+		if valid then  
 			-- Then identify what instance it is for, or throw in a Misc/Other bucket	 if can't understand it (99)
 			for id, d in pairs(puglocal_dungeons) do --check all dungeons
 			--	for is, s in pairs(d[7]) do --check all acronyms
 				for is, s in pairs(Puggle_dungeonTags[id]) do --check all acronyms
 					for ip, p in pairs(parts) do
-						if (p == s) then 
+--						print("checking: "..id..": "..p.."/"..s)
+						if (p == string.lower(s)) then 
 							local found = false
 							--check the dungeon isn't already in the selection (prevent dupes like "lfg wailing caverns") 
 							for iss, ss in pairs(sel) do --check selection

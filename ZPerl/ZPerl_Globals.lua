@@ -411,7 +411,7 @@ function XPerl_Globals_OnEvent(self, event, arg1, ...)
 	elseif (event == "PLAYER_LOGIN") then
 		self:UnregisterEvent(event)
 		startupCheckSettings(self, event)
-		ZPerl_MinimapButton_Init(XPerl_MinimapButton_Frame)
+		ZPerl_MinimapButton_Init(ZPerl_MinimapButton_Frame)
 		-- Load the player's layout, will be profile dependent later.
 		local layout = format("%s(%s)", GetRealmName(), UnitName("player"))
 		XPerl_LoadFrameLayout(layout)

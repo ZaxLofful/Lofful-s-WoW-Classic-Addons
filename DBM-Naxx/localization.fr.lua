@@ -376,6 +376,5 @@ L:SetWarningLocalization({
 
 L:SetTimerLocalization({
 	TimerPhase2				= "Phase 2",
-	BlastTimer				= "Heal Maintenant !"
 })
 

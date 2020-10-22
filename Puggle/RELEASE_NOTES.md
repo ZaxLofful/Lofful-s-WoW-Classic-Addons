@@ -123,3 +123,11 @@ RELEASE NOTES:
 
  - 2.9	
  	Fixed an issue where micro freeze would happen on /party chat.
+
+ - 2.10
+	Added a possibility to delete one group or all groups, while preserving the player list and their ratings
+	The player export box can now be closed by pressing the Escape key
+
+ - 2.11
+	User-defined groups now properly show in their own category instead of under Miscellaneous
+

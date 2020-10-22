@@ -1,6 +1,6 @@
-## Interface: 11303
+## Interface: 11305
 ## Title: Peggle (Unofficial)
-## Version: 2.2.8
+## Version: 2.3.1
 ## Notes: The popular game Peggle, now back in World of Warcraft Classic!
 ## Author: PopCap Games Inc.
 ## SavedVariables: PeggleData

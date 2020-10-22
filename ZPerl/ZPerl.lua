@@ -8,8 +8,8 @@ local perc1F = "%.1f"..PERCENT_SYMBOL
 
 XPerl_RequestConfig(function(New)
 	conf = New
-end, "$Revision: 1227 $")
-XPerl_SetModuleRevision("$Revision: 1227 $")
+end, "$Revision: 1233 $")
+XPerl_SetModuleRevision("$Revision: 1233 $")
 
 local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 local LCD = IsClassic and LibStub and LibStub("LibClassicDurations", true)
@@ -1394,7 +1394,7 @@ local xpStartupMemory = {}
 
 -- ZPerl_MinimapButton_Init
 function ZPerl_MinimapButton_Init(self)
-	self.time = 0
+	--self.time = 0
 	collectgarbage()
 	UpdateAddOnMemoryUsage()
 	local totalKB = 0
@@ -1413,7 +1413,7 @@ function ZPerl_MinimapButton_Init(self)
 		self:Hide()
 	end
 
-	self.UpdateTooltip = XPerl_MinimapButton_OnEnter
+	--self.UpdateTooltip = XPerl_MinimapButton_OnEnter
 
 	ZPerl_MinimapButton_Init = nil
 end
@@ -1423,13 +1423,8 @@ function XPerl_MinimapButton_UpdatePosition(self)
 	if (not conf.minimap.radius) then
 		conf.minimap.radius = 78
 	end
-	self:SetPoint(
-		"TOPLEFT",
-		"Minimap",
-		"TOPLEFT",
-		54 - (conf.minimap.radius * cos(conf.minimap.pos)),
-		(conf.minimap.radius * sin(conf.minimap.pos)) - 55
-	)
+	self:ClearAllPoints()
+	self:SetPoint("TOPLEFT", "Minimap", "TOPLEFT", 54 - (conf.minimap.radius * cos(conf.minimap.pos)), (conf.minimap.radius * sin(conf.minimap.pos)) - 55)
 end
 
 -- XPerl_MinimapButton_Dragging
@@ -1566,7 +1561,7 @@ function XPerl_MinimapButton_Details(tt, ldb)
 	end
 
 	tt:Show()
-	tt.updateTooltip = 1
+	--tt.updateTooltip = 1
 end
 
 function XPerl_GetDisplayedPowerType(unitID) -- copied from CompactUnitFrame.lua

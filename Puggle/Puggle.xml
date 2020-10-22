@@ -204,6 +204,17 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 							</OnClick>
 						</Scripts>
 					</Button>
+
+					<Button name="$parent_deleteAll" inherits="OptionsButtonTemplate" text="Delete ALL groups">
+						<Size><AbsDimension x="200" y="25" /></Size>
+						<Anchors><Anchor point="TOPRIGHT" relativeTo="$parent"><Offset x="-30" y="-30" /></Anchor></Anchors>
+						<Scripts>
+							<OnClick> 
+								Puggle_deleteAllGroups()
+							</OnClick>
+						</Scripts>
+					</Button>
+
 				</Frames> 
 			</Frame>
 		
@@ -361,7 +372,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 						<FontString name="$parent_credits" inherits="GameFontNormal" text="Puggle by Cixi@Remulos">
                            <Anchors><Anchor point="BOTTOM" relativeTo="$parent"><Offset><AbsDimension x="0" y="85"/></Offset></Anchor></Anchors>
                        </FontString>
-						<FontString name="$parent_version" inherits="GameFontNormal" text="Version 1.0">
+						<FontString name="$parent_version" inherits="GameFontNormal" text="Version">
                            <Anchors><Anchor point="BOTTOM" relativeTo="$parent"><Offset><AbsDimension x="0" y="70"/></Offset></Anchor></Anchors>
 							<Color a="1" r="1" g="1" b="1" />
                        </FontString>

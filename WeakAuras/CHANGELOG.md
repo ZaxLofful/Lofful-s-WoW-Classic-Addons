@@ -1,14 +1,22 @@
-# [2.18.4](https://github.com/WeakAuras/WeakAuras2/tree/2.18.4) (2020-09-04)
+# [3.0.4](https://github.com/WeakAuras/WeakAuras2/tree/3.0.4) (2020-10-19)
 
-[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/2.18.3...2.18.4)
+[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/3.0.3...3.0.4)
 
 ## Highlights
 
- - Update lib 
+ - bug fixes 
 
 ## Commits
 
+InfusOnWoW (1):
+
+- Fix texture picker for ticks
+
 Stanzilla (1):
 
-- Ignore .DS_Store
+- Revert back to upstream LibSpellRange
+
+mrbuds (1):
+
+- Fix error with old versions of OmniCC
 

@@ -3389,13 +3389,11 @@ if (XPerl_UpgradeSettings) then
 				end
 			end
 
-			if (oldVersion < "5.0.4") then
+			if not old.target.comboindicator then
 				old.target.comboindicator = { }
-				old.target.comboindicator.enable = 1
 			end
 
 			if (oldVersion < "5.0.5") then
-				old.target.comboindicator = { }
 				old.target.comboindicator.enable = 1
 			end
 
