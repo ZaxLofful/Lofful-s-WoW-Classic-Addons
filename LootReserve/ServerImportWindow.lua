@@ -1,5 +1,6 @@
-LootReserve.Server.Import.Separator = ",";
+﻿LootReserve.Server.Import.Separator = ",";
 LootReserve.Server.Import.UseHeaders = false;
+LootReserve.Server.Import.MatchNames = false;
 LootReserve.Server.Import.SkipNotInRaid = false;
 LootReserve.Server.Import.Columns = { };
 
@@ -33,6 +34,63 @@ local function ParseCSVLine(line, sep)
         end
     end
     return res;
+end
+
+local charSimplifications =
+{
+    ["a"  ] = "[ÀÁÂÃÄÅàáâãäåĀāĂăĄąǍǎǞǟǠǡǺǻȀȁȂȃɐɑɒ]",
+    ["ae" ] = "[ÆæǢǣǼǽ]",
+    ["b"  ] = "[ƀƁƂƃɓʙ]",
+    ["c"  ] = "[ÇçĆćĈĉĊċČčƇƈɔɕʗ]",
+    ["d"  ] = "[ĎďĐđƉƊƋƌɖɗ]",
+    ["dz" ] = "[ǄǅǆǱǲǳʣʥ]",
+    ["e"  ] = "[ÈÉÊËèéêëĒēĔĕĖėĘęĚěƎƐǝȄȅȆȇɘəɚɛɜɝɞʚ]",
+    ["eth"] = "[ð]",
+    ["f"  ] = "[Ƒƒɟ]",
+    ["g"  ] = "[ĜĝĞğĠġĢģƓǤǥǦǧǴǵɠɡɢʛ]",
+    ["h"  ] = "[ĤĥĦħɥɦɧʜ]",
+    ["i"  ] = "[ÌÍÎÏìíîïĨĩĪīĬĭĮįİıƗǏǐȈȉȊȋɨɩɪ]",
+    ["ij" ] = "[Ĳĳ]",
+    ["j"  ] = "[Ĵĵǰʄʝ]",
+    ["k"  ] = "[ĶķĸƘƙǨǩʞ]",
+    ["l"  ] = "[ĹĺĻļĽľĿŀŁłƚɫɬɭʟ]",
+    ["lj" ] = "[Ǉǈǉ]",
+    ["m"  ] = "[Ɯɯɰɱ]",
+    ["n"  ] = "[ÑñŃńŅņŇňŉŊŋƝƞɲɳɴ]",
+    ["nj" ] = "[Ǌǋǌ]",
+    ["o"  ] = "[ÒÓÔÕÖØòóôõöøŌōŎŏŐőƆƟƠơǑǒǪǫǬǭǾǿȌȍȎȏɵ]",
+    ["oe" ] = "[Œœɶ]",
+    ["oi" ] = "[Ƣƣ]",
+    ["p"  ] = "[ÞþƤƥ]",
+    ["q"  ] = "[ʠ]",
+    ["r"  ] = "[ŔŕŖŗŘřƦȐȑȒȓɹɺɻɼɽɾɿʀʁ]",
+    ["s"  ] = "[ŚśŜŝŞşŠšſʂ]",
+    ["ss" ] = "[ß]",
+    ["t"  ] = "[ŢţŤťŦŧƫƬƭƮʇʈ]",
+    ["u"  ] = "[ÙÚÛÜùúûüŨũŪūŬŭŮůŰűŲųƯưǓǔǕǖǗǘǙǚǛǜȔȕȖȗʉʊ]",
+    ["v"  ] = "[Ʋʋʌ]",
+    ["w"  ] = "[Ŵŵʍ]",
+    ["y"  ] = "[ÝýÿŶŷŸƳƴʎʏ]",
+    ["z"  ] = "[ŹźŻżŽžƵƶʐʑ]",
+};
+
+local simplificationMapping = { }
+for replacement, pattern in pairs(charSimplifications) do
+    local len = pattern:utf8len();
+    for i = 1, len do
+        local char = pattern:utf8sub(i, i);
+        if char ~= "[" and char ~= "]" then
+            simplificationMapping[char] = replacement;
+        end
+    end
+end
+
+local function NormalizeName(name)
+    return name:utf8sub(1, 1):utf8upper() .. name:utf8sub(2):utf8lower();
+end
+
+local function SimplifyName(name)
+    return NormalizeName(name:utf8replace(simplificationMapping));
 end
 
 function LootReserve.Server.Import:UpdateReservesList()
@@ -75,7 +133,7 @@ function LootReserve.Server.Import:UpdateReservesList()
         frame:Show();
 
         frame.Alt:SetShown(list.LastIndex % 2 == 0);
-        frame.Name:SetText(format("%s%s", LootReserve:ColoredPlayer(player), LootReserve:IsPlayerOnline(player) == nil and "|cFF808080 (not in raid)|r" or LootReserve:IsPlayerOnline(player) == false and "|cFF808080 (offline)|r" or ""));
+        frame.Name:SetText(format("%s%s", LootReserve:ColoredPlayer(player), LootReserve:IsPlayerOnline(player) == nil and format("|cFF808080 (%s)|r", member.NameMatchResult or "not in raid") or LootReserve:IsPlayerOnline(player) == false and "|cFF808080 (offline)|r" or ""));
 
         local last = 0;
         frame.ReservesFrame.Items = frame.ReservesFrame.Items or { };
@@ -263,11 +321,49 @@ function LootReserve.Server.Import:SessionSettingsUpdated()
             return;
         end
 
+        local simplifiedRaidNames = nil;
+        if self.MatchNames then
+            simplifiedRaidNames = { };
+            LootReserve:ForEachRaider(function(name)
+                local simplified = SimplifyName(name);
+                local existing = simplifiedRaidNames[simplified];
+                if not existing then
+                    simplifiedRaidNames[simplified] = name;
+                elseif type(existing) == "string" then
+                    simplifiedRaidNames[simplified] = 2;
+                elseif type(existing) == "number" then
+                    simplifiedRaidNames[simplified] = existing + 1;
+                end
+            end);
+        end
+
+        local itemReserveCount = { };
+
         for _, row in ipairs(self.Rows) do
             for _, playerColumn in ipairs(playerColumns) do
                 for _, itemColumn in ipairs(itemColumns) do
                     local player = row[playerColumn];
                     local item = row[itemColumn];
+
+                    if type(player) ~= "string" then
+                        player = nil;
+                    end
+
+                    local nameMatchResult = nil;
+                    if player and #player > 0 then
+                        player = NormalizeName(player);
+                        if self.MatchNames and LootReserve:IsPlayerOnline(player) == nil then
+                            local simplified = simplifiedRaidNames[SimplifyName(player)];
+                            if not simplified then
+                                nameMatchResult = "not in raid";
+                            elseif type(simplified) == "string" then
+                                player = simplified;
+                            elseif type(simplified) == "number" then
+                                nameMatchResult = "ambiguous name";
+                            end
+                        end
+                    end
+
                     if player and (LootReserve:IsPlayerOnline(player) ~= nil or not self.SkipNotInRaid) and item and item ~= 0 and item ~= "" then
                         -- Transform Item Name -> Item ID
                         if type(item) == "string" then
@@ -292,13 +388,18 @@ function LootReserve.Server.Import:SessionSettingsUpdated()
                         if not self.Members[player] then
                             self.Members[player] =
                             {
+                                NameMatchResult = nameMatchResult,
                                 ReservedItems = { },
                                 InvalidReasons = { },
                             };
                         end
                         local member = self.Members[player];
+                        if nameMatchResult and not member.NameMatchResult then
+                            member.NameMatchResult = nameMatchResult;
+                        end
                         if not LootReserve:Contains(member.ReservedItems, item) then
                             table.insert(member.ReservedItems, item);
+                            itemReserveCount[item] = (itemReserveCount[item] or 0) + 1;
                             local conditions = LootReserve.Server.NewSessionSettings.ItemConditions[item];
                             local class = select(3, UnitClass(player));
                             if item == 0 then
@@ -306,7 +407,9 @@ function LootReserve.Server.Import:SessionSettingsUpdated()
                             elseif not (LootReserve.Data:IsItemInCategory(item, LootReserve.Server.NewSessionSettings.LootCategory) or conditions and conditions.Custom == LootReserve.Server.NewSessionSettings.LootCategory) or not LootReserve.ItemConditions:TestServer(item) then
                                 member.InvalidReasons[#member.ReservedItems] = "Item can't be reserved due to session settings.|nChange to the appropriate raid map or add this item as a custom item.";
                             elseif conditions and conditions.ClassMask and class and not LootReserve.ItemConditions:TestClassMask(conditions.ClassMask, class) then
-                                member.InvalidReasons[#member.ReservedItems] = player .. "'s class cannot reserve this item.|nChange the class restrictions on this item, or it will not be imported.";
+                                member.InvalidReasons[#member.ReservedItems] = player .. "'s class cannot reserve this item.|nEdit the raid loot to change the class restrictions on this item, or it will not be imported.";
+                            elseif conditions and conditions.Limit and itemReserveCount[item] > conditions.Limit then
+                                member.InvalidReasons[#member.ReservedItems] = "This item has hit the limit of how many times it can be reserved.|nEdit the raid loot to increase or remove the limit on this item, or it will not be imported.";
                             elseif #member.ReservedItems > LootReserve.Server.NewSessionSettings.MaxReservesPerPlayer then
                                 member.InvalidReasons[#member.ReservedItems] = "Player has more reserved items than allowed by the session settings.|nIncrease the number of allowed reserves, or this item will not be imported.";
                             end
@@ -345,7 +448,7 @@ function LootReserve.Server.Import:OnWindowLoad(window)
     self.Window = window;
     self.Window.TopLeftCorner:SetSize(32, 32); -- Blizzard UI bug?
     self.Window.TitleText:SetText("Loot Reserve Server - Import");
-    self.Window:SetMinResize(380, 440);
+    self.Window:SetMinResize(390, 440);
     self:InputUpdated();
     LootReserve:RegisterEvent("GET_ITEM_INFO_RECEIVED", function(item, success)
         if success and self.Members then

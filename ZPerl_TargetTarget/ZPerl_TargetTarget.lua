@@ -55,7 +55,7 @@ XPerl_RequestConfig(function(new)
 	if XPerl_PetTarget then
 		XPerl_PetTarget.conf = conf.pettarget
 	end
-end, "$Revision:  $")
+end, "$Revision: 919e0f8a150cee048b33cf8ae0873d63cbccab98 $")
 
 local buffSetup
 
@@ -66,7 +66,7 @@ function ZPerl_TargetTarget_OnLoad(self)
 	XPerl_SetChildMembers(self)
 
 	local events = {
-		"UNIT_HEALTH_FREQUENT",
+		IsClassic and "UNIT_HEALTH_FREQUENT" or "UNIT_HEALTH",
 		"UNIT_POWER_FREQUENT",
 		"UNIT_AURA",
 		"UNIT_TARGET",
@@ -515,47 +515,6 @@ function XPerl_TargetTarget_OnEvent(self, event, unitID, ...)
 			end
 			XPerl_NoFadeBars()
 		end
-	--[[elseif event == "UNIT_TARGET" then
-		if (unitID == "target") and (self == XPerl_TargetTarget or self == XPerl_TargetTargetTarget) then
-			XPerl_NoFadeBars(true)
-			XPerl_TargetTarget_UpdateDisplay(self, true)
-			XPerl_NoFadeBars()
-		elseif unitID == "focus" and self == XPerl_FocusTarget then
-			XPerl_NoFadeBars(true)
-			XPerl_TargetTarget_UpdateDisplay(self, true)
-			XPerl_NoFadeBars()
-		elseif unitID == "pet" and self == XPerl_PetTarget then
-			XPerl_NoFadeBars(true)
-			XPerl_TargetTarget_UpdateDisplay(self, true)
-			XPerl_NoFadeBars()
-		end
-	elseif event == "UNIT_HEAL_PREDICTION" or event == "UNIT_HEALTH_FREQUENT" then
-		if (unitID == "target") and (self == XPerl_TargetTarget or self == XPerl_TargetTargetTarget) then
-			XPerl_Target_UpdateHealth(self)
-		elseif unitID == "focus" and self == XPerl_FocusTarget then
-			XPerl_Target_UpdateHealth(self)
-		elseif unitID == "pet" and self == XPerl_PetTarget then
-			XPerl_Target_UpdateHealth(self)
-		end
-	elseif event == "UNIT_POWER_FREQUENT" then
-		if (unitID == "target") and (self == XPerl_TargetTarget or self == XPerl_TargetTargetTarget) then
-			XPerl_Target_SetMana(self)
-		elseif unitID == "focus" and self == XPerl_FocusTarget then
-			XPerl_Target_SetMana(self)
-		elseif unitID == "pet" and self == XPerl_PetTarget then
-			XPerl_Target_SetMana(self)
-		end
-	elseif event == "UNIT_AURA" then
-		if (unitID == "target") and (self == XPerl_TargetTarget or self == XPerl_TargetTargetTarget) then
-			XPerl_TargetTarget_Buff_UpdateAll(self)
-			XPerl_Target_UpdateAbsorbPrediction(self)
-		elseif unitID == "focus" and self == XPerl_FocusTarget then
-			XPerl_TargetTarget_Buff_UpdateAll(self)
-			XPerl_Target_UpdateAbsorbPrediction(self)
-		elseif unitID == "pet" and self == XPerl_PetTarget then
-			XPerl_TargetTarget_Buff_UpdateAll(self)
-			XPerl_Target_UpdateAbsorbPrediction(self)
-		end]]
 	end
 end
 

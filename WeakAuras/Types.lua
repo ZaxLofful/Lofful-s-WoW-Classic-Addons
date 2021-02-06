@@ -145,7 +145,7 @@ Private.format_types = {
         name = L["Max Char "],
         width = WeakAuras.normalWidth,
         min = 1,
-        max = 20,
+        softMax = 20,
         hidden = hidden,
         step = 1,
         disabled = function()
@@ -429,7 +429,7 @@ Private.format_types = {
       if color == "class" then
         colorFunc = function(class, text)
           if class then
-            return (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]:WrapTextInColorCode(text)
+            return WrapTextInColorCode(text, WA_GetClassColor(class))
           else
             return text
           end
@@ -764,6 +764,10 @@ do
     [23] = true,
     [33] = true
   }
+  if WeakAuras.IsClassic() then
+    unplayableRace[9] = true
+  end
+
   local raceID = 1
   local raceInfo = C_CreatureInfo.GetRaceInfo(raceID)
   while raceInfo do
@@ -772,6 +776,14 @@ do
     end
     raceID = raceID + 1
     raceInfo = C_CreatureInfo.GetRaceInfo(raceID)
+  end
+end
+
+if not WeakAuras.IsClassic() then
+  Private.covenant_types = {}
+  Private.covenant_types[0] = L["None"]
+  for i = 1, 4 do
+    Private.covenant_types[i] = C_Covenants.GetCovenantData(i).name
   end
 end
 
@@ -856,7 +868,7 @@ Private.aurabar_anchor_areas = {
   icon = L["Icon"],
   fg = L["Foreground"],
   bg = L["Background"],
-  bar = L["Bar"],
+  bar = L["Full Bar"],
 }
 
 Private.inverse_point_types = {
@@ -1187,6 +1199,32 @@ for i = 1, 5 do
   Private.totem_types[i] = totemString:format(i);
 end
 
+Private.loss_of_control_types = {
+  CHARM = "CHARM",
+  CONFUSE = "CONFUSE",
+  DISARM = "DISARM",
+  FEAR = "FEAR",
+  FEAR_MECHANIC = "FEAR_MECHANIC",
+  PACIFY = "PACIFY",
+  SILENCE = "SILENCE",
+  PACIFYSILENCE = "PACIFYSILENCE",
+  POSSESS = "POSSESS",
+  ROOT = "ROOT",
+  SCHOOL_INTERRUPT = "SCHOOL_INTERRUPT",
+  STUN = "STUN",
+  STUN_MECHANIC = "STUN_MECHANIC",
+}
+
+Private.main_spell_schools = {
+  [1] = GetSchoolString(1),
+  [2] = GetSchoolString(2),
+  [4] = GetSchoolString(4),
+  [8] = GetSchoolString(8),
+  [16] = GetSchoolString(16),
+  [32] = GetSchoolString(32),
+  [64] = GetSchoolString(64),
+}
+
 Private.texture_types = {
   ["Blizzard Alerts"] = {
     ["1027131"]	= "Arcane Missiles 1",
@@ -1204,6 +1242,8 @@ Private.texture_types = {
     ["461878"] 	= "Dark Transformation",
     ["459313"] 	= "Daybreak",
     ["511469"] 	= "Denounce",
+    ["2851787"] = "Demonic Core",
+    ["2888300"] = "Demonic Core Vertical",
     ["1057288"]	= "Echo of the Elements",
     ["450914"] 	= "Eclipse Moon",
     ["450915"] 	= "Eclipse Sun",
@@ -1221,6 +1261,7 @@ Private.texture_types = {
     ["450924"] 	= "Generic Top 2",
     ["450925"] 	= "Grand Crusader",
     ["459314"] 	= "Hand of Light",
+    ["2851788"] = "High Tide",
     ["449490"] 	= "Hot Streak",
     ["801267"] 	= "Imp Empowerment Green",
     ["449491"] 	= "Imp Empowerment",
@@ -1931,6 +1972,84 @@ Private.instance_types = {
   arena = L["Arena"]
 }
 
+Private.instance_difficulty_types = {
+
+}
+
+if not WeakAuras.IsClassic() then
+  -- Fill out instance_difficulty_types automatically.
+  -- Unfourtunately the names BLizzard gives are not entirely unique,
+  -- so try hard to disambiguate them via the type, and if nothing works by
+  -- including the plain id.
+
+  local unused = {}
+
+  local instance_difficulty_names = {
+    [1] = L["Dungeon (Normal)"],
+    [2] = L["Dungeon (Heroic)"],
+    [3] = L["10 Player Raid (Normal)"],
+    [4] = L["25 Player Raid (Normal)"],
+    [5] = L["10 Player Raid (Heroic)"],
+    [6] = L["25 Player Raid (Heroic)"],
+    [7] = L["Legacy Looking for Raid"],
+    [8] = L["Mythic Keystone"],
+    [9] = L["40 Player Raid"],
+    [11] = L["Scenario (Heroic)"],
+    [12] = L["Scenario (Normal)"],
+    [14] = L["Raid (Normal)"],
+    [15] = L["Raid (Heroic)"],
+    [16] = L["Raid (Mythic)"],
+    [17] = L["Looking for Raid"],
+    [18] = unused, -- Event Raid
+    [19] = unused, -- Event Party
+    [20] = unused, -- Event Scenario
+    [23] = L["Dungeon (Mythic)"],
+    [24] = L["Dungeon (Timewalking)"],
+    [25] = unused, -- World PvP Scenario
+    [29] = unused, -- PvEvP Scenario
+    [30] = unused, -- Event Scenario
+    [32] = unused, -- World PvP Scenario
+    [33] = L["Raid (Timewalking)"],
+    [34] = unused, -- PvP
+    [38] = L["Island Expedition (Normal)"],
+    [39] = L["Island Expedition (Heroic)"],
+    [40] = L["Island Expedition (Mythic)"],
+    [45] = L["Island Expeditions (PvP)"],
+    [147] = L["Warfront (Normal)"],
+    [149] = L["Warfront (Heroic)"],
+    [152] = L["Visions of N'Zoth"],
+    [150] = unused, -- Normal Party
+    [151] = unused, -- LfR
+    [153] = unused, -- Teeming Islands
+    [167] = L["Torghast"],
+    [168] = L["Path of Ascension: Courage"],
+    [169] = L["Path of Ascension: Loyalty"],
+    [171] = L["Path of Ascension: Humility"],
+    [170] = L["Path of Ascension: Wisdom"],
+    [172] = unused, -- World Boss
+  }
+
+  local names = {}
+  local ids = {}
+
+  for i = 1, 200 do
+    local name, type = GetDifficultyInfo(i)
+    if name then
+      if instance_difficulty_names[i] then
+        if instance_difficulty_names[i] ~= unused then
+          Private.instance_difficulty_types[i] = instance_difficulty_names[i]
+        end
+      else
+        Private.instance_difficulty_types[i] = name
+        WeakAuras.prettyPrint(string.format("Unknown difficulty id found. Please report as a bug: %s %s %s", i, name, type))
+      end
+    end
+  end
+
+
+end
+
+
 Private.group_types = {
   solo = L["Not in Group"],
   group = L["In Group"],
@@ -1947,11 +2066,18 @@ Private.difficulty_types = {
   challenge = PLAYER_DIFFICULTY5
 }
 
-Private.role_types = {
-  TANK = INLINE_TANK_ICON.." "..TANK,
-  DAMAGER = INLINE_DAMAGER_ICON.." "..DAMAGER,
-  HEALER = INLINE_HEALER_ICON.." "..HEALER
-}
+if WeakAuras.IsClassic() then
+  Private.raid_role_types = {
+    MAINTANK = "|TInterface\\GroupFrame\\UI-Group-maintankIcon:16:16|t "..MAINTANK,
+    MAINASSIST = "|TInterface\\GroupFrame\\UI-Group-mainassistIcon:16:16|t "..MAINASSIST
+  }
+else
+  Private.role_types = {
+    TANK = INLINE_TANK_ICON.." "..TANK,
+    DAMAGER = INLINE_DAMAGER_ICON.." "..DAMAGER,
+    HEALER = INLINE_HEALER_ICON.." "..HEALER
+  }
+end
 
 Private.classification_types = {
   worldboss = L["World Boss"],
@@ -2042,7 +2168,8 @@ Private.send_chat_message_types = {
   RAID_WARNING = L["Raid Warning"],
   INSTANCE_CHAT = L["Instance"],
   COMBAT = L["Blizzard Combat Text"],
-  PRINT = L["Chat Frame"]
+  PRINT = L["Chat Frame"],
+  ERROR = L["Error Frame"]
 }
 
 Private.group_aura_name_info_types = {
@@ -2480,6 +2607,9 @@ WeakAuras.data_stub = {
     class = {
       multi = {},
     },
+    talent = {
+      multi = {},
+    },
   },
   actions = {
     init = {},
@@ -2509,6 +2639,7 @@ WeakAuras.data_stub = {
   conditions = {},
   config = {},
   authorOptions = {},
+  information = {},
 }
 
 Private.author_option_classes = {
@@ -2828,11 +2959,13 @@ skippedWeaponTypes[11] = true -- Bear Claws
 skippedWeaponTypes[12] = true -- Cat Claws
 skippedWeaponTypes[14] = true -- Misc
 skippedWeaponTypes[17] = true -- Spears
-if not WeakAuras.IsClassic() then
+if WeakAuras.IsClassic() then
+  skippedWeaponTypes[9] = true -- Glaives
+else
   skippedWeaponTypes[16] = true -- Thrown
 end
 
-for i = 1, 20 do
+for i = 0, 20 do
   if not skippedWeaponTypes[i] then
     Private.item_weapon_types[2 * 256 + i] = GetItemSubClassInfo(2, i)
   end

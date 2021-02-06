@@ -2,7 +2,7 @@
 
 LootReserve = LibStub("AceAddon-3.0"):NewAddon("LootReserve", "AceComm-3.0");
 LootReserve.Version = GetAddOnMetadata(addon, "Version");
-LootReserve.MinAllowedVersion = "2020-09-04";
+LootReserve.MinAllowedVersion = "2020-12-22";
 LootReserve.LatestKnownVersion = LootReserve.Version;
 LootReserve.Enabled = true;
 
@@ -13,6 +13,10 @@ LootReserve.EventFrame:Show();
 
 LootReserveCharacterSave =
 {
+    Client =
+    {
+        CharacterFavorites = nil,
+    },
     Server =
     {
         CurrentSession = nil,
@@ -26,6 +30,7 @@ LootReserveGlobalSave =
     Client =
     {
         Settings = nil,
+        GlobalFavorites = nil,
     },
     Server =
     {
@@ -74,7 +79,7 @@ function LootReserve:OpenServerWindow(rolls)
                 end
             end);
         end
-        DEFAULT_CHAT_FRAME:AddMessage("Loot Reserve Server window will open once you're out of combat", 1, 1, 1);
+        self:PrintMessage("Server window will open once you're out of combat");
         return;
     end
 
@@ -110,6 +115,10 @@ function LootReserve:OnInitialize()
     -- Load client and server after UI reload
     -- This should be the only case when a player is already detected to be in a group at the time of addon loading
     Startup();
+
+    if LootReserve.Comm.Debug then
+        SlashCmdList.LOOTRESERVE("server");
+    end
 end
 
 function LootReserve:OnEnable()
@@ -124,6 +133,10 @@ end
 
 function LootReserve:PrintError(fmt, ...)
     DEFAULT_CHAT_FRAME:AddMessage("|cFFFFD200LootReserve: |r" .. format(fmt, ...), 1, 0, 0);
+end
+
+function LootReserve:PrintMessage(fmt, ...)
+    DEFAULT_CHAT_FRAME:AddMessage("|cFFFFD200LootReserve: |r" .. format(fmt, ...), 1, 1, 1);
 end
 
 function LootReserve:RegisterUpdate(handler)
@@ -243,19 +256,24 @@ function LootReserve:GetClassInfo(classID)
     end
 end
 
+function LootReserve:Player(player)
+    return Ambiguate(player, "short");
+end
+
+function LootReserve:Me()
+    return self:Player(UnitName("player"));
+end
+
+function LootReserve:IsMe(player)
+    return self:Me() == self:Player(player);
+end
+
 function LootReserve:IsPlayerOnline(player)
-    for i = 1, MAX_RAID_MEMBERS do
-        local name, _, _, _, _, _, _, online = GetRaidRosterInfo(i);
-
-        if LootReserve.Comm.SoloDebug and i == 1 then
-            name = UnitName("player");
-            online = true;
-        end
-
-        if name and Ambiguate(name, "short") == player then
+    return self:ForEachRaider(function(name, _, _, _, _, _, _, online)
+        if name == player then
             return online or false;
         end
-    end
+    end);
 end
 
 function LootReserve:GetPlayerClassColor(player)
@@ -272,12 +290,12 @@ end
 function LootReserve:GetRaidUnitID(player)
     for i = 1, MAX_RAID_MEMBERS do
         local unit = UnitName("raid" .. i);
-        if unit and Ambiguate(unit, "short") == player then
+        if unit and LootReserve:Player(unit) == player then
             return "raid" .. i;
         end
     end
 
-    if self.Comm.SoloDebug and Ambiguate(UnitName("player"), "short") == player then
+    if self.Comm.SoloDebug and LootReserve:IsMe(player) then
         return "player";
     end
 end
@@ -285,18 +303,35 @@ end
 function LootReserve:GetPartyUnitID(player)
     for i = 1, MAX_PARTY_MEMBERS do
         local unit = UnitName("party" .. i);
-        if unit and Ambiguate(unit, "short") == player then
+        if unit and LootReserve:Player(unit) == player then
             return "party" .. i;
         end
     end
 
-    if Ambiguate(UnitName("player"), "short") == player then
+    if LootReserve:IsMe(player) then
         return "player";
     end
 end
 
 function LootReserve:ColoredPlayer(player)
     return format("|c%s%s|r", self:GetPlayerClassColor(player), player);
+end
+
+function LootReserve:ForEachRaider(func)
+    if LootReserve.Comm.SoloDebug then
+        local className, classFilename = UnitClass("player");
+        return func(self:Me(), 0, 1, UnitLevel("player"), className, classFilename, nil, true, UnitIsDead("player"));
+    end
+
+    for i = 1, MAX_RAID_MEMBERS do
+        local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(i);
+        if name then
+            local result = func(LootReserve:Player(name), rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole);
+            if result ~= nil then
+                return result;
+            end
+        end
+    end
 end
 
 function LootReserve:IsItemSoulboundTradeable(bag, slot)
@@ -361,11 +396,10 @@ function LootReserve:IsLootingItem(item)
         if link then
             local id = tonumber(link:match("item:(%d+)"));
             if id and id == item then
-                return true;
+                return i;
             end
         end
     end
-    return false;
 end
 
 function LootReserve:TransformSearchText(text)

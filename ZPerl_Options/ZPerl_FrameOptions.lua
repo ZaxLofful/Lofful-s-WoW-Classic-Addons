@@ -2,7 +2,7 @@
 -- Author: Resike
 -- License: GNU GPL v3, 29 June 2007 (see LICENSE.txt)
 
-XPerl_SetModuleRevision("$Revision:  $")
+XPerl_SetModuleRevision("$Revision: 919e0f8a150cee048b33cf8ae0873d63cbccab98 $")
 
 local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
@@ -33,8 +33,9 @@ end
 
 function XPerl_Options_SetupFunc(self)
 	XPerl_DoGradient(self, true)
-	self:SetBackdropBorderColor(0.5, 0.5, 0.5, 1)
+	self:OnBackdropLoaded()
 	self:SetBackdropColor(0, 0, 0, 1)
+	self:SetBackdropBorderColor(0.5, 0.5, 0.5, 1)
 end
 
 -- XPerl_OptionsFrame_SelectFrame
@@ -348,6 +349,8 @@ end
 
 -- XPerl_SliderSetup(self)
 function XPerl_SliderSetup(self, percent)
+	self:OnBackdropLoaded()
+
 	self.xperlSliderEnabled = true
 
 	self.IsEnabled = function(self)
@@ -379,6 +382,10 @@ function XPerl_SliderSetup(self, percent)
 			low:SetText(min)
 			_G[self:GetName().."High"]:SetText(max)
 		end
+	end
+
+	if self.backdropInfo then
+		self:OnBackdropLoaded()
 	end
 
 	self:SetScript("OnLoad", nil)
@@ -3393,7 +3400,13 @@ if (XPerl_UpgradeSettings) then
 				old.target.comboindicator = { }
 			end
 
+			if (oldVersion < "5.0.4") then
+				old.target.comboindicator = { }
+				old.target.comboindicator.enable = 1
+			end
+
 			if (oldVersion < "5.0.5") then
+				old.target.comboindicator = { }
 				old.target.comboindicator.enable = 1
 			end
 

@@ -7,7 +7,7 @@
 ]]--
 
 
-local puglocal_version = "1.13.5.211"  --change here, and in TOC
+local puglocal_version = "1.13.6.212"  --change here, and in TOC
 local puglocal_reqPrefix = "Puggle;"
 local puglocal_dispFrequency = 5  -- display refresh every x seconds
 local puglocal_whoFrequency = 10  -- seconds before allowing another /who
@@ -1163,6 +1163,7 @@ function Puggle_exportGroupData(self)
 			temp_myList[ip].gender = tonumber(Puggle_dec(p.gender))
 			temp_myList[ip].realm = Puggle_dec(p.realm)
 			temp_myList[ip].faction = Puggle_dec(p.faction)
+			temp_myList[ip].guild = Puggle_dec(p.latestguild)
 		end 
 	end
 	local serme = Puggle_serialize(temp_myList)

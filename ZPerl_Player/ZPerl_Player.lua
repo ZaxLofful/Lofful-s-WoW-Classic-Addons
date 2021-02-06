@@ -12,7 +12,7 @@ XPerl_RequestConfig(function(new)
 	if (XPerl_Player) then
 		XPerl_Player.conf = conf.player
 	end
-end, "$Revision:  $")
+end, "$Revision: 919e0f8a150cee048b33cf8ae0873d63cbccab98 $")
 
 local perc1F = "%.1f"..PERCENT_SYMBOL
 local percD = "%.0f"..PERCENT_SYMBOL
@@ -27,6 +27,7 @@ local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
 local format = format
 
+local GetDifficultyColor = GetDifficultyColor or GetQuestDifficultyColor
 local GetNumGroupMembers = GetNumGroupMembers
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local UnitHealth = UnitHealth
@@ -235,7 +236,7 @@ local function XPerl_Player_UpdateManaType(self)
 end
 
 -- XPerl_Player_UpdateLeader()
-function XPerl_Player_UpdateLeader(self)
+local function XPerl_Player_UpdateLeader(self)
 	local nf = self.nameFrame
 
 	-- Loot Master
@@ -607,7 +608,7 @@ local function XPerl_Player_DruidBarUpdate(self)
 	druidBar.percent:SetFormattedText(percD, (currMana or 0) * 100 / (maxMana or 1))
 
 	--local druidBarExtra
-	if ((playerClass == "DRUID" or playerClass == "PRIEST") and UnitPowerType(self.partyid) > 0) or (playerClass == "SHAMAN" and not IsClassic and (GetSpecialization() == 1 or GetSpecialization() == 2) and GetShapeshiftForm() == 0) then -- Shaman's UnitPowerType is buggy
+	if ((playerClass == "DRUID" or playerClass == "PRIEST") and UnitPowerType(self.partyid) > 0) or (playerClass == "SHAMAN" and not IsClassic and GetSpecialization() == 1 and GetShapeshiftForm() == 0) then -- Shaman's UnitPowerType is buggy
 		if (pconf.values) then
 			druidBar.text:Show()
 		else
@@ -713,11 +714,45 @@ local function XPerl_Player_UpdateMana(self)
 	end
 end
 
+-- XPerl_Player_UpdateHealPrediction
+local function XPerl_Player_UpdateHealPrediction(self)
+	if pconf.healprediction then
+		XPerl_SetExpectedHealth(self)
+	else
+		self.statsFrame.expectedHealth:Hide()
+	end
+end
+
+-- XPerl_Player_UpdateAbsorbPrediction
+local function XPerl_Player_UpdateAbsorbPrediction(self)
+	if pconf.absorbs then
+		XPerl_SetExpectedAbsorbs(self)
+	else
+		self.statsFrame.expectedAbsorbs:Hide()
+	end
+end
+
+local function XPerl_Player_UpdateResurrectionStatus(self)
+	if (UnitHasIncomingResurrection(self.partyid)) then
+		if pconf.portrait then
+			self.portraitFrame.resurrect:Show()
+		else
+			self.statsFrame.resurrect:Show()
+		end
+	else
+		if pconf.portrait then
+			self.portraitFrame.resurrect:Hide()
+		else
+			self.statsFrame.resurrect:Hide()
+		end
+	end
+end
+
 local feignDeath = GetSpellInfo(5384)
 local spiritOfRedemption = GetSpellInfo(27827)
 
 -- XPerl_Player_UpdateHealth
-function XPerl_Player_UpdateHealth(self)
+local function XPerl_Player_UpdateHealth(self)
 	local partyid = self.partyid
 	local sf = self.statsFrame
 	local hb = sf.healthBar
@@ -767,43 +802,9 @@ function XPerl_Player_UpdateHealth(self)
 	XPerl_PlayerStatus_OnUpdate(self, playerhealth, playerhealthmax)
 end
 
--- XPerl_Player_UpdateHealPrediction
-function XPerl_Player_UpdateHealPrediction(self)
-	if pconf.healprediction then
-		XPerl_SetExpectedHealth(self)
-	else
-		self.statsFrame.expectedHealth:Hide()
-	end
-end
-
--- XPerl_Player_UpdateAbsorbPrediction
-function XPerl_Player_UpdateAbsorbPrediction(self)
-	if pconf.absorbs then
-		XPerl_SetExpectedAbsorbs(self)
-	else
-		self.statsFrame.expectedAbsorbs:Hide()
-	end
-end
-
-function XPerl_Player_UpdateResurrectionStatus(self)
-	if (UnitHasIncomingResurrection(self.partyid)) then
-		if pconf.portrait then
-			self.portraitFrame.resurrect:Show()
-		else
-			self.statsFrame.resurrect:Show()
-		end
-	else
-		if pconf.portrait then
-			self.portraitFrame.resurrect:Hide()
-		else
-			self.statsFrame.resurrect:Hide()
-		end
-	end
-end
-
 -- XPerl_Player_UpdateLevel
 local function XPerl_Player_UpdateLevel(self)
-	local color = GetQuestDifficultyColor(UnitLevel(self.partyid))
+	local color = GetDifficultyColor(UnitLevel(self.partyid))
 	self.levelFrame.text:SetTextColor(color.r, color.g, color.b, conf.transparency.text)
 
 	self.levelFrame.text:SetText(UnitLevel(self.partyid))
@@ -1263,7 +1264,7 @@ function XPerl_Player_Events:PLAYER_ENTERING_WORLD(event, initialLogin, reloadin
 						end
 					end
 				elseif class == "SHAMAN" then
-					if spec == 1 or spec == 2 then
+					if spec == 1 then
 						if newstate == 1 then
 							if extend then
 								if bar then
@@ -1315,7 +1316,7 @@ function XPerl_Player_Events:PLAYER_ENTERING_WORLD(event, initialLogin, reloadin
 								end
 							end
 						end
-					elseif spec == 3 then
+					elseif spec == 2 or spec == 3 then
 						if extend then
 							if bar then
 								frame:SetHeight(62 + offset)
@@ -1402,7 +1403,7 @@ function XPerl_Player_Events:VARIABLES_LOADED()
 		"UNIT_COMBAT",
 		"UNIT_POWER_FREQUENT",
 		"UNIT_MAXPOWER",
-		"UNIT_HEALTH_FREQUENT",
+		IsClassic and "UNIT_HEALTH_FREQUENT" or "UNIT_HEALTH",
 		"UNIT_MAXHEALTH",
 		"UNIT_LEVEL",
 		"UNIT_DISPLAYPOWER",
@@ -1460,16 +1461,36 @@ end
 function XPerl_Player_Events:PARTY_LOOT_METHOD_CHANGED()
 	XPerl_Player_UpdateLeader(self)
 end
-XPerl_Player_Events.PARTY_LEADER_CHANGED	= XPerl_Player_Events.PARTY_LOOT_METHOD_CHANGED
-XPerl_Player_Events.GROUP_ROSTER_UPDATE		= XPerl_Player_Events.PARTY_LOOT_METHOD_CHANGED
 
--- UNIT_HEALTH_FREQUENT, UNIT_MAXHEALTH
+-- PARTY_LEADER_CHANGED
+function XPerl_Player_Events:PARTY_LEADER_CHANGED()
+	XPerl_Player_UpdateLeader(self)
+end
+
+-- GROUP_ROSTER_UPDATE
+function XPerl_Player_Events:GROUP_ROSTER_UPDATE()
+	XPerl_Player_UpdateLeader(self)
+end
+
+-- UNIT_HEALTH_FREQUENT
 function XPerl_Player_Events:UNIT_HEALTH_FREQUENT()
 	XPerl_Player_UpdateHealth(self)
 end
 
-XPerl_Player_Events.UNIT_MAXHEALTH = XPerl_Player_Events.UNIT_HEALTH_FREQUENT
-XPerl_Player_Events.PLAYER_DEAD = XPerl_Player_Events.UNIT_HEALTH_FREQUENT
+-- UNIT_HEALTH
+function XPerl_Player_Events:UNIT_HEALTH()
+	XPerl_Player_UpdateHealth(self)
+end
+
+-- UNIT_MAXHEALTH
+function XPerl_Player_Events:UNIT_MAXHEALTH()
+	XPerl_Player_UpdateHealth(self)
+end
+
+-- PLAYER_DEAD
+function XPerl_Player_Events:PLAYER_DEAD()
+	XPerl_Player_UpdateHealth(self)
+end
 
 -- UNIT_POWER_FREQUENT
 function XPerl_Player_Events:UNIT_POWER_FREQUENT(powerType)
@@ -1879,7 +1900,7 @@ function XPerl_Player_Set_Bits(self)
 
 		if (pconf.extendPortrait --[[or (self.runes and pconf.showRunes and pconf.dockRunes)]]) then
 			local druidBarExtra
-			if (UnitPowerType(self.partyid) > 0 and not pconf.noDruidBar) and ((playerClass == "DRUID") or (playerClass == "SHAMAN") or (playerClass == "PRIEST")) then
+			if (UnitPowerType(self.partyid) > 0 and not pconf.noDruidBar) and ((playerClass == "DRUID") or (playerClass == "PRIEST") or (playerClass == "SHAMAN" and not IsClassic and GetSpecialization() == 1 and GetShapeshiftForm() == 0)) then
 				druidBarExtra = 1
 			else
 				druidBarExtra = 0

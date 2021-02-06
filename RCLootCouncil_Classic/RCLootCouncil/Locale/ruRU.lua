@@ -7,26 +7,22 @@ if not L then return end
 L[" is not active in this raid."] = "не участвует в текущем рейде."
 L[" you are now the Master Looter and RCLootCouncil is now handling looting."] = "вы теперь Ответственный за Добычу и RCLootCouncil теперь занимается распределением добычи."
 L["&p was awarded with &i for &r!"] = "&p получил &i для &r!"
---[[Translation missing --]]
-L["A format to copy/paste to another player."] = "A format to copy/paste to another player."
+L["A format to copy/paste to another player."] = "Формат для копирования / вставки для другого игрока."
 L["A new session has begun, type '/rc open' to open the voting frame."] = "Новая сессия запущена, введите '/rc open' для открытия окна голосования."
---[[Translation missing --]]
-L["A tab delimited output for Excel. Might work with other spreadsheets."] = "A tab delimited output for Excel. Might work with other spreadsheets."
+L["A tab delimited output for Excel. Might work with other spreadsheets."] = "Вывод с разделителями табуляции для Excel. Может работать с другими табличными редакторами."
 L["Abort"] = "Сбросить"
 L["Accept Whispers"] = "Принимать Личные сообщения"
 --[[Translation missing --]]
 L["accept_whispers_desc"] = "Enables players to whisper their current item(s) to you to get added to the voting frame."
 --[[Translation missing --]]
 L["Accepted imports: 'Player Export' and 'CSV'"] = "Accepted imports: 'Player Export' and 'CSV'"
---[[Translation missing --]]
-L["Active"] = "Active"
+L["Active"] = "Активный"
 --[[Translation missing --]]
 L["active_desc"] = "Uncheck to disable RCLootCouncil. Useful if you're in a raid group, but not actually participating. Note: This resets on every logout."
 L["Add Item"] = "Добавить Предмет"
 L["Add Note"] = "Добавить Заметку"
 L["Add ranks"] = "Добавить ранги"
---[[Translation missing --]]
-L["Add rolls"] = "Add rolls"
+L["Add rolls"] = "Добавить броски"
 L["Add Rolls"] = "Добавить броски"
 L["add_ranks_desc"] = "Выберите минимальный ранг для участия в распределении добычи"
 --[[Translation missing --]]
@@ -89,7 +85,8 @@ Choose which channel(s) you want to announce to along with the text. The followi
 L["announce_considerations_desc"] = "Activates announcement of items under consideration whenever a session starts."
 --[[Translation missing --]]
 L["announce_considerations_desc2"] = [=[
-Choose the channel you want to announce to and the message.This message serves as a header for the list of items.]=]
+Choose the channel you want to announce to and the message.
+This message serves as a header for the list of items.]=]
 --[[Translation missing --]]
 L["announce_item_string_desc"] = [=[
 Enter the text to announce for each item. The following keyword substitutions are available:
@@ -161,24 +158,18 @@ L["Autopass"] = "Автопас"
 L["Autopassed on 'item'"] = "Autopassed on %s"
 --[[Translation missing --]]
 L["Autostart isn't supported when testing"] = "Autostart isn't supported when testing"
---[[Translation missing --]]
-L["award"] = "award"
+L["award"] = "вручить"
 L["Award"] = "Вручить"
---[[Translation missing --]]
-L["Award Announcement"] = "Award Announcement"
-L["Award for ..."] = "Вручить для..."
-L["Award later"] = "Наградить позже"
---[[Translation missing --]]
-L["Award later isn't supported when testing."] = "Award later isn't supported when testing."
---[[Translation missing --]]
-L["Award later?"] = "Award later?"
+L["Award Announcement"] = "Анонс Вручения"
+L["Award for ..."] = "Вручить игроку..."
+L["Award later"] = "Вручить позже"
+L["Award later isn't supported when testing."] = "\"Вручить позже\" не поддерживается в режиме тестирования."
+L["Award later?"] = "Вручить позже?"
 L["Award Reasons"] = "Причина Вручения"
 L["award_reasons_desc"] = [=[Причины вручения, которые не могут быть выбраны во время ролла.
 Используется при изменении ответа в меню по правой кнопки мыши, и для автоматического вручения.]=]
---[[Translation missing --]]
-L["Awarded"] = "Awarded"
---[[Translation missing --]]
-L["Awarded item cannot be awarded later."] = "Awarded item cannot be awarded later."
+L["Awarded"] = "Вручено"
+L["Awarded item cannot be awarded later."] = "Врученные ранее вещи не могут быть переданы позднее."
 L["Awards"] = "Награды"
 L["Azerite Armor"] = "Азеритовая броня"
 L["Background"] = "Фон"
@@ -523,6 +514,14 @@ L["Opens the synchronizer"] = "Opens the synchronizer"
 --[[Translation missing --]]
 L["opt_addButton_desc"] = "Add a new button group for the selected slot."
 --[[Translation missing --]]
+L["opt_autoAddBoEs_desc"] = "Automatically add all BoE (Bind on Equip) items to a session."
+--[[Translation missing --]]
+L["opt_autoAddBoEs_name"] = "Auto Add BoEs"
+--[[Translation missing --]]
+L["opt_autoAddItems_desc"] = "Automatically add all eligible items to a session."
+--[[Translation missing --]]
+L["opt_autoAddItems_name"] = "Auto Add Items"
+--[[Translation missing --]]
 L["opt_autoTrade_desc"] = "Check to automatically add awarded items to the trade window when trading with the winner. If disabled, you'll see a popup before items are added."
 --[[Translation missing --]]
 L["opt_award_later_desc"] = "Check to automatically check the 'Award Later' option in the Session Frame."
@@ -531,6 +530,8 @@ L["opt_buttonsGroup_desc"] = [=[Options group for %s buttons and responses.
 See above for a detailed explanation.]=]
 --[[Translation missing --]]
 L["opt_chatFrameName_desc"] = "Select which chat frame you want RCLootCouncil to output information to."
+--[[Translation missing --]]
+L["opt_chatFrameName_name"] = "Chat Frame"
 --[[Translation missing --]]
 L["opt_deleteDate_confirm"] = [=[Are you sure you want to delete everything older than the selected?
 This cannot be undone.]=]
@@ -565,6 +566,10 @@ L["opt_rejectTrade_Name"] = "Allow Keeping"
 L["opt_saveBonusRolls_Desc"] = "Check to save all bonus rolls from candidates to the Loot History."
 --[[Translation missing --]]
 L["opt_saveBonusRolls_Name"] = "Save Bonus Rolls"
+--[[Translation missing --]]
+L["opt_skipSessionFrame_desc"] = "Skips the Session Frame. NOTE: This causes the addon to start a session with all eligble items without you having a chance to edit the list!"
+--[[Translation missing --]]
+L["opt_skipSessionFrame_name"] = "Skip Session Frame"
 --[[Translation missing --]]
 L["options_autoAwardBoE_desc"] = "Enable to automatically award all epic BoE (Bind on Equip) items to a specific person for the selected reason."
 --[[Translation missing --]]

@@ -1,3 +1,36 @@
+**r1266**
+* Some combo poin fixes.
+
+**r1258**
+* Fixed some highlight issues.
+* Update for Classic 1.13.6.
+
+**r1256**
+* Update for 9.0.2.
+
+**r1254**
+* Fixed some issues with status highlighting.
+* Fixed phasing indicator on Classic.
+* Removed RealMobHealth wrapper.
+
+**r1252**
+* Fixed some errors from previous release.
+
+**r1248**
+* Updated codebase to match with Classic.
+* Raid casting monitor fixes and tweaks.
+
+**r1246**
+* Fixed target incoming heals and absorb prediction.
+
+**r1244**
+* Fixed color picker.
+* Fixed shaman extra bars.
+
+**r1228**
+* Some minimap and settings related fixes.
+* Update libraries.
+
 **r1224**
 * Various buff/debuff related fixes.
 

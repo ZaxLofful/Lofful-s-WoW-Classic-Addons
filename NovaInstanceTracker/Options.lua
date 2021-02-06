@@ -325,7 +325,76 @@ NIT.options = {
 			get = "getStatsOnlyWhenActivity",
 			set = "setStatsOnlyWhenActivity",
 		},
-		
+		instanceStatsOutputRunsPerLevel = {
+			type = "toggle",
+			name = L["instanceStatsOutputRunsPerLevelTitle"],
+			desc = L["instanceStatsOutputRunsPerLevelDesc"],
+			order = 64,
+			get = "getInstanceStatsOutputRunsPerLevel",
+			set = "setInstanceStatsOutputRunsPerLevel",
+		},
+		instanceStatsOutputRunsNextLevel = {
+			type = "toggle",
+			name = L["instanceStatsOutputRunsNextLevelTitle"],
+			desc = L["instanceStatsOutputRunsNextLevelDesc"],
+			order = 65,
+			get = "getInstanceStatsOutputRunsNextLevel",
+			set = "setInstanceStatsOutputRunsNextLevel",
+		},
+		trimDataHeader = {
+			type = "header",
+			name = L["trimDataHeaderDesc"],
+			order = 330,
+		},
+		trimDataText = {
+			type = "description",
+			name = "|cFF9CD6DE".. L["trimDataTextDesc"],
+			fontSize = "medium",
+			order = 331,
+		},
+		trimDataBelowLevel = {
+			type = "range",
+			name = L["trimDataBelowLevelTitle"],
+			desc = L["trimDataBelowLevelDesc"],
+			order = 332,
+			get = "getTrimDataBelowLevel",
+			set = "setTrimDataBelowLevel",
+			min = 1,
+			max = 60,
+			softMin = 1,
+			softMax = 60,
+			step = 1,
+			width = "double",
+		},
+		trimDataBelowLevelButton = {
+			type = "execute",
+			name = L["trimDataBelowLevelButtonTitle"],
+			desc = L["trimDataBelowLevelButtonDesc"],
+			func = "removeCharsBelowLevel",
+			order = 333,
+			--width = 1.7,
+			confirm = function()
+				return string.format(L["trimDataBelowLevelButtonConfirm"], "|cFFFFFF00" .. NIT.db.global.trimDataBelowLevel .. "|r");
+			end,
+		},
+		--[[trimDataText2 = {
+			type = "description",
+			name = "|cFF9CD6DE".. L["trimDataText2Desc"],
+			fontSize = "medium",
+			order = 334,
+		},
+		trimDataCharInput = {
+			type = "input",
+			name = L["trimDataCharInputTitle"],
+			desc = L["trimDataCharInputDesc"],
+			get = "getTrimDataCharInput",
+			set = "setTrimDataCharInput",
+			order = 335,
+			--width = 1.7,
+			confirm = function(self, input)
+				return string.format(L["trimDataCharInputConfirm"], "|cFFFFFF00" .. input .. "|r");
+			end,
+		},]]
 		notesHeader = {
 			type = "header",
 			name = L["notesHeaderDesc"],
@@ -350,7 +419,7 @@ function NIT:getLogExample()
 		enteredTime = GetServerTime() - 600,
 		leftTime = GetServerTime() - 300,
 	}
-	local line = NIT:buildInstanceLineFrameString(v, 2);
+	local line = NIT:buildInstanceLineFrameString(v, 1);
 	return "Example: " .. line;
 end
 
@@ -395,22 +464,16 @@ NIT.optionDefaults = {
 		printRaidInstead = true,
 		statsOnlyWhenActivity = false,
 		show24HourOnly = false,
+		autoSfkDoor = true,
+		trimDataBelowLevel = 1,
+		instanceStatsOutputRunsPerLevel = true,
+		instanceStatsOutputRunsNextLevel = false,
 		
 		resetCharData = true, --Reset one time to delete data before alt UI stuff was added.
 	},
 };
 
---[[function NIT:buildDatabase()
-	if (not self.db.global.data) then
-			self.db.global.data = {};
-	end
-	if (not self.db.global.data.instances) then
-		self.db.global.data.instances = {};
-	end
-	self.data = self.db.global.data;
-end]]
-
---5 per hour and 30 per day lockouts are realm specific.
+--5 per hour and 30 per day lockouts are character specific.
 function NIT:buildDatabase()
 	--Create realm tables if they don't exist.
 	if (not self.db.global[NIT.realm]) then
@@ -690,4 +753,40 @@ end
 
 function NIT:getStatsOnlyWhenActivity(info)
 	return self.db.global.statsOnlyWhenActivity;
+end
+
+--Trim data of characters below this level.
+function NIT:setTrimDataBelowLevel(info, value)
+	self.db.global.trimDataBelowLevel = value;
+end
+
+function NIT:getTrimDataBelowLevel(info)
+	return self.db.global.trimDataBelowLevel;
+end
+
+--Trim data for single char.
+function NIT:setTrimDataCharInput(info, value)
+	NIT:removeSingleChar(value);
+end
+
+function NIT:getTrimDataCharInput(info)
+
+end
+
+--Runs per level stats output when exiting dungeon.
+function NIT:setInstanceStatsOutputRunsPerLevel(info, value)
+	self.db.global.instanceStatsOutputRunsPerLevel = value;
+end
+
+function NIT:getInstanceStatsOutputRunsPerLevel(info)
+	return self.db.global.instanceStatsOutputRunsPerLevel;
+end
+
+--Runs until next level stats output when exiting dungeon.
+function NIT:setInstanceStatsOutputRunsNextLevel(info, value)
+	self.db.global.instanceStatsOutputRunsNextLevel = value;
+end
+
+function NIT:getInstanceStatsOutputRunsNextLevel(info)
+	return self.db.global.instanceStatsOutputRunsNextLevel;
 end

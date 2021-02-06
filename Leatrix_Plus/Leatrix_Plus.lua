@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------
--- 	Leatrix Plus 1.13.81 (7th October 2020)
+-- 	Leatrix Plus 1.13.91 (22nd January 2021)
 ----------------------------------------------------------------------
 
 --	01:Functions	20:Live			50:RunOnce		70:Logout			
@@ -20,7 +20,7 @@
 	local void
 
 	-- Version
-	LeaPlusLC["AddonVer"] = "1.13.81"
+	LeaPlusLC["AddonVer"] = "1.13.91"
 	LeaPlusLC["RestartReq"] = nil
 
 	-- Get locale table
@@ -243,6 +243,16 @@
 
 	end
 
+	-- Check if player is in LFG queue (battleground)
+	function LeaPlusLC:IsInLFGQueue()
+		for i = 1, GetMaxBattlefieldID() do
+			local status = GetBattlefieldStatus(i)
+			if status == "queued" or status == "confirmed" then
+				return true
+			end
+		end
+	end
+
 	-- Check if player is in combat
 	function LeaPlusLC:PlayerInCombat()
 		if (UnitAffectingCombat("player")) then
@@ -438,6 +448,7 @@
 		or	(LeaPlusLC["StandAndDismount"]		~= LeaPlusDB["StandAndDismount"])		-- Stand and dismount
 		or	(LeaPlusLC["ShowVendorPrice"]		~= LeaPlusDB["ShowVendorPrice"])		-- Show vendor price
 		or	(LeaPlusLC["CombatPlates"]			~= LeaPlusDB["CombatPlates"])			-- Combat plates
+		or	(LeaPlusLC["EasyItemDestroy"]		~= LeaPlusDB["EasyItemDestroy"])		-- Easy item destroy
 
 		-- Settings
 		or	(LeaPlusLC["EnableHotkey"]			~= LeaPlusDB["EnableHotkey"])			-- Enable hotkey
@@ -535,6 +546,49 @@
 ----------------------------------------------------------------------
 
 	function LeaPlusLC:Isolated()
+
+		----------------------------------------------------------------------
+		-- Easy item destroy
+		----------------------------------------------------------------------
+
+		if LeaPlusLC["EasyItemDestroy"] == "On" then
+
+			-- Get the type "DELETE" into the field to confirm text
+			local TypeDeleteLine = gsub(DELETE_GOOD_ITEM, "[\r\n]", "@")
+			local void, TypeDeleteLine = strsplit("@", TypeDeleteLine, 2)
+
+			-- Add hyperlinks to regular item destroy
+			RunScript('StaticPopupDialogs["DELETE_GOOD_ITEM"].OnHyperlinkEnter = function(self, link, text, region, boundsLeft, boundsBottom, boundsWidth, boundsHeight) GameTooltip:SetOwner(self, "ANCHOR_PRESERVE") GameTooltip:ClearAllPoints() local cursorClearance = 30 GameTooltip:SetPoint("TOPLEFT", region, "BOTTOMLEFT", boundsLeft, boundsBottom - cursorClearance) GameTooltip:SetHyperlink(link) end')
+			RunScript('StaticPopupDialogs["DELETE_GOOD_ITEM"].OnHyperlinkLeave = function(self) GameTooltip:Hide() end')
+			RunScript('StaticPopupDialogs["DELETE_ITEM"].OnHyperlinkEnter = StaticPopupDialogs["DELETE_GOOD_ITEM"].OnHyperlinkEnter')
+			RunScript('StaticPopupDialogs["DELETE_ITEM"].OnHyperlinkLeave = StaticPopupDialogs["DELETE_GOOD_ITEM"].OnHyperlinkLeave')
+			RunScript('StaticPopupDialogs["DELETE_QUEST_ITEM"].OnHyperlinkEnter = StaticPopupDialogs["DELETE_GOOD_ITEM"].OnHyperlinkEnter')
+			RunScript('StaticPopupDialogs["DELETE_QUEST_ITEM"].OnHyperlinkLeave = StaticPopupDialogs["DELETE_GOOD_ITEM"].OnHyperlinkLeave')
+			RunScript('StaticPopupDialogs["DELETE_GOOD_QUEST_ITEM"].OnHyperlinkEnter = StaticPopupDialogs["DELETE_GOOD_ITEM"].OnHyperlinkEnter')
+			RunScript('StaticPopupDialogs["DELETE_GOOD_QUEST_ITEM"].OnHyperlinkLeave = StaticPopupDialogs["DELETE_GOOD_ITEM"].OnHyperlinkLeave')
+
+			-- Hide editbox and set item link
+			local easyDelFrame = CreateFrame("FRAME")
+			easyDelFrame:RegisterEvent("DELETE_ITEM_CONFIRM")
+			easyDelFrame:SetScript("OnEvent", function()
+				if StaticPopup1EditBox:IsShown() then
+					-- Item requires player to type delete so hide editbox and show link
+					StaticPopup1:SetHeight(StaticPopup1:GetHeight() - 10)
+					StaticPopup1EditBox:Hide()
+					StaticPopup1Button1:Enable()
+					local link = select(3, GetCursorInfo())
+					StaticPopup1Text:SetText(gsub(StaticPopup1Text:GetText(), gsub(TypeDeleteLine, "@", ""), "") .. "|n" .. link)
+				else
+					-- Item does not require player to type delete so just show item link
+					StaticPopup1:SetHeight(StaticPopup1:GetHeight() + 40)
+					StaticPopup1EditBox:Hide()
+					StaticPopup1Button1:Enable()
+					local link = select(3, GetCursorInfo())
+					StaticPopup1Text:SetText(gsub(StaticPopup1Text:GetText(), gsub(TypeDeleteLine, "@", ""), "") .. "|n|n" .. link)
+				end
+			end)
+
+		end
 
 		----------------------------------------------------------------------
 		-- Faster movie skip
@@ -2547,6 +2601,7 @@
 		----------------------------------------------------------------------
 
 		if LeaPlusLC["ClassIconPortraits"] == "On" then
+			local UnitIsPlayer, UnitClass, CLASS_ICON_TCOORDS, SetTexture, SetTexCoord = UnitIsPlayer, UnitClass, CLASS_ICON_TCOORDS, SetTexture, SetTexCoord
 			hooksecurefunc("UnitFramePortrait_Update",function(self)
 				if self.unit == "player" or self.unit == "pet" then
 					return
@@ -3774,9 +3829,9 @@
 			end
 
 			-- Create minimap button using LibDBIcon
-			local ldb = LibStub("LibDataBroker-1.1", true)
-			local miniButton = ldb:NewDataObject("Leatrix_Plus", {
-				type = "launcher",
+			local miniButton = LibStub("LibDataBroker-1.1"):NewDataObject("Leatrix_Plus", {
+				type = "data source",
+				text = "Leatrix Plus",
 				icon = "Interface\\HELPFRAME\\ReportLagIcon-Movement",
 				OnClick = function(self, btn)
 					MiniBtnClickFunc(btn)
@@ -3786,14 +3841,17 @@
 					tooltip:AddLine("Leatrix Plus")
 				end,
 			})
+
 			local icon = LibStub("LibDBIcon-1.0", true)
 			icon:Register("Leatrix_Plus", miniButton, LeaPlusDB)
 
 			-- Function to toggle LibDBIcon
 			local function SetLibDBIconFunc()
 				if LeaPlusLC["ShowMinimapIcon"] == "On" then
+					LeaPlusDB["hide"] = false
 					icon:Show("Leatrix_Plus")
 				else
+					LeaPlusDB["hide"] = true
 					icon:Hide("Leatrix_Plus")
 				end
 			end
@@ -7273,18 +7331,20 @@
 
 		if event == "CHAT_MSG_WHISPER" or event == "CHAT_MSG_BN_WHISPER" then
 			if (not UnitExists("party1") or UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) and strlower(strtrim(arg1)) == strlower(LeaPlusLC["InvKey"]) then
-				if event == "CHAT_MSG_WHISPER" then
-					if LeaPlusLC:FriendCheck(strsplit("-", arg2, 2)) or LeaPlusLC["InviteFriendsOnly"] == "Off" then
-						InviteUnit(arg2)
-					end
-				elseif event == "CHAT_MSG_BN_WHISPER" then
-					local presenceID = select(11, ...)
-					if presenceID and BNIsFriend(presenceID) then
-						local index = BNGetFriendIndex(presenceID);
-						if index then
-							local presenceID, presenceName, battleTag, isBattleTagPresence, toonName, toonID = BNGetFriendInfo(index);
-							if toonID then
-								BNInviteFriend(toonID);
+				if not LeaPlusLC:IsInLFGQueue() then
+					if event == "CHAT_MSG_WHISPER" then
+						if LeaPlusLC:FriendCheck(strsplit("-", arg2, 2)) or LeaPlusLC["InviteFriendsOnly"] == "Off" then
+							InviteUnit(arg2)
+						end
+					elseif event == "CHAT_MSG_BN_WHISPER" then
+						local presenceID = select(11, ...)
+						if presenceID and BNIsFriend(presenceID) then
+							local index = BNGetFriendIndex(presenceID);
+							if index then
+								local presenceID, presenceName, battleTag, isBattleTagPresence, toonName, toonID = BNGetFriendInfo(index);
+								if toonID then
+									BNInviteFriend(toonID);
+								end
 							end
 						end
 					end
@@ -7375,21 +7435,23 @@
 
 		if event == "PARTY_INVITE_REQUEST" then
 
-			-- If a friend, accept if you're accepting friends
+			-- If a friend, accept if you're accepting friends and not in battleground queue
 			if (LeaPlusLC["AcceptPartyFriends"] == "On" and LeaPlusLC:FriendCheck(arg1)) then
-				AcceptGroup();
-				for i=1, STATICPOPUP_NUMDIALOGS do
-					if _G["StaticPopup"..i].which == "PARTY_INVITE" then
-						_G["StaticPopup"..i].inviteAccepted = 1
-						StaticPopup_Hide("PARTY_INVITE");
-						break
-					elseif _G["StaticPopup"..i].which == "PARTY_INVITE_XREALM" then
-						_G["StaticPopup"..i].inviteAccepted = 1
-						StaticPopup_Hide("PARTY_INVITE_XREALM");
-						break
+				if not LeaPlusLC:IsInLFGQueue() then
+					AcceptGroup()
+					for i=1, STATICPOPUP_NUMDIALOGS do
+						if _G["StaticPopup"..i].which == "PARTY_INVITE" then
+							_G["StaticPopup"..i].inviteAccepted = 1
+							StaticPopup_Hide("PARTY_INVITE")
+							break
+						elseif _G["StaticPopup"..i].which == "PARTY_INVITE_XREALM" then
+							_G["StaticPopup"..i].inviteAccepted = 1
+							StaticPopup_Hide("PARTY_INVITE_XREALM")
+							break
+						end
 					end
+					return
 				end
-				return
 			end
 
 			-- If not a friend and you're blocking invites, decline
@@ -7599,6 +7661,7 @@
 				LeaPlusLC:LoadVarChk("StandAndDismount", "Off")				-- Stand and dismount
 				LeaPlusLC:LoadVarChk("ShowVendorPrice", "Off")				-- Show vendor price
 				LeaPlusLC:LoadVarChk("CombatPlates", "Off")					-- Combat plates
+				LeaPlusLC:LoadVarChk("EasyItemDestroy", "Off")				-- Easy item destroy
 
 				-- Settings
 				LeaPlusLC:LoadVarChk("ShowMinimapIcon", "On")				-- Show minimap button
@@ -7787,6 +7850,7 @@
 			LeaPlusDB["StandAndDismount"] 		= LeaPlusLC["StandAndDismount"]
 			LeaPlusDB["ShowVendorPrice"] 		= LeaPlusLC["ShowVendorPrice"]
 			LeaPlusDB["CombatPlates"]			= LeaPlusLC["CombatPlates"]
+			LeaPlusDB["EasyItemDestroy"]		= LeaPlusLC["EasyItemDestroy"]
 
 			-- Settings
 			LeaPlusDB["ShowMinimapIcon"] 		= LeaPlusLC["ShowMinimapIcon"]
@@ -9012,6 +9076,62 @@
 					LeaPlusLC:Print("No media duplicates found.") 
 				end
 				return
+			elseif str == "help" then
+				-- Help panel
+				if not LeaPlusLC.HelpFrame then
+					local frame = CreateFrame("FRAME", nil, UIParent)
+					frame:SetSize(570, 340); frame:SetFrameStrata("FULLSCREEN_DIALOG"); frame:SetFrameLevel(100)
+					frame.tex = frame:CreateTexture(nil, "BACKGROUND"); frame.tex:SetAllPoints(); frame.tex:SetColorTexture(0.05, 0.05, 0.05, 0.9)
+					frame.close = CreateFrame("Button", nil, frame, "UIPanelCloseButton"); frame.close:SetSize(30, 30); frame.close:SetPoint("TOPRIGHT", 0, 0); frame.close:SetScript("OnClick", function() frame:Hide() end)
+					frame:ClearAllPoints(); frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+					frame:SetClampedToScreen(true)
+					frame:SetClampRectInsets(450, -450, -300, 300)
+					frame:EnableMouse(true)
+					frame:SetMovable(true)
+					frame:RegisterForDrag("LeftButton")
+					frame:SetScript("OnDragStart", frame.StartMoving)
+					frame:SetScript("OnDragStop", function() frame:StopMovingOrSizing() frame:SetUserPlaced(false) end)
+					frame:Hide()
+					LeaPlusLC:CreateBar("HelpPanelMainTexture", frame, 570, 340, "TOPRIGHT", 0.7, 0.7, 0.7, 0.7,  "Interface\\ACHIEVEMENTFRAME\\UI-GuildAchievement-Parchment-Horizontal-Desaturated.png")
+					-- Panel contents
+					local col1, col2, color1 = 10, 120, "|cffffffaa"
+					LeaPlusLC:MakeTx(frame, "Leatrix Plus Help", col1, -10)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp", col1, -30)
+					LeaPlusLC:MakeWD(frame, "Toggle opttions panel.", col2, -30)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp reset", col1, -50)
+					LeaPlusLC:MakeWD(frame, "Reset addon panel position and scale.", col2, -50)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp wipe", col1, -70)
+					LeaPlusLC:MakeWD(frame, "Wipe all addon settings (reloads UI).", col2, -70)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp realm", col1, -90)
+					LeaPlusLC:MakeWD(frame, "Show realms connected to yours.", col2, -90)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp rest", col1, -110)
+					LeaPlusLC:MakeWD(frame, "Show number of rested XP bubbles remaining.", col2, -110)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp quest <id>", col1, -130)
+					LeaPlusLC:MakeWD(frame, "Show quest completion status for <quest id>.", col2, -130)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp grid", col1, -150)
+					LeaPlusLC:MakeWD(frame, "Toggle a frame alignment grid.", col2, -150)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp id", col1, -170)
+					LeaPlusLC:MakeWD(frame, "Show the unit ID of the currently targeted NPC.", col2, -170)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp zygor", col1, -190)
+					LeaPlusLC:MakeWD(frame, "Toggle the Zygor addon (reloads UI).", col2, -190)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp movie <id>", col1, -210)
+					LeaPlusLC:MakeWD(frame, "Play a movie by its ID.", col2, -210)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp marker", col1, -230)
+					LeaPlusLC:MakeWD(frame, "Block target markers (toggle) (requires assistant or leader in raid).", col2, -230)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp af", col1, -250)
+					LeaPlusLC:MakeWD(frame, "Follow your target persistently (toggle).", col2, -250)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp rsnd", col1, -270)
+					LeaPlusLC:MakeWD(frame, "Restart the sound system.", col2, -270)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp con", col1, -290)
+					LeaPlusLC:MakeWD(frame, "Launch the developer console with a large font.", col2, -290)
+					LeaPlusLC:MakeWD(frame, color1 .. "/rl", col1, -310)
+					LeaPlusLC:MakeWD(frame, "Reload the UI.", col2, -310)
+					LeaPlusLC.HelpFrame = frame
+					_G["LeaPlusGlobalHelpPanel"] = frame
+					table.insert(UISpecialFrames, "LeaPlusGlobalHelpPanel")
+				end
+				if LeaPlusLC.HelpFrame:IsShown() then LeaPlusLC.HelpFrame:Hide() else LeaPlusLC.HelpFrame:Show() end
+				return
 			elseif str == "admin" then
 				-- Preset profile (used for testing)
 				LpEvt:UnregisterAllEvents()						-- Prevent changes
@@ -9148,6 +9268,7 @@
 				LeaPlusDB["StandAndDismount"] = "On"			-- Stand and dismount
 				LeaPlusDB["ShowVendorPrice"] = "On"				-- Show vendor price
 				LeaPlusDB["CombatPlates"] = "On"				-- Combat plates
+				LeaPlusDB["EasyItemDestroy"] = "On"				-- Easy item destroy
 
 				-- Settings
 				LeaPlusDB["EnableHotkey"] = "On"				-- Enable hotkey
@@ -9364,7 +9485,7 @@
 	LeaPlusLC:MakeCB(LeaPlusLC[pg], "NoFriendRequests"			, 	"Block friend requests"			, 	146, -132, 	false,	"If checked, BattleTag and Real ID friend requests will be automatically declined.|n|nEnabling this option will automatically decline any pending requests.")
 
 	LeaPlusLC:MakeTx(LeaPlusLC[pg], "Groups"					, 	340, -72);
-	LeaPlusLC:MakeCB(LeaPlusLC[pg], "AcceptPartyFriends"		, 	"Party from friends"			, 	340, -92, 	false,	"If checked, party invitations from friends or guild members will be automatically accepted.")
+	LeaPlusLC:MakeCB(LeaPlusLC[pg], "AcceptPartyFriends"		, 	"Party from friends"			, 	340, -92, 	false,	"If checked, party invitations from friends or guild members will be automatically accepted unless you are queued for a battleground.")
 	LeaPlusLC:MakeCB(LeaPlusLC[pg], "InviteFromWhisper"			,   "Invite from whispers"			,	340, -112,	false,	L["If checked, a group invite will be sent to anyone who whispers you with a set keyword as long as you are ungrouped, group leader or raid assistant."] .. "|n|n" .. L["Keyword"] .. ": |cffffffff" .. "dummy" .. "|r")
 
  	LeaPlusLC:CfgBtn("InvWhisperBtn", LeaPlusCB["InviteFromWhisper"])
@@ -9487,6 +9608,7 @@
 	LeaPlusLC:MakeCB(LeaPlusLC[pg], "StandAndDismount"			, 	"Stand and dismount"			,	340, -192, 	true,	"If checked, your character will automatically stand or dismount when an action is prevented because you are either seated or mounted.")
 	LeaPlusLC:MakeCB(LeaPlusLC[pg], "ShowVendorPrice"			, 	"Show vendor price"				,	340, -212, 	true,	"If checked, the vendor price will be shown in item tooltips.")
 	LeaPlusLC:MakeCB(LeaPlusLC[pg], "CombatPlates"				, 	"Combat plates"					,	340, -232, 	true,	"If checked, enemy nameplates will be shown during combat and hidden when combat ends.")
+	LeaPlusLC:MakeCB(LeaPlusLC[pg], "EasyItemDestroy"			, 	"Easy item destroy"				,	340, -252, 	true,	"If checked, you will no longer need to type delete when destroying a superior quality item.|n|nIn addition, item links will be shown in all item destroy confirmation windows.")
 
 	LeaPlusLC:CfgBtn("SetWeatherDensityBtn", LeaPlusCB["SetWeatherDensity"])
 	LeaPlusLC:CfgBtn("ModViewportBtn", LeaPlusCB["ViewPortEnable"])

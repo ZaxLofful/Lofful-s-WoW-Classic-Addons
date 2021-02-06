@@ -23,7 +23,7 @@ XPerl_RequestConfig(function(new)
 	if (XPerl_PetTarget) then
 		XPerl_PetTarget.conf = conf.pettarget
 	end
-end, "$Revision:  $")
+end, "$Revision: 919e0f8a150cee048b33cf8ae0873d63cbccab98 $")
 
 local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 local LCD = IsClassic and LibStub and LibStub("LibClassicDurations")
@@ -132,12 +132,12 @@ function XPerl_Target_OnLoad(self, partyid)
 		"UNIT_CLASSIFICATION_CHANGED",
 		"UNIT_PORTRAIT_UPDATE",
 		"UNIT_AURA",
-		"UNIT_HEALTH_FREQUENT",
+		IsClassic and "UNIT_HEALTH_FREQUENT" or "UNIT_HEALTH",
+		"UNIT_MAXHEALTH",
 		"PET_BATTLE_HEALTH_CHANGED",
 		"UPDATE_SUMMONPETS_ACTION",
 		"UNIT_POWER_FREQUENT",
 		"UNIT_MAXPOWER",
-		"UNIT_MAXHEALTH",
 		"UNIT_LEVEL",
 		"UNIT_DISPLAYPOWER",
 		"UNIT_NAME_UPDATE",
@@ -149,7 +149,11 @@ function XPerl_Target_OnLoad(self, partyid)
 	for i, event in pairs(events) do
 		if string.find(event, "^UNIT_") or string.find(event, "^INCOMING") then
 			if pcall(self.RegisterUnitEvent, self, event, partyid) then
-				self:RegisterUnitEvent(event, partyid)
+				if event == "UNIT_MAXPOWER" then
+					self:RegisterUnitEvent(event, partyid, "player")
+				else
+					self:RegisterUnitEvent(event, partyid)
+				end
 			end
 		else
 			if pcall(self.RegisterEvent, self, event) then
@@ -191,7 +195,8 @@ function XPerl_Target_OnLoad(self, partyid)
 	self:RegisterEvent("PLAYER_REGEN_DISABLED")
 
 	self.nameFrame.cpMeter:SetFrameLevel(2)
-	self.nameFrame.cpMeter:SetMinMaxValues(0, 5)
+	local maxComboPoints = UnitPowerMax("player", Enum.PowerType.ComboPoints)
+	self.nameFrame.cpMeter:SetMinMaxValues(0, IsClassic and 5 or maxComboPoints)
 	self.nameFrame.cpMeter:GetStatusBarTexture():SetHorizTile(false)
 	self.nameFrame.cpMeter:GetStatusBarTexture():SetVertTile(false)
 
@@ -860,6 +865,92 @@ function XPerl_Target_SetMana(self)
 	--mb.text:SetFormattedText("%d/%d", targetmana, targetmanamax)
 end
 
+-- XPerl_Target_SetComboBar
+function XPerl_Target_SetComboBar(self)
+	if (tconf.combo.enable) then
+		local combopoints = UnitPower((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player", Enum.PowerType.ComboPoints)
+		local maxComboPoints = UnitPowerMax("player", Enum.PowerType.ComboPoints)
+		self.nameFrame.cpMeter:SetMinMaxValues(0, IsClassic and 5 or maxComboPoints)
+		self.nameFrame.cpMeter:SetValue(combopoints)
+	end
+end
+
+-- XPerl_Target_UpdateHealPrediction
+local function XPerl_Target_UpdateHealPrediction(self)
+	if self == XPerl_Target then
+		if tconf.healprediction then
+			XPerl_SetExpectedHealth(self)
+		else
+			self.statsFrame.expectedHealth:Hide()
+		end
+	elseif self == XPerl_TargetTarget or self == XPerl_TargetTargetTarget then
+		if conf.targettarget.healprediction then
+			XPerl_SetExpectedHealth(self)
+		else
+			self.statsFrame.expectedHealth:Hide()
+		end
+	elseif self == XPerl_Focus then
+		if fconf.healprediction then
+			XPerl_SetExpectedHealth(self)
+		else
+			self.statsFrame.expectedHealth:Hide()
+		end
+	elseif self == XPerl_FocusTarget then
+		if conf.focustarget.healprediction then
+			XPerl_SetExpectedHealth(self)
+		else
+			self.statsFrame.expectedHealth:Hide()
+		end
+	end
+end
+
+-- XPerl_Target_UpdateAbsorbPrediction
+local function XPerl_Target_UpdateAbsorbPrediction(self)
+	if self == XPerl_Target then
+		if tconf.absorbs then
+			XPerl_SetExpectedAbsorbs(self)
+		else
+			self.statsFrame.expectedAbsorbs:Hide()
+		end
+	elseif self == XPerl_TargetTarget or self == XPerl_TargetTargetTarget then
+		if conf.targettarget.absorbs then
+			XPerl_SetExpectedAbsorbs(self)
+		else
+			self.statsFrame.expectedAbsorbs:Hide()
+		end
+	elseif self == XPerl_Focus then
+		if fconf.absorbs then
+			XPerl_SetExpectedAbsorbs(self)
+		else
+			self.statsFrame.expectedAbsorbs:Hide()
+		end
+	elseif self == XPerl_FocusTarget then
+		if conf.focustarget.absorbs then
+			XPerl_SetExpectedAbsorbs(self)
+		else
+			self.statsFrame.expectedAbsorbs:Hide()
+		end
+	end
+end
+
+function XPerl_Target_UpdateResurrectionStatus(self)
+	if (UnitHasIncomingResurrection(self.partyid)) then
+		if (self == XPerl_Target and tconf.portrait) or
+		   (self == XPerl_Focus and fconf.portrait) then
+			self.portraitFrame.resurrect:Show()
+		else
+			self.statsFrame.resurrect:Show()
+		end
+	else
+		if (self == XPerl_Target and tconf.portrait) or
+		   (self == XPerl_Focus and fconf.portrait) then
+			self.portraitFrame.resurrect:Hide()
+		else
+			self.statsFrame.resurrect:Hide()
+		end
+	end
+end
+
 -- XPerl_Target_UpdateHealth
 function XPerl_Target_UpdateHealth(self)
 	local partyid = self.partyid
@@ -952,84 +1043,6 @@ function XPerl_Target_UpdateHealth(self)
 	end
 end
 
--- XPerl_Target_UpdateHealPrediction
-function XPerl_Target_UpdateHealPrediction(self)
-	if self == XPerl_Target then
-		if tconf.healprediction then
-			XPerl_SetExpectedHealth(self)
-		else
-			self.statsFrame.expectedHealth:Hide()
-		end
-	elseif self == XPerl_TargetTarget or self == XPerl_TargetTargetTarget then
-		if conf.targettarget.healprediction then
-			XPerl_SetExpectedHealth(self)
-		else
-			self.statsFrame.expectedHealth:Hide()
-		end
-	elseif self == XPerl_Focus then
-		if fconf.healprediction then
-			XPerl_SetExpectedHealth(self)
-		else
-			self.statsFrame.expectedHealth:Hide()
-		end
-	elseif self == XPerl_FocusTarget then
-		if conf.focustarget.healprediction then
-			XPerl_SetExpectedHealth(self)
-		else
-			self.statsFrame.expectedHealth:Hide()
-		end
-	end
-end
-
--- XPerl_Target_UpdateAbsorbPrediction
-function XPerl_Target_UpdateAbsorbPrediction(self)
-	if self == XPerl_Target then
-		if tconf.absorbs then
-			XPerl_SetExpectedAbsorbs(self)
-		else
-			self.statsFrame.expectedAbsorbs:Hide()
-		end
-	elseif self == XPerl_TargetTarget or self == XPerl_TargetTargetTarget then
-		if conf.targettarget.absorbs then
-			XPerl_SetExpectedAbsorbs(self)
-		else
-			self.statsFrame.expectedAbsorbs:Hide()
-		end
-	elseif self == XPerl_Focus then
-		if fconf.absorbs then
-			XPerl_SetExpectedAbsorbs(self)
-		else
-			self.statsFrame.expectedAbsorbs:Hide()
-		end
-	elseif self == XPerl_FocusTarget then
-		if conf.focustarget.absorbs then
-			XPerl_SetExpectedAbsorbs(self)
-		else
-			self.statsFrame.expectedAbsorbs:Hide()
-		end
-	end
-end
-
-function XPerl_Target_UpdateResurrectionStatus(self)
-	if (UnitHasIncomingResurrection(self.partyid)) then
-		if (self == XPerl_Target and tconf.portrait) or
-		   (self == XPerl_Focus and fconf.portrait) then
-			self.portraitFrame.resurrect:Show()
-		else
-			self.statsFrame.resurrect:Show()
-		end
-	else
-		if (self == XPerl_Target and tconf.portrait) or
-		   (self == XPerl_Focus and fconf.portrait) then
-			self.portraitFrame.resurrect:Hide()
-		else
-			self.statsFrame.resurrect:Hide()
-		end
-	end
-end
-
-
-
 -- XPerl_Target_GetHealth
 function XPerl_Target_GetHealth(self)
 	local hp, hpMax = XPerl_Unit_GetHealth(self)
@@ -1074,7 +1087,7 @@ local function XPerl_Target_UpdateLeader(self)
 		self.nameFrame.leaderIcon:Hide()
 		if (UnitIsGroupAssistant(partyid)) then
 			self.nameFrame.assistIcon:Show()
-		else 
+		else
 			self.nameFrame.assistIcon:Hide()
 		end
 	end
@@ -1475,12 +1488,25 @@ function XPerl_Target_Events:PLAYER_FOCUS_CHANGED()
 	end
 end
 
--- UNIT_HEALTH_FREQUENT, UNIT_MAXHEALTH
+-- UNIT_HEALTH_FREQUENT
 function XPerl_Target_Events:UNIT_HEALTH_FREQUENT()
 	XPerl_Target_UpdateHealth(self)
 end
-XPerl_Target_Events.UNIT_MAXHEALTH = XPerl_Target_Events.UNIT_HEALTH_FREQUENT
-XPerl_Target_Events.PET_BATTLE_HEALTH_CHANGED = XPerl_Target_Events.UNIT_HEALTH_FREQUENT
+
+-- UNIT_HEALTH
+function XPerl_Target_Events:UNIT_HEALTH()
+	XPerl_Target_UpdateHealth(self)
+end
+
+-- UNIT_MAXHEALTH
+function XPerl_Target_Events:UNIT_MAXHEALTH()
+	XPerl_Target_UpdateHealth(self)
+end
+
+-- PET_BATTLE_HEALTH_CHANGED
+function XPerl_Target_Events:PET_BATTLE_HEALTH_CHANGED()
+	XPerl_Target_UpdateHealth(self)
+end
 
 -- UPDATE_SUMMONPETS_ACTION
 function XPerl_Target_Events:UPDATE_SUMMONPETS_ACTION()
@@ -1506,12 +1532,19 @@ function XPerl_Target_Events:RAID_TARGET_UPDATE()
 	RaidTargetUpdate(XPerl_Focus)
 end
 
--- UNIT_POWER_FREQUENT / UNIT_MAXPOWER
+-- UNIT_POWER_FREQUENT
 function XPerl_Target_Events:UNIT_POWER_FREQUENT()
 	XPerl_Target_SetMana(self)
 end
 
-XPerl_Target_Events.UNIT_MAXPOWER = XPerl_Target_Events.UNIT_POWER_FREQUENT
+-- UNIT_MAXPOWER
+function XPerl_Target_Events:UNIT_MAXPOWER(unit)
+	if unit == "target" then
+		XPerl_Target_SetMana(self)
+	else
+		XPerl_Target_SetComboBar(self)
+	end
+end
 
 -- UNIT_DISPLAYPOWER
 function XPerl_Target_Events:UNIT_DISPLAYPOWER()
@@ -1746,16 +1779,20 @@ function XPerl_Target_Set_Bits(self)
 	self.conf.buffs.size = tonumber(self.conf.buffs.size) or 20
 	XPerl_SetBuffSize(self)
 
-	XPerl_Register_Prediction(self, tconf, function(guid)
-		if guid == UnitGUID("target") then
-			return "target"
-		end
-	end, "target")
-	XPerl_Register_Prediction(self, fconf, function(guid)
-		if guid == UnitGUID("focus") then
-			return "focus"
-		end
-	end, "focus")
+	if self == XPerl_Target then
+		XPerl_Register_Prediction(self, tconf, function(guid)
+			if guid == UnitGUID("target") then
+				return "target"
+			end
+		end, "target")
+	end
+	if self == XPerl_Focus then
+		XPerl_Register_Prediction(self, fconf, function(guid)
+			if guid == UnitGUID("focus") then
+				return "focus"
+			end
+		end, "focus")
+	end
 	XPerl_Target_SetWidth(self)
 
 	if (not InCombatLockdown()) then
@@ -1802,7 +1839,7 @@ function XPerl_Target_ComboFrame_Update()
 		end
 
 		local fadeInfo = { }
-		for i = 1, not IsClassic and 8 or 5 do
+		for i = 1, not IsClassic and 9 or 5 do
 			local comboPoint = _G["ComboPoint"..i]
 			if i < 6 then
 				comboPoint:Show()

@@ -5,7 +5,7 @@
 local conf
 XPerl_RequestConfig(function(new)
 	conf = new
-end, "$Revision:  $")
+end, "$Revision: 919e0f8a150cee048b33cf8ae0873d63cbccab98 $")
 
 local XPerl_Usage = { }
 
@@ -41,7 +41,7 @@ local UnitName = UnitName
 
 local UNKNOWN = UNKNOWN
 
-local mod = CreateFrame("Frame")
+local mod = CreateFrame("Frame", BackdropTemplateMixin and "BackdropTemplate")
 --mod:RegisterEvent("CHAT_MSG_ADDON")
 --mod:RegisterEvent("GROUP_ROSTER_UPDATE")
 

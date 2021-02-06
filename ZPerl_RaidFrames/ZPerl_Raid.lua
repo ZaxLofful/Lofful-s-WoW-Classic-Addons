@@ -22,7 +22,7 @@ local conf, rconf
 XPerl_RequestConfig(function(newConf)
 	conf = newConf
 	rconf = conf.raid
-end, "$Revision:  $")
+end, "$Revision: 919e0f8a150cee048b33cf8ae0873d63cbccab98 $")
 
 --[[if type(RegisterAddonMessagePrefix) == "function" then
 	RegisterAddonMessagePrefix("CTRA")
@@ -127,7 +127,7 @@ function XPerl_Raid_OnLoad(self)
 		"UNIT_AURA",
 		"UNIT_POWER_FREQUENT",
 		"UNIT_MAXPOWER",
-		"UNIT_HEALTH_FREQUENT",
+		IsClassic and "UNIT_HEALTH_FREQUENT" or "UNIT_HEALTH",
 		"UNIT_MAXHEALTH",
 		"UNIT_NAME_UPDATE",
 		"PLAYER_FLAGS_CHANGED",
@@ -489,11 +489,37 @@ local function XPerl_Raid_ShowFlags(self, flags)
 	--del(flags)
 end
 
+-- XPerl_Raid_UpdateAbsorbPrediction
+local function XPerl_Raid_UpdateAbsorbPrediction(self)
+	if rconf.absorbs then
+		XPerl_SetExpectedAbsorbs(self)
+	else
+		self.statsFrame.expectedAbsorbs:Hide()
+	end
+end
+
+-- XPerl_Raid_UpdateHealPrediction
+local function XPerl_Raid_UpdateHealPrediction(self)
+	if rconf.healprediction then
+		XPerl_SetExpectedHealth(self)
+	else
+		self.statsFrame.expectedHealth:Hide()
+	end
+end
+
+local function XPerl_Raid_UpdateResurrectionStatus(self)
+	if (UnitHasIncomingResurrection(self.partyid)) then
+		self.statsFrame.resurrect:Show()
+	else
+		self.statsFrame.resurrect:Hide()
+	end
+end
+
 local feignDeath = GetSpellInfo(5384)
 local spiritOfRedemption = GetSpellInfo(27827)
 
 -- XPerl_Raid_UpdateHealth
-function XPerl_Raid_UpdateHealth(self)
+local function XPerl_Raid_UpdateHealth(self)
 	local partyid = self.partyid
 	if (not partyid) then
 		return
@@ -502,14 +528,14 @@ function XPerl_Raid_UpdateHealth(self)
 	local health = UnitIsGhost(partyid) and 1 or (UnitIsDead(partyid) and 0 or UnitHealth(partyid))
 	local healthmax = UnitHealthMax(partyid)
 
-	if (health > healthmax) then
+	--[[if (health > healthmax) then
 		-- New glitch with 1.12.1
 		if (UnitIsDeadOrGhost(partyid)) then
 			health = 0
 		else
 			health = healthmax
 		end
-	end
+	end--]]
 
 	self.statsFrame.healthBar:SetMinMaxValues(0, healthmax)
 	if (conf.bar.inverse) then
@@ -588,9 +614,9 @@ function XPerl_Raid_UpdateHealth(self)
 				if rconf.values then
 					self.statsFrame.healthBar.text:SetFormattedText("%d/%d", health, healthmax)
 				elseif rconf.precisionPercent then
-					self.statsFrame.healthBar.text:SetFormattedText(percF, (percentHp) * 100)
+					self.statsFrame.healthBar.text:SetFormattedText(percF, percentHp * 100 + 0.05)
 				else
-					self.statsFrame.healthBar.text:SetFormattedText(percD, (percentHp) * 100)
+					self.statsFrame.healthBar.text:SetFormattedText(percD, percentHp * 100 + 0.5)
 				end
 			end
 
@@ -616,32 +642,6 @@ function XPerl_Raid_UpdateHealth(self)
 			myRoster.afk = nil
 			myRoster.dnd = nil
 		end
-	end
-end
-
--- XPerl_Raid_UpdateAbsorbPrediction
-function XPerl_Raid_UpdateAbsorbPrediction(self)
-	if rconf.absorbs then
-		XPerl_SetExpectedAbsorbs(self)
-	else
-		self.statsFrame.expectedAbsorbs:Hide()
-	end
-end
-
--- XPerl_Raid_UpdateHealPrediction
-function XPerl_Raid_UpdateHealPrediction(self)
-	if rconf.healprediction then
-		XPerl_SetExpectedHealth(self)
-	else
-		self.statsFrame.expectedHealth:Hide()
-	end
-end
-
-function XPerl_Raid_UpdateResurrectionStatus(self)
-	if (UnitHasIncomingResurrection(self.partyid)) then
-		self.statsFrame.resurrect:Show()
-	else
-		self.statsFrame.resurrect:Hide()
 	end
 end
 
@@ -723,8 +723,8 @@ function XPerl_Raid_Single_OnLoad(self)
 	XPerl_RegisterPerlFrames(self, {self.nameFrame, self.statsFrame})
 	self.FlashFrames = {self.nameFrame, self.statsFrame}
 
-	-- FIX FOR 4.0.1 raids
 	self:SetScript("OnAttributeChanged", onAttrChanged)
+
 	XPerl_RegisterClickCastFrame(self)
 	XPerl_RegisterClickCastFrame(self.nameFrame)
 
@@ -1524,7 +1524,18 @@ function XPerl_Raid_Events:UNIT_HEALTH_FREQUENT()
 	XPerl_Raid_UpdateHealth(self)
 	XPerl_Raid_UpdateCombat(self)
 end
-XPerl_Raid_Events.UNIT_MAXHEALTH = XPerl_Raid_Events.UNIT_HEALTH_FREQUENT
+
+-- UNIT_HEALTH
+function XPerl_Raid_Events:UNIT_HEALTH()
+	XPerl_Raid_UpdateHealth(self)
+	XPerl_Raid_UpdateCombat(self)
+end
+
+-- UNIT_MAXHEALTH
+function XPerl_Raid_Events:UNIT_MAXHEALTH()
+	XPerl_Raid_UpdateHealth(self)
+	XPerl_Raid_UpdateCombat(self)
+end
 
 -- UNIT_DISPLAYPOWER
 function XPerl_Raid_Events:UNIT_DISPLAYPOWER()
@@ -2088,7 +2099,7 @@ function XPerl_RaidTitles()
 					virtualFrame:SetHeight((rconf.mana and 1 or 0) * 5 + 38)
 					virtualFrame:SetWidth(80 * rows + (rconf.spacing * (rows - 1)) + rconf.size.width)
 				end
-
+				virtualFrame:OnBackdropLoaded()
 				virtualFrame:SetBackdropColor(conf.colour.frame.r, conf.colour.frame.g, conf.colour.frame.b, conf.colour.frame.a)
 				virtualFrame:SetBackdropBorderColor(conf.colour.border.r, conf.colour.border.g, conf.colour.border.b, 1)
 				if rconf.group[i] then

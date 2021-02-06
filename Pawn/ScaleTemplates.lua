@@ -1,6 +1,6 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2020 Green Eclipse.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2021 Green Eclipse.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 --
 -- Scale templates
@@ -198,7 +198,6 @@ PawnScaleTemplates =
 	["SpecID"] = 2, -- Frost
 	["Role"] = "DAMAGER",
 	["PrimaryStat"] = "Strength",
-	["HideUpgrades"] = 2, -- Hide 2H upgrades
 	["UnusableStats"] = { "IsFrill" }
 },
 

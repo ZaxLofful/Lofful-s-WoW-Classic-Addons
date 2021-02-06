@@ -1,6 +1,7 @@
 # NugEnergy
 
-## [1.13.19](https://github.com/rgd87/NugEnergy/tree/1.13.19) (2020-07-14)
-[Full Changelog](https://github.com/rgd87/NugEnergy/compare/1.13.18...1.13.19) [Previous Releases](https://github.com/rgd87/NugEnergy/releases)
+## [9.0.6c-classic](https://github.com/rgd87/NugEnergy/tree/9.0.6c-classic) (2020-12-15)
+[Full Changelog](https://github.com/rgd87/NugEnergy/compare/9.0.6a-classic...9.0.6c-classic) [Previous Releases](https://github.com/rgd87/NugEnergy/releases)
 
-- Added zhCN localization  
+- Fixed paladin and mage mana  
+- Reverting more changes  

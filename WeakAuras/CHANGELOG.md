@@ -1,6 +1,6 @@
-# [3.0.4](https://github.com/WeakAuras/WeakAuras2/tree/3.0.4) (2020-10-19)
+# [3.1.9](https://github.com/WeakAuras/WeakAuras2/tree/3.1.9) (2021-01-26)
 
-[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/3.0.3...3.0.4)
+[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/3.1.8...3.1.9)
 
 ## Highlights
 
@@ -8,15 +8,13 @@
 
 ## Commits
 
-InfusOnWoW (1):
+InfusOnWoW (2):
 
-- Fix texture picker for ticks
+- Fix oversight in 7a3d5c762 breaking remaining time check for
+- Clamp tooltips to the screen
 
-Stanzilla (1):
+Stanzilla (2):
 
-- Revert back to upstream LibSpellRange
-
-mrbuds (1):
-
-- Fix error with old versions of OmniCC
+- master -> main
+- Create CODE_OF_CONDUCT.md
 

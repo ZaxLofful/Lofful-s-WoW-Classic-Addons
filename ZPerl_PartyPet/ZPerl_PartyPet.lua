@@ -13,7 +13,7 @@ XPerl_RequestConfig(function(New)
 	for k, v in pairs(PartyPetFrames) do
 		v.conf = pconf
 	end
-end, "$Revision:  $")
+end, "$Revision: 919e0f8a150cee048b33cf8ae0873d63cbccab98 $")
 
 --local new, del, copy = XPerl_GetReusableTable, XPerl_FreeTable, XPerl_CopyTable
 
@@ -42,7 +42,7 @@ function XPerl_Party_Pet_OnLoadEvents(self)
 		"UNIT_FACTION",
 		"UNIT_AURA",
 		"UNIT_FLAGS",
-		"UNIT_HEALTH_FREQUENT",
+		IsClassic and "UNIT_HEALTH_FREQUENT" or "UNIT_HEALTH",
 		"UNIT_MAXHEALTH",
 		"PLAYER_ENTERING_WORLD",
 		"PET_BATTLE_OPENING_START",
@@ -248,14 +248,40 @@ local function XPerl_Party_Pet_UpdateName(self)
 	end
 end
 
+-- XPerl_Party_Pet_UpdateAbsorbPrediction
+local function XPerl_Party_Pet_UpdateAbsorbPrediction(self)
+	if pconf.absorbs then
+		XPerl_SetExpectedAbsorbs(self)
+	else
+		self.statsFrame.expectedAbsorbs:Hide()
+	end
+end
+
+-- XPerl_Party_Pet_UpdateHealPrediction
+local function XPerl_Party_Pet_UpdateHealPrediction(self)
+	if pconf.healprediction then
+		XPerl_SetExpectedHealth(self)
+	else
+		self.statsFrame.expectedHealth:Hide()
+	end
+end
+
+local function XPerl_Party_Pet_UpdateResurrectionStatus(self)
+	if (UnitHasIncomingResurrection(self.partyid)) then
+		self.statsFrame.resurrect:Show()
+	else
+		self.statsFrame.resurrect:Hide()
+	end
+end
+
 -- XPerl_Party_Pet_UpdateHealth
-function XPerl_Party_Pet_UpdateHealth(self)
+local function XPerl_Party_Pet_UpdateHealth(self)
 	local partyid = self.partyid
 	if not partyid then
 		return
 	end
 
-	local health =UnitIsGhost(partyid) and 1 or (UnitIsDead(partyid) and 0 or UnitHealth(partyid))
+	local health = UnitIsGhost(partyid) and 1 or (UnitIsDead(partyid) and 0 or UnitHealth(partyid))
 	local healthmax = UnitHealthMax(partyid)
 
 	-- PTR region fix
@@ -306,40 +332,6 @@ function XPerl_Party_Pet_UpdateHealth(self)
 			self.statsFrame.greyMana = nil
 			XPerl_SetManaBarType(self)
 		end
-	end
-end
-
--- XPerl_Party_Pet_UpdateAbsorbPrediction
-function XPerl_Party_Pet_UpdateAbsorbPrediction(self)
-	if pconf.absorbs then
-		XPerl_SetExpectedAbsorbs(self)
-	else
-		self.statsFrame.expectedAbsorbs:Hide()
-	end
-end
-
--- XPerl_Party_Pet_UpdateHealPrediction
-function XPerl_Party_Pet_UpdateHealPrediction(self)
-	if pconf.healprediction then
-		XPerl_SetExpectedHealth(self)
-	else
-		self.statsFrame.expectedHealth:Hide()
-	end
-end
-
-function XPerl_Party_Pet_UpdateResurrectionStatus(self)
-	if (UnitHasIncomingResurrection(self.partyid)) then
-		self.statsFrame.resurrect:Show()
-	else
-		self.statsFrame.resurrect:Hide()
-	end
-end
-
--- XPerl_Party_UpdateHealthByUnitID
-function XPerl_Party_Pet_UpdateHealthByUnitID(unit)
-	local f = PartyPetFrames[unit]
-	if (f) then
-		XPerl_Party_Pet_UpdateHealth(f)
 	end
 end
 
@@ -601,10 +593,14 @@ function XPerl_Party_Pet_Events:UNIT_HEALTH_FREQUENT()
 	XPerl_Party_Pet_UpdateHealth(self)
 end
 
+-- UNIT_HEALTH
+function XPerl_Party_Pet_Events:UNIT_HEALTH()
+	XPerl_Party_Pet_UpdateHealth(self)
+end
+
 -- UNIT_MAXHEALTH
 function XPerl_Party_Pet_Events:UNIT_MAXHEALTH()
 	XPerl_Party_Pet_UpdateHealth(self)
-	--XPerl_Unit_UpdateLevel(self)
 end
 
 -- UNIT_AURA

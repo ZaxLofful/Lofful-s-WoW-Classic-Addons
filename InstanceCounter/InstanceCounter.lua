@@ -215,7 +215,7 @@ function InstanceCounter:OnUpdate(sinceLastUpdate)
 
 		self:ClearOld()
 
-		local countHour, countDay = InstanceCounter:InstanceCount()
+		local countHour, countDay = InstanceCounter:InstanceCount(fullName)
 
 		if countHour < currentSavedCountHour and currentSavedCountHour > AnnounceCountWhenAboveForHour then
 			self:print(format(L['OPEN_INSTANCES_DAY'], countHour))
@@ -327,7 +327,7 @@ function InstanceCounter:AddCurrentInstance()
 
 	self:AddInstance(name, instanceType, difficultyID)
 
-	local countHour, countDay = self:InstanceCount()
+	local countHour, countDay = self:InstanceCount(fullName)
 
 	if countHour >= AnnounceCountWhenAboveForHour and countDay >= AnnounceCountWhenAboveForDay then
 		self:PrintTimeUntilReset()
@@ -621,17 +621,17 @@ function InstanceCounter:TimeRemaining(t, period)
 	return neg .. format("%.2d:%.2d", min, sec)
 end
 
-function InstanceCounter:InstanceCount()
+function InstanceCounter:InstanceCount(name)
 	local t = time()
 	local hourCount = 0
 	local dayCount = 0
 
 	if # db.List > 0 then
 		for i,v in ipairs(db.List) do
-			if t - v.lastSeen <= LengthOfHour then
+			if (v.character == name or name == nil) and (t - v.lastSeen <= LengthOfHour) then
 				hourCount = hourCount + 1
 			end
-			if t - v.lastSeen <= LengthOfDay then
+			if (v.character == name or name == nil) and (t - v.lastSeen <= LengthOfDay) then
 				dayCount = dayCount + 1
 			end
 		end
@@ -645,7 +645,7 @@ function InstanceCounter:NextReset(Period)
 
 	if # db.List > 0 then
 		for i,v in ipairs(db.List) do
-			if (t - v.lastSeen <= Period) and (v.lastSeen < lastSeen) then
+			if (v.character == fullName) and (t - v.lastSeen <= Period) and (v.lastSeen < lastSeen) then
 				lastSeen = v.lastSeen
 			end
 		end
@@ -658,7 +658,7 @@ end
 function InstanceCounter:PrintTimeUntilReset()
 	self:ClearOld()
 
-	local hourCount, dayCount = self:InstanceCount()
+	local hourCount, dayCount = self:InstanceCount(fullName)
 	if hourCount >= 1 then
 		self:print(format(L['TIME_REMAINING_HOUR'], hourCount, self:TimeRemaining(self:NextReset(LengthOfHour), LengthOfHour)))
 	else
@@ -674,7 +674,7 @@ end
 function InstanceCounter:PrintTimeUntilResetHour()
 	self:ClearOld()
 
-	local hourCount, dayCount = self:InstanceCount()
+	local hourCount, dayCount = self:InstanceCount(fullName)
 	if hourCount >= 1 then
 		self:print(format(L['TIME_REMAINING_HOUR'], hourCount, self:TimeRemaining(self:NextReset(LengthOfHour), LengthOfHour)))
 	else
@@ -685,7 +685,7 @@ end
 function InstanceCounter:PrintTimeUntilResetDay()
 	self:ClearOld()
 
-	local hourCount, dayCount = self:InstanceCount()
+	local hourCount, dayCount = self:InstanceCount(fullName)
 	if dayCount >= 1 then
 		self:print(format(L['TIME_REMAINING_DAY'], dayCount, self:TimeRemaining(self:NextReset(LengthOfDay), LengthOfDay)))
 	else

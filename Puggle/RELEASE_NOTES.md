@@ -129,5 +129,7 @@ RELEASE NOTES:
 	The player export box can now be closed by pressing the Escape key
 
  - 2.11
-	User-defined groups now properly show in their own category instead of under Miscellaneous
+	User-defined search categories now properly show in their own category instead of under Miscellaneous
 
+ - 2.12
+	Uploading the players to the website will not register against their corresponding guilds in the guild section of warcraftratings.com

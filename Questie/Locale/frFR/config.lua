@@ -4,6 +4,8 @@ QuestieLocale.locale['frFR'] = {
     ['GENERAL_OPTIONS_HEADER'] = "Options générales",
     ['ENABLE_ICONS'] = "Activer les icônes",
     ['ENABLE_ICONS_DESC'] = "Active les icônes de Questie",
+    ['TRACKING_ICONS_BUTTON'] = "Config Tracking Icons",
+    ['TRACKING_ICONS_BUTTON_DESC'] = "Allows to select which the tracking icons (like Mailbox, Repair-NPCs) to show on the map and minimap.",
     ['ENABLE_MINIMAP_BUTTON'] = "Bouton autour de la mini-carte",
     ['ENABLE_MINIMAP_BUTTON_DESC'] = "Active le bouton Questie autour de la mini-carte. Le panneau de configuration reste accessible avec la commande /questie.",
     ['ENABLE_INSTANT'] = "Activer Texte instantané (quêtes)",
@@ -66,6 +68,12 @@ QuestieLocale.locale['frFR'] = {
     ['AUTO_MODIFIER_DESC'] = "Le modificateur pour NE PAS accepter/compléter automatiquement une quête lorsque l'une de ces options est active et que vous interagissez avec un PNJ de quête.",
     ['ENABLE_YELL'] = "Partager la progression avec les joueurs proches",
     ['ENABLE_YELL_DESC'] = "La progression de vos quêtes sera régulièrement partagée avec les joueurs proches.",
+    ['QUEST_ANNOUNCE'] = "Annonce de quête",
+    ['QUEST_ANNOUNCE_DESC'] = "Annonce la réalisation de l'objectif aux membres du groupe",
+    ['QUEST_ANNOUNCE_ENABLED'] = "Activé",
+    ['QUEST_ANNOUNCE_OBJECTIVE'] = "{rt1} Questie : %s pour %s !",
+    ['QUEST_ANNOUNCE_QUESTITEM'] = "{rt1} Questie : Ramassé %s qui démarre %s !",
+	
 	
     -- Onglet Mini-carte
     ['MINIMAP_TAB'] = "Mini-carte",
@@ -174,7 +182,9 @@ QuestieLocale.locale['frFR'] = {
     ['ENABLE_TOOLTIPS_QUEST_LEVEL_DESC'] = "Active l'affichage du niveau des quêtes dans les info-bulles.",
     ['SHARED_TOOLTIP_PARTY_ONLY'] = "Partage avec le groupe uniquement",
     ['SHARED_TOOLTIP_PARTY_ONLY_DESC'] = "Limite le partage des progressions avec les membres du groupe uniquement.",
-	
+    ['SHOW_QUESTS_IN_NPC_TOOLTIPS'] = 'Show quests in NPC tooltips',
+    ['SHOW_QUESTS_IN_NPC_TOOLTIPS_DESC'] = 'Show quests (available/complete) in the NPC tooltips.',
+
 	-- Onglet Avancé
     ['ADVANCED_TAB'] = "Avancé",
     ['ADVANCED_OPTIONS_HEADER'] = "Configuration avancée",
@@ -225,8 +235,8 @@ QuestieLocale.locale['frFR'] = {
     ['TOOLTIP_QUEST_REPEATABLE'] = "(Répétable)",
     ['TOOLTIP_QUEST_EVENT'] = "(Évènement)",
     ['XP'] = "xp";
-    ['COMPLETE'] = "Complete";
-    ['FAILED'] = "Failed";
+    ['COMPLETE'] = "Terminée";
+    ['FAILED'] = "Échoué";
 
     -- Slash Commandes
     ['SLASH_INVALID'] = "Commande invalide. Pour obtenir une liste d'options, veuillez taper :",
@@ -379,8 +389,8 @@ QuestieLocale.locale['frFR'] = {
     ['JOURNEY_SELECT_HEAD'] = "Sélectionnez votre continent et votre zone",
     ['JOURNEY_SELECT_CONT'] = "Sélectionnez votre continent",
     ['JOURNEY_SELECT_ZONE'] = "Sélectionnez votre zone",
-    ['JOURNEY_SELECT_PROFESSION'] = "Select Your Profession",
-    ['JOURNEY_NO_QUESTS_FOUND'] = "No Quests found",
+    ['JOURNEY_SELECT_PROFESSION'] = "Sélectionnez votre profession",
+    ['JOURNEY_NO_QUESTS_FOUND'] = "Aucune quête trouvée",
     ['JOURNEY_QUESTS'] = "Quêtes de zone",
     ['JOURNEY_QUESTINFO'] = "Informations sur la quête",
     ['JOURNEY_START_NPC'] = "Informations sur le PNJ débutant la quête",

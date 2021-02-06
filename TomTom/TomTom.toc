@@ -1,8 +1,8 @@
-## retail  ## Interface: 90001
-## Interface: 11305
+## retail ## Interface: 90002
+## Interface: 11306
 ## Title: TomTom
 ## Author: jnwhiteh
-## Version: v11305-1.1.5
+## Version: v11306-1.2.0
 ## License: All Rights Reserved
 ## Notes: Acts as your portable navigation assistant
 ## Notes-frFR: Agit comme un assistant de navigation portable

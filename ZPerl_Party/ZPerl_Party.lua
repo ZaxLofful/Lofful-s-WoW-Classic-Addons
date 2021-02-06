@@ -13,7 +13,7 @@ XPerl_RequestConfig(function(new)
 	for k, v in pairs(PartyFrames) do
 		v.conf = pconf
 	end
-end, "$Revision:  $")
+end, "$Revision: 919e0f8a150cee048b33cf8ae0873d63cbccab98 $")
 
 local percD = "%d"..PERCENT_SYMBOL
 
@@ -61,7 +61,7 @@ function XPerl_Party_Events_OnLoad(self)
 		"UNIT_ABSORB_AMOUNT_CHANGED",
 		"UNIT_POWER_FREQUENT",
 		"UNIT_MAXPOWER",
-		"UNIT_HEALTH_FREQUENT",
+		IsClassic and "UNIT_HEALTH_FREQUENT" or "UNIT_HEALTH",
 		"UNIT_MAXHEALTH",
 		"UNIT_LEVEL",
 		"UNIT_DISPLAYPOWER",
@@ -294,10 +294,44 @@ local function ShowHideValues(self)
 	end
 end
 
+-- XPerl_Party_UpdateHealPrediction
+local function XPerl_Party_UpdateHealPrediction(self)
+	if pconf.healprediction then
+		XPerl_SetExpectedHealth(self)
+	else
+		self.statsFrame.expectedHealth:Hide()
+	end
+end
+
+-- XPerl_Party_UpdateAbsorbPrediction
+local function XPerl_Party_UpdateAbsorbPrediction(self)
+	if pconf.absorbs then
+		XPerl_SetExpectedAbsorbs(self)
+	else
+		self.statsFrame.expectedAbsorbs:Hide()
+	end
+end
+
+local function XPerl_Party_UpdateResurrectionStatus(self)
+	if (UnitHasIncomingResurrection(self.partyid)) then
+		if pconf.portrait then
+			self.portraitFrame.resurrect:Show()
+		else
+			self.statsFrame.resurrect:Show()
+		end
+	else
+		if pconf.portrait then
+			self.portraitFrame.resurrect:Hide()
+		else
+			self.statsFrame.resurrect:Hide()
+		end
+	end
+end
+
 local spiritOfRedemption = GetSpellInfo(27827)
 
 -- XPerl_Party_UpdateHealth
-function XPerl_Party_UpdateHealth(self)
+local function XPerl_Party_UpdateHealth(self)
 	if (not self.conf) then
 		return
 	end
@@ -359,41 +393,6 @@ function XPerl_Party_UpdateHealth(self)
 		end
 	end
 end
-
--- XPerl_Party_UpdateHealPrediction
-function XPerl_Party_UpdateHealPrediction(self)
-	if pconf.healprediction then
-		XPerl_SetExpectedHealth(self)
-	else
-		self.statsFrame.expectedHealth:Hide()
-	end
-end
-
--- XPerl_Party_UpdateAbsorbPrediction
-function XPerl_Party_UpdateAbsorbPrediction(self)
-	if pconf.absorbs then
-		XPerl_SetExpectedAbsorbs(self)
-	else
-		self.statsFrame.expectedAbsorbs:Hide()
-	end
-end
-
-function XPerl_Party_UpdateResurrectionStatus(self)
-	if (UnitHasIncomingResurrection(self.partyid)) then
-		if pconf.portrait then
-			self.portraitFrame.resurrect:Show()
-		else
-			self.statsFrame.resurrect:Show()
-		end
-	else
-		if pconf.portrait then
-			self.portraitFrame.resurrect:Hide()
-		else
-			self.statsFrame.resurrect:Hide()
-		end
-	end
-end
-
 
 -- XPerl_Party_UpdatePlayerFlags(self)
 local function XPerl_Party_UpdatePlayerFlags(self)
@@ -697,9 +696,9 @@ end
 -- UpdatePhaseIndicators
 local function UpdatePhasingDisplays(self)
 	local unit = self.partyid
-	local inPhase = UnitInPhase(unit)
+	local inPhase = not IsClassic and UnitPhaseReason(unit)
 
-	if ( inPhase or not UnitExists(unit) or not UnitIsConnected(unit)) then
+	if ( not inPhase or not UnitExists(unit) or not UnitIsConnected(unit)) then
 		self.phasingIcon:Hide()
 	else
 		self.phasingIcon:Show()
@@ -926,12 +925,30 @@ local function CheckRaid()
 	end
 end
 
+-- XPerl_Party_TargetUpdateHealPrediction
+local function XPerl_Party_TargetUpdateHealPrediction(self)
+	if pconf.healprediction then
+		XPerl_SetExpectedHealth(self)
+	else
+		self.expectedHealth:Hide()
+	end
+end
+
+-- XPerl_Party_TargetUpdateAbsorbPrediction
+local function XPerl_Party_TargetUpdateAbsorbPrediction(self)
+	if pconf.absorbs then
+		XPerl_SetExpectedAbsorbs(self)
+	else
+		self.expectedAbsorbs:Hide()
+	end
+end
+
 -- XPerl_Party_TargetUpdateHealth
 local function XPerl_Party_TargetUpdateHealth(self)
 	local tf = self.targetFrame
 	local targetid = self.targetid
-	local hp, hpMax, heal, abosrb = UnitIsGhost(targetid) and 1 or (UnitIsDead(targetid) and 0 or UnitHealth(targetid)), UnitHealthMax(targetid), not IsClassic and UnitGetIncomingHeals(targetid), not IsClassic and UnitGetTotalAbsorbs(targetid)
-	tf.lastHP, tf.lastHPMax, tf.lastHeal, tf.lastAbsorb = hp, hpMax, heal, abosrb
+	local hp, hpMax, heal, absorb = UnitIsGhost(targetid) and 1 or (UnitIsDead(targetid) and 0 or UnitHealth(targetid)), UnitHealthMax(targetid), not IsClassic and UnitGetIncomingHeals(targetid), not IsClassic and UnitGetTotalAbsorbs(targetid)
+	tf.lastHP, tf.lastHPMax, tf.lastHeal, tf.lastAbsorb = hp, hpMax, heal, absorb
 	tf.lastUpdate = GetTime()
 
 	--tf.healthBar:SetMinMaxValues(0, hpMax)
@@ -988,24 +1005,6 @@ local function XPerl_Party_TargetUpdateHealth(self)
 		tf.pvpIcon:Show()
 	else
 		tf.pvpIcon:Hide()
-	end
-end
-
--- XPerl_Party_TargetUpdateHealPrediction
-function XPerl_Party_TargetUpdateHealPrediction(self)
-	if pconf.healprediction then
-		XPerl_SetExpectedHealth(self)
-	else
-		self.expectedHealth:Hide()
-	end
-end
-
--- XPerl_Party_TargetUpdateAbsorbPrediction
-function XPerl_Party_TargetUpdateAbsorbPrediction(self)
-	if pconf.absorbs then
-		XPerl_SetExpectedAbsorbs(self)
-	else
-		self.expectedAbsorbs:Hide()
 	end
 end
 
@@ -1256,6 +1255,11 @@ end
 
 -- UNIT_HEALTH_FREQUENT
 function XPerl_Party_Events:UNIT_HEALTH_FREQUENT()
+	XPerl_Party_UpdateHealth(self)
+end
+
+-- UNIT_HEALTH
+function XPerl_Party_Events:UNIT_HEALTH()
 	XPerl_Party_UpdateHealth(self)
 end
 
@@ -1823,7 +1827,7 @@ function XPerl_Party_Virtual(on)
 			virtual:SetHeight(h)
 			virtual:SetWidth(w * 4 + (pconf.spacing * 3))
 		end
-
+		virtual:OnBackdropLoaded()
 		virtual:SetBackdropColor(conf.colour.frame.r, conf.colour.frame.g, conf.colour.frame.b, conf.colour.frame.a)
 		virtual:SetBackdropBorderColor(conf.colour.border.r, conf.colour.border.g, conf.colour.border.b, 1)
 		virtual:Lower()

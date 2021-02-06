@@ -125,6 +125,8 @@ function ML.Frame(addon, name, global, template, parent) -- to not shadow self b
     local minY = 99999999
     local maxY = 0
     local numChildren = 0
+    local fx = self:GetLeft()
+    local fy = self:GetTop()
     for _, v in ipairs(self.children) do
       local x = v:GetRight() or 0
       local l = v:GetLeft() or 0
@@ -157,6 +159,10 @@ function ML.Frame(addon, name, global, template, parent) -- to not shadow self b
         maxY = math.max(maxY, t)
         minY = math.min(minY, y - extraH)
         numChildren = numChildren + 1
+        if v.mirror then
+          v.mirror:SetSize(x-l, y-t)
+          v.mirror:SetPoint("BOTTOMLEFT", self, "TOPLEFT", l-fx, t-fy)
+        end
       end
     end
     addon:Debug(6, "Found corners for % children to be topleft % , % to bottomright %, %", numChildren, maxX, minY,
@@ -410,6 +416,42 @@ function ML.Frame(addon, name, global, template, parent) -- to not shadow self b
     return t
   end
 
+  f.addTextFrame = function(self, text, font, tfTemplate)
+    local t = self:addText(text, font)
+    local cf = CreateFrame("Frame", nil, self, tfTemplate)
+    cf.name = "textframe"
+    cf:SetAllPoints(t)
+    cf:Show()
+    if addon.debug then
+      addon:Debug("Debug level is on, putting debug background on text frame %", text)
+      cf.bg = cf:CreateTexture(nil, "BACKGROUND")
+      cf.bg:SetIgnoreParentAlpha(true)
+      cf.bg:SetAlpha(.5)
+      cf.bg:SetAllPoints()
+      cf.bg:SetColorTexture(.2, .7, .7)
+    end
+    t.frame = cf
+    return t
+  end
+
+  f.addTextButton = function(self, text, font, tooltipText, cb, bTemplate)
+    local t = self:addText(text, font)
+    local cf = CreateFrame("Button", nil, self, bTemplate)
+    cf.name = "textbutton"
+    if addon.debug then
+      addon:Debug("Debug level is on, putting debug background on text frame %", text)
+      cf.bg = cf:CreateTexture(nil, "BACKGROUND")
+      cf.bg:SetIgnoreParentAlpha(true)
+      cf.bg:SetAlpha(.5)
+      cf.bg:SetAllPoints()
+      cf.bg:SetColorTexture(.7, .2, .7)
+    end
+    self:addButtonBehavior(cf, text, tooltipText, cb)
+    t.button = cf
+    t.mirror = cf
+    return t
+  end
+
   --[[   f.drawRectangle = function(self, layer)
     local r = self:CreateTexture(nil, layer or "BACKGROUND")
     self:addMethods(r)
@@ -512,7 +554,7 @@ function ML.Frame(addon, name, global, template, parent) -- to not shadow self b
     return base
   end
 
-  f.addCheckBox = function(self, text, tooltip)
+  f.addCheckBox = function(self, text, tooltip, optCallback)
     -- local name= "self.cb.".. tostring(self.id) -- not needed
     local c = CreateFrame("CheckButton", nil, self, "InterfaceOptionsCheckButtonTemplate")
     addon:Debug(8, "check box starts with % points", c:GetNumPoints())
@@ -522,6 +564,16 @@ function ML.Frame(addon, name, global, template, parent) -- to not shadow self b
     end
     self:addMethods(c)
     c.extraWidth = c.Text:GetWidth()
+    if optCallback then
+      c:SetScript("OnClick", optCallback)
+    else
+      -- Work around bug in 9.0.2 where non existent SetValue is called through OnClick
+      c:SetScript("OnClick", nil)
+    end
+--    if not c.SetValue then
+--      c.SetValue = function()
+--      end
+--    end
     return c
   end
 
@@ -573,33 +625,39 @@ function ML.Frame(addon, name, global, template, parent) -- to not shadow self b
     return s
   end
 
-  -- the call back is either a function or a command to send to addon.Slash
-  f.addButton = function(self, text, tooltip, cb)
-    -- local name= "addon.cb.".. tostring(self.id) -- not needed
-    local c = CreateFrame("Button", nil, self, "UIPanelButtonTemplate")
-    c.Text:SetText(text)
-    c:SetWidth(c.Text:GetStringWidth() + 20) -- need some extra spaces for corners
+  f.addButtonBehavior = function(_self, c, text, tooltip, cb)
     if tooltip then
       c.tooltipText = tooltip -- TODO: style/font of tooltip for button is wrong
     end
-    self:addMethods(c)
     local callback = cb
     if type(cb) == "string" then
       addon:Debug(4, "Setting callback for % to call Slash(%)", text, cb)
       callback = function()
         addon.Slash(cb)
       end
-    else
       addon:Debug(4, "Keeping original function for %", text)
     end
-    c:SetScript("OnClick", callback)
+    if callback then
+      c:SetScript("OnClick", callback)
+    end
     c:SetScript("OnEnter", function()
+      addon:Debug(7, "Show button tool tip...")
       addon:ShowToolTip(c)
     end)
-    f:SetScript("OnLeave", function()
+    c:SetScript("OnLeave", function()
+      addon:Debug(7, "Hide button tool tip...")
       GameTooltip:Hide()
-      addon:Debug(3, "Hide button tool tip...")
     end)
+  end
+
+  -- the call back is either a function or a command to send to addon.Slash
+  f.addButton = function(self, text, tooltip, cb)
+    -- local name= "addon.cb.".. tostring(self.id) -- not needed
+    local c = CreateFrame("Button", nil, self, "UIPanelButtonTemplate")
+    c.Text:SetText(text)
+    c:SetWidth(c.Text:GetStringWidth() + 20) -- need some extra spaces for corners
+    self:addButtonBehavior(c, text, tooltip, cb)
+    self:addMethods(c)
     return c
   end
 
@@ -851,14 +909,18 @@ end
 -- (note this is not a pool but could be modified to do resetting of object in pool)
 function ML:WipeFrame(f, ...)
   if not f then
-    return -- nothing to wipe
+    return nil -- nothing to wipe
   end
   if f.isldbi then
     self:WipeFrame(f.isldbi)
     wipe(f)
-    return
+    return nil
   end
-  f:Hide() -- first hide before we change children etc
+  if f.Hide then
+    f:Hide() -- first hide before we change children etc
+  else
+    return nil -- not a frame?
+  end
   if f.UnregisterAllEvents then
     f:UnregisterAllEvents()
   end
@@ -870,6 +932,12 @@ function ML:WipeFrame(f, ...)
     self:WipeFrame(f:GetChildren())
   else
     assert(not f.children)
+  end
+  if f.mirror then
+    f.mirror = self:WipeFrame(f.mirror)
+  end
+  if f.linked then
+    f.linked = self:WipeFrame(f.linked)
   end
   if name then
     _G[name] = nil

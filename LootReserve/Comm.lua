@@ -35,10 +35,10 @@ function LootReserve.Comm:StartListening()
                 local handler = self.Handlers[tonumber(opcode)];
                 if handler then
                     if self.Debug then
-                        print("[DEBUG] Received: " .. text:gsub("|", "||"));
+                        print("[DEBUG] Received from " .. sender .. ": " .. text:gsub("|", "||"));
                     end
 
-                    sender = Ambiguate(sender, "short");
+                    sender = LootReserve:Player(sender);
                     LootReserve.Server:SetAddonUser(sender, true);
                     handler(sender, strsplit("|", message));
                 end
@@ -179,7 +179,7 @@ function LootReserve.Comm:SendSessionInfo(target, starting)
     local session = LootReserve.Server.CurrentSession;
     if not session then return; end
 
-    target = target and Ambiguate(target, "short");
+    target = target and LootReserve:Player(target);
     if target and not session.Members[target] then return; end
 
     local membersInfo = "";
@@ -241,7 +241,7 @@ LootReserve.Comm.Handlers[Opcodes.SessionInfo] = function(sender, starting, star
         membersInfo = { strsplit(";", membersInfo) };
         for _, infoStr in ipairs(membersInfo) do
             local player, info = strsplit("=", infoStr, 2);
-            if player == Ambiguate(UnitName("player"), "short") then
+            if LootReserve:IsMe(player) then
                 local remainingReserves = strsplit(",", info);
                 LootReserve.Client.RemainingReserves = tonumber(remainingReserves) or 0;
                 LootReserve.Client.Locked = remainingReserves == "#";
@@ -291,7 +291,7 @@ function LootReserve.Comm:SendSessionReset()
 end
 LootReserve.Comm.Handlers[Opcodes.SessionReset] = function(sender)
     if LootReserve.Client.SessionServer == sender then
-        LootReserve.Client:ResetSession(sender);
+        LootReserve.Client:ResetSession();
         LootReserve.Client:UpdateCategories();
         LootReserve.Client:UpdateLootList();
     end
@@ -366,6 +366,8 @@ LootReserve.Comm.Handlers[Opcodes.ReserveInfo] = function(sender, item, players)
     item = tonumber(item);
 
     if LootReserve.Client.SessionServer == sender then
+        local wasReserver = LootReserve.Client:IsItemReservedByMe(item);
+
         if #players > 0 then
             players = { strsplit(",", players) };
         else
@@ -377,6 +379,38 @@ LootReserve.Comm.Handlers[Opcodes.ReserveInfo] = function(sender, item, players)
             LootReserve.Client:UpdateLootList();
         else
             LootReserve.Client:UpdateReserveStatus();
+        end
+        if not LootReserve.Client.Blind then
+            LootReserve.Client:FlashCategory("Reserves", "all");
+        end
+        local isReserver = LootReserve.Client:IsItemReservedByMe(item);
+        if wasReserver or isReserver then
+            local isViewingMyReserves = LootReserve.Client.SelectedCategory and LootReserve.Client.SelectedCategory.Reserves == "my";
+            LootReserve.Client:FlashCategory("Reserves", "my", wasReserver == isReserver and not isViewingMyReserves);
+        end
+        if wasReserver and isReserver then
+            local others = LootReserve:Deepcopy(players);
+            LootReserve:TableRemove(others, LootReserve:Me());
+            for i, player in ipairs(others) do
+                others[i] = LootReserve:ColoredPlayer(player);
+            end
+            local function Print()
+                local name, link = GetItemInfo(item);
+                if name and link then
+                    if #others == 0 then
+                        LootReserve:PrintMessage("You are now the only contender for %s.", link);
+                    else
+                        LootReserve:PrintMessage("There %s now %d |4contender:contenders; for %s you reserved: %s.",
+                            #others == 1 and "is" or "are",
+                            #others,
+                            link,
+                            strjoin(", ", unpack(others)));
+                    end
+                else
+                    C_Timer.After(0.25, Print);
+                end
+            end
+            Print();
         end
     end
 end

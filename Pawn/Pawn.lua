@@ -1,13 +1,13 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2020 Green Eclipse.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2021 Green Eclipse.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
 -- 
 -- Main non-UI code
 ------------------------------------------------------------
 
-PawnVersion = 2.0401
+PawnVersion = 2.0413
 
 -- Pawn requires this version of VgerCore:
 local PawnVgerCoreVersionRequired = 1.12
@@ -235,35 +235,15 @@ function PawnInitialize()
 	hooksecurefunc(GameTooltip, "SetLootItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetLootItem", ...) end)
 	hooksecurefunc(GameTooltip, "SetLootRollItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetLootRollItem", ...) end)
 	hooksecurefunc(GameTooltip, "SetMerchantItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetMerchantItem", ...) end)
-	hooksecurefunc(GameTooltip, "SetQuestItem",
-		function(self, ...)
-			-- BUG IN WoW 6.2: This item will come through with an item ID of 0 and we'll fail to get stats from it normally.
-			-- Special thanks to Phanx for suggesting this workaround!
-			local ItemLink = GetQuestItemLink(...)
-			if ItemLink then
-				PawnUpdateTooltip("GameTooltip", "SetHyperlink", ItemLink)
-			else
-				PawnUpdateTooltip("GameTooltip", "SetQuestItem", ...)
-			end
-		end)
-	hooksecurefunc(GameTooltip, "SetQuestLogItem",
-		function(self, ...)
-			-- BUG IN WoW 6.2: This item will come through with an item ID of 0 and we'll fail to get stats from it normally.
-			-- Special thanks to Phanx for suggesting this workaround!
-			local ItemLink = GetQuestLogItemLink(...)
-			if ItemLink then
-				PawnUpdateTooltip("GameTooltip", "SetHyperlink", ItemLink)
-			else
-				PawnUpdateTooltip("GameTooltip", "SetQuestLogItem", ...)
-			end
-		end)
+	hooksecurefunc(GameTooltip, "SetQuestItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetQuestItem", ...) end)
+	hooksecurefunc(GameTooltip, "SetQuestLogItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetQuestLogItem", ...) end)
 	hooksecurefunc(GameTooltip, "SetSendMailItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetSendMailItem", ...) end)
-	if SetSocketGem then
+	if GameTooltip.SetSocketGem then
 		-- Gems don't exist in Classic.
 		hooksecurefunc(GameTooltip, "SetSocketGem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetSocketGem", ...) end)
 	end
 	hooksecurefunc(GameTooltip, "SetTradePlayerItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetTradePlayerItem", ...) end)
-	if SetRecipeResultItem then
+	if GameTooltip.SetRecipeResultItem then
 		hooksecurefunc(GameTooltip, "SetRecipeResultItem",
 			function(self, ...)
 				local ItemLink = C_TradeSkillUI.GetRecipeItemLink(...)
@@ -271,7 +251,7 @@ function PawnInitialize()
 			end)
 	end
 	hooksecurefunc(GameTooltip, "SetTradeTargetItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetTradeTargetItem", ...) end)
-	if SetVoidItem then
+	if GameTooltip.SetVoidItem then
 		hooksecurefunc(GameTooltip, "SetVoidItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetVoidItem", ...) end)
 		hooksecurefunc(GameTooltip, "SetVoidDepositItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetVoidDepositItem", ...) end)
 		hooksecurefunc(GameTooltip, "SetVoidWithdrawalItem", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetVoidWithdrawalItem", ...) end)
@@ -281,6 +261,9 @@ function PawnInitialize()
 			local ItemLink = GetTrainerServiceItemLink(Index)
 			if ItemLink then PawnUpdateTooltip("GameTooltip", "SetHyperlink", ItemLink) end
 		end)
+	if GameTooltip.SetWeeklyReward then
+		hooksecurefunc(GameTooltip, "SetWeeklyReward", function(self, ...) PawnUpdateTooltip("GameTooltip", "SetWeeklyReward", ...) end)
+	end
 	hooksecurefunc(GameTooltip, "Hide", function(self, ...) PawnLastHoveredItem = nil end)
 
 	-- World quest embedded tooltips
@@ -309,7 +292,7 @@ function PawnInitialize()
 		function(object, button)
 			if button == "RightButton" then
 				local _, ItemLink = ItemRefTooltip:GetItem()
-				PawnUI_SetCompareItemAndShow(2, ItemLink)
+				if ItemLink then PawnUI_SetCompareItemAndShow(2, ItemLink) end
 			end
 		end)
 	
@@ -399,8 +382,9 @@ function PawnInitialize()
 
 	-- In-bag upgrade icons
 	if ContainerFrame_UpdateItemUpgradeIcons then
+
 		PawnOriginalIsContainerItemAnUpgrade = IsContainerItemAnUpgrade
-		IsContainerItemAnUpgrade = function(bagID, slot, ...)
+		PawnIsContainerItemAnUpgrade = function(bagID, slot, ...)
 			if PawnCommon.ShowBagUpgradeAdvisor then
 				local _, Count, _, _, _, _, ItemLink = GetContainerItemInfo(bagID, slot)
 				if not Count then return false end -- If the stack count is 0, it's clearly not an upgrade
@@ -409,8 +393,24 @@ function PawnInitialize()
 			else
 				return PawnOriginalIsContainerItemAnUpgrade(bagID, slot, ...)
 			end
-			-- FUTURE: Consider hooking ContainerFrameItemButton_UpdateItemUpgradeIcon / ContainerFrame_UpdateItemUpgradeIcons instead, but then Pawn would need its own "retry when not enough information is available" logic.  And Pawn also would no longer automatically integrate with other bag addons.
 		end
+
+		-- Changing IsContainerItemAnUpgrade now causes taint errors, and replacing this function with a copy of itself
+		-- works on its own, but breaks other addons that hook this function like CanIMogIt. So, our best option appears to
+		-- be to just let the default version run, and then change its results immediately after.
+		hooksecurefunc("ContainerFrameItemButton_UpdateItemUpgradeIcon", function(self)
+			if self.isExtended then return end
+			local IsUpgrade = PawnIsContainerItemAnUpgrade(self:GetParent():GetID(), self:GetID())
+
+			if IsUpgrade == nil then
+				self.UpgradeIcon:SetShown(false)
+				self:SetScript("OnUpdate", ContainerFrameItemButton_TryUpdateItemUpgradeIcon)
+			else
+				self.UpgradeIcon:SetShown(IsUpgrade)
+				self:SetScript("OnUpdate", nil)
+			end
+		end)
+
 	end
 
 	-- We're now effectively initialized.  Just the last steps of scale initialization remain.
@@ -434,7 +434,7 @@ function PawnInitialize()
 		-- The separator strings are completely wrong on French WoW Classic.  :(
 		if (LARGE_NUMBER_SEPERATOR and PawnLocal.ThousandsSeparator ~= LARGE_NUMBER_SEPERATOR) or
 		(DECIMAL_SEPERATOR and PawnLocal.DecimalSeparator ~= DECIMAL_SEPERATOR) then
-			VgerCore.Fail("Pawn may provide incorrect advice due to a potential addon conflict: Pawn is not compatible with Combat Numbers Separator, Titan Panel Artifact Power, or other addons that change the way that numbers appear.")
+			VgerCore.Fail("Pawn may provide incorrect advice due to a potential addon conflict: Pawn is not compatible with Combat Numbers Separator, Titan Panel Artifact Power, or other addons that change the way that numbers appear. Or, if you're seeing this right after a patch, please let Vger know which language you're playing in.")
 		end
 	end
 
@@ -642,11 +642,21 @@ function PawnInitializeOptions()
 			PawnCommon.ShowItemLevelUpgrades = true
 		end
 	end
-	if PawnOptions.LastVersion < 2.0400 then
-		-- Pawn 2.4 came out with patch 9.0 and the level squish, so reset everything for this character.
-		PawnClearCache()
+	if PawnCommon.LastVersion < 2.0403 then
+		-- Pawn 2.4 came out with patch 9.0 and the level squish, so reset everything.
+		-- Pawn 2.4.3 improved this behavior, so do it one last time.
 		PawnInvalidateBestItems()
+	end
+	if PawnOptions.LastVersion < 2.0400 then
+		-- The best item level data is still per-character, so we have to wait until first logon for that character.
+		-- If we already did that back in 2.4.0 we don't need to do this part again.
 		PawnClearBestItemLevelData()
+	end
+	if PawnCommon.LastVersion < 2.0402 and not VgerCore.IsClassic then
+		-- Frost death knights can fully use 2H weapons again, but the setting to hide 2H upgrades is persistent.
+		-- Clear it this one time; people can go back to hiding them if they want.
+		local FrostDK = PawnCommon.Scales["\"MrRobot\":DEATHKNIGHT2"]
+		if FrostDK then FrostDK.DoNotShow2HUpgrades = false end
 	end
 	if ((not VgerCore.IsClassic) and PawnCommon.LastVersion < PawnMrRobotLastUpdatedVersion) or
 		(VgerCore.IsClassic and PawnCommon.LastVersion < PawnClassicLastUpdatedVersion) then
@@ -1062,8 +1072,8 @@ function PawnGetItemData(ItemLink)
 	-- If we have an item link, we can extract basic data from it from the user's WoW cache (not the Pawn item cache).
 	-- We get a new, normalized version of ItemLink so that items don't end up in the cache multiple times if they're requested
 	-- using different styles of links that all point to the same item.
-	local ItemID = GetItemInfoInstant(ItemLink)
-	local ItemName, NewItemLink, ItemRarity, ItemLevel, _, _, _, _, InvType, ItemTexture = GetItemInfo(ItemLink)
+	local ItemID, _, _, InvType, ItemTexture = GetItemInfoInstant(ItemLink)
+	local ItemName, NewItemLink, ItemRarity, ItemLevel = GetItemInfo(ItemLink)
 	if NewItemLink then
 		ItemLink = NewItemLink
 	else
@@ -1398,7 +1408,7 @@ function PawnUpdateTooltip(TooltipName, MethodName, Param1, ...)
 		
 		-- If this is the main GameTooltip, remember the item that was hovered over.
 		-- AtlasLoot compatibility: enable hover comparison for AtlasLoot tooltips too.
-		if ItemLink and TooltipName == "GameTooltip" or TooltipName == "AtlasLootTooltip" or TooltipName == "WorldMapTooltipTooltip" then -- "TooltipTooltip" isn't a typo; it's an embedded tooltip
+		if ItemLink and TooltipName == "GameTooltip" or TooltipName == "AtlasLootTooltip" or TooltipName == "GameTooltipTooltip" then -- "TooltipTooltip" isn't a typo; it's an embedded tooltip
 			PawnLastHoveredItem = Item.Link
 		end
 	elseif IsRelic then
@@ -2599,7 +2609,10 @@ end
 -- Returns a nice-looking string that shows the item IDs for an item, its enchantments, and its gems.
 function PawnGetItemIDsForDisplay(ItemLink, Formatted)
 	local Pos, _, ItemID, MoreInfo = strfind(ItemLink, "^|%x+|Hitem:(%-?%d+)([^|]+)|")
-	if not Pos then return end
+	if not Pos then
+		Pos, _, ItemID, MoreInfo = strfind(ItemLink, "^item:(%-?%d+)([%d%-:]+)")
+		if not Pos then return end
+	end
 	if Formatted == nil then Formatted = true end
 
 	if MoreInfo and MoreInfo ~= "" then
@@ -3727,10 +3740,12 @@ function PawnFindInterestingItems(List)
 		elseif (not DoNotVendor) and Info.RewardType == "choice" then
 			-- If we haven't already found a choice item upgrade, and this is a choice item, see
 			-- if it's the best thing to vendor.
-			local _, _, _, _, _, _, _, _, _, _, Value = GetItemInfo(Info.Item.Link)
-			if Value and Value > HighestValue then
-				HighestValue = Value
-				HighestValueInfo = Info
+			if Info.Item.Link then
+				local _, _, _, _, _, _, _, _, _, _, Value = GetItemInfo(Info.Item.Link)
+				if Value and Value > HighestValue then
+					HighestValue = Value
+					HighestValueInfo = Info
+				end
 			end
 		end
 	end
@@ -4862,7 +4877,7 @@ function PawnGetScaleColor(ScaleName, Unenchanted)
 end
 
 -- Sets the color of a scale in six-character hex format.  The unenchanted color for the scale will also be set
--- to a slightly darker color.
+-- to a slightly darker color. (Use nil for HexColor to reset the scale to the default color.)
 function PawnSetScaleColor(ScaleName, HexColor)
 	if not PawnIsInitialized then VgerCore.Fail("Can't change scale colors until Pawn is initialized") return end
 	
@@ -4875,14 +4890,19 @@ function PawnSetScaleColor(ScaleName, HexColor)
 		VgerCore.Fail("ScaleName must be the name of an existing scale, and is case-sensitive.")
 		return nil
 	end
-	if not HexColor or strlen(HexColor) ~= 6 then
+	if HexColor and strlen(HexColor) ~= 6 then
 		VgerCore.Fail("HexColor must be a six-digit hexadecimal color code, such as '66c0ff'.")
 		return nil
 	end
 
-	local r, g, b = VgerCore.HexToRGB(HexColor)
-	Scale.Color = HexColor
-	Scale.UnenchantedColor = VgerCore.RGBToHex(r * PawnScaleColorDarkFactor, g * PawnScaleColorDarkFactor, b * PawnScaleColorDarkFactor)
+	if HexColor then
+		local r, g, b = VgerCore.HexToRGB(HexColor)
+		Scale.Color = HexColor
+		Scale.UnenchantedColor = VgerCore.RGBToHex(r * PawnScaleColorDarkFactor, g * PawnScaleColorDarkFactor, b * PawnScaleColorDarkFactor)
+	else
+		Scale.Color = nil
+		Scale.UnenchantedColor = nil
+	end
 end
 
 -- Gets whether a stat is a 1-handed weapon stat, a 2-handed weapon stat, or neither.  (Only tracks things that go into either the main hand
@@ -5157,7 +5177,13 @@ function PawnAddPluginScaleFromTemplate(ProviderInternalName, ClassID, SpecID, S
 		end
 	end
 
-	local Color = strsub(RAID_CLASS_COLORS[UnlocalizedClassName].colorStr, 3)
+	local Color
+	if RAID_CLASS_COLORS[UnlocalizedClassName].colorStr then
+		-- Sometime other addons try to change RAID_CLASS_COLORS and don't include colorStr. If that happens, just skip this scale color.
+		Color = strsub(RAID_CLASS_COLORS[UnlocalizedClassName].colorStr, 3)
+	else
+		VgerCore.Fail("An addon changed the class color for " .. UnlocalizedClassName .. " but didn't finish the job. That class will show up in the wrong color in Pawn.")
+	end
 	-- Choose a lighter color for death knights so it's easier to read.
 	if ClassID == 6 then Color = "ff4d6b" end
 

@@ -157,8 +157,77 @@
 				<HighlightTexture file="Interface\Buttons\UI-RefreshButton" alpha="0.5" alphaMode="ADD" />
 				<PushedTexture file="Interface\Buttons\UI-RefreshButton" alpha="0.5" />
 			</Button>
+			<Button parentKey="WonRolls" hidden="true">
+				<Size x="12" y="12" />
+				<Scripts>
+					<OnLoad>
+						self.UpdateTooltip = function(self)
+							local player = self:GetParent().Player;
+							local won = LootReserve.Server.CurrentSession and LootReserve.Server.CurrentSession.Members[player] and LootReserve.Server.CurrentSession.Members[player].WonRolls;
+							if won then
+								local missing = false;
+								GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+								GameTooltip:SetText("Won in the Current Session");
+								local width = 0;
+								for i, roll in ipairs(won) do
+									local name, link, _, _, _, _, _, _, _, texture = GetItemInfo(roll.Item);
+									if not link then
+										missing = true;
+									end
+
+									local phaseText;
+									local phaseColor;
+									if roll.Phase == LootReserve.Constants.WonRollPhase.Reserve then
+										phaseText = "Reserved";
+										phaseColor = NORMAL_FONT_COLOR;
+									elseif roll.Phase == LootReserve.Constants.WonRollPhase.RaidRoll then
+										phaseText = "Raid-Roll";
+										phaseColor = GRAY_FONT_COLOR;
+									elseif type(roll.Phase) == "string" then
+										phaseText = roll.Phase;
+										phaseColor = GREEN_FONT_COLOR;
+									else
+										phaseText = "Custom Roll";
+										phaseColor = HIGHLIGHT_FONT_COLOR;
+									end
+
+									local timeText;
+									local age = time() - roll.Time;
+									if age >= 3600 then
+										timeText = format("%d |4hour:hours; %d |4min:mins; ago", math.floor(age / 3600), math.floor((age % 3600) / 60));
+									elseif age >= 60 then
+										timeText = format("%d |4min:mins; ago", math.floor(age / 60));
+									else
+										timeText = "&lt;1 min ago";
+									end
+
+									GameTooltip:AddDoubleLine(format("|T%d:0|t %s|cFF808080 (%s)|r", texture, (link or name or "|cFFFF4000Loading...|r"):gsub("[%[%]]", ""), timeText), phaseText, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, phaseColor.r, phaseColor.g, phaseColor.b);
+								end
+								GameTooltip:Show();
+								
+								if missing then
+									C_Timer.After(0.25, function()
+										if GameTooltip:IsOwned(self) then
+											self:UpdateTooltip();
+										end
+									end);
+								end
+							end
+						end
+					</OnLoad>
+					<OnEnter>
+						self:UpdateTooltip();
+					</OnEnter>
+					<OnLeave function="GameTooltip_Hide" />
+				</Scripts>
+				<NormalTexture file="Interface\GossipFrame\VendorGossipIcon" alpha="0.5" />
+				<HighlightTexture file="Interface\GossipFrame\VendorGossipIcon" alpha="0.75" alphaMode="ADD" />
+			</Button>
 			<Button parentKey="RecentChat" hidden="true">
 				<Size x="12" y="12" />
+				<Anchors>
+					<Anchor point="LEFT" relativeKey="$parent.WonRolls" relativePoint="RIGHT" />
+				</Anchors>
 				<Scripts>
 					<OnEnter>
 						local player = self:GetParent().Player;
@@ -236,7 +305,7 @@
 					SecureUnitButton_OnLoad(self, nil, function()
 						local unit = self:GetAttribute("unit");
 						if unit then
-							UIDropDownMenu_Initialize(self.DropDown, function(self) UnitPopup_ShowMenu(UIDROPDOWNMENU_OPEN_MENU or self, "PLAYER", unit); end, "MENU");
+							UIDropDownMenu_Initialize(self.DropDown, function(self) UnitPopup_ShowMenu(self, "PLAYER", unit); end, "MENU");
 							ToggleDropDownMenu(nil, nil, self.DropDown, "cursor", 0, 0);
 						end
 					end);
@@ -300,6 +369,20 @@
 									text = format("Advance to |cFF00FF00%s|r", LootReserve.Server.RequestedRoll.Phases[2]),
 									func = function() LootReserve.Server:AdvanceRollPhase(self:GetParent().Item); end,
 								};
+							end
+							if LootReserve.Server.Settings.MasterLooting and LootReserve:IsLootingItem(self:GetParent().Item) then
+								table.insert(menu, #menu - 1, LootReserve:MakeMenuSeparator());
+								table.insert(menu, #menu - 1,
+								{
+									text = "Master Loot to Winner",
+									tooltipTitle = "Master Loot to Winner",
+									tooltipText = "Automatically masterloot the item away to the roll winner once they're announced.",
+									tooltipOnButton = true,
+									checked = LootReserve.Server.Settings.RollMasterLoot,
+									notCheckable = false,
+									keepShownOnClick = true,
+									func = function() LootReserve.Server.Settings.RollMasterLoot = not LootReserve.Server.Settings.RollMasterLoot; end,
+								});
 							end
 							local separator = false;
 							if LootReserve.Server.RequestedRoll.Duration and LootReserve.Server.RequestedRoll.Duration ~= 0 then
@@ -686,7 +769,7 @@
 							return format("%d:%02d", math.floor(time / 60), time % 60);
 						end
 						local durationMenu = { };
-						for _, time in ipairs({ 10, 20, 30, 45, 60, 90, 120, 180, 240, 300, 600 }) do
+						for _, time in ipairs({ 10, 15, 20, 30, 45, 60, 90, 120, 180, 240, 300, 600 }) do
 							table.insert(durationMenu,
 							{
 								text = FormatTime(time),
@@ -797,6 +880,42 @@
 							LootReserve:MakeMenuSeparator(),
 							{ text = "Cancel" },
 						};
+
+						if LootReserve.Server.Settings.MasterLooting then
+							table.insert(menu, 6, LootReserve:MakeMenuSeparator());
+							local disableReason = (function()
+								if not IsMasterLooter() or GetLootMethod() ~= "master" then
+									return "Not master looter";
+								end
+								if not LootReserve:IsLootingItem(self:GetParent().Item) then
+									return "Item not in loot";
+								end
+								local name, link, quality = GetItemInfo(self:GetParent().Item);
+								if not name or not quality or GetLootThreshold() > quality then
+									return "Quality below threshold";
+								end
+							end)();
+							if disableReason then
+								table.insert(menu, 6,
+								{
+									text = format("Unavailable: %s", disableReason),
+									disabled = true,
+								});
+							end
+							table.insert(menu, 6,
+							{
+								text = "Master Loot to Winner",
+								tooltipTitle = "Master Loot to Winner",
+								tooltipText = "Automatically masterloot the item away to the roll winner once they're announced.",
+								tooltipOnButton = true,
+								disabled = disableReason ~= nil,
+								checked = LootReserve.Server.Settings.RollMasterLoot,
+								notCheckable = false,
+								keepShownOnClick = true,
+								func = function() LootReserve.Server.Settings.RollMasterLoot = not LootReserve.Server.Settings.RollMasterLoot; end,
+							});
+						end
+
 						LootReserve:OpenMenu(menu, self:GetParent().Menu, self);
 					</OnClick>
 					<OnEnter>
@@ -956,6 +1075,7 @@
 										if missing then
 											C_Timer.After(0.25, function()
 												if UIDROPDOWNMENU_OPEN_MENU == self:GetParent().Menu and not CursorHasItem() and not frame.Item then
+													CloseMenus();
 													self:DropHandler();
 												end
 											end);
@@ -1025,6 +1145,18 @@
 					</OnClick>
 				</Scripts>
 			</Button>
+			<Frame name="LootReserveRollFakeMasterLoot" hidden="true">
+				<Size x="0" y="0" />
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.ItemFrame" relativePoint="BOTTOMLEFT" />
+				</Anchors>
+				<Layers>
+					<Layer>
+						<FontString name="$parentText" parentKey="Text" inherits="GameFontNormal" hidden="true" />
+						<Texture name="$parentIconTexture" parentKey="IconTexture" hidden="true" />
+					</Layer>
+				</Layers>
+			</Frame>
 		</Frames>
 		<Scripts>
 			<OnLoad>
@@ -1094,12 +1226,31 @@
 					<OnClick>
 						local menu =
 						{
+							{ text = "Display Limit", isTitle = true },
+							LootReserve:MakeMenuSeparator(),
 							{ text = "Clear History", func = function()
 								table.wipe(LootReserve.Server.RollHistory);
 								LootReserve.Server:UpdateRollList();
 							end },
-							{ text = "Cancel" },
+							LootReserve:MakeMenuSeparator(),
+							{ text = "Close" },
 						};
+						for i, limit in ipairs({ 5, 10, 25, 50, 100 }) do
+							table.insert(menu, 1 + i,
+							{
+								text = format("%d |4roll:rolls;", limit),
+								arg1 = limit,
+								func = function(info, limit)
+									LootReserve.Server.Settings.RollHistoryDisplayLimit = limit;
+									LootReserve.Server.RollHistoryDisplayLimit = limit;
+									LootReserve.Server:UpdateRollList();
+									CloseMenus();
+									self:Click();
+								end,
+								checked = LootReserve.Server.Settings.RollHistoryDisplayLimit == limit,
+								notCheckable = false,
+							});
+						end
 						LootReserve:OpenMenu(menu, self:GetParent().Menu, self);
 					</OnClick>
 				</Scripts>
@@ -1111,6 +1262,23 @@
 				self.MenuButton:SetShown(self:IsMouseOver() or UIDROPDOWNMENU_OPEN_MENU == self.Menu);
 			</OnUpdate>
 		</Scripts>
+	</Frame>
+	<Frame name="LootReserveRollHistoryShowMore" virtual="true" enableMouse="true">
+		<Size y="32" />
+		<Frames>
+			<Button parentKey="Button" inherits="UIMenuButtonStretchTemplate">
+				<Size x="100" y="24" />
+				<Anchors>
+					<Anchor point="CENTER" />
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						LootReserve.Server.RollHistoryDisplayLimit = LootReserve.Server.RollHistoryDisplayLimit + LootReserve.Server.Settings.RollHistoryDisplayLimit;
+						LootReserve.Server:UpdateRollList();
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
 	</Frame>
 	<Frame name="LootReserveServerWindow" inherits="BasicFrameTemplateWithInset" parent="UIParent" toplevel="true" movable="true" resizable="true" enableMouse="true" clampedToScreen="true" hidden="true">
 		<Size x="230" y="360" />
@@ -1264,6 +1432,9 @@
 							LootReserve:MakeMenuSeparator(),
 							{ text = "Storage", isTitle = true },
 							MakeMenuToggle("Use Global Profile", "UseGlobalProfile", "By default all the data about the active reserves session is stored per-character. Enable this to share the same session between all characters on your account.|n|nThe session from your current character will be the one propagated to others.", ToggleGlobalProfile),
+							LootReserve:MakeMenuSeparator(),
+							{ text = "Experimental", isTitle = true },
+							MakeMenuToggle("Enable Master Looting", "MasterLooting", "Enable options of automatic loot distribution through master looting.|n|nYou can enable or disable master looting on a per-roll basis from under the \"Start Roll\" or \"End Roll\" menus.|n|n|cFFFF0000This is an experimental feature, use at your own risk!|r"),
 							LootReserve:MakeMenuSeparator(),
 							{ text = "Close" },
 						};
@@ -1749,6 +1920,11 @@
 						</Anchors>
 					</ScrollFrame>
 				</Frames>
+				<Scripts>
+					<OnLoad>
+						self:GetParent().Panels[2].Lockdown = self;
+					</OnLoad>
+				</Scripts>
 			</Frame>
 			<Frame parentKey="PanelRolls" parentArray="Panels" hidden="true">
 				<Anchors>
@@ -1777,6 +1953,11 @@
 						</Anchors>
 					</ScrollFrame>
 				</Frames>
+				<Scripts>
+					<OnLoad>
+						self:GetParent().Panels[3].Lockdown = self;
+					</OnLoad>
+				</Scripts>
 			</Frame>
 		</Frames>
 		<Scripts>
@@ -1792,7 +1973,7 @@
 			<OnHide>
 				CloseMenus();
 				PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE);
-				DEFAULT_CHAT_FRAME:AddMessage("Loot Reserve Server window can be reopened by typing |cFFFFD200/reserve server|r", 1, 1, 1);
+				LootReserve:PrintMessage("Server window can be reopened by typing |cFFFFD200/reserve server|r");
 			</OnHide>
 		</Scripts>
 	</Frame>

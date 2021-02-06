@@ -6,7 +6,7 @@ local conf, pconf
 XPerl_RequestConfig(function(new)
 	conf = new
 	pconf = new.player
-end, "$Revision:  $")
+end, "$Revision: 919e0f8a150cee048b33cf8ae0873d63cbccab98 $")
 
 --local playerClass
 
@@ -16,6 +16,8 @@ local function d(fmt, ...)
 	ChatFrame1:AddMessage("|cFFFF8080PlayerBuffs:|r "..format(fmt, ...), 0.8, 0.8, 0.8)
 end
 --@end-debug@]===]
+
+local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
 -- setCommon
 local function setCommon(self, filter, buffTemplate)
@@ -75,9 +77,10 @@ function XPerl_Player_Buffs_Position(self)
 				self.buffFrame:SetPoint("TOPLEFT", self.portraitFrame, "BOTTOMLEFT", 3, 0)
 			end]]
 
-			local _, class = UnitClass("player")
+			local _, playerClass = UnitClass("player")
+			local extraBar
 
-			if (class == "DRUID" and UnitPowerType(self.partyid) > 0 and not pconf.noDruidBar) or (class == "SHAMAN" and GetShapeshiftForm() == 0 and not pconf.noDruidBar) or (class == "PRIEST" and UnitPowerType(self.partyid) > 0 and not pconf.noDruidBar) then
+			if (playerClass == "DRUID" and UnitPowerType(self.partyid) > 0 and not pconf.noDruidBar) or (playerClass == "SHAMAN" and not IsClassic and GetSpecialization() == 1 and GetShapeshiftForm() == 0 and not pconf.noDruidBar) or (playerClass == "PRIEST" and UnitPowerType(self.partyid) > 0 and not pconf.noDruidBar) then
 				extraBar = 1
 			else
 				extraBar = 0

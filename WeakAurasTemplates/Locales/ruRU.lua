@@ -7,12 +7,11 @@ end
 local L = WeakAuras.L
 
 -- WeakAuras/Templates
-	--[[Translation missing --]]
-	L["<70% Mana"] = "<70% Mana"
-	--[[Translation missing --]]
-	L[">70% Mana"] = ">70% Mana"
+	L[" Debuff"] = "(дебафф)"
+	L["<70% Mana"] = "(менее 70% маны)"
+	L[">70% Mana"] = "(более 70% маны)"
 	L["Abilities"] = "Способности"
-	L["Ability Charges"] = "Заряды способности"
+	L["Ability"] = "(способность)"
 	L["Add Triggers"] = "Добавить триггеры"
 	L["Always Active"] = "Всегда активный триггер"
 	L["Always Show"] = "Показывать всегда"
@@ -39,22 +38,33 @@ local L = WeakAuras.L
 	--[[Translation missing --]]
 	L["Basic Show On Ready"] = "Basic Show On Ready"
 	L["Bloodlust/Heroism"] = "Жажда крови / Героизм"
-	L["buff"] = "(бафф)"
 	--[[Translation missing --]]
-	L["Buff on Other"] = "Buff on Other"
+	L["Bonded Buff"] = "Bonded Buff"
+	L["Buff"] = "(бафф)"
+	L["buff"] = "(бафф)"
+	L["Buff on Other"] = "(бафф цели)"
 	L["Buffs"] = "Баффы"
+	L["Build Up"] = "(накопление эффекта)"
 	L["Cancel"] = "Отмена"
-	L["Cast"] = "Применение заклинания (каст)"
+	L["Cast"] = "Применение заклинания"
 	L["Charge and Buff Tracking"] = "Отслеживание заряда и баффов"
 	L["Charge and Debuff Tracking"] = "Отслеживание зарядов и дебаффов"
 	L["Charge and Duration Tracking"] = "Отслеживание заряда и продолжительности"
 	L["Charge Tracking"] = "Отслеживание заряда"
+	L["Combustion Ready"] = "(готовность)"
+	L["Conduits"] = "Проводники"
+	L["Cooldown"] = "(восстановление)"
 	L["cooldown"] = "(восстановление)"
 	L["Cooldown Tracking"] = "Отслеживание восстановления"
 	L["Create Auras"] = "Создать"
-	L["debuff"] = "дебафф"
+	L["Debuff"] = "(дебафф)"
+	L["debuff"] = "(дебафф)"
 	L["Debuffs"] = "Дебаффы"
-	L["General"] = "Общие"
+	--[[Translation missing --]]
+	L["Empowered Buff"] = "Empowered Buff"
+	L["Fire"] = "(огонь)"
+	L["Frost"] = "(лед)"
+	L["General"] = "Общее"
 	L["Health"] = "Здоровье"
 	--[[Translation missing --]]
 	L["Highlight while active, red when out of range."] = "Highlight while active, red when out of range."
@@ -68,6 +78,9 @@ local L = WeakAuras.L
 	L["Highlight while spell is active."] = "Highlight while spell is active."
 	L["Hold CTRL to create multiple auras at once"] = "Удерживайте Ctrl для создания нескольких индикаций"
 	L["Keeps existing triggers intact"] = "Сохраняет существующие триггеры нетронутыми"
+	L["Legendaries"] = "Легендарные предметы"
+	L["Meteor Ready"] = "(готовность)"
+	L["Nature"] = "(силы природы)"
 	L["Next"] = "Далее"
 	L["Only show the aura if the target has the debuff."] = "Показывает индикацию, только когда на цели есть дебафф."
 	L["Only show the aura when the item is on cooldown."] = "Показывает индикацию, только когда предмет восстанавливается."
@@ -85,9 +98,9 @@ local L = WeakAuras.L
 	L["Replace all existing triggers"] = "Заменяет все существующие триггеры"
 	L["Replace Triggers"] = "Заменить триггеры"
 	L["Resources"] = "Ресурсы"
-	L["Resources and Shapeshift Form"] = "Форма Друида и ресурсы"
+	L["Resources and Shapeshift Form"] = "Ресурсы и облики друида"
 	L["Runes"] = "Руны"
-	L["Shapeshift Form"] = "Форма Друида"
+	L["Shapeshift Form"] = "Облик друида"
 	--[[Translation missing --]]
 	L["Show Always, Glow on Missing"] = "Show Always, Glow on Missing"
 	--[[Translation missing --]]
@@ -136,12 +149,12 @@ local L = WeakAuras.L
 	L["Show Only if on Cooldown"] = "Показать восстановление"
 	--[[Translation missing --]]
 	L["Show Totem and Charge Information"] = "Show Totem and Charge Information"
-	--[[Translation missing --]]
-	L["slow debuff"] = "slow debuff"
-	--[[Translation missing --]]
-	L["Stance"] = "Stance"
-	--[[Translation missing --]]
-	L["stun debuff"] = "stun debuff"
+	L["Slow"] = "(замедление)"
+	L["slow debuff"] = "(замедление)"
+	L["Stance"] = "Стойка"
+	L["stun debuff"] = "(оглушение)"
+	L["Stun Debuff"] = "(оглушение)"
+	L["Totem"] = "(тотем)"
 	--[[Translation missing --]]
 	L["Track the charge and proc, highlight while proc is active, turns red when out of range, blue on insufficient resources."] = "Track the charge and proc, highlight while proc is active, turns red when out of range, blue on insufficient resources."
 	--[[Translation missing --]]

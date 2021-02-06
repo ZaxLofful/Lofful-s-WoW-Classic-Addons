@@ -222,10 +222,6 @@ L:SetWarningLocalization({
 	WarningChargeNotChanged	= "Sua polaridade não mudou"
 })
 
-L:SetOptionCatLocalization({
-	Arrows	= "Setas"
-})
-
 --------------------------
 -- Instructor Razuvious --
 --------------------------
@@ -302,7 +298,6 @@ L:SetGeneralLocalization({
 
 L:SetOptionLocalization({
 	WarningMarkSoon				= "Exibir aviso prévio para marcas",
-	WarningMarkNow				= "Exibir aviso para marcas",
 	SpecialWarningMarkOnPlayer	= "Exibir um aviso especial quando você for afetado por mais de quatro marcas"
 })
 
@@ -311,7 +306,6 @@ L:SetTimerLocalization({
 
 L:SetWarningLocalization({
 	WarningMarkSoon				= "Marca %d em 3 s",
-	WarningMarkNow				= "Marca %d",
 	SpecialWarningMarkOnPlayer	= "%s: %s"
 })
 

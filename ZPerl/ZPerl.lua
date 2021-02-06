@@ -8,8 +8,8 @@ local perc1F = "%.1f"..PERCENT_SYMBOL
 
 XPerl_RequestConfig(function(New)
 	conf = New
-end, "$Revision: 1233 $")
-XPerl_SetModuleRevision("$Revision: 1233 $")
+end, "$Revision: 78cc8d76a92f82ed78949131b32997ff2182c735 $")
+XPerl_SetModuleRevision("$Revision: 78cc8d76a92f82ed78949131b32997ff2182c735 $")
 
 local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 local LCD = IsClassic and LibStub and LibStub("LibClassicDurations", true)
@@ -126,26 +126,6 @@ local UnitReaction = UnitReaction
 local UnregisterUnitWatch = UnregisterUnitWatch
 local UpdateAddOnCPUUsage = UpdateAddOnCPUUsage
 local UpdateAddOnMemoryUsage = UpdateAddOnMemoryUsage
-
-local RealUnitHealth
-local RealUnitHealthMax
-if IsClassic then
-	RealUnitHealth = function(unit)
-		if RealMobHealth then
-			local cur, max = RealMobHealth.GetUnitHealth(unit)
-			if cur then return cur end
-		end
-		return UnitHealth(unit)
-	end
-
-	RealUnitHealthMax = function(unit)
-		if RealMobHealth then
-			local cur, max = RealMobHealth.GetUnitHealth(unit)
-			if max then return max end
-		end
-		return UnitHealthMax(unit)
-	end
-end
 
 local CreateFrame = CreateFrame
 
@@ -352,7 +332,7 @@ local SpiritRealm = GetSpellInfo(235621)
 local function DoRangeCheck(unit, opt)
 	local range
 	if (opt.PlusHealth) then
-		local hp, hpMax = UnitIsGhost(unit) and 1 or (UnitIsDead(unit) and 0 or (RealUnitHealth and RealUnitHealth(unit) or UnitHealth(unit))), (RealUnitHealthMax and RealUnitHealthMax(unit) or UnitHealthMax(unit))
+		local hp, hpMax = UnitIsGhost(unit) and 1 or (UnitIsDead(unit) and 0 or UnitHealth(unit)), UnitHealthMax(unit)
 		-- Begin 4.3 divide by 0 work around.
 		local percent
 		if UnitIsDeadOrGhost(unit) or (hp == 0 and hpMax == 0) then -- Probably dead target
@@ -785,6 +765,7 @@ end
 
 -- XPerl_StatsFrame_Setup
 function XPerl_StatsFrame_Setup(self)
+	self:OnBackdropLoaded()
 	XPerl_SetChildMembers(self)
 	self.SetGrey = XPerl_StatsFrame_SetGrey
 end
@@ -1381,12 +1362,12 @@ end
 
 -- XPerl_MinimapMenu
 function XPerl_MinimapMenu(self)
-	if (not XPerl_Minimap) then
-		CreateFrame("Frame", "XPerl_Minimap")
-		XPerl_MinimapMenu_OnLoad(XPerl_Minimap)
+	if (not ZPerl_Minimap) then
+		CreateFrame("Frame", "ZPerl_Minimap", nil, BackdropTemplateMixin and "BackdropTemplate")
+		XPerl_MinimapMenu_OnLoad(ZPerl_Minimap)
 	end
 
-	MSA_ToggleDropDownMenu(1, nil, XPerl_Minimap_DropDown, "cursor", 0, 0)
+	MSA_ToggleDropDownMenu(1, nil, ZPerl_Minimap_DropDown, "cursor", 0, 0)
 end
 
 local xpModList = {"ZPerl", "ZPerl_Player", "ZPerl_PlayerBuffs", "ZPerl_PlayerPet", "ZPerl_Target", "ZPerl_TargetTarget", "ZPerl_Party", "ZPerl_PartyPet", "ZPerl_ArcaneBar", "ZPerl_RaidFrames", "ZPerl_RaidHelper", "ZPerl_RaidAdmin", "ZPerl_RaidMonitor", "ZPerl_RaidPets"}
@@ -1565,7 +1546,7 @@ function XPerl_MinimapButton_Details(tt, ldb)
 end
 
 function XPerl_GetDisplayedPowerType(unitID) -- copied from CompactUnitFrame.lua
-	local _, _, _, _, _, _, showOnRaid = not IsClassic and UnitAlternatePowerInfo(unitID)
+	local _, _, _, _, _, _, showOnRaid, _, _, _, _, _, _, _, _ = not IsClassic and GetUnitPowerBarInfo(unitID)
 	if ( showOnRaid and UnitHasVehicleUI(unitID) and (UnitInParty(unitID) or UnitInRaid(unitID)) ) then
 		return ALTERNATE_POWER_INDEX
 	else
@@ -2154,7 +2135,7 @@ function XPerl_RestoreAllPositions()
 	local table = XPerl_GetSavePositionTable()
 	if table then
 		for k, v in pairs(table) do
-			if k == "XPerl_Runes" or k == "XPerl_Frame" or k == "XPerl_RaidMonitor_Frame" or k == "XPerl_Check" or k == "XPerl_AdminFrame" or k == "XPerl_Assists_Frame" then
+			if k == "XPerl_Runes" or k == "XPerl_RaidHelper_Frame" or k == "XPerl_RaidMonitor_Frame" or k == "XPerl_Check" or k == "XPerl_AdminFrame" or k == "XPerl_Assists_Frame" then
 				-- Fix for a wrong name with versions 2.3.2 and 2.3.2a
 				-- It was using XPerl_Frame instead of XPerl_MTList_Anchor
 				-- and XPerl_RaidMonitor_Frame instead of XPerl_RaidMonitor_Anchor
@@ -2688,7 +2669,7 @@ function XPerl_GetBuffButton(self, buffnum, debuff, createIfAbsent, newID)
 		end
 
 		buffIconCount = buffIconCount + 1
-		button = CreateFrame("Button", "XPerlBuff"..buffIconCount, parent, format("XPerl_Cooldown_%sTemplate", buffType))
+		button = CreateFrame("Button", "XPerlBuff"..buffIconCount, parent, BackdropTemplateMixin and format("BackdropTemplate,XPerl_Cooldown_%sTemplate", buffType) or format("XPerl_Cooldown_%sTemplate", buffType))
 		button:Hide()
 
 		if (setup.rightClickable) then
@@ -2802,7 +2783,7 @@ local function AuraButtonOnShow(self)
 
 	local cd = self.cooldown
 	if (not cd) then
-		cd = CreateFrame("Cooldown", nil, self, "CooldownFrameTemplate")
+		cd = CreateFrame("Cooldown", nil, self, BackdropTemplateMixin and "BackdropTemplate,CooldownFrameTemplate" or "CooldownFrameTemplate")
 		self.cooldown = cd
 		cd:SetAllPoints()
 	end
@@ -3192,7 +3173,7 @@ function XPerl_Unit_UpdateBuffs(self, maxBuffs, maxDebuffs, castableOnly, curabl
 
 						if (canStealOrPurge) then --  and UnitCanAttack("player", partyid)
 							if (not button.steal) then
-								button.steal = CreateFrame("Frame", nil, button)
+								button.steal = CreateFrame("Frame", nil, button, BackdropTemplateMixin and "BackdropTemplate")
 								button.steal:SetPoint("TOPLEFT", -2, 2)
 								button.steal:SetPoint("BOTTOMRIGHT", 2, -2)
 
@@ -3395,7 +3376,7 @@ end
 
 ------------------------------------------------------------------------------
 -- Flashing frames handler. Is hidden when there's nothing to do.
-local FlashFrame = CreateFrame("Frame", "XPerl_FlashFrame")
+local FlashFrame = CreateFrame("Frame", "XPerl_FlashFrame", nil, BackdropTemplateMixin and "BackdropTemplate")
 FlashFrame.list = { }
 
 -- XPerl_FrameFlash_OnUpdate(self, elapsed)
@@ -3593,7 +3574,7 @@ end
 --This function sucks, it needs reworking so it self corrects /0 problems here. But i haven't quite figured out how to approach it here yet. So i just fix stuff at sethealth functions.
 function XPerl_Unit_GetHealth(self)
 	local partyid = self.partyid
-	local hp, hpMax = UnitIsGhost(partyid) and 1 or (UnitIsDead(partyid) and 0 or (RealUnitHealth and RealUnitHealth(partyid) or UnitHealth(partyid))), (RealUnitHealthMax and RealUnitHealthMax(partyid) or UnitHealthMax(partyid))
+	local hp, hpMax = UnitIsGhost(partyid) and 1 or (UnitIsDead(partyid) and 0 or UnitHealth(partyid)), UnitHealthMax(partyid)
 
 	if (hp > hpMax) then
 		if (UnitIsGhost(partyid)) then
@@ -3753,7 +3734,7 @@ local function scaleMouseDown(self)
 	end
 
 	if (not scaleIndication) then
-		scaleIndication = CreateFrame("Frame", nil, UIParent)
+		scaleIndication = CreateFrame("Frame", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate")
 		scaleIndication:SetWidth(100)
 		scaleIndication:SetHeight(18)
 		scaleIndication.text = scaleIndication:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -4100,7 +4081,7 @@ function XPerl_Unit_ThreatStatus(self, relative, immediate)
 			self.threatFrames = {}
 		end
 		if (self[mode]) then -- If desired parent frame exists
-			t = CreateFrame("Frame", self:GetName().."Threat"..mode, self[mode], "XPerl_ThreatTemplate"..mode)
+			t = CreateFrame("Frame", self:GetName().."Threat"..mode, self[mode], BackdropTemplateMixin and "BackdropTemplate,XPerl_ThreatTemplate"..mode or "XPerl_ThreatTemplate"..mode)
 			t:SetAllPoints()
 			self.threatFrames[mode] = t
 		end

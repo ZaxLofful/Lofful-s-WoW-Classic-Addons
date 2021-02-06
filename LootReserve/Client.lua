@@ -23,16 +23,20 @@ LootReserve.Client =
         RollRequestShowUnusable = false,
         RollRequestGlowOnlyReserved = false,
     },
+    CharacterFavorites = { },
+    GlobalFavorites = { },
 
     PendingItems = { },
     ServerSearchTimeoutTime = nil,
     DurationUpdateRegistered = false,
     SessionEventsRegistered = false,
+    CategoryFlashing = false,
 
     SelectedCategory = nil,
 };
 
 function LootReserve.Client:Load()
+    LootReserveCharacterSave.Client = LootReserveCharacterSave.Client or { };
     LootReserveGlobalSave.Client = LootReserveGlobalSave.Client or { };
 
     -- Copy data from saved variables into runtime tables
@@ -50,6 +54,23 @@ function LootReserve.Client:Load()
         end
     end
     loadInto(self, LootReserveGlobalSave.Client, "Settings");
+    loadInto(self, LootReserveCharacterSave.Client, "CharacterFavorites");
+    loadInto(self, LootReserveGlobalSave.Client, "GlobalFavorites");
+end
+
+function LootReserve.Client:IsFavorite(item)
+    return self.CharacterFavorites[item] or self.GlobalFavorites[item];
+end
+
+function LootReserve.Client:SetFavorite(item, enabled)
+    if self:IsFavorite(item) == (enabled and true or false) then return; end
+
+    local name, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(item);
+    if not name or not bindType then return; end
+
+    local favorites = bindType == 1 and self.CharacterFavorites or self.GlobalFavorites;
+    favorites[item] = enabled and true or nil;
+    self:FlashCategory("Favorites");
 end
 
 function LootReserve.Client:SearchForServer(startup)
@@ -60,7 +81,7 @@ function LootReserve.Client:SearchForServer(startup)
 end
 
 function LootReserve.Client:StartSession(server, starting, startTime, acceptingReserves, lootCategory, duration, maxDuration, blind)
-    self:ResetSession();
+    self:ResetSession(true);
     self.SessionServer = server;
     self.StartTime = startTime;
     self.AcceptingReserves = acceptingReserves;
@@ -116,13 +137,17 @@ function LootReserve.Client:StopSession()
     self.AcceptingReserves = false;
 end
 
-function LootReserve.Client:ResetSession()
+function LootReserve.Client:ResetSession(refresh)
     self.SessionServer = nil;
     self.RemainingReserves = 0;
     self.LootCategory = nil;
     self.ItemReserves = { };
     self.ItemConditions = { };
     self.PendingItems = { };
+
+    if not refresh then
+        self:StopCategoryFlashing();
+    end
 end
 
 function LootReserve.Client:GetRemainingReserves()

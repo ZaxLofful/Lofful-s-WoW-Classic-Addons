@@ -3,13 +3,16 @@
 	<CheckButton name="LootReserveCategoryListButtonTemplate" virtual="true">
 		<Size y="18" />
 		<Layers>
-			<Layer>
+			<Layer level="ARTWORK">
 				<FontString parentKey="Text" inherits="GameFontWhite" justifyH="LEFT">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="5" />
 						<Anchor point="BOTTOMRIGHT" x="-5" />
 					</Anchors>
 				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Flash" file="Interface\QUESTFRAME\UI-QuestTitleHighlight" desaturated="true" alpha="0" alphaMode="ADD" setAllPoints="true" />
 			</Layer>
 		</Layers>
 		<HighlightTexture file="Interface\QUESTFRAME\UI-QuestTitleHighlight" alphaMode="ADD" />
@@ -89,9 +92,24 @@
 								<Texture parentKey="One" setAllPoints="true" file="Interface\RAIDFRAME\ReadyCheck-Ready" />
 								<Texture parentKey="Many" setAllPoints="true" file="Interface\BUTTONS\UI-GroupLoot-Dice-Up" />
 								<FontString parentKey="Number" inherits="GameFontNormalLarge" setAllPoints="true" />
+								<FontString parentKey="NumberLimit" inherits="GameFontNormal">
+									<Anchors>
+										<Anchor point="TOP" />
+										<Anchor point="BOTTOM" />
+										<Anchor point="LEFT" x="-5" />
+										<Anchor point="RIGHT" x="5" />
+									</Anchors>
+								</FontString>
 							</Layer>
 							<Layer level="OVERLAY">
-								<FontString parentKey="NumberMany" inherits="GameFontNormal" justifyV="BOTTOM" justifyH="RIGHT" setAllPoints="true" />
+								<FontString parentKey="NumberMany" inherits="GameFontNormal" justifyV="BOTTOM" justifyH="RIGHT">
+									<Anchors>
+										<Anchor point="TOP" />
+										<Anchor point="BOTTOM" />
+										<Anchor point="LEFT" x="-10" />
+										<Anchor point="RIGHT" />
+									</Anchors>
+								</FontString>
 							</Layer>
 						</Layers>
 						<Scripts>
@@ -135,6 +153,59 @@
 					<Anchor point="RIGHT" relativeKey="$parent.ReserveFrame" relativePoint="LEFT" x="-5" />
 				</Anchors>
 			</Button>
+			<Frame parentKey="Favorite" clipChildren="true" frameLevel="100">
+				<Size x="20" y="20" />
+				<Frames>
+					<Button parentKey="Set">
+						<Size x="32" y="32" />
+						<Anchors>
+							<Anchor point="CENTER" y="-4" />
+						</Anchors>
+						<NormalTexture file="Interface\AddOns\LootReserve\Textures\FavoriteUnset" />
+						<PushedTexture file="Interface\AddOns\LootReserve\Textures\FavoriteUnset" alpha="0.5" />
+						<HighlightTexture file="Interface\AddOns\LootReserve\Textures\FavoriteSet" alphaMode="ADD" alpha="0.25" />
+						<Scripts>
+							<OnClick>
+								LootReserve.Client:SetFavorite(self:GetParent():GetParent().Item, true);
+								self:Hide();
+								self:GetParent().Unset:Show();
+								PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+							</OnClick>
+							<OnEnter>
+								GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+								GameTooltip:SetText("Add to Favorites");
+								GameTooltip:AddLine("Favorite items are saved for your current character if they're BoP, and for your entire account otherwise.", HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, 1, 1);
+								GameTooltip:Show();
+							</OnEnter>
+							<OnLeave function="GameTooltip_Hide" />
+						</Scripts>
+					</Button>
+					<Button parentKey="Unset">
+						<Size x="32" y="32" />
+						<Anchors>
+							<Anchor point="CENTER" y="-4" />
+						</Anchors>
+						<NormalTexture file="Interface\AddOns\LootReserve\Textures\FavoriteSet" />
+						<PushedTexture file="Interface\AddOns\LootReserve\Textures\FavoriteSet" alpha="0.75" />
+						<HighlightTexture file="Interface\AddOns\LootReserve\Textures\FavoriteUnset" alphaMode="ADD" alpha="0.5" />
+						<Scripts>
+							<OnClick>
+								LootReserve.Client:SetFavorite(self:GetParent():GetParent().Item, false);
+								self:Hide();
+								self:GetParent().Set:Show();
+								PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF);
+							</OnClick>
+							<OnEnter>
+								GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+								GameTooltip:SetText("Remove from Favorites");
+								GameTooltip:AddLine("Favorite items are saved for your current character if they're BoP, and for your entire account otherwise.", HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, 1, 1);
+								GameTooltip:Show();
+							</OnEnter>
+							<OnLeave function="GameTooltip_Hide" />
+						</Scripts>
+					</Button>
+				</Frames>
+			</Frame>
 		</Frames>
 		<Scripts>
 			<OnUpdate>
@@ -143,14 +214,19 @@
 					self.hovered = hovered;
 					local r, g, b = self:GetBackdropBorderColor();
 					self:SetBackdropBorderColor(r, g, b, hovered and 1 or 0);
+					self.Favorite:SetShown(hovered or self.Favorite.Unset:IsShown());
+					self.ItemFrame.Name:SetPoint("TOPRIGHT", self.ItemFrame, "TOPRIGHT", self.Favorite:IsShown() and -20 or 0, 0);
 				end
 			</OnUpdate>
+			<OnSizeChanged>
+				self.Favorite:SetPoint("LEFT", self.ItemFrame.Name, "LEFT", math.min(self.ItemFrame:GetWidth() - 57, self.ItemFrame.Name:GetStringWidth()), 0);
+			</OnSizeChanged>
 		</Scripts>
 	</Frame>
 	<Frame name="LootReserveLootBlindHint" virtual="true" setAllPoints="true">
 		<Anchors>
-			<Anchor point="TOPLEFT" />
-			<Anchor point="BOTTOMRIGHT" />
+			<Anchor point="TOPLEFT" relativeKey="$parent.$parent" />
+			<Anchor point="BOTTOMRIGHT" relativeKey="$parent.$parent" />
 		</Anchors>
 		<Layers>
 			<Layer>
@@ -160,6 +236,14 @@
 						<Anchor point="BOTTOMRIGHT" />
 					</Anchors>
 				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
+	<Frame name="LootReserveLootFavoritesHeader" virtual="true">
+		<Size y="16" />
+		<Layers>
+			<Layer>
+				<FontString parentKey="Text" inherits="GameFontNormal" setAllPoints="true" />
 			</Layer>
 		</Layers>
 	</Frame>
@@ -287,7 +371,7 @@
 			<OnHide>
 				CloseMenus();
 				PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE);
-				DEFAULT_CHAT_FRAME:AddMessage("Loot Reserve window can be reopened by typing |cFFFFD200/reserve|r", 1, 1, 1);
+				LootReserve:PrintMessage("Window can be reopened by typing |cFFFFD200/reserve|r");
 			</OnHide>
 		</Scripts>
 	</Frame>

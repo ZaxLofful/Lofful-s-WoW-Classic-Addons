@@ -1,7 +1,7 @@
 ---@class Utils
 local Utils = ECSLoader:CreateModule("Utils")
 
-string.startsWith = function(str, start)
+local function _StrStartsWith(str, start)
     return string.sub(str, 1, str.len(start)) == start
 end
 
@@ -33,9 +33,11 @@ Utils.colors = {
     CRIT_PRIMARY = "d32f2f",
     CRIT_SECONDARY = "ff6659",
     HIT_PRIMARY = "558b2f",
-    -- HIT_PRIMARY = "aed581",
     HIT_SECONDARY = "85bb5c",
-    -- HIT_SECONDARY = "e1ffb1",
+    --ATTACK_SPEED_PRIMARY = "006978",
+    ATTACK_SPEED_PRIMARY = "00766c",
+    --ATTACK_SPEED_SECONDARY = "0097a7",
+    ATTACK_SPEED_SECONDARY = "009688",
     MP5_PRIMARY = "0d47a1",
     MP5_SECONDARY = "5472d3",
     DEFENSE_PRIMARY = "8d6e63",
@@ -67,7 +69,7 @@ function Utils:Colorize(text, color)
 end
 
 ---@param statTextRef string The text from a stat of the profile
----@return table<Color, Color, Color> -- The colors for statText, statValue and the percent symbol
+---@return table<string, string, string> -- The colors for statText, statValue and the percent symbol
 function Utils:GetColorsForStatTextRef(statTextRef)
     local colors = Utils.colors
 
@@ -90,49 +92,54 @@ function Utils:GetColorsForStatTextRef(statTextRef)
         statValueColor = colors.HIT_PRIMARY
         percentColor = colors.HIT_PRIMARY
     end
+    if statTextRef == "ATTACK_SPEED_MAIN_HAND" or statTextRef == "ATTACK_SPEED_OFF_HAND" then
+        statTextColor = colors.ATTACK_SPEED_SECONDARY
+        statValueColor = colors.ATTACK_SPEED_PRIMARY
+        percentColor = colors.ATTACK_SPEED_PRIMARY
+    end
 
-    if string.startsWith(statTextRef, "MP5_") then
+    if _StrStartsWith(statTextRef, "MP5_") then
         statTextColor = colors.MP5_SECONDARY
         statValueColor = colors.MP5_PRIMARY
         percentColor = colors.MP5_PRIMARY
     end
 
-    if string.startsWith(statTextRef, "HEALING_") then
+    if _StrStartsWith(statTextRef, "HEALING_") then
         statTextColor = colors.HEALING_SECONDARY
         statValueColor = colors.HEALING_PRIMARY
         percentColor = colors.HEALING_PRIMARY
     end
-    if string.startsWith(statTextRef, "ARCANCE_") then
+    if _StrStartsWith(statTextRef, "ARCANCE_") then
         statTextColor = colors.ARCANE_SECONDARY
         statValueColor = colors.ARCANE_PRIMARY
         percentColor = colors.ARCANE_PRIMARY
     end
-    if string.startsWith(statTextRef, "FIRE_") then
+    if _StrStartsWith(statTextRef, "FIRE_") then
         statTextColor = colors.FIRE_SECONDARY
         statValueColor = colors.FIRE_PRIMARY
         percentColor = colors.FIRE_PRIMARY
     end
-    if string.startsWith(statTextRef, "FROST_") then
+    if _StrStartsWith(statTextRef, "FROST_") then
         statTextColor = colors.FROST_SECONDARY
         statValueColor = colors.FROST_PRIMARY
         percentColor = colors.FROST_PRIMARY
     end
-    if string.startsWith(statTextRef, "HOLY_") then
+    if _StrStartsWith(statTextRef, "HOLY_") then
         statTextColor = colors.HOLY_SECONDARY
         statValueColor = colors.HOLY_PRIMARY
         percentColor = colors.HOLY_PRIMARY
     end
-    if string.startsWith(statTextRef, "NATURE_") then
+    if _StrStartsWith(statTextRef, "NATURE_") then
         statTextColor = colors.NATURE_SECONDARY
         statValueColor = colors.NATURE_PRIMARY
         percentColor = colors.NATURE_PRIMARY
     end
-    if string.startsWith(statTextRef, "PHYSICAL_") then
+    if _StrStartsWith(statTextRef, "PHYSICAL_") then
         statTextColor = colors.PHYSICAL_SECONDARY
         statValueColor = colors.PHYSICAL_PRIMARY
         percentColor = colors.PHYSICAL_PRIMARY
     end
-    if string.startsWith(statTextRef, "SHADOW_") then
+    if _StrStartsWith(statTextRef, "SHADOW_") then
         statTextColor = colors.SHADOW_SECONDARY
         statValueColor = colors.SHADOW_PRIMARY
         percentColor = colors.SHADOW_PRIMARY
@@ -149,14 +156,14 @@ function Utils:GetColorsForStatTextRef(statTextRef)
     return statTextColor, statValueColor, percentColor
 end
 
-local cachedTitle = nil
+local cachedTitle
 function Utils:GetAddonVersionInfo()
     if (not cachedTitle) then
         local _, title, _, _, _ = GetAddOnInfo("ExtendedCharacterStats")
         cachedTitle = title
     end
     -- %d = digit, %p = punctuation character, %x = hexadecimal digits.
-    local major, minor, patch, commit = string.match(cachedTitle, "(%d+)%p(%d+)%p(%d+)")
+    local major, minor, patch, _ = string.match(cachedTitle, "(%d+)%p(%d+)%p(%d+)")
     return tonumber(major), tonumber(minor), tonumber(patch)
 end
 

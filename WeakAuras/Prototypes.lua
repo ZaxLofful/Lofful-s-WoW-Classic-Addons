@@ -116,6 +116,15 @@ local constants = {
   nameRealmFilterDesc = L[" Filter formats: 'Name', 'Name-Realm', '-Realm'. \n\nSupports multiple entries, separated by commas\n"],
 }
 
+if WeakAuras.IsClassic() then
+  WeakAuras.UnitRaidRole = function(unit)
+    local raidID = UnitInRaid(unit)
+    if raidID then
+      return select(10, GetRaidRosterInfo(raidID))
+    end
+  end
+end
+
 local encounter_list = ""
 local zoneId_list = ""
 local zoneGroupId_list = ""
@@ -379,186 +388,208 @@ end
 
 
 Private.anim_function_strings = {
-  straight = [[
-    function(progress, start, delta)
-      return start + (progress * delta)
-    end
-  ]],
-  straightTranslate = [[
-    function(progress, startX, startY, deltaX, deltaY)
-      return startX + (progress * deltaX), startY + (progress * deltaY)
-    end
-  ]],
-  straightScale = [[
-    function(progress, startX, startY, scaleX, scaleY)
-      return startX + (progress * (scaleX - startX)), startY + (progress * (scaleY - startY))
-    end
-  ]],
-  straightColor = [[
-    function(progress, r1, g1, b1, a1, r2, g2, b2, a2)
-      return r1 + (progress * (r2 - r1)), g1 + (progress * (g2 - g1)), b1 + (progress * (b2 - b1)), a1 + (progress * (a2 - a1))
-    end
-  ]],
-  straightHSV = [[
-    function(progress, r1, g1, b1, a1, r2, g2, b2, a2)
-      return WeakAuras.GetHSVTransition(progress, r1, g1, b1, a1, r2, g2, b2, a2)
-    end
-  ]],
-  circle = [[
-    function(progress, startX, startY, deltaX, deltaY)
-      local angle = progress * 2 * math.pi
-      return startX + (deltaX * math.cos(angle)), startY + (deltaY * math.sin(angle))
-    end
-  ]],
-  circle2 = [[
-    function(progress, startX, startY, deltaX, deltaY)
-      local angle = progress * 2 * math.pi
-      return startX + (deltaX * math.sin(angle)), startY + (deltaY * math.cos(angle))
-    end
-  ]],
-  spiral = [[
-    function(progress, startX, startY, deltaX, deltaY)
-      local angle = progress * 2 * math.pi
-      return startX + (progress * deltaX * math.cos(angle)), startY + (progress * deltaY * math.sin(angle))
-    end
-  ]],
-  spiralandpulse = [[
-    function(progress, startX, startY, deltaX, deltaY)
-      local angle = (progress + 0.25) * 2 * math.pi
-      return startX + (math.cos(angle) * deltaX * math.cos(angle*2)), startY + (math.abs(math.cos(angle)) * deltaY * math.sin(angle*2))
-    end
-  ]],
-  shake = [[
-    function(progress, startX, startY, deltaX, deltaY)
-      local prog
-      if(progress < 0.25) then
-        prog = progress * 4
-      elseif(progress < .75) then
-        prog = 2 - (progress * 4)
-      else
-        prog = (progress - 1) * 4
-      end
-      return startX + (prog * deltaX), startY + (prog * deltaY)
-    end
-  ]],
-  starShakeDecay = [[
-    function(progress, startX, startY, deltaX, deltaY)
-      local spokes = 10
-      local fullCircles = 4
+straight = [[
+function(progress, start, delta)
+    return start + (progress * delta)
+end
+]],
 
-      local r = min(abs(deltaX), abs(deltaY))
-      local xScale = deltaX / r
-      local yScale = deltaY / r
+straightTranslate = [[
+function(progress, startX, startY, deltaX, deltaY)
+    return startX + (progress * deltaX), startY + (progress * deltaY)
+end
+]],
 
-      local deltaAngle = fullCircles *2 / spokes * math.pi
-      local p = progress * spokes
-      local i1 = floor(p)
-      p = p - i1
+straightScale = [[
+function(progress, startX, startY, scaleX, scaleY)
+    return startX + (progress * (scaleX - startX)), startY + (progress * (scaleY - startY))
+end
+]],
 
-      local angle1 = i1 * deltaAngle
-      local angle2 = angle1 + deltaAngle
+straightColor = [[
+function(progress, r1, g1, b1, a1, r2, g2, b2, a2)
+    return r1 + (progress * (r2 - r1)), g1 + (progress * (g2 - g1)), b1 + (progress * (b2 - b1)), a1 + (progress * (a2 - a1))
+end
+]],
 
-      local x1 = r * math.cos(angle1)
-      local y1 = r * math.sin(angle1)
+straightHSV = [[
+function(progress, r1, g1, b1, a1, r2, g2, b2, a2)
+    return WeakAuras.GetHSVTransition(progress, r1, g1, b1, a1, r2, g2, b2, a2)
+end
+]],
 
-      local x2 = r * math.cos(angle2)
-      local y2 = r * math.sin(angle2)
+circle = [[
+function(progress, startX, startY, deltaX, deltaY)
+    local angle = progress * 2 * math.pi
+    return startX + (deltaX * math.cos(angle)), startY + (deltaY * math.sin(angle))
+end
+]],
 
-      local x, y = p * x2 + (1-p) * x1, p * y2 + (1-p) * y1
-      local ease = math.sin(progress * math.pi / 2)
-      return ease * x * xScale, ease * y * yScale
-    end
-  ]],
-  bounceDecay = [[
-    function(progress, startX, startY, deltaX, deltaY)
-      local prog = (progress * 3.5) % 1
-      local bounce = math.ceil(progress * 3.5)
-      local bounceDistance = math.sin(prog * math.pi) * (bounce / 4)
-    return startX + (bounceDistance * deltaX), startY + (bounceDistance * deltaY)
-  end
-  ]],
-  bounce = [[
-    function(progress, startX, startY, deltaX, deltaY)
-      local bounceDistance = math.sin(progress * math.pi)
-      return startX + (bounceDistance * deltaX), startY + (bounceDistance * deltaY)
-    end
-  ]],
-  flash = [[
-    function(progress, start, delta)
-      local prog
-      if(progress < 0.5) then
-        prog = progress * 2
-      else
-        prog = (progress - 1) * 2
-      end
-      return start + (prog * delta)
-    end
-  ]],
-  pulse = [[
-    function(progress, startX, startY, scaleX, scaleY)
-      local angle = (progress * 2 * math.pi) - (math.pi / 2)
-      return startX + (((math.sin(angle) + 1)/2) * (scaleX - 1)), startY + (((math.sin(angle) + 1)/2) * (scaleY - 1))
-    end
-  ]],
-  alphaPulse = [[
-    function(progress, start, delta)
-      local angle = (progress * 2 * math.pi) - (math.pi / 2)
-      return start + (((math.sin(angle) + 1)/2) * delta)
-    end
-  ]],
-  pulseColor = [[
-    function(progress, r1, g1, b1, a1, r2, g2, b2, a2)
-      local angle = (progress * 2 * math.pi) - (math.pi / 2)
-      local newProgress = ((math.sin(angle) + 1)/2);
-      return r1 + (newProgress * (r2 - r1)),
-           g1 + (newProgress * (g2 - g1)),
-           b1 + (newProgress * (b2 - b1)),
-           a1 + (newProgress * (a2 - a1))
-    end
-  ]],
-  pulseHSV = [[
-    function(progress, r1, g1, b1, a1, r2, g2, b2, a2)
-      local angle = (progress * 2 * math.pi) - (math.pi / 2)
-      local newProgress = ((math.sin(angle) + 1)/2);
-      return WeakAuras.GetHSVTransition(newProgress, r1, g1, b1, a1, r2, g2, b2, a2)
-    end
-  ]],
-  fauxspin = [[
-    function(progress, startX, startY, scaleX, scaleY)
-      local angle = progress * 2 * math.pi
-      return math.cos(angle) * scaleX, startY + (progress * (scaleY - startY))
-    end
-  ]],
-  fauxflip = [[
-    function(progress, startX, startY, scaleX, scaleY)
-      local angle = progress * 2 * math.pi
-      return startX + (progress * (scaleX - startX)), math.cos(angle) * scaleY
-    end
-  ]],
-  backandforth = [[
-    function(progress, start, delta)
+circle2 = [[
+function(progress, startX, startY, deltaX, deltaY)
+    local angle = progress * 2 * math.pi
+    return startX + (deltaX * math.sin(angle)), startY + (deltaY * math.cos(angle))
+end
+]],
+
+spiral = [[
+function(progress, startX, startY, deltaX, deltaY)
+    local angle = progress * 2 * math.pi
+    return startX + (progress * deltaX * math.cos(angle)), startY + (progress * deltaY * math.sin(angle))
+end
+]],
+
+spiralandpulse = [[
+function(progress, startX, startY, deltaX, deltaY)
+    local angle = (progress + 0.25) * 2 * math.pi
+    return startX + (math.cos(angle) * deltaX * math.cos(angle*2)), startY + (math.abs(math.cos(angle)) * deltaY * math.sin(angle*2))
+end
+]],
+
+shake = [[
+function(progress, startX, startY, deltaX, deltaY)
     local prog
     if(progress < 0.25) then
-      prog = progress * 4
-      elseif(progress < .75) then
-      prog = 2 - (progress * 4)
+        prog = progress * 4
+    elseif(progress < .75) then
+        prog = 2 - (progress * 4)
     else
-      prog = (progress - 1) * 4
+        prog = (progress - 1) * 4
+    end
+    return startX + (prog * deltaX), startY + (prog * deltaY)
+end
+]],
+
+starShakeDecay = [[
+function(progress, startX, startY, deltaX, deltaY)
+    local spokes = 10
+    local fullCircles = 4
+
+    local r = min(abs(deltaX), abs(deltaY))
+    local xScale = deltaX / r
+    local yScale = deltaY / r
+
+    local deltaAngle = fullCircles *2 / spokes * math.pi
+    local p = progress * spokes
+    local i1 = floor(p)
+    p = p - i1
+
+    local angle1 = i1 * deltaAngle
+    local angle2 = angle1 + deltaAngle
+
+    local x1 = r * math.cos(angle1)
+    local y1 = r * math.sin(angle1)
+
+    local x2 = r * math.cos(angle2)
+    local y2 = r * math.sin(angle2)
+
+    local x, y = p * x2 + (1-p) * x1, p * y2 + (1-p) * y1
+    local ease = math.sin(progress * math.pi / 2)
+    return ease * x * xScale, ease * y * yScale
+end
+]],
+
+bounceDecay = [[
+function(progress, startX, startY, deltaX, deltaY)
+    local prog = (progress * 3.5) % 1
+    local bounce = math.ceil(progress * 3.5)
+    local bounceDistance = math.sin(prog * math.pi) * (bounce / 4)
+    return startX + (bounceDistance * deltaX), startY + (bounceDistance * deltaY)
+end
+]],
+
+bounce = [[
+function(progress, startX, startY, deltaX, deltaY)
+    local bounceDistance = math.sin(progress * math.pi)
+    return startX + (bounceDistance * deltaX), startY + (bounceDistance * deltaY)
+end
+]],
+
+flash = [[
+function(progress, start, delta)
+    local prog
+    if(progress < 0.5) then
+        prog = progress * 2
+    else
+        prog = (progress - 1) * 2
     end
     return start + (prog * delta)
+end
+]],
+
+pulse = [[
+function(progress, startX, startY, scaleX, scaleY)
+    local angle = (progress * 2 * math.pi) - (math.pi / 2)
+    return startX + (((math.sin(angle) + 1)/2) * (scaleX - 1)), startY + (((math.sin(angle) + 1)/2) * (scaleY - 1))
+end
+]],
+
+alphaPulse = [[
+function(progress, start, delta)
+    local angle = (progress * 2 * math.pi) - (math.pi / 2)
+    return start + (((math.sin(angle) + 1)/2) * delta)
+end
+]],
+
+pulseColor = [[
+function(progress, r1, g1, b1, a1, r2, g2, b2, a2)
+    local angle = (progress * 2 * math.pi) - (math.pi / 2)
+    local newProgress = ((math.sin(angle) + 1)/2);
+    return r1 + (newProgress * (r2 - r1)),
+         g1 + (newProgress * (g2 - g1)),
+         b1 + (newProgress * (b2 - b1)),
+         a1 + (newProgress * (a2 - a1))
+end
+]],
+
+pulseHSV = [[
+function(progress, r1, g1, b1, a1, r2, g2, b2, a2)
+    local angle = (progress * 2 * math.pi) - (math.pi / 2)
+    local newProgress = ((math.sin(angle) + 1)/2);
+    return WeakAuras.GetHSVTransition(newProgress, r1, g1, b1, a1, r2, g2, b2, a2)
+end
+]],
+
+fauxspin = [[
+function(progress, startX, startY, scaleX, scaleY)
+    local angle = progress * 2 * math.pi
+    return math.cos(angle) * scaleX, startY + (progress * (scaleY - startY))
+end
+]],
+
+fauxflip = [[
+function(progress, startX, startY, scaleX, scaleY)
+    local angle = progress * 2 * math.pi
+    return startX + (progress * (scaleX - startX)), math.cos(angle) * scaleY
+end
+]],
+
+backandforth = [[
+function(progress, start, delta)
+    local prog
+    if(progress < 0.25) then
+        prog = progress * 4
+    elseif(progress < .75) then
+        prog = 2 - (progress * 4)
+    else
+        prog = (progress - 1) * 4
     end
-  ]],
-  wobble = [[
-    function(progress, start, delta)
+    return start + (prog * delta)
+end
+]],
+
+wobble = [[
+function(progress, start, delta)
     local angle = progress * 2 * math.pi
     return start + math.sin(angle) * delta
-    end
-  ]],
-  hide = [[
-    function()
+end
+]],
+
+hide = [[
+function()
     return 0
-    end
-  ]]
+end
+]]
 };
 
 Private.anim_presets = {
@@ -1314,6 +1345,16 @@ Private.load_prototype = {
       showExactOption = true
     },
     {
+      name = "covenant",
+      display = WeakAuras.newFeatureString .. L["Player Covenant"],
+      type = "multiselect",
+      values = "covenant_types",
+      init = "arg",
+      enable = not WeakAuras.IsClassic(),
+      hidden = WeakAuras.IsClassic(),
+      events = {"COVENANT_CHOSEN"}
+    },
+    {
       name = "race",
       display = L["Player Race"],
       type = "multiselect",
@@ -1386,7 +1427,7 @@ Private.load_prototype = {
     },
     {
       name = "size",
-      display = L["Instance Type"],
+      display = L["Instance Size Type"],
       type = "multiselect",
       values = "instance_types",
       init = "arg",
@@ -1404,6 +1445,17 @@ Private.load_prototype = {
       events = {"PLAYER_DIFFICULTY_CHANGED", "ZONE_CHANGED", "ZONE_CHANGED_INDOORS", "ZONE_CHANGED_NEW_AREA"}
     },
     {
+      name = "instance_type",
+      display = L["Instance Type"],
+      type = "multiselect",
+      values = "instance_difficulty_types",
+      init = "arg",
+      control = "WeakAurasSortedDropdown",
+      events = {"PLAYER_DIFFICULTY_CHANGED", "ZONE_CHANGED", "ZONE_CHANGED_INDOORS", "ZONE_CHANGED_NEW_AREA"},
+      enable = not WeakAuras.IsClassic(),
+      hidden = WeakAuras.IsClassic(),
+    },
+    {
       name = "role",
       display = L["Spec Role"],
       type = "multiselect",
@@ -1412,6 +1464,16 @@ Private.load_prototype = {
       enable = not WeakAuras.IsClassic(),
       hidden = WeakAuras.IsClassic(),
       events = {"PLAYER_ROLES_ASSIGNED", "PLAYER_TALENT_UPDATE"}
+    },
+    {
+      name = "raid_role",
+      display = WeakAuras.newFeatureString .. L["Raid Role"],
+      type = "multiselect",
+      values = "raid_role_types",
+      init = "arg",
+      enable = WeakAuras.IsClassic(),
+      hidden = not WeakAuras.IsClassic(),
+      events = {"PLAYER_ROLES_ASSIGNED"}
     },
     {
       name = "affixes",
@@ -1433,7 +1495,7 @@ Private.load_prototype = {
     },
     {
       name = "itemtypeequipped",
-      display = L["Item Type Equipped"],
+      display = WeakAuras.newFeatureString .. L["Item Type Equipped"],
       type = "multiselect",
       test = "IsEquippedItemType(WeakAuras.GetItemSubClassInfo(%s))",
       events = { "UNIT_INVENTORY_CHANGED", "PLAYER_EQUIPMENT_CHANGED"},
@@ -1441,11 +1503,25 @@ Private.load_prototype = {
     },
     {
       name = "item_bonusid_equipped",
-      display = L["Item Bonus Id Equipped"],
+      display =  WeakAuras.newFeatureString .. L["Item Bonus Id Equipped"],
       type = "string",
-      test = "WeakAuras.CheckForItemBonusId(%s)",
+      test = "WeakAuras.CheckForItemBonusId(%q)",
       events = { "UNIT_INVENTORY_CHANGED", "PLAYER_EQUIPMENT_CHANGED"},
-      desc = function() return WeakAuras.GetLegendariesBonusIds() end
+      desc = function()
+        return WeakAuras.GetLegendariesBonusIds()
+               .. L["\n\nSupports multiple entries, separated by commas"]
+      end
+    },
+    {
+      name = "not_item_bonusid_equipped",
+      display =  WeakAuras.newFeatureString .. L["|cFFFF0000Not|r Item Bonus Id Equipped"],
+      type = "string",
+      test = "not WeakAuras.CheckForItemBonusId(%q)",
+      events = { "UNIT_INVENTORY_CHANGED", "PLAYER_EQUIPMENT_CHANGED"},
+      desc = function()
+        return WeakAuras.GetLegendariesBonusIds()
+               .. L["\n\nSupports multiple entries, separated by commas"]
+      end
     }
   }
 };
@@ -1542,9 +1618,7 @@ Private.event_prototypes = {
       AddUnitEventForEvents(result, unit, "UNIT_LEVEL")
       AddUnitEventForEvents(result, unit, "UNIT_FACTION")
       AddUnitEventForEvents(result, unit, "UNIT_NAME_UPDATE")
-      if trigger.use_ignoreDead or trigger.use_ignoreDisconnected then
-        AddUnitEventForEvents(result, unit, "UNIT_FLAGS")
-      end
+      AddUnitEventForEvents(result, unit, "UNIT_FLAGS")
       return result;
     end,
     internal_events = function(trigger)
@@ -1654,8 +1728,20 @@ Private.event_prototypes = {
         store = true,
         conditionType = "select",
         enable = function(trigger)
-           return not WeakAuras.IsClassic() and (trigger.unit == "group" or trigger.unit == "raid" or trigger.unit == "party")
-         end
+          return not WeakAuras.IsClassic() and (trigger.unit == "group" or trigger.unit == "raid" or trigger.unit == "party")
+        end
+      },
+      {
+        name = "raid_role",
+        display = L["Assigned Role"],
+        type = "select",
+        init = "WeakAuras.UnitRaidRole(unit)",
+        values = "raid_role_types",
+        store = true,
+        conditionType = "select",
+        enable = function(trigger)
+          return WeakAuras.IsClassic() and (trigger.unit == "group" or trigger.unit == "raid" or trigger.unit == "party")
+        end
       },
       {
         name = "ignoreSelf",
@@ -1726,6 +1812,14 @@ Private.event_prototypes = {
         display = L["Attackable"],
         type = "tristate",
         init = "UnitCanAttack('player', unit)",
+        store = true,
+        conditionType = "bool"
+      },
+      {
+        name = "inCombat",
+        display = L["In Combat"],
+        type = "tristate",
+        init = "UnitAffectingCombat(unit)",
         store = true,
         conditionType = "bool"
       },
@@ -2151,6 +2245,18 @@ Private.event_prototypes = {
         end
       },
       {
+        name = "raid_role",
+        display = L["Assigned Role"],
+        type = "select",
+        init = "WeakAuras.UnitRaidRole(unit)",
+        values = "raid_role_types",
+        store = true,
+        conditionType = "select",
+        enable = function(trigger)
+          return WeakAuras.IsClassic() and (trigger.unit == "group" or trigger.unit == "raid" or trigger.unit == "party")
+        end
+      },
+      {
         name = "ignoreSelf",
         display = L["Ignore Self"],
         type = "toggle",
@@ -2385,7 +2491,7 @@ Private.event_prototypes = {
       },
       {
         name = "showChargedComboPoints",
-        display = L["Overlay Charged Combo Points"],
+        display = WeakAuras.newFeatureString .. L["Overlay Charged Combo Points"],
         type = "toggle",
         test = "true",
         reloadOptions = true,
@@ -2397,7 +2503,7 @@ Private.event_prototypes = {
       {
         name = "chargedComboPoint",
         type = "number",
-        display = L["Charged Combo Point"],
+        display = WeakAuras.newFeatureString .. L["Charged Combo Point"],
         store = true,
         conditionType = "number",
         enable = function(trigger)
@@ -2521,6 +2627,18 @@ Private.event_prototypes = {
         conditionType = "select",
         enable = function(trigger)
           return not WeakAuras.IsClassic() and (trigger.unit == "group" or trigger.unit == "raid" or trigger.unit == "party")
+        end
+      },
+      {
+        name = "raid_role",
+        display = L["Assigned Role"],
+        type = "select",
+        init = "WeakAuras.UnitRaidRole(unit)",
+        values = "raid_role_types",
+        store = true,
+        conditionType = "select",
+        enable = function(trigger)
+          return WeakAuras.IsClassic() and (trigger.unit == "group" or trigger.unit == "raid" or trigger.unit == "party")
         end
       },
       {
@@ -2737,6 +2855,18 @@ Private.event_prototypes = {
         end
       },
       {
+        name = "raid_role",
+        display = L["Assigned Role"],
+        type = "select",
+        init = "WeakAuras.UnitRaidRole(unit)",
+        values = "raid_role_types",
+        store = true,
+        conditionType = "select",
+        enable = function(trigger)
+          return WeakAuras.IsClassic() and (trigger.unit == "group" or trigger.unit == "raid" or trigger.unit == "party")
+        end
+      },
+      {
         name = "ignoreSelf",
         display = L["Ignore Self"],
         type = "toggle",
@@ -2798,7 +2928,6 @@ Private.event_prototypes = {
       return ret:format(trigger.use_cloneId and "true" or "false");
     end,
     name = L["Combat Log"],
-    canHaveAuto = true,
     statesParameter = "all",
     args = {
       {}, -- timestamp ignored with _ argument
@@ -3303,10 +3432,21 @@ Private.event_prototypes = {
     force_events = "WA_UPDATE_OVERLAY_GLOW",
     name = L["Spell Activation Overlay Glow"],
     loadFunc = function(trigger)
-      WeakAuras.WatchSpellActivation(tonumber(trigger.spellName));
+      if (trigger.use_exact_spellName) then
+        WeakAuras.WatchSpellActivation(tonumber(trigger.spellName));
+      else
+        WeakAuras.WatchSpellActivation(type(trigger.spellName) == "number" and GetSpellInfo(trigger.spellName) or trigger.spellName);
+      end
     end,
     init = function(trigger)
-      return string.format("local spellName = tonumber(%q)", trigger.spellName or "");
+      local spellName
+      if (trigger.use_exact_spellName) then
+        spellName = trigger.spellName
+        return string.format("local spellName = %s\n", tonumber(spellName) or "nil");
+      else
+        spellName = type(trigger.spellName) == "number" and GetSpellInfo(trigger.spellName) or trigger.spellName;
+        return string.format("local spellName = %q\n", spellName or "");
+      end
     end,
     args = {
       {
@@ -3314,7 +3454,8 @@ Private.event_prototypes = {
         required = true,
         display = L["Spell"],
         type = "spell",
-        test = "true"
+        test = "true",
+        showExactOption = true
       },
       {
         hidden = true,
@@ -3373,8 +3514,8 @@ Private.event_prototypes = {
         local showgcd = %s;
         local ignoreSpellKnown = %s;
         local track = %q
-        local startTime, duration, gcdCooldown = WeakAuras.GetSpellCooldown(spellname, ignoreRuneCD, showgcd, ignoreSpellKnown, track);
-        local charges, maxCharges, spellCount = WeakAuras.GetSpellCharges(spellname, ignoreSpellKnown);
+        local startTime, duration, gcdCooldown, readyTime = WeakAuras.GetSpellCooldown(spellname, ignoreRuneCD, showgcd, ignoreSpellKnown, track);
+        local charges, maxCharges, spellCount, chargeGainTime, chargeLostTime = WeakAuras.GetSpellCharges(spellname, ignoreSpellKnown);
         local stacks = maxCharges and maxCharges ~= 1 and charges or (spellCount and spellCount > 0 and spellCount) or nil;
         if (charges == nil) then
           -- Use fake charges for spells that use GetSpellCooldown
@@ -3581,7 +3722,7 @@ Private.event_prototypes = {
       },
       {
         name = "charges",
-        display = L["Stacks"],
+        display = L["Charges"],
         type = "number",
         store = true,
         conditionType = "number"
@@ -3607,6 +3748,30 @@ Private.event_prototypes = {
         display = L["Max Charges"],
         conditionType = "number",
         test = "true",
+      },
+      {
+        hidden = true,
+        name = "readyTime",
+        display = L["Since Ready"],
+        conditionType = "elapsedTimer",
+        store = true,
+        test = "true"
+      },
+      {
+        hidden = true,
+        name = "chargeGainTime",
+        display = L["Since Charge Gain"],
+        conditionType = "elapsedTimer",
+        store = true,
+        test = "true"
+      },
+      {
+        hidden = true,
+        name = "chargeLostTime",
+        display = L["Since Charge Lost"],
+        conditionType = "elapsedTimer",
+        store = true,
+        test = "true"
       },
       {
         name = "genericShowOn",
@@ -4282,7 +4447,6 @@ Private.event_prototypes = {
       return ret:format(trigger.use_cloneId and "true" or "false");
     end,
     statesParameter = "all",
-    canHaveAuto = true,
     args = {
       {
         name = "message",
@@ -4324,7 +4488,6 @@ Private.event_prototypes = {
     },
     force_events = "DBM_TimerForce",
     name = L["DBM Timer"],
-    canHaveAuto = true,
     canHaveDuration = "timed",
     triggerFunction = function(trigger)
       WeakAuras.RegisterDBMCallback("DBM_TimerStart")
@@ -4519,7 +4682,6 @@ Private.event_prototypes = {
       return ret:format(trigger.use_cloneId and "true" or "false");
     end,
     statesParameter = "all",
-    canHaveAuto = true,
     args = {
       {
         name = "addon",
@@ -4574,7 +4736,6 @@ Private.event_prototypes = {
     },
     force_events = "BigWigs_Timer_Force",
     name = L["BigWigs Timer"],
-    canHaveAuto = true,
     canHaveDuration = "timed",
     triggerFunction = function(trigger)
       WeakAuras.RegisterBigWigsTimer()
@@ -4587,7 +4748,6 @@ Private.event_prototypes = {
           local extendTimer = %s
           local triggerUseRemaining = %s
           local triggerRemaining = %s
-          local triggerEmphasized = %s
           local triggerCount = %q
           local triggerCast = %s
           local cloneId = useClone and id or ""
@@ -4615,7 +4775,7 @@ Private.event_prototypes = {
 
           if useClone then
             if event == "BigWigs_StartBar" then
-              if WeakAuras.BigWigsTimerMatches(id, triggerText, triggerTextOperator, triggerSpellId, triggerEmphasized, triggerCount, triggerCast) then
+              if WeakAuras.BigWigsTimerMatches(id, triggerText, triggerTextOperator, triggerSpellId, triggerCount, triggerCast) then
                 local bar = WeakAuras.GetBigWigsTimerById(id)
                 if bar then
                   copyOrSchedule(bar, cloneId)
@@ -4629,14 +4789,14 @@ Private.event_prototypes = {
               end
             elseif event == "BigWigs_Timer_Update" then
               for id, bar in pairs(WeakAuras.GetAllBigWigsTimers()) do
-                if WeakAuras.BigWigsTimerMatches(id, triggerText, triggerTextOperator, triggerSpellId, triggerEmphasized, triggerCount, triggerCast) then
+                if WeakAuras.BigWigsTimerMatches(id, triggerText, triggerTextOperator, triggerSpellId, triggerCount, triggerCast) then
                   copyOrSchedule(bar, id)
                 end
               end
             elseif event == "BigWigs_Timer_Force" then
               wipe(states)
               for id, bar in pairs(WeakAuras.GetAllBigWigsTimers()) do
-                if WeakAuras.BigWigsTimerMatches(id, triggerText, triggerTextOperator, triggerSpellId, triggerEmphasized, triggerCount, triggerCast) then
+                if WeakAuras.BigWigsTimerMatches(id, triggerText, triggerTextOperator, triggerSpellId, triggerCount, triggerCast) then
                   copyOrSchedule(bar, id)
                 end
               end
@@ -4644,13 +4804,13 @@ Private.event_prototypes = {
           else
             if event == "BigWigs_StartBar" then
               if extendTimer ~= 0 then
-                if WeakAuras.BigWigsTimerMatches(id, triggerText, triggerTextOperator, triggerSpellId, triggerEmphasized, triggerCount, triggerCast) then
+                if WeakAuras.BigWigsTimerMatches(id, triggerText, triggerTextOperator, triggerSpellId, triggerCount, triggerCast) then
                   local bar = WeakAuras.GetBigWigsTimerById(id)
                   WeakAuras.ScheduleBigWigsCheck(bar.expirationTime + extendTimer)
                 end
               end
             end
-            local bar = WeakAuras.GetBigWigsTimer(triggerText, triggerTextOperator, triggerSpellId, extendTimer, triggerEmphasized, triggerCount, triggerCast)
+            local bar = WeakAuras.GetBigWigsTimer(triggerText, triggerTextOperator, triggerSpellId, extendTimer, triggerCount, triggerCast)
             if bar then
               if extendTimer == 0
                 or not (state and state.show)
@@ -4679,7 +4839,6 @@ Private.event_prototypes = {
         trigger.use_extend and tonumber(trigger.extend or 0) or 0,
         trigger.use_remaining and "true" or "false",
         trigger.remaining or 0,
-        trigger.use_emphasized == nil and "nil" or trigger.use_emphasized and "true" or "false",
         trigger.use_count and trigger.count or "",
         trigger.use_cast == nil and "nil" or trigger.use_cast and "true" or "false",
         trigger.remaining_operator or "<"
@@ -4718,15 +4877,6 @@ Private.event_prototypes = {
         conditionType = "string",
       },
       {
-        name = "emphasized",
-        display = L["Emphasized"],
-        type = "tristate",
-        desc = L["Emphasized option checked in BigWigs's spell options"],
-        test = "true",
-        init = "false",
-        conditionType = "bool"
-      },
-      {
         name = "cast",
         display = L["Cast Bar"],
         desc = L["Filter messages with format <message>"],
@@ -4755,6 +4905,7 @@ Private.event_prototypes = {
       "GCD_UPDATE",
       "WA_DELAYED_PLAYER_ENTERING_WORLD"
     },
+    force_events = "GCD_UPDATE",
     name = L["Global Cooldown"],
     loadFunc = function(trigger)
       WeakAuras.WatchGCD();
@@ -4893,7 +5044,6 @@ Private.event_prototypes = {
     },
     automaticrequired = true,
     canHaveDuration = true,
-    canHaveAuto = true,
     statesParameter = "one"
   },
   ["Action Usable"] = {
@@ -4936,8 +5086,8 @@ Private.event_prototypes = {
       trigger.realSpellName = spellName; -- Cache
       local ret = [=[
         local spellName = %s
-        local startTime, duration = WeakAuras.GetSpellCooldown(spellName);
-        local charges, _, spellCount = WeakAuras.GetSpellCharges(spellName);
+        local startTime, duration, _, readyTime = WeakAuras.GetSpellCooldown(spellName);
+        local charges, _, spellCount, chargeGainTime, chargeLostTime = WeakAuras.GetSpellCharges(spellName);
         if (charges == nil) then
           charges = (duration == 0) and 1 or 0;
         end
@@ -4990,6 +5140,30 @@ Private.event_prototypes = {
         enable = function(trigger) return not(trigger.use_inverse) end,
         store = true,
         conditionType = "number"
+      },
+      {
+        hidden = true,
+        name = "readyTime",
+        display = L["Since Ready"],
+        conditionType = "elapsedTimer",
+        store = true,
+        test = "true"
+      },
+      {
+        hidden = true,
+        name = "chargeGainTime",
+        display = L["Since Charge Gain"],
+        conditionType = "elapsedTimer",
+        store = true,
+        test = "true"
+      },
+      {
+        hidden = true,
+        name = "chargeLostTime",
+        display = L["Since Charge Lost"],
+        conditionType = "elapsedTimer",
+        store = true,
+        test = "true"
       },
       {
         name = "inverse",
@@ -5188,7 +5362,6 @@ Private.event_prototypes = {
     },
     automaticrequired = true,
     statesParameter = "one",
-    canHaveAuto = true
   },
   ["PvP Talent Selected"] = {
     type = "status",
@@ -5289,7 +5462,46 @@ Private.event_prototypes = {
     },
     automaticrequired = true,
     statesParameter = "one",
-    canHaveAuto = true
+  },
+  ["Class/Spec"] = {
+    type = "status",
+    events = function()
+      local events = { "PLAYER_TALENT_UPDATE" }
+      return {
+        ["events"] = events
+      }
+    end,
+    force_events = "PLAYER_TALENT_UPDATE",
+    name = L["Class and Specialization"],
+    init = function(trigger)
+      return [[
+         local specId, specName, _, specIcon = GetSpecializationInfo(GetSpecialization())
+      ]]
+    end,
+    args = {
+      {
+        name = "specId",
+        display = L["Class and Specialization"],
+        type = "multiselect",
+        values = "spec_types_all",
+      },
+      {
+        hidden = true,
+        name = "icon",
+        init = "specIcon",
+        store = "true",
+        test = "true"
+      },
+      {
+        hidden = true,
+        name = "name",
+        init = "specName",
+        store = "true",
+        test = "true"
+      },
+    },
+    automaticrequired = true,
+    statesParameter = "one",
   },
   ["Totem"] = {
     type = "status",
@@ -5305,7 +5517,6 @@ Private.event_prototypes = {
     force_events = "PLAYER_ENTERING_WORLD",
     name = L["Totem"],
     statesParameter = "full",
-    canHaveAuto = true,
     canHaveDuration = "timed",
     triggerFunction = function(trigger)
       local ret = [[return
@@ -5667,14 +5878,14 @@ Private.event_prototypes = {
         local remainingCheck = not triggerRemaining or remaining and remaining %s triggerRemaining
         local found = expirationTime and nameCheck and stackCheck and remainingCheck
 
+        if(triggerRemaining and remaining and remaining >= triggerRemaining and remaining > 0) then
+          WeakAuras.ScheduleScan(expirationTime - triggerRemaining, "TENCH_UPDATE");
+        end
+
         if not found then
           expirationTime = nil
           duration = nil
           remaining = nil
-        end
-
-        if(triggerRemaining and remaining and remaining >= triggerRemaining and remaining > 0) then
-          WeakAuras.ScheduleScan(expirationTime - triggerRemaining, "TENCH_UPDATE");
         end
       ]];
 
@@ -5783,7 +5994,6 @@ Private.event_prototypes = {
     },
     automaticrequired = true,
     canHaveDuration = true,
-    canHaveAuto = true,
     statesParameter = "one"
   },
   ["Chat Message"] = {
@@ -6142,15 +6352,98 @@ Private.event_prototypes = {
     internal_events = { "WA_DELAYED_PLAYER_ENTERING_WORLD", },
     force_events = "UNIT_INVENTORY_CHANGED",
     name = L["Item Bonus Id Equipped"],
+    statesParameter = "one",
+    init = function(trigger)
+      local ret = [=[
+        local fetchLegendaryPower = %s
+        local item = %q
+        local inverse = %s
+        local useItemSlot, slotSelected = %s, %d
+
+        local itemBonusId, itemId, itemName, icon, itemSlot, itemSlotString = WeakAuras.GetBonusIdInfo(item, useItemSlot and slotSelected)
+        local itemBonusId = tonumber(itemBonusId)
+        if fetchLegendaryPower then
+          itemName, icon = WeakAuras.GetLegendaryData(itemBonusId or item)
+        end
+
+        local slotValidation = (useItemSlot and itemSlot == slotSelected) or (not useItemSlot)
+      ]=]
+      return ret:format(trigger.use_legendaryIcon and "true" or "false", trigger.itemBonusId or "", trigger.use_inverse and "true" or "false",
+                        trigger.use_itemSlot and "true" or "false", trigger.itemSlot)
+    end,
     args = {
       {
         name = "itemBonusId",
         display = L["Item Bonus Id"],
         type = "string",
-        test = "WeakAuras.CheckForItemBonusId(%s)",
+        store = "true",
+        test = "true",
         required = true,
-        desc = function() return WeakAuras.GetLegendariesBonusIds() end
+        desc = function()
+          return WeakAuras.GetLegendariesBonusIds()
+          .. L["\n\nSupports multiple entries, separated by commas"]
+        end,
+        conditionType = "number",
       },
+      {
+        name = "legendaryIcon",
+        display = L["Fetch Legendary Power"],
+        type = "toggle",
+        test = "true",
+        desc = L["Fetches the name and icon of the Legendary Power that matches this bonus id."],
+        enable = not WeakAuras.IsClassic(),
+        hidden = WeakAuras.IsClassic(),
+      },
+      {
+        name = "name",
+        display = L["Item Name"],
+        hidden = "true",
+        init = "itemName",
+        store = "true",
+        test = "true",
+      },
+      {
+        name = "icon",
+        hidden = "true",
+        init = "icon or 'Interface/Icons/INV_Misc_QuestionMark'",
+        store = "true",
+        test = "true",
+      },
+      {
+        name = "itemId",
+        display = L["Item Id"],
+        hidden = "true",
+        store = "true",
+        test = "true",
+        conditionType = "number",
+        operator_types = "only_equal",
+      },
+      {
+        name = "itemSlot",
+        display = L["Item Slot"],
+        type = "select",
+        store = "true",
+        conditionType = "select",
+        values = "item_slot_types",
+        test = "true",
+      },
+      {
+        name = "inverse",
+        display = L["Inverse"],
+        type = "toggle",
+        test = "true",
+      },
+      {
+        name = "itemSlotString",
+        display = L["Item Slot String"],
+        hidden = "true",
+        store = "true",
+        test = "true",
+      },
+      {
+        hidden = true,
+        test = "not inverse == (itemBonusId and slotValidation or false)",
+      }
     },
     automaticrequired = true
   },
@@ -6390,21 +6683,147 @@ Private.event_prototypes = {
   ["Crowd Controlled"] = {
     type = "status",
     events = {
-      ["unit_events"] = {
-        ["player"] = {"UNIT_AURA"}
+      ["events"] = {
+        "LOSS_OF_CONTROL_UPDATE"
       }
     },
-    force_events = "UNIT_AURA",
+    force_events = "LOSS_OF_CONTROL_UPDATE",
     name = L["Crowd Controlled"],
+    canHaveDuration = true,
+    statesParameter = "one",
+    init = function(trigger)
+      local ret = [=[
+          local show = false
+          local use_controlType = %s
+          local controlType = %s
+          local inverse = %s
+          local use_interruptSchool = %s
+          local interruptSchool = tonumber(%q)
+          local duration, expirationTime, spellName, icon, spellName, spellId, locType, lockoutSchool, name, _
+          for i = 1, C_LossOfControl.GetActiveLossOfControlDataCount() do
+            local data = C_LossOfControl.GetActiveLossOfControlData(i)
+            if data then
+              if (not use_controlType)
+              or (data.locType == controlType and (controlType ~= "SCHOOL_INTERRUPT" or ((not use_interruptSchool) or bit.band(data.lockoutSchool, interruptSchool) > 0)))
+              then
+                spellId = data.spellID
+                spellName, _, icon = GetSpellInfo(data.spellID)
+                duration = data.duration
+                if data.startTime and data.duration then
+                  expirationTime = data.startTime + data.duration
+                end
+                locType = data.locType
+                lockoutSchool = data.lockoutSchool
+                name = data.displayText
+                show = true
+                break
+              end
+            end
+          end
+      ]=]
+      ret = ret:format(
+        trigger.use_controlType and "true" or "false",
+        type(trigger.controlType) == "string" and "[["..trigger.controlType.."]]" or [["STUN"]],
+        trigger.use_inverse and "true" or "false",
+        trigger.use_interruptSchool and "true" or "false",
+        trigger.interruptSchool or 0
+      )
+      return ret
+    end,
     args = {
       {
-        name = "controlled",
-        display = L["Crowd Controlled"],
-        type = "tristate",
-        init = "not HasFullControl()"
-      }
+        name = "controlType",
+        display = L["Specific Type"],
+        type = "select",
+        values = "loss_of_control_types",
+        conditionType = "select",
+        test = "true",
+        default = "STUN",
+        init = "locType",
+        store = true,
+      },
+      {
+        name = "interruptSchool",
+        display = L["Interrupt School"],
+        type = "select",
+        values = "main_spell_schools",
+        conditionType = "select",
+        default = 1,
+        test = "true",
+        enable = function(trigger) return trigger.controlType == "SCHOOL_INTERRUPT" end,
+        init = "lockoutSchool",
+        store = true,
+      },
+      {
+        name = "inverse",
+        display = L["Inverse"],
+        type = "toggle",
+        test = "true",
+      },
+      {
+        name = "name",
+        display = L["Name"],
+        hidden = true,
+        conditionType = "string",
+        store = true,
+        test = "true",
+      },
+      {
+        name = "spellName",
+        display = L["Spell Name"],
+        hidden = true,
+        conditionType = "string",
+        store = true,
+        test = "true",
+      },
+      {
+        name = "spellId",
+        display = L["Spell Id"],
+        hidden = true,
+        conditionType = "number",
+        operator_types = "only_equal",
+        store = true,
+        test = "true",
+      },
+      {
+        name = "lockoutSchool",
+        display = L["Interrupted School Text"],
+        hidden = true,
+        init = "lockoutSchool and lockoutSchool > 0 and GetSchoolString(lockoutSchool) or nil",
+        store = true,
+        test = "true",
+      },
+      {
+        name = "icon",
+        hidden = true,
+        store = true,
+        test = "true",
+      },
+      {
+        name = "duration",
+        hidden = true,
+        store = true,
+        test = "true",
+      },
+      {
+        name = "expirationTime",
+        hidden = true,
+        store = true,
+        test = "true",
+      },
+      {
+        name = "progressType",
+        hidden = true,
+        init = "'timed'",
+        store = true,
+        test = "true",
+      },
+      {
+        hidden = true,
+        test = "inverse ~= show",
+      },
     },
-    automaticrequired = true
+    automaticrequired = true,
   },
   ["Cast"] = {
     type = "status",
@@ -6446,7 +6865,6 @@ Private.event_prototypes = {
       return result
     end,
     force_events = unitHelperFunctions.UnitChangedForceEvents,
-    canHaveAuto = true,
     canHaveDuration = "timed",
     name = L["Cast"],
     init = function(trigger)
@@ -6628,10 +7046,22 @@ Private.event_prototypes = {
         store = true,
         conditionType = "select",
         enable = function(trigger)
-           return not WeakAuras.IsClassic()
-                  and (trigger.unit == "group" or trigger.unit == "raid" or trigger.unit == "party")
-                  and not trigger.use_inverse
-         end
+          return not WeakAuras.IsClassic() and (trigger.unit == "group" or trigger.unit == "raid" or trigger.unit == "party")
+                 and not trigger.use_inverse
+        end
+      },
+      {
+        name = "raid_role",
+        display = L["Assigned Role"],
+        type = "select",
+        init = "WeakAuras.UnitRaidRole(unit)",
+        values = "raid_role_types",
+        store = true,
+        conditionType = "select",
+        enable = function(trigger)
+          return WeakAuras.IsClassic() and (trigger.unit == "group" or trigger.unit == "raid" or trigger.unit == "party")
+                 and not trigger.use_inverse
+        end
       },
       {
         name = "ignoreSelf",
@@ -6794,7 +7224,7 @@ Private.event_prototypes = {
     end,
     init = function()
       local ret = [[
-        local main_stat
+        local main_stat, _
         if not WeakAuras.IsClassic() then
           _, _, _, _, _, main_stat = GetSpecializationInfo(GetSpecialization() or 0)
         end
@@ -7195,7 +7625,7 @@ Private.event_prototypes = {
         tinsert(events, "ZONE_CHANGED_NEW_AREA")
       end
 
-      if trigger.use_instance_difficulty ~= nil then
+      if trigger.use_instance_difficulty ~= nil or trigger.use_instance_type then
         tinsert(events, "PLAYER_DIFFICULTY_CHANGED")
         tinsert(events, "ZONE_CHANGED")
         tinsert(events, "ZONE_CHANGED_INDOORS")
@@ -7305,7 +7735,7 @@ Private.event_prototypes = {
       },
       {
         name = "instance_size",
-        display = L["Instance Type"],
+        display = L["Instance Size Type"],
         type = "multiselect",
         values = "instance_types",
         init = "WeakAuras.InstanceType()",
@@ -7317,6 +7747,15 @@ Private.event_prototypes = {
         type = "multiselect",
         values = "difficulty_types",
         init = "WeakAuras.InstanceDifficulty()",
+        enable = not WeakAuras.IsClassic(),
+        hidden = WeakAuras.IsClassic(),
+      },
+      {
+        name = "instance_type",
+        display = L["Instance Type"],
+        type = "multiselect",
+        values = "instance_difficulty_types",
+        init = "WeakAuras.InstanceTypeRaw()",
         enable = not WeakAuras.IsClassic(),
         hidden = WeakAuras.IsClassic(),
       },
@@ -7340,9 +7779,12 @@ Private.event_prototypes = {
     init = function(trigger)
       local spellName;
       if (trigger.use_exact_spellName) then
-        spellName = trigger.spellName or "";
+        spellName = tonumber(trigger.spellName) or "nil";
+        if spellName == 0 then
+          spellName = "nil"
+        end
         local ret = [[
-          local spellName = tonumber(%q);
+          local spellName = %s;
           local usePet = %s;
         ]]
         return ret:format(spellName, trigger.use_petspell and "true" or "false");
@@ -7450,7 +7892,6 @@ Private.event_prototypes = {
       return ret;
     end,
     statesParameter = "one",
-    canHaveAuto = true,
     args = {
       {
         name = "behavior",
@@ -7624,6 +8065,8 @@ if WeakAuras.IsClassic() then
   Private.event_prototypes["Equipment Set"] = nil
   Private.event_prototypes["Spell Activation Overlay"] = nil
   Private.event_prototypes["Crowd Controlled"] = nil
+  Private.event_prototypes["PvP Talent Selected"] = nil
+  Private.event_prototypes["Class/Spec"] = nil
 else
   Private.event_prototypes["Queued Action"] = nil
 end

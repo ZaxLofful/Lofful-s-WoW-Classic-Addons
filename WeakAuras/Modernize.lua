@@ -400,6 +400,7 @@ function Private.Modernize(data)
         text2FontSize = "sub.2.text_fontSize"
       }
 
+      data.subRegions = data.subRegions or {}
       tinsert(data.subRegions, text1)
       if (usetext2) then
         tinsert(data.subRegions, text2)
@@ -1021,6 +1022,25 @@ function Private.Modernize(data)
         data.load.itemtypeequipped.multi = converted
       end
     end
+  end
+
+  if data.internalVersion < 39 then
+    if data.regionType == 'icon' or data.regionType == 'aurabar' then
+      if data.auto then
+        data.iconSource = -1
+      else
+        data.iconSource = 0
+      end
+    end
+  end
+
+  if data.internalVersion < 40 then
+    data.information = data.information or {}
+    if data.regionType == 'group' then
+      data.information.groupOffset = true
+    end
+    data.information.ignoreOptionsEventErrors = data.ignoreOptionsEventErrors
+    data.ignoreOptionsEventErrors = nil
   end
 
   data.internalVersion = max(data.internalVersion or 0, WeakAuras.InternalVersion());

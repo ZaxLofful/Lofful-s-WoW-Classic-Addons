@@ -1,5 +1,23 @@
 # OmniCC Changelog
 
+## 9.0.5
+
+* Update TOCs for 1.13.6
+* Add a nil check when deciding to hide cooldown spirals or not
+* Build process updates
+
+## 9.0.4
+
+* Updated TOCs for 9.0.2
+
+## 9.0.3
+
+* Fix cases where cooldowns may not properly refresh
+
+## 9.0.2
+
+* Fixed an error for when OmniCC attempts to display configuration for rules with missing id values
+
 ## 9.0.1
 
 * Apply default rulesets only when a profile is first created. This fixes an issue with deleting the defaults.

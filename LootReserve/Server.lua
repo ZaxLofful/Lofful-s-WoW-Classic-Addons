@@ -33,6 +33,9 @@ LootReserve.Server =
         RollFinishOnAllReservingRolled = false,
         RollFinishOnRaidRoll = false,
         RollSkipNotContested = false,
+        RollHistoryDisplayLimit = 5,
+        RollMasterLoot = false,
+        MasterLooting = false,
     },
     RequestedRoll = nil,
     RollHistory = { },
@@ -43,6 +46,7 @@ LootReserve.Server =
     MembersEdit = { },
     Import = { },
     Export = { },
+    PendingMasterLoot = nil,
 
     ReservableItems = { },
     ItemNames = { },
@@ -57,6 +61,8 @@ LootReserve.Server =
     AllItemNamesCached = false,
     StartupAwaitingAuthority = false,
     StartupAwaitingAuthorityRegistered = false,
+    MasterLootListUpdateRegistered = false,
+    RollHistoryDisplayLimit = 0,
 };
 
 StaticPopupDialogs["LOOTRESERVE_CONFIRM_FORCED_CANCEL_RESERVE"] =
@@ -201,7 +207,7 @@ function LootReserve.Server:HasRelevantRecentChat(chat, player)
 end
 
 function LootReserve.Server:IsAddonUser(player)
-    return player == UnitName("player") or self.AddonUsers[player] or false;
+    return LootReserve:IsMe(player) or self.AddonUsers[player] or false;
 end
 
 function LootReserve.Server:SetAddonUser(player, isUser)
@@ -374,7 +380,7 @@ function LootReserve.Server:PrepareLootTracking()
             end
         end
 
-        looter = Ambiguate(looter, "short");
+        looter = LootReserve:Player(looter);
         item = tonumber(item:match("item:(%d+)"));
         count = tonumber(count);
         if looter and item and count then
@@ -409,7 +415,7 @@ function LootReserve.Server:PrepareGuildTracking()
         for i = 1, GetNumGuildMembers() do
             local name = GetGuildRosterInfo(i);
             if name then
-                name = Ambiguate(name, "short");
+                name = LootReserve:Player(name);
                 table.insert(self.GuildMembers, name);
             end
         end
@@ -481,21 +487,17 @@ function LootReserve.Server:PrepareSession()
                 ]]
 
                 -- Add member info for players who joined
-                for i = 1, MAX_RAID_MEMBERS do
-                    local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(i);
-                    if name then
-                        name = Ambiguate(name, "short");
-                        if not self.CurrentSession.Members[name] then
-                            self.CurrentSession.Members[name] =
-                            {
-                                ReservesLeft = self.CurrentSession.Settings.MaxReservesPerPlayer,
-                                ReservedItems = { },
-                                Locked = nil,
-                            };
-                            self.MembersEdit:UpdateMembersList();
-                        end
+                LootReserve:ForEachRaider(function(name)
+                    if not self.CurrentSession.Members[name] then
+                        self.CurrentSession.Members[name] =
+                        {
+                            ReservesLeft = self.CurrentSession.Settings.MaxReservesPerPlayer,
+                            ReservedItems = { },
+                            Locked = nil,
+                        };
+                        self.MembersEdit:UpdateMembersList();
                     end
-                end
+                end);
             end
             self:UpdateReserveList();
             self:UpdateRollList();
@@ -540,7 +542,7 @@ function LootReserve.Server:PrepareSession()
         local prefixB = "!res";
 
         local function ProcessChat(text, sender)
-            sender = Ambiguate(sender, "short");
+            sender = LootReserve:Player(sender);
             if not self.CurrentSession then return; end;
 
             local member = self.CurrentSession.Members[sender];
@@ -787,20 +789,13 @@ function LootReserve.Server:StartSession()
     };
     self.SaveProfile.CurrentSession = self.CurrentSession;
 
-    for i = 1, MAX_RAID_MEMBERS do
-        local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(i);
-        if LootReserve.Comm.SoloDebug and i == 1 then
-            name = UnitName("player");
-        end
-        if name then
-            name = Ambiguate(name, "short");
-            self.CurrentSession.Members[name] =
-            {
-                ReservesLeft = self.CurrentSession.Settings.MaxReservesPerPlayer,
-                ReservedItems = { },
-            };
-        end
-    end
+    LootReserve:ForEachRaider(function(name)
+        self.CurrentSession.Members[name] =
+        {
+            ReservesLeft = self.CurrentSession.Settings.MaxReservesPerPlayer,
+            ReservedItems = { },
+        };
+    end);
 
     self:PrepareSession();
 
@@ -929,6 +924,7 @@ function LootReserve.Server:ResetSession()
     self.SaveProfile.CurrentSession = self.CurrentSession;
 
     self:UpdateReserveList();
+    self:UpdateRollListButtons();
     self.MembersEdit:UpdateMembersList();
 
     self:SessionReset();
@@ -1225,7 +1221,15 @@ function LootReserve.Server:SendReservesList(player, chat, force)
         local function Announce()
             local list = { };
 
-            for item, reserve in pairs(self.CurrentSession.ItemReserves) do
+            local function sortByItemName(_, _, aItem, bItem)
+                local aName = GetItemInfo(aItem);
+                local bName = GetItemInfo(bItem);
+                if not aName then return false; end
+                if not bName then return true; end
+                return aName < bName;
+            end
+
+            for item, reserve in LootReserve:Ordered(self.CurrentSession.ItemReserves, sortByItemName) do
                 if --[[LootReserve.ItemConditions:TestPlayer(player, item, true)]]true then
                     local name, link = GetItemInfo(item);
                     if not name or not link then
@@ -1363,12 +1367,40 @@ function LootReserve.Server:ResolveRollTie(item)
 end
 
 function LootReserve.Server:FinishRollRequest(item, soleReserver)
+    local function RecordRollWinner(player, item, phase)
+        if self.CurrentSession then
+            local member = self.CurrentSession.Members[player];
+            if member then
+                if not member.WonRolls then member.WonRolls = { }; end
+                table.insert(member.WonRolls,
+                {
+                    Item = item,
+                    Phase = phase,
+                    Time = time(),
+                });
+            end
+        end
+    end
+
     if self:IsRolling(item) then
         local roll, players = self:GetWinningRollAndPlayers();
         if roll and players then
             local raidroll = self.RequestedRoll.RaidRoll;
             local phases = LootReserve:Deepcopy(self.RequestedRoll.Phases);
             local category = self.CurrentSession and LootReserve.Data.Categories[self.CurrentSession.Settings.LootCategory] or nil;
+
+            local recordPhase;
+            if self.RequestedRoll.RaidRoll then
+                recordPhase = LootReserve.Constants.WonRollPhase.RaidRoll;
+            elseif self.RequestedRoll.Custom then
+                recordPhase = phases and phases[1];
+            else
+                recordPhase = LootReserve.Constants.WonRollPhase.Reserve;
+            end
+            for _, player in ipairs(players) do
+                RecordRollWinner(player, item, recordPhase);
+            end
+
             local function Announce()
                 local name, link, quality = GetItemInfo(item);
                 if not name or not link then
@@ -1387,8 +1419,14 @@ function LootReserve.Server:FinishRollRequest(item, soleReserver)
                 end
             end
             Announce();
+
+            if self.Settings.MasterLooting and self.Settings.RollMasterLoot then
+                self:MasterLootItem(item, players[1], #players > 1);
+            end
         elseif soleReserver and not self.RequestedRoll.Custom and next(self.RequestedRoll.Players) then
             local player = next(self.RequestedRoll.Players);
+            RecordRollWinner(player, item, LootReserve.Constants.WonRollPhase.Reserve);
+
             local category = self.CurrentSession and LootReserve.Data.Categories[self.CurrentSession.Settings.LootCategory] or nil;
             local function Announce()
                 local name, link, quality = GetItemInfo(item);
@@ -1405,10 +1443,18 @@ function LootReserve.Server:FinishRollRequest(item, soleReserver)
                 end
             end
             Announce();
+
+            if self.Settings.MasterLooting and self.Settings.RollMasterLoot then
+                self:MasterLootItem(item, player);
+            end
         end
 
         self:CancelRollRequest(item);
     end
+
+    self:UpdateReserveListButtons();
+    self:UpdateRollListButtons();
+    self.MembersEdit:UpdateMembersList();
 end
 
 function LootReserve.Server:AdvanceRollPhase(item)
@@ -1463,7 +1509,7 @@ function LootReserve.Server:CanRoll(player)
     -- Player must be allowed to roll if the roll is limited to specific players
     if roll.AllowedPlayers and not LootReserve:Contains(roll.AllowedPlayers, player) then return false; end
     -- Only raid roll creator is allowed to re-roll the raid-roll
-    if roll.RaidRoll then return player == Ambiguate(UnitName("player"), "short"); end
+    if roll.RaidRoll then return LootReserve:IsMe(player); end
     -- Player must have reserved the item if the roll is for a reserved item
     if not self.RequestedRoll.Custom and not self.RequestedRoll.Players[player] then return false; end
     -- Player cannot roll if they had rolled previously, but are allowed to roll if they passed on the item
@@ -1514,12 +1560,11 @@ function LootReserve.Server:PrepareRequestRoll()
                         for i = 1, NUM_RAID_GROUPS do
                             subgroups[i] = { };
                         end
-                        for i = 1, MAX_RAID_MEMBERS do
-                            local name, _, subgroup, _, _, _, _, online = GetRaidRosterInfo(i);
-                            if name and subgroup then
-                                table.insert(subgroups[subgroup], Ambiguate(name, "short"));
+                        LootReserve:ForEachRaider(function(name, _, subgroup)
+                            if subgroup then
+                                table.insert(subgroups[subgroup], name);
                             end
-                        end
+                        end);
                         local raid = { };
                         for _, subgroup in ipairs(subgroups) do
                             for _, player in ipairs(subgroup) do
@@ -1563,12 +1608,12 @@ function LootReserve.Server:PrepareRequestRoll()
             local savedType = type:gsub("CHAT_MSG_", "");
             LootReserve:RegisterEvent(type, function(text, sender)
                 if self.RequestedRoll then
-                    local player = Ambiguate(sender, "short");
+                    local player = LootReserve:Player(sender);
                     self.RequestedRoll.Chat = self.RequestedRoll.Chat or { };
                     self.RequestedRoll.Chat[player] = self.RequestedRoll.Chat[player] or { };
                     table.insert(self.RequestedRoll.Chat[player], format("%d|%s|%s", time(), savedType, text));
-                    self:UpdateReserveListChat();
-                    self:UpdateRollListChat();
+                    self:UpdateReserveListButtons();
+                    self:UpdateRollListButtons();
                 end
             end);
         end
@@ -1667,17 +1712,11 @@ function LootReserve.Server:RequestCustomRoll(item, duration, phases, allowedPla
 
     local players = allowedPlayers or { };
     if not allowedPlayers then
-        for i = 1, MAX_RAID_MEMBERS do
-            local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(i);
-            if LootReserve.Comm.SoloDebug and i == 1 then
-                name = UnitName("player");
-                online = true;
-            end
-            if name and online then
-                name = Ambiguate(name, "short");
+        LootReserve:ForEachRaider(function(name, _, _, _, _, _, _, online)
+            if online then
                 table.insert(players, name);
             end
-        end
+        end);
     end
 
     LootReserve.Comm:BroadcastRequestRoll(item, players, true, self.RequestedRoll.Duration, self.RequestedRoll.MaxDuration, self.RequestedRoll.Phases and self.RequestedRoll.Phases[1] or "");
@@ -1724,7 +1763,7 @@ function LootReserve.Server:RaidRoll(item)
         StartTime = time(),
         RaidRoll = true,
         Players = { },
-        AllowedPlayers = { Ambiguate(UnitName("player"), "short") },
+        AllowedPlayers = { LootReserve:Me() },
     };
     self.SaveProfile.RequestedRoll = self.RequestedRoll;
 
@@ -1779,6 +1818,99 @@ function LootReserve.Server:DeleteRoll(player, item)
     self:UpdateRollListRolls();
 
     self:TryFinishRoll();
+end
+
+function LootReserve.Server:MasterLootItem(item, player, multipleWinners)
+    if not item or not player then return; end
+
+    local name, link, quality = GetItemInfo(item);
+    if not name or not link or not quality then return; end
+
+    if not self.Settings.MasterLooting or not self.Settings.RollMasterLoot then
+        -- LootReserve:ShowError("Failed to masterloot %s to %s: masterlooting not enabled in LootReserve settings", link, LootReserve:ColoredPlayer(player));
+        return;
+    end
+
+    if not IsMasterLooter() or GetLootMethod() ~= "master" then
+        -- LootReserve:ShowError("Failed to masterloot %s to %s: not master looter", link, LootReserve:ColoredPlayer(player));
+        return;
+    end
+
+    local itemIndex = LootReserve:IsLootingItem(item);
+    if not itemIndex then
+        -- LootReserve:ShowError("Failed to masterloot %s to %s: item not found in the current loot", link, LootReserve:ColoredPlayer(player));
+        return;
+    end
+
+    if quality < GetLootThreshold() then
+        -- LootReserve:ShowError("Failed to masterloot %s to %s: item quality below masterloot threshold", link, LootReserve:ColoredPlayer(player));
+        return;
+    end
+
+    if multipleWinners then
+        LootReserve:ShowError("%s was not automatically masterlooted: more than one candidate", link);
+        return;
+    end
+
+    if not self.MasterLootListUpdateRegistered then
+        self.MasterLootListUpdateRegistered = true;
+        LootReserve:RegisterEvent("OPEN_MASTER_LOOT_LIST", "UPDATE_MASTER_LOOT_LIST", function()
+            local pending = self.PendingMasterLoot;
+            self.PendingMasterLoot = nil;
+            if pending and pending.ItemIndex == LootReserve:IsLootingItem(pending.Item) and pending.Timeout >= time() then
+                for playerIndex = 1, MAX_RAID_MEMBERS do
+                    if GetMasterLootCandidate(pending.ItemIndex, playerIndex) == pending.Player then
+                        GiveMasterLoot(pending.ItemIndex, playerIndex);
+                        MasterLooterFrame:Hide();
+                        return;
+                    end
+                end
+                LootReserve:ShowError("Failed to masterloot %s to %s: player was not found in the list of masterloot candidates", link, LootReserve:ColoredPlayer(pending.Player));
+            end
+        end);
+    end
+
+    -- Prevent duplicate request. Hopefully...
+    if self.PendingMasterLoot and self.PendingMasterLoot.Item == item and self.PendingMasterLoot.Timeout >= time() then
+        LootReserve:ShowError("Failed to masterloot %s to %s: there's another master loot attempt in progress. Try again in 5 seconds", link, LootReserve:ColoredPlayer(player));
+        return;
+    end
+
+    self.PendingMasterLoot =
+    {
+        Item = item,
+        ItemIndex = itemIndex,
+        Player = player,
+        Timeout = time() + 5,
+    };
+
+    --LootSlot(itemIndex); -- Can't do it this way, LootFrame breaks due to some crucial variables not being filled
+    --[[ Can't do it this way either, addons that change LootFrame and unhook its event handlers won't work
+    local numItemsPerPage = LOOTFRAME_NUMBUTTONS;
+    local numLootItems = LootFrame.numLootItems or 0;
+    if numLootItems > LOOTFRAME_NUMBUTTONS then
+        numItemsPerPage = numItemsPerPage - 1;
+    end
+    for page = 1, math.ceil(numLootItems / numItemsPerPage) do
+        LootFrame.page = page;
+        LootFrame_Update();
+        for index = 1, numItemsPerPage do
+            local button = _G["LootButton" .. index];
+            if button and button:IsShown() and button.slot == itemIndex then
+                LootButton_OnClick(button, "LeftButton"); -- Now wait for OPEN_MASTER_LOOT_LIST/UPDATE_MASTER_LOOT_LIST
+                return;
+            end
+        end
+    end
+    LootReserve:ShowError("Failed to masterloot %s to %s: looting UI is closed or the item was not found in the loot", link, LootReserve:ColoredPlayer(player));
+    ]]
+    local lootIcon, lootName, lootQuantity, _, lootQuality = GetLootSlotInfo(itemIndex);
+    local fake = LootReserveRollFakeMasterLoot;
+    fake.slot = itemIndex;
+    fake.quality = lootQuality;
+    fake.Text:SetText(lootName); -- May differ from item record name due to RandomProperties and RandomSuffix
+    fake.IconTexture:SetTexture(lootIcon);
+    LootButton_OnClick(fake, "LeftButton"); -- Now wait for OPEN_MASTER_LOOT_LIST/UPDATE_MASTER_LOOT_LIST
 end
 
 function LootReserve.Server:WhisperAllWithoutReserves()

@@ -4,6 +4,8 @@ QuestieLocale.locale['esES'] = {
     ['GENERAL_OPTIONS_HEADER'] = "Opciones de Questie",
     ['ENABLE_ICONS'] = "Habilitar Iconos",
     ['ENABLE_ICONS_DESC'] = "Habilitar iconos de Questie",
+    ['TRACKING_ICONS_BUTTON'] = "Config Tracking Icons",
+    ['TRACKING_ICONS_BUTTON_DESC'] = "Allows to select which the tracking icons (like Mailbox, Repair-NPCs) to show on the map and minimap.",
     ['ENABLE_MINIMAP_BUTTON'] = "Habilitar icono del minimapa",
     ['ENABLE_MINIMAP_BUTTON_DESC'] = "Habilita o deshabilita el icono del minimapa. Puedes seguir accediendo al menú de opciones con /questie",
     ['ENABLE_INSTANT'] = "Habilitar el texto automático de misiones",
@@ -66,6 +68,11 @@ QuestieLocale.locale['esES'] = {
     ['AUTO_MODIFIER_DESC'] = "El modificador para NO aceptar/completar automáticamente las misiones cuando cualquiera de las opciones está habilitada e interactúas con un asignador de misión.",
     ['ENABLE_YELL'] = "Compartir el progreso de la misión con jugadores cercanos",
     ['ENABLE_YELL_DESC'] = "El progreso de tu misión se enviará periódicamente a los jugadores cercanos.",
+    ['QUEST_ANNOUNCE'] = "Anuncio de misión",
+    ['QUEST_ANNOUNCE_DESC'] = "Anunciar la terminación de objetivos de misiones al miembros de grupo",
+    ['QUEST_ANNOUNCE_ENABLED'] = "Habilitado",
+    ['QUEST_ANNOUNCE_OBJECTIVE'] = "{rt1} Questie : %s para %s!",
+    ['QUEST_ANNOUNCE_QUESTITEM'] = "{rt1} Questie : Despojó %s que empieza %s!",
     
     -- Minimap tab
     ['MINIMAP_TAB'] = "Opciones de minimapa",
@@ -174,6 +181,8 @@ QuestieLocale.locale['esES'] = {
     ['ENABLE_TOOLTIPS_QUEST_LEVEL_DESC'] = "Si está marcado, el nivel de misiones mostrará en los tooltips.",
     ['SHARED_TOOLTIP_PARTY_ONLY'] = "Fiesta compartida solo",
     ['SHARED_TOOLTIP_PARTY_ONLY_DESC'] = "Cuando esto está habilitado, la información de misiones compartidas solo se mostrará si son de miembros del grupo.",
+    ['SHOW_QUESTS_IN_NPC_TOOLTIPS'] = 'Show quests in NPC tooltips',
+    ['SHOW_QUESTS_IN_NPC_TOOLTIPS_DESC'] = 'Show quests (available/complete) in the NPC tooltips.',
 
     -- Advanced tab
     ['ADVANCED_TAB'] = "Avanzado",
@@ -225,8 +234,8 @@ QuestieLocale.locale['esES'] = {
     ['TOOLTIP_QUEST_REPEATABLE'] = "(Repetible)",
     ['TOOLTIP_QUEST_EVENT'] = "(Evento)",
     ['XP'] = "xp";
-    ['COMPLETE'] = "Complete";
-    ['FAILED'] = "Failed";
+    ['COMPLETE'] = "Completo";
+    ['FAILED'] = "Fracasado";
 
     -- Slash Commands
     ['SLASH_INVALID'] = "Comando inválido. Para una lista de comandos escribe: ",
@@ -379,8 +388,8 @@ QuestieLocale.locale['esES'] = {
     ['JOURNEY_SELECT_HEAD'] = "Selecciona tu continente y zona",
     ['JOURNEY_SELECT_CONT'] = "Selecciona tu continente",
     ['JOURNEY_SELECT_ZONE'] = "Selecciona tu zona",
-    ['JOURNEY_SELECT_PROFESSION'] = "Select Your Profession",
-    ['JOURNEY_NO_QUESTS_FOUND'] = "No Quests found",
+    ['JOURNEY_SELECT_PROFESSION'] = "Selecciona tu profesión",
+    ['JOURNEY_NO_QUESTS_FOUND'] = "No se encontraron misiones",
     ['JOURNEY_QUESTS'] = "Misiones de zona",
     ['JOURNEY_QUESTINFO'] = "Información de la misión",
     ['JOURNEY_START_NPC'] = "Información PNJ que empieza misión",
