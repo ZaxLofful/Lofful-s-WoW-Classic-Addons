@@ -88,7 +88,7 @@ function NIT:print(msg, channel, prefix, nonClickable, tradeLog)
 		--Send to numbered channel by name.
 		local id, name = GetChannelName(channel);
 		if (id == 0) then
-			print(NIT.chatColor .. "No channel with id " .. NIT.prefixColor .. channel .. NIT.chatColor .. " exists.");
+			print(NIT.chatColor .. "No channel with id or name " .. NIT.prefixColor .. channel .. NIT.chatColor .. " exists.");
 			print(NIT.chatColor .. "Type \"/nit\" to show your instance history.");
 			print(NIT.chatColor .. "Type \"/nit config\" to open options.");
 			print(NIT.chatColor .. "Type \"/nit channelname\" to post your current lockouts to a channel.");
@@ -429,19 +429,35 @@ function NIT:convertMoney(money, short, separator, colorized, amountColor)
 		silverText = NIT:stripColors(silverText);
 		copperText = NIT:stripColors(copperText);
 	end
-	local text = goldText .. separator .. silverText .. separator .. copperText;
-	if (gold > 0 and silver > 0 and copper > 0) then
-		text = goldText .. separator .. silverText .. separator .. copperText;
-		return string.format(text, gold, silver, copper);
-	elseif (silver > 0 and copper > 0) then
-		text = silverText .. separator .. copperText;
-		return string.format(text, silver, copper);
-	elseif (copper > 0) then
-		text = copperText;
-		return string.format(text, copper);
+	--local text = goldText .. separator .. silverText .. separator .. copperText;
+	--local foundGold, foundSilver;
+	local text = "";
+	local currencies = {};
+	if (gold > 0) then
+		local moneyString = string.format(goldText, gold);
+		table.insert(currencies, moneyString);
+	end
+	if (silver > 0) then
+		local moneyString = string.format(silverText, silver);
+		table.insert(currencies, moneyString);
+	end
+	if (copper > 0) then
+		local moneyString = string.format(copperText, copper);
+		table.insert(currencies, moneyString);
+	end
+	local count = 0;
+	for k, v in ipairs(currencies) do
+		count = count + 1;
+		if (count == 1) then
+			text = text .. v;
+		else
+			text = text .. separator .. v;
+		end
+	end
+	if (count < 1) then
+		return string.format(copperText, 0);
 	else
-		text = copperText;
-		return string.format(text, 0);
+		return text;
 	end
 end
 
@@ -541,6 +557,11 @@ end
 
 SLASH_NITCMD1, SLASH_NITCMD2 = '/nit', '/novainstancetracker';
 function SlashCmdList.NITCMD(msg, editBox)
+	local cmd, channel
+	if (msg) then
+		msg = string.lower(msg);
+		cmd, channel = strsplit(" ", msg, 2);
+	end
 	if (msg == "add" or msg == "new") then
 		local isInstance, instanceType = IsInInstance();
 		if (isInstance) then
@@ -553,7 +574,28 @@ function SlashCmdList.NITCMD(msg, editBox)
 		NIT:openConfig();
 	elseif (msg == "money" or msg == "gold" or msg == "trade" or msg == "trades" or msg == "tradelog") then
 		NIT:openTradeLogFrame();
+	elseif (cmd == "stats" or cmd == "stat") then
+		if (channel) then
+			channel = string.lower(channel);
+		end
+		if (not channel) then
+			NIT:showInstanceStats(nil, "send", true);
+		elseif (channel == "self" or channel == "me" or channel == "myself"  or channel == "print") then
+			NIT:showInstanceStats(nil, "self", true);
+		elseif (channel == "say" or channel == "yell" or channel == "party" or channel == "guild"
+			or channel == "officer" or channel == "raid" or channel == "group") then
+			NIT:showInstanceStats(nil, channel, true);
+		else
+			NIT:print("Please specify a valid channel like /nit stats party or /nit stats raid or /nit stats guild.");
+		end
 	elseif (msg ~= nil and msg ~= "") then
+		if (msg == "raid" and not IsInRaid()) then
+			NIT:print("You are not in a raid.");
+			return;
+	  	elseif (msg == "party" and not IsInGroup()) then
+	  		NIT:print("You are not in a party.");
+	  		return;
+		end
 		local text, text24 = NIT:getInstanceLockoutInfoString();
 		NIT:print(text .. " " .. text24, msg);
 	else
@@ -1099,9 +1141,10 @@ function NIT:openInstanceLogFrame()
 			_G["titleNITInstanceLine"]:SetPoint("LEFT", NITInstanceFrame.EditBox, "TOPLEFT", 3, -63);
 		end
 		--Fit exactly the last 30 instances in the frames opening scroll area.
-		NITInstanceFrame:SetHeight(473);
-		NITInstanceFrame:SetHeight(487);
-		NITInstanceFrame:SetWidth(instanceFrameWidth);
+		--NITInstanceFrame:SetHeight(501);
+		--NITInstanceFrame:SetWidth(instanceFrameWidth);
+		NITInstanceFrame:SetHeight(NIT.db.global.instanceWindowHeight);
+		NITInstanceFrame:SetWidth(NIT.db.global.instanceWindowWidth);
 		local fontSize = false;
 		NITInstanceFrame.EditBox:SetFont(NIT.regionFont, 14);
 		NITInstanceFrame.EditBox:SetWidth(NITInstanceFrame:GetWidth() - 30);
@@ -1586,12 +1629,6 @@ function NIT:getAltLockoutString(char)
 	return msg;
 end
 
-function NIT:test()
-	--NIT:print("Texture test: |TInterface\\AddOns\\NovaInstanceTracker\\Media\\redX:12:12:0:0|t");
-	print("|cFF9CD6DE" .. L["versionOutOfDate"]);
-	NIT:print(NIT.mergeColor .. "Same instance ID as last detected, merging database entries.");
-end
-
 local NITInstanceFrameDeleteConfirm = CreateFrame("ScrollFrame", "NITInstanceFrameDC", UIParent, "InputScrollFrameTemplate");
 NITInstanceFrameDeleteConfirm:Hide();
 NITInstanceFrameDeleteConfirm:SetToplevel(true);
@@ -1803,7 +1840,19 @@ NITTradeLogFrameResetButton:SetHeight(17);
 NITTradeLogFrameResetButton:SetText("Reset Data");
 NITTradeLogFrameResetButton:SetNormalFontObject("GameFontNormalSmall");
 NITTradeLogFrameResetButton:SetScript("OnClick", function(self, arg)
-	NIT:resetTradeData();
+	StaticPopupDialogs["NIT_TRADEDATARESET"] = {
+	  text = "Delete all trade data?",
+	  button1 = "Yes",
+	  button2 = "No",
+	  OnAccept = function()
+	      NIT:resetTradeData();
+	  end,
+	  timeout = 0,
+	  whileDead = true,
+	  hideOnEscape = true,
+	  preferredIndex = 3,
+	};
+	StaticPopup_Show("NIT_TRADEDATARESET");
 end)
 
 function NIT:openTradeLogFrame()
@@ -1815,8 +1864,10 @@ function NIT:openTradeLogFrame()
 	if (NITTradeLogFrame:IsShown()) then
 		NITTradeLogFrame:Hide();
 	else
-		NITTradeLogFrame:SetHeight(320);
-		NITTradeLogFrame:SetWidth(580);
+		--NITTradeLogFrame:SetHeight(320);
+		--NITTradeLogFrame:SetWidth(580);
+		NITTradeLogFrame:SetHeight(NIT.db.global.tradeWindowHeight);
+		NITTradeLogFrame:SetWidth(NIT.db.global.tradeWindowWidth);
 		local fontSize = false
 		NITTradeLogFrame.EditBox:SetFont(NIT.regionFont, 13);
 		NIT:recalcTradeLogFrame();
@@ -1887,6 +1938,339 @@ function NIT:resetTradeData()
 	NIT.data.trades = {};
 	NIT:print("Trade log data has been reset.");
 	NIT:recalcTradeLogFrame();
+end
+
+--Copy Paste.
+local NITTradeCopyFrame = CreateFrame("ScrollFrame", "NITTradeCopyFrame", UIParent, "InputScrollFrameTemplate");
+NITTradeCopyFrame:Hide();
+NITTradeCopyFrame:SetToplevel(true);
+NITTradeCopyFrame:SetMovable(true);
+NITTradeCopyFrame:EnableMouse(true);
+tinsert(UISpecialFrames, "NITTradeCopyFrame");
+NITTradeCopyFrame:SetPoint("CENTER", UIParent, -70, 150);
+NITTradeCopyFrame:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8x8",insets = {top = 0, left = 0, bottom = 0, right = 0}});
+NITTradeCopyFrame:SetBackdropColor(0,0,0,0.9);
+NITTradeCopyFrame.CharCount:Hide();
+NITTradeCopyFrame:SetFrameStrata("HIGH");
+NITTradeCopyFrame.EditBox:SetAutoFocus(false);
+--Top right X close button.
+local NITTradeCopyFrameClose = CreateFrame("Button", "NITTradeCopyFrameClose", NITTradeCopyFrame, "UIPanelCloseButton");
+NITTradeCopyFrameClose:SetPoint("TOPRIGHT", -12, 3.75);
+NITTradeCopyFrameClose:SetWidth(20);
+NITTradeCopyFrameClose:SetHeight(20);
+NITTradeCopyFrameClose:SetFrameLevel(3);
+NITTradeCopyFrameClose:SetScript("OnClick", function(self, arg)
+	NITTradeCopyFrame:Hide();
+end)
+--Adjust the X texture so it fits the entire frame and remove the empty clickable space around the close button.
+NITTradeCopyFrameClose:GetNormalTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
+NITTradeCopyFrameClose:GetHighlightTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
+NITTradeCopyFrameClose:GetPushedTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
+NITTradeCopyFrameClose:GetDisabledTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
+
+local NITTradeCopyDragFrame = CreateFrame("Frame", "NITTradeCopyDragFrame", NITTradeCopyFrame);
+NITTradeCopyDragFrame:SetToplevel(true);
+NITTradeCopyDragFrame:EnableMouse(true);
+--NITTradeCopyDragFrame:SetPoint("TOP", 0, 25);
+NITTradeCopyDragFrame:SetPoint("TOP", 0, 91);
+NITTradeCopyDragFrame:SetBackdrop({
+	bgFile = "Interface\\Buttons\\WHITE8x8",
+	edgeFile = [[Interface\Tooltips\UI-Tooltip-Border]],
+	edgeSize = 14,
+	insets = {left = 4, right = 4, top = 4, bottom = 4},
+});
+NITTradeCopyDragFrame:SetBackdropColor(0,0,0,0.9);
+NITTradeCopyDragFrame:SetBackdropBorderColor(0.235, 0.235, 0.235);
+NITTradeCopyDragFrame.fs = NITTradeCopyDragFrame:CreateFontString("NITTradeCopyDragFrameFS", "HIGH");
+--NITTradeCopyDragFrame.fs:SetPoint("CENTER", 0, 0);
+NITTradeCopyDragFrame.fs:SetPoint("TOP", 0, -5);
+NITTradeCopyDragFrame.fs:SetFont(NIT.regionFont, 14);
+NITTradeCopyDragFrame.fs:SetText(NIT.prefixColor .. "Trade Copy Frame|r");
+--NITTradeCopyDragFrame:SetWidth(NITTradeCopyDragFrame.fs:GetWidth() + 16);
+--NITTradeCopyDragFrame:SetHeight(22);
+NITTradeCopyDragFrame:SetWidth(300);
+NITTradeCopyDragFrame:SetHeight(90);
+
+NITTradeCopyDragFrame:SetScript("OnMouseDown", function(self, button)
+	if (button == "LeftButton" and not self:GetParent().isMoving) then
+		self:GetParent().EditBox:ClearFocus();
+		self:GetParent():StartMoving();
+		self:GetParent().isMoving = true;
+		--self:GetParent():SetUserPlaced(false);
+	end
+end)
+NITTradeCopyDragFrame:SetScript("OnMouseUp", function(self, button)
+	if (button == "LeftButton" and self:GetParent().isMoving) then
+		self:GetParent():StopMovingOrSizing();
+		self:GetParent().isMoving = false;
+	end
+end)
+NITTradeCopyDragFrame:SetScript("OnHide", function(self)
+	if (self:GetParent().isMoving) then
+		self:GetParent():StopMovingOrSizing();
+		self:GetParent().isMoving = false;
+	end
+end)
+
+local NITTradeFrameCopyButton = CreateFrame("Button", "NITTradeFrameCopyButton", NITTradeLogFrameClose, "UIPanelButtonTemplate");
+NITTradeFrameCopyButton:SetPoint("TOPLEFT", NITTradeLogFrame, 1, 1);
+NITTradeFrameCopyButton:SetWidth(90);
+NITTradeFrameCopyButton:SetHeight(17);
+NITTradeFrameCopyButton:SetText("Copy/Paste");
+NITTradeFrameCopyButton:SetNormalFontObject("GameFontNormalSmall");
+NITTradeFrameCopyButton:SetScript("OnClick", function(self, arg)
+	NIT:openTradeCopyFrame();
+end)
+NITTradeFrameCopyButton:SetScript("OnMouseDown", function(self, button)
+	if (button == "LeftButton" and not self:GetParent():GetParent().isMoving) then
+		self:GetParent():GetParent().EditBox:ClearFocus();
+		self:GetParent():GetParent():StartMoving();
+		self:GetParent():GetParent().isMoving = true;
+	end
+end)
+NITTradeFrameCopyButton:SetScript("OnMouseUp", function(self, button)
+	if (button == "LeftButton" and self:GetParent():GetParent().isMoving) then
+		self:GetParent():GetParent():StopMovingOrSizing();
+		self:GetParent():GetParent().isMoving = false;
+	end
+end)
+NITTradeFrameCopyButton:SetScript("OnHide", function(self)
+	if (self:GetParent():GetParent().isMoving) then
+		self:GetParent():GetParent():StopMovingOrSizing();
+		self:GetParent():GetParent().isMoving = false;
+	end
+end)
+
+function NIT:createTradeCopyFormatButtons()
+	if (not NIT.copyTradeTimeButton) then
+		NIT.copyTradeTimeButton = CreateFrame("CheckButton", "NITCopyTradeTimeButton", NITTradeCopyDragFrame, "ChatConfigCheckButtonTemplate");
+		NIT.copyTradeTimeButton:SetPoint("BOTTOM", -100, 0);
+		NITCopyTradeTimeButtonText:SetText("Time");
+		NIT.copyTradeTimeButton.tooltip = "Show time?";
+		--NIT.copyTradeTimeButton:SetFrameStrata("HIGH");
+		NIT.copyTradeTimeButton:SetFrameLevel(3);
+		NIT.copyTradeTimeButton:SetWidth(24);
+		NIT.copyTradeTimeButton:SetHeight(24);
+		NIT.copyTradeTimeButton:SetChecked(NIT.db.global.copyTradeTime);
+		NIT.copyTradeTimeButton:SetScript("OnClick", function()
+			local value = NIT.copyTradeTimeButton:GetChecked();
+			NIT.db.global.copyTradeTime = value;
+			NIT:recalcTradeCopyFrame();
+			C_Timer.After(0.05, function()
+				NITTradeCopyFrame:SetVerticalScroll(0);
+			end)
+			C_Timer.After(0.3, function()
+				NITTradeCopyFrame:SetVerticalScroll(0);
+			end)
+			--Refresh the config page.
+			--NIT.acr:NotifyChange("NovaInstanceTracker");
+		end)
+		NIT.copyTradeTimeButton:SetHitRectInsets(0, 0, -10, 7);
+	end
+	if (not NIT.copyTradeZoneButton) then
+		NIT.copyTradeZoneButton = CreateFrame("CheckButton", "NITCopyTradeZoneButton", NITTradeCopyDragFrame, "ChatConfigCheckButtonTemplate");
+		NIT.copyTradeZoneButton:SetPoint("BOTTOM", -15, 0);
+		NITCopyTradeZoneButtonText:SetText("Zone");
+		NIT.copyTradeZoneButton.tooltip = "Show Zonewhere trade happened?";
+		--NIT.copyTradeZoneButton:SetFrameStrata("HIGH");
+		NIT.copyTradeZoneButton:SetFrameLevel(4);
+		NIT.copyTradeZoneButton:SetWidth(24);
+		NIT.copyTradeZoneButton:SetHeight(24);
+		NIT.copyTradeZoneButton:SetChecked(NIT.db.global.copyTradeZone);
+		NIT.copyTradeZoneButton:SetScript("OnClick", function()
+			local value = NIT.copyTradeZoneButton:GetChecked();
+			NIT.db.global.copyTradeZone = value;
+			NIT:recalcTradeCopyFrame();
+			C_Timer.After(0.05, function()
+				NITTradeCopyFrame:SetVerticalScroll(0);
+			end)
+			C_Timer.After(0.3, function()
+				NITTradeCopyFrame:SetVerticalScroll(0);
+			end)
+			--Refresh the config page.
+			--NIT.acr:NotifyChange("NovaInstanceTracker");
+		end)
+		NIT.copyTradeZoneButton:SetHitRectInsets(0, 0, -10, 7);
+	end
+	if (not NIT.copyTradeTimeAgoButton) then
+		NIT.copyTradeTimeAgoButton = CreateFrame("CheckButton", "NITCopyTradeTimeAgoButton", NITTradeCopyDragFrame, "ChatConfigCheckButtonTemplate");
+		NIT.copyTradeTimeAgoButton:SetPoint("BOTTOM", 60, 0);
+		NITCopyTradeTimeAgoButtonText:SetText("Time Ago");
+		NIT.copyTradeTimeAgoButton.tooltip = "Show how long ago?";
+		--NIT.copyTradeTimeAgoButton:SetFrameStrata("HIGH");
+		NIT.copyTradeTimeAgoButton:SetFrameLevel(5);
+		NIT.copyTradeTimeAgoButton:SetWidth(24);
+		NIT.copyTradeTimeAgoButton:SetHeight(24);
+		NIT.copyTradeTimeAgoButton:SetChecked(NIT.db.global.copyTradeTimeAgo);
+		NIT.copyTradeTimeAgoButton:SetScript("OnClick", function()
+			local value = NIT.copyTradeTimeAgoButton:GetChecked();
+			NIT.db.global.copyTradeTimeAgo = value;
+			NIT:recalcTradeCopyFrame();
+			C_Timer.After(0.05, function()
+				NITTradeCopyFrame:SetVerticalScroll(0);
+			end)
+			C_Timer.After(0.3, function()
+				NITTradeCopyFrame:SetVerticalScroll(0);
+			end)
+			--Refresh the config page.
+			--NIT.acr:NotifyChange("NovaInstanceTracker");
+		end)
+		NIT.copyTradeTimeAgoButton:SetHitRectInsets(0, 0, -10, 7);
+	end
+	if (not NIT.copyTradeRecordsSlider) then
+		NIT.copyTradeRecordsSlider = CreateFrame("Slider", "NITCopyTradeRecordsSlider", NITTradeCopyDragFrame, "OptionsSliderTemplate");
+		NIT.copyTradeRecordsSlider:SetPoint("BOTTOM", 0, 40);
+		NITCopyTradeRecordsSliderText:SetText("Records");
+		NIT.copyTradeRecordsSlider.tooltip = "How many trade records to show?";
+		--NIT.copyTradeRecordsSlider:SetFrameStrata("HIGH");
+		NIT.copyTradeRecordsSlider:SetFrameLevel(5);
+		NIT.copyTradeRecordsSlider:SetWidth(224);
+		NIT.copyTradeRecordsSlider:SetHeight(16);
+		NIT.copyTradeRecordsSlider:SetMinMaxValues(1, 100);
+	    NIT.copyTradeRecordsSlider:SetObeyStepOnDrag(true);
+	    NIT.copyTradeRecordsSlider:SetValueStep(1);
+	    NIT.copyTradeRecordsSlider:SetStepsPerPage(1);
+		NIT.copyTradeRecordsSlider:SetValue(NIT.db.global.copyTradeRecords);
+	    NITCopyTradeRecordsSliderLow:SetText("1");
+	    NITCopyTradeRecordsSliderHigh:SetText("100");
+		NITCopyTradeRecordsSlider:HookScript("OnValueChanged", function(self, value)
+			NIT.db.global.copyTradeRecords = value;
+			NIT.copyTradeRecordsSlider.editBox:SetText(value);
+			NIT:recalcTradeCopyFrame();
+		end)
+		--Some of this was taken from AceGUI.
+		local function EditBox_OnEscapePressed(frame)
+			frame:ClearFocus();
+		end
+		local function EditBox_OnEnterPressed(frame)
+			local value = frame:GetText();
+			value = tonumber(value);
+			if value then
+				PlaySound(856);
+				NIT.db.global.copyTradeRecords = value;
+				NIT.copyTradeRecordsSlider:SetValue(value);
+				frame:ClearFocus();
+			else
+				--If not a valid number reset the box.
+				NIT.copyTradeRecordsSlider.editBox:SetText(NIT.db.global.copyTradeRecords);
+				frame:ClearFocus();
+			end
+		end
+		local function EditBox_OnEnter(frame)
+			frame:SetBackdropBorderColor(0.5, 0.5, 0.5, 1);
+		end
+		local function EditBox_OnLeave(frame)
+			frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8);
+		end
+		local ManualBackdrop = {
+			bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
+			edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+			tile = true, edgeSize = 1, tileSize = 5,
+		};
+		NIT.copyTradeRecordsSlider.editBox = CreateFrame("EditBox", nil, NIT.copyTradeRecordsSlider);
+		NIT.copyTradeRecordsSlider.editBox:SetAutoFocus(false);
+		NIT.copyTradeRecordsSlider.editBox:SetFontObject(GameFontHighlightSmall);
+		NIT.copyTradeRecordsSlider.editBox:SetPoint("TOP", NIT.copyTradeRecordsSlider, "BOTTOM");
+		NIT.copyTradeRecordsSlider.editBox:SetHeight(14);
+		NIT.copyTradeRecordsSlider.editBox:SetWidth(70);
+		NIT.copyTradeRecordsSlider.editBox:SetJustifyH("CENTER");
+		NIT.copyTradeRecordsSlider.editBox:EnableMouse(true);
+		NIT.copyTradeRecordsSlider.editBox:SetBackdrop(ManualBackdrop);
+		NIT.copyTradeRecordsSlider.editBox:SetBackdropColor(0, 0, 0, 0.5);
+		NIT.copyTradeRecordsSlider.editBox:SetBackdropBorderColor(0.3, 0.3, 0.30, 0.80);
+		NIT.copyTradeRecordsSlider.editBox:SetScript("OnEnter", EditBox_OnEnter);
+		NIT.copyTradeRecordsSlider.editBox:SetScript("OnLeave", EditBox_OnLeave);
+		NIT.copyTradeRecordsSlider.editBox:SetScript("OnEnterPressed", EditBox_OnEnterPressed);
+		NIT.copyTradeRecordsSlider.editBox:SetScript("OnEscapePressed", EditBox_OnEscapePressed);
+	end
+end
+
+function NIT:openTradeCopyFrame()
+	if (not NIT.copyTradeTimeButton) then
+		NIT:createTradeCopyFormatButtons();
+	end
+	NITTradeCopyDragFrame.fs:SetFont(NIT.regionFont, 14);
+	if (NITTradeCopyFrame:IsShown()) then
+		NITTradeCopyFrame:Hide();
+	else
+		NITTradeCopyFrame:SetHeight(NIT.db.global.tradeWindowHeight + 5.5);
+		NITTradeCopyFrame:SetWidth(NIT.db.global.tradeWindowWidth);
+		NITTradeCopyFrame.EditBox:SetFont(NIT.regionFont, 14);
+		NITTradeCopyFrame.EditBox:SetWidth(NITTradeCopyFrame:GetWidth() - 30);
+		 NIT.copyTradeRecordsSlider.editBox:SetText(NIT.db.global.copyTradeRecords);
+		NITTradeCopyFrame:Show();
+		NIT:recalcTradeCopyFrame();
+		C_Timer.After(0.05, function()
+			NITTradeCopyFrame:SetVerticalScroll(0);
+		end)
+		C_Timer.After(0.3, function()
+			NITTradeCopyFrame:SetVerticalScroll(0);
+		end)
+		--So interface options and this frame will open on top of each other.
+		if (InterfaceOptionsFrame:IsShown()) then
+			NITTradeCopyFrame:SetFrameStrata("DIALOG")
+		else
+			NITTradeCopyFrame:SetFrameStrata("HIGH")
+		end
+	end
+end
+
+function NIT:recalcTradeCopyFrame()
+	local text = "";
+	local count = 0;
+	local found;
+	for k, v in ipairs(NIT.data.trades) do
+		count = count + 1;
+		if (count > NIT.db.global.copyTradeRecords) then
+			break;
+		end
+		local msg = "";
+		local _, _, _, classColorHex = GetClassColor(v.tradeWhoClass);
+		local time = NIT:getTimeFormat(v.time, true, true);
+		local timeAgo = GetServerTime() - v.time;
+		if (v.playerMoney > 0) then
+			if (NIT.db.global.copyTradeTime) then
+				msg = msg .. "[|cFFDEDE42" .. time .. "|r] ";
+			end
+			msg = msg .. "|cFF9CD6DE" .. L["gave"] .. " |r"
+					..NIT:convertMoney(v.playerMoney, true, "", true) .. "|r |cFF9CD6DE" .. L["to"] .. " |c"
+					.. classColorHex .. v.tradeWho .. NIT.chatColor;
+			if (NIT.db.global.copyTradeZone) then
+				msg = msg .. " |cFF9CD6DE" .. L["in"] .. " " .. v.where;
+			end
+			if (NIT.db.global.copyTradeTimeAgo) then
+				msg = msg .. " |cFF9CD6DE(" .. NIT:getTimeString(timeAgo, true) .. " ago)";
+			end
+			msg = msg .. "\n";
+			found = true;
+		end
+		if (v.targetMoney > 0) then
+			if (NIT.db.global.copyTradeTime) then
+				msg = msg .. "[|cFFDEDE42" .. time .. "|r] ";
+			end
+			msg = msg .. "|cFF9CD6DE" .. L["received"] .. " |r"
+					..NIT:convertMoney(v.targetMoney, true, "", true) .. "|r |cFF9CD6DE" .. L["from"] .. " |c"
+					.. classColorHex .. v.tradeWho .. NIT.chatColor;
+			if (NIT.db.global.copyTradeZone) then
+				msg = msg .. " |cFF9CD6DE" .. L["in"] .. " " .. v.where;
+			end
+			if (NIT.db.global.copyTradeTimeAgo) then
+				msg = msg .. " |cFF9CD6DE(" .. NIT:getTimeString(timeAgo, true) .. " ago)";
+			end
+			msg = msg .. "\n";
+			found = true;
+		end
+		text = text .. msg;
+	end
+	--Remove newline chars from start and end of string.
+	--text = string.gsub(text, "^%s*(.-)%s*$", "%1");
+	if (not found) then
+		NITTradeCopyFrame.EditBox:SetText("|cffffff00No trade logs found.");
+	else
+		NITTradeCopyFrame.EditBox:SetText(text);
+		NITTradeCopyFrame.EditBox:HighlightText();
+		NITTradeCopyFrame.EditBox:SetFocus();
+	end
 end
 
 ---Rested Info---
@@ -2063,8 +2447,10 @@ function NIT:openAltsFrame()
 	if (NITAltsFrame:IsShown()) then
 		NITAltsFrame:Hide();
 	else
-		NITAltsFrame:SetHeight(320);
-		NITAltsFrame:SetWidth(altsFrameWidth);
+		--NITAltsFrame:SetHeight(320);
+		--NITAltsFrame:SetWidth(altsFrameWidth);
+		NITAltsFrame:SetHeight(NIT.db.global.charsWindowHeight);
+		NITAltsFrame:SetWidth(NIT.db.global.charsWindowWidth);
 		local fontSize = false;
 		NITAltsFrame.EditBox:SetFont(NIT.regionFont, 14);
 		NITAltsFrame.EditBox:SetWidth(NITAltsFrame:GetWidth() - 30);

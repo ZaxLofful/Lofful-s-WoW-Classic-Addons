@@ -147,4 +147,10 @@ NIT.zones = {
 		expansion = "classic",
 		noLockout = true,
 	},
+	[533] = {
+		name = L["Naxxramas"],
+		type = "raid",
+		expansion = "classic",
+		noLockout = true,
+	},
 }

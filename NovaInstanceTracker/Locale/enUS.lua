@@ -298,3 +298,26 @@ L["instanceStatsOutputRunsPerLevelDesc"] = "Show how many runs it will take per 
 
 L["instanceStatsOutputRunsNextLevelTitle"] = "Runs Until Next Level";
 L["instanceStatsOutputRunsNextLevelDesc"] = "Show how many more runs you need until your next level?";
+
+L["instanceWindowWidthTitle"] = "Instance Window Width";
+L["instanceWindowWidthDesc"] = "How wide should the instance window be.";
+
+L["instanceWindowHeightTitle"] = "Instance Window Height";
+L["instanceWindowHeghtDesc"] = "How high should the instance window be.";
+
+L["charsWindowWidthTitle"] = "Characters Window Width";
+L["charsWindowWidthDesc"] = "How wide should the characters info window be.";
+
+L["charsWindowHeightTitle"] = "Characters Window Height";
+L["charsWindowHeghtDesc"] = "How high should the characters info window be.";
+
+L["tradeWindowWidthTitle"] = "Trade Window Width";
+L["tradeWindowWidthDesc"] = "How wide should the trade window be.";
+
+L["tradeWindowHeightTitle"] = "Trade Window Height";
+L["tradeWindowHeghtDesc"] = "How high should the trade window be.";
+
+L["resetFramesTitle"] = "Reset Windows";
+L["resetFramesDesc"] = "Reset all windows back to the middle of screen and sizes back to default.";
+
+L["resetFramesMsg"] = "Resetting all window positions and size.";

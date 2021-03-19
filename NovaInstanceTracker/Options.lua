@@ -134,18 +134,109 @@ NIT.options = {
 			get = "getTimeStampZone",
 			set = "setTimeStampZone",
 		},
+		instanceWindowWidth = {
+			type = "range",
+			name = L["instanceWindowWidthTitle"],
+			desc = L["instanceWindowWidthDesc"],
+			order = 26,
+			get = "getInstanceWindowWidth",
+			set = "setInstanceWindowWidth",
+			min = 575,
+			max = 900,
+			softMin = 575,
+			softMax = 900,
+			step = 1,
+			width = 1.5,
+		},
+		instanceWindowHeight = {
+			type = "range",
+			name = L["instanceWindowHeightTitle"],
+			desc = L["instanceWindowHeightDesc"],
+			order = 27,
+			get = "getInstanceWindowHeight",
+			set = "setInstanceWindowHeight",
+			min = 150,
+			max = 1200,
+			softMin = 150,
+			softMax = 1200,
+			step = 1,
+			width = 1.5,
+		},
+		charsWindowWidth = {
+			type = "range",
+			name = L["charsWindowWidthTitle"],
+			desc = L["charsWindowWidthDesc"],
+			order = 28,
+			get = "getCharsWindowWidth",
+			set = "setCharsWindowWidth",
+			min = 350,
+			max = 900,
+			softMin = 350,
+			softMax = 900,
+			step = 1,
+			width = 1.5,
+		},
+		charsWindowHeight = {
+			type = "range",
+			name = L["charsWindowHeightTitle"],
+			desc = L["charsWindowHeightDesc"],
+			order = 29,
+			get = "getCharsWindowHeight",
+			set = "setCharsWindowHeight",
+			min = 150,
+			max = 950,
+			softMin = 150,
+			softMax = 950,
+			step = 1,
+			width = 1.5,
+		},
+		tradeWindowWidth = {
+			type = "range",
+			name = L["tradeWindowWidthTitle"],
+			desc = L["tradeWindowWidthDesc"],
+			order = 30,
+			get = "getTradeWindowWidth",
+			set = "setTradeWindowWidth",
+			min = 350,
+			max = 900,
+			softMin = 350,
+			softMax = 900,
+			step = 1,
+			width = 1.5,
+		},
+		tradeWindowHeight = {
+			type = "range",
+			name = L["tradeWindowHeightTitle"],
+			desc = L["tradeWindowHeightDesc"],
+			order = 31,
+			get = "getTradeWindowHeight",
+			set = "setTradeWindowHeight",
+			min = 150,
+			max = 950,
+			softMin = 150,
+			softMax = 950,
+			step = 1,
+			width = 1.5,
+		},
+		resetFrames = {
+			type = "execute",
+			name = L["resetFramesTitle"],
+			desc = L["resetFramesDesc"],
+			func = "resetFrames",
+			order = 32,
+		},
 		detectSameInstance = {
 			type = "toggle",
 			name = L["detectSameInstanceTitle"],
 			desc = L["detectSameInstanceDesc"],
-			order = 26,
+			order = 33,
 			get = "getDetectSameInstance",
 			set = "setDetectSameInstance",
 		},
 		logHeader = {
 			type = "header",
 			name = L["logHeaderDesc"],
-			order = 30,
+			order = 50,
 		},
 		logTextExample = {
 			type = "description",
@@ -153,19 +244,19 @@ NIT.options = {
 				return NIT:getLogExample();
 			end,
 			fontSize = "medium",
-			order = 31,
+			order = 51,
 		},
 		openInstanceLogFrame = {
 			type = "execute",
 			name = L["openInstanceLogFrameTitle"],
 			func = "openInstanceLogFrame",
-			order = 35,
+			order = 55,
 		},
 		logSize = {
 			type = "range",
 			name = L["logSizeTitle"],
 			desc = L["logSizeDesc"],
-			order = 36,
+			order = 56,
 			get = "getLogSize",
 			set = "setLogSize",
 			min = 1,
@@ -179,7 +270,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["showAltsLogTitle"],
 			desc = L["showAltsLogDesc"],
-			order = 37,
+			order = 57,
 			get = "getShowAltsLog",
 			set = "setShowAltsLog",
 		},
@@ -187,7 +278,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["showLockoutTimeTitle"],
 			desc = L["showLockoutTimeDesc"],
-			order = 38,
+			order = 58,
 			get = "getShowLockoutTime",
 			set = "setShowLockoutTime",
 		},
@@ -195,7 +286,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["show24HourOnlyTitle"],
 			desc = L["show24HourOnlyDesc"],
-			order = 39,
+			order = 59,
 			get = "getShow24HourOnly",
 			set = "setShow24HourOnly",
 		},
@@ -213,26 +304,26 @@ NIT.options = {
 				[2] = "medium",
 				[3] = "short",
 			},
-			order = 39,
+			order = 60,
 			get = "getTimeStringType",
 			set = "setTimeStringType",
 		},
 		instanceStatsHeader = {
 			type = "header",
 			name = L["instanceStatsHeaderDesc"],
-			order = 50,
+			order = 70,
 		},
 		instanceStatsText = {
 			type = "description",
 			name = "|cFFFFFF00" .. L["instanceStatsTextDesc"],
 			fontSize = "medium",
-			order = 51,
+			order = 71,
 		},
 		instanceStatsOutput = {
 			type = "toggle",
 			name = L["instanceStatsOutputTitle"],
 			desc = L["instanceStatsOutputDesc"],
-			order = 52,
+			order = 72,
 			get = "getInstanceStatsOutput",
 			set = "setInstanceStatsOutput",
 		},
@@ -248,7 +339,7 @@ NIT.options = {
 				[1] = "self",
 				[2] = "group",
 			},
-			order = 53,
+			order = 73,
 			width = "double",
 			get = "getInstanceStatsOutputWhere",
 			set = "setInstanceStatsOutputWhere",
@@ -257,7 +348,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputMobCountTitle"],
 			desc = L["instanceStatsOutputMobCountDesc"],
-			order = 55,
+			order = 75,
 			get = "getInstanceStatsOutputMobCount",
 			set = "setInstanceStatsOutputMobCount",
 		},
@@ -265,7 +356,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputXPTitle"],
 			desc = L["instanceStatsOutputXPDesc"],
-			order = 56,
+			order = 76,
 			get = "getInstanceStatsOutputXP",
 			set = "setInstanceStatsOutputXP",
 		},
@@ -273,7 +364,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputAverageXPTitle"],
 			desc = L["instanceStatsOutputAverageXPDesc"],
-			order = 57,
+			order = 77,
 			get = "getInstanceStatsOutputAverageXP",
 			set = "setInstanceStatsOutputAverageXP",
 		},
@@ -281,7 +372,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputTimeTitle"],
 			desc = L["instanceStatsOutputTimeDesc"],
-			order = 58,
+			order = 78,
 			get = "getInstanceStatsOutputTime",
 			set = "setInstanceStatsOutputTime",
 		},
@@ -289,7 +380,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputGoldTitle"],
 			desc = L["instanceStatsOutputGoldDesc"],
-			order = 59,
+			order = 79,
 			get = "getInstanceStatsOutputGold",
 			set = "setInstanceStatsOutputGold",
 		},
@@ -297,7 +388,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputAverageGroupLevelTitle"],
 			desc = L["instanceStatsOutputAverageGroupLevelDesc"],
-			order = 60,
+			order = 80,
 			get = "getInstanceStatsOutputAverageGroupLevel",
 			set = "setInstanceStatsOutputAverageGroupLevel",
 		},
@@ -305,7 +396,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["showStatsInRaidTitle"],
 			desc = L["showStatsInRaidDesc"],
-			order = 61,
+			order = 81,
 			get = "getShowStatsInRaid",
 			set = "setShowStatsInRaid",
 		},
@@ -313,7 +404,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["printRaidInsteadTitle"],
 			desc = L["printRaidInsteadDesc"],
-			order = 62,
+			order = 82,
 			get = "getPrintRaidInstead",
 			set = "setPrintRaidInstead",
 		},
@@ -321,7 +412,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["statsOnlyWhenActivityTitle"],
 			desc = L["statsOnlyWhenActivityDesc"],
-			order = 63,
+			order = 83,
 			get = "getStatsOnlyWhenActivity",
 			set = "setStatsOnlyWhenActivity",
 		},
@@ -329,7 +420,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputRunsPerLevelTitle"],
 			desc = L["instanceStatsOutputRunsPerLevelDesc"],
-			order = 64,
+			order = 84,
 			get = "getInstanceStatsOutputRunsPerLevel",
 			set = "setInstanceStatsOutputRunsPerLevel",
 		},
@@ -337,7 +428,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputRunsNextLevelTitle"],
 			desc = L["instanceStatsOutputRunsNextLevelDesc"],
-			order = 65,
+			order = 85,
 			get = "getInstanceStatsOutputRunsNextLevel",
 			set = "setInstanceStatsOutputRunsNextLevel",
 		},
@@ -468,7 +559,16 @@ NIT.optionDefaults = {
 		trimDataBelowLevel = 1,
 		instanceStatsOutputRunsPerLevel = true,
 		instanceStatsOutputRunsNextLevel = false,
-		
+		instanceWindowWidth = 620,
+		instanceWindowHeight = 501,
+		charsWindowWidth = 550,
+		charsWindowHeight = 320,
+		tradeWindowWidth = 580,
+		tradeWindowHeight = 320,
+		copyTradeTime = true,
+		copyTradeZone = true,
+		copyTradeTimeAgo = true,
+		copyTradeRecords = 100;
 		resetCharData = true, --Reset one time to delete data before alt UI stuff was added.
 	},
 };
@@ -789,4 +889,95 @@ end
 
 function NIT:getInstanceStatsOutputRunsNextLevel(info)
 	return self.db.global.instanceStatsOutputRunsNextLevel;
+end
+
+--Instance window dimensions.
+function NIT:setInstanceWindowWidth(info, value)
+	self.db.global.instanceWindowWidth = value;
+	_G["NITInstanceFrame"]:SetWidth(value);
+	_G["NITInstanceFrame"].EditBox:SetWidth(value - 30);
+end
+
+function NIT:getInstanceWindowWidth(info)
+	return self.db.global.instanceWindowWidth;
+end
+
+function NIT:setInstanceWindowHeight(info, value)
+	self.db.global.instanceWindowHeight = value;
+	_G["NITInstanceFrame"]:SetHeight(value);
+end
+
+function NIT:getInstanceWindowHeight(info)
+	return self.db.global.instanceWindowHeight;
+end
+
+--Chars window dimensions.
+function NIT:setCharsWindowWidth(info, value)
+	self.db.global.charsWindowWidth = value;
+	_G["NITAltsFrame"]:SetWidth(value);
+	_G["NITAltsFrame"].EditBox:SetWidth(value - 30);
+end
+
+function NIT:getCharsWindowWidth(info)
+	return self.db.global.charsWindowWidth;
+end
+
+function NIT:setCharsWindowHeight(info, value)
+	self.db.global.charsWindowHeight = value;
+	_G["NITAltsFrame"]:SetHeight(value);
+end
+
+function NIT:getCharsWindowHeight(info)
+	return self.db.global.charsWindowHeight;
+end
+
+--Trade window dimensions.
+function NIT:setTradeWindowWidth(info, value)
+	self.db.global.tradeWindowWidth = value;
+	_G["NITTradeLogFrame"]:SetWidth(value);
+	_G["NITTradeLogFrame"].EditBox:SetWidth(value - 30);
+end
+
+function NIT:getTradeWindowWidth(info)
+	return self.db.global.tradeWindowWidth;
+end
+
+function NIT:setTradeWindowHeight(info, value)
+	self.db.global.tradeWindowHeight = value;
+	_G["NITTradeLogFrame"]:SetHeight(value);
+end
+
+function NIT:getTradeWindowHeight(info)
+	return self.db.global.tradeWindowHeight;
+end
+
+--Reset frames.
+function NIT:resetFrames()
+	self.db.global.instanceWindowWidth = self.optionDefaults.global.instanceWindowWidth;
+	self.db.global.instanceWindowHeight = self.optionDefaults.global.instanceWindowHeight;
+	self.db.global.charsWindowWidth = self.optionDefaults.global.charsWindowWidth;
+	self.db.global.charsWindowHeight = self.optionDefaults.global.charsWindowHeight;
+	self.db.global.tradeWindowWidth = self.optionDefaults.global.tradeWindowWidth;
+	self.db.global.tradeWindowHeight = self.optionDefaults.global.tradeWindowHeight;
+	_G["NITInstanceFrame"]:SetWidth(self.db.global.instanceWindowWidth);
+	_G["NITInstanceFrame"].EditBox:SetWidth(self.db.global.instanceWindowWidth - 30);
+	_G["NITInstanceFrame"]:SetHeight(self.db.global.instanceWindowHeight);
+	_G["NITInstanceFrame"]:ClearAllPoints();
+	_G["NITInstanceFrame"]:SetPoint("CENTER", UIParent, 0, 100);
+	_G["NITAltsFrame"]:SetWidth(self.db.global.charsWindowWidth);
+	_G["NITAltsFrame"].EditBox:SetWidth(self.db.global.charsWindowWidth - 30);
+	_G["NITAltsFrame"]:SetHeight(self.db.global.charsWindowHeight);
+	_G["NITAltsFrame"]:ClearAllPoints();
+	_G["NITAltsFrame"]:SetPoint("CENTER", UIParent, 0, 100);
+	_G["NITTradeLogFrame"]:SetWidth(self.db.global.tradeWindowWidth);
+	_G["NITTradeLogFrame"].EditBox:SetWidth(self.db.global.tradeWindowWidth - 30);
+	_G["NITTradeLogFrame"]:SetHeight(self.db.global.tradeWindowHeight);
+	_G["NITTradeLogFrame"]:ClearAllPoints();
+	_G["NITTradeLogFrame"]:SetPoint("CENTER", UIParent, 20, 120);
+	_G["NITTradeCopyFrame"]:SetWidth(self.db.global.tradeWindowWidth);
+	_G["NITTradeCopyFrame"].EditBox:SetWidth(self.db.global.tradeWindowWidth - 30);
+	_G["NITTradeCopyFrame"]:SetHeight(self.db.global.tradeWindowHeight);
+	_G["NITTradeCopyFrame"]:ClearAllPoints();
+	_G["NITTradeCopyFrame"]:SetPoint("CENTER", UIParent, -70, 150);
+	NIT:print(L["resetFramesMsg"]);
 end

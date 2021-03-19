@@ -31,7 +31,8 @@ function NIT:OnCommReceived(commPrefix, string, distribution, sender)
 	end
 	local decoded;
 	if (distribution == "YELL" or distribution == "SAY") then
-		decoded = NIT.libDeflate:DecodeForWoWChatChannel(string);
+		return;
+		--decoded = NIT.libDeflate:DecodeForWoWChatChannel(string);
 	else
 		decoded = NIT.libDeflate:DecodeForWoWAddonChannel(string);
 	end
@@ -599,7 +600,7 @@ function NIT:leftInstance()
 	NIT.lastInstanceName = "(Unknown Instance)";
 end
 
-function NIT:showInstanceStats(id)
+function NIT:showInstanceStats(id, output, showAll)
 	if (not id) then
 		id = 1;
 	end
@@ -620,15 +621,16 @@ function NIT:showInstanceStats(id)
 	local pColor, sColor = "|cFFFFFFFF", "|cFF9CD6DE";
 	--local text = "(" .. NIT.lastInstanceName .. ")";
 	--local text = pColor;
-	local text = sColor .. NIT.lastInstanceName;
-	if (NIT.db.global.instanceStatsOutputMobCount) then
+	--local text = sColor .. NIT.lastInstanceName;
+	local text = sColor .. data.instanceName;
+	if (NIT.db.global.instanceStatsOutputMobCount or showAll) then
 		--text = text .. " |cFF9CD6DEMobs: " .. data.mobCount;
 		text = text .. pColor .. " " .. L["statsMobs"] .. " " .. sColor .. data.mobCount;
 	end
-	if (NIT.db.global.instanceStatsOutputXP and UnitLevel("player") ~= NIT.maxLevel) then
+	if ((NIT.db.global.instanceStatsOutputXP or showAll) and UnitLevel("player") ~= NIT.maxLevel) then
 		text = text .. pColor .. " " .. L["statsXP"] .. " " .. sColor .. NIT:commaValue(data.xpFromChat);
 	end
-	if (NIT.db.global.instanceStatsOutputAverageXP and UnitLevel("player") ~= NIT.maxLevel) then
+	if ((NIT.db.global.instanceStatsOutputAverageXP or showAll) and UnitLevel("player") ~= NIT.maxLevel) then
 		if (data.xpFromChat and data.xpFromChat > 0 and data.mobCount and data.mobCount > 0) then
 			local averageXP = data.xpFromChat / data.mobCount
 			text = text .. pColor .. " " .. L["statsAverageXP"] .. " " .. sColor .. NIT:round(averageXP, 2);
@@ -636,15 +638,15 @@ function NIT:showInstanceStats(id)
 			text = text .. pColor .. " " .. L["statsAverageXP"] .. " " .. sColor .. "0";
 		end
 	end
-	if (NIT.db.global.instanceStatsOutputTime) then
+	if (NIT.db.global.instanceStatsOutputTime or showAll) then
 		text = text .. pColor .. " " .. L["statsTime"] .. " " .. sColor .. timeSpent;
 	end
-	if (NIT.db.global.instanceStatsOutputAverageGroupLevel and data.groupAverage) then
+	if ((NIT.db.global.instanceStatsOutputAverageGroupLevel or showAll) and data.groupAverage) then
 		text = text .. pColor .. " " .. L["statsAverageGroupLevel"] .. " " .. sColor .. NIT:round(data.groupAverage, 2);
 	end
 	--Don't send gold to group chat.
 	local money = "0";
-	if (NIT.db.global.instanceStatsOutputGold and NIT.db.global.instanceStatsOutput ~= "group") then
+	if ((NIT.db.global.instanceStatsOutputGold and NIT.db.global.instanceStatsOutput ~= "group") or showAll) then
 		if (data.rawMoneyCount and data.rawMoneyCount > 0) then
 			money = data.rawMoneyCount;
 		elseif (data.enteredMoney and data.leftMoney and data.enteredMoney > 0 and data.leftMoney > 0) then
@@ -665,14 +667,55 @@ function NIT:showInstanceStats(id)
 		--local percent = NIT:round((data.xpFromChat/maxXP) * 100);
 		local runsPerLevel = NIT:round(maxXP / data.xpFromChat, 1);
 		local runsToLevel = NIT:round((maxXP - currentXP) / data.xpFromChat, 1);
-		if (NIT.db.global.instanceStatsOutputRunsPerLevel and runsPerLevel > 0) then
+		if ((NIT.db.global.instanceStatsOutputRunsPerLevel or showAll) and runsPerLevel > 0) then
 			text = text .. pColor .. " " .. L["statsRunsPerLevel"] .. " " .. sColor .. runsPerLevel;
 		end
-		if (NIT.db.global.instanceStatsOutputRunsNextLevel and runsToLevel > 0) then
+		if ((NIT.db.global.instanceStatsOutputRunsNextLevel or showAll) and runsToLevel > 0) then
 			text = text .. pColor .. " " .. L["statsRunsNextLevel"] .. " " .. sColor .. runsToLevel;
 		end
 	end
-	if (not NIT.db.global.statsOnlyWhenActivity or ((data.xpFromChat and data.xpFromChat > 0)
+	if (output) then
+		local prefix = "Last Dungeon";
+		if (NIT.inInstance) then
+			prefix = "Current Dungeon";
+		end
+		if (output == "group") then
+			if (IsInRaid()) then
+		  		SendChatMessage("[NIT] " .. prefix.. " " .. NIT:stripColors(text), "RAID");
+	  		elseif (IsInGroup()) then
+	  			SendChatMessage("[NIT] " .. prefix.. " " .. NIT:stripColors(text), "PARTY");
+			else
+				NIT:print(NIT.prefixColor .. prefix.. " " .. text);
+			end
+		elseif (output == "say" or output == "yell" or output == "party" or output == "guild"
+			or output == "officer" or output == "raid") then
+			if (output == "raid" and not IsInRaid()) then
+				NIT:print("You are not in a raid.");
+				return;
+		  	elseif (output == "party" and not IsInGroup()) then
+		  		NIT:print("You are not in a party.");
+		  		return;
+			end
+			SendChatMessage("[NIT] " .. prefix.. " " .. NIT:stripColors(text), string.upper(output));
+		elseif (output == "self") then
+			NIT:print(NIT.prefixColor .. prefix.. " " .. text);
+		elseif (output == "send") then
+			--If no channel was specified run the normal output with added prefix.
+			if (NIT.db.global.instanceStatsOutputWhere == "group") then
+				if (IsInRaid()) then
+					if (NIT.db.global.showStatsInRaid) then
+		  				SendChatMessage("[NIT] " .. prefix.. " " .. NIT:stripColors(text), "RAID");
+		  			elseif (NIT.db.global.printRaidInstead) then
+		  				NIT:print(NIT.prefixColor .. prefix.. " " .. text);
+		  			end
+		  		elseif (IsInGroup()) then
+		  			SendChatMessage("[NIT] " .. prefix.. " " .. NIT:stripColors(text), "PARTY");
+				end
+			else
+				NIT:print(NIT.prefixColor .. prefix.. " " .. text);
+			end
+		end
+	elseif (not NIT.db.global.statsOnlyWhenActivity or ((data.xpFromChat and data.xpFromChat > 0)
 			or (data.mobCount and data.mobCount > 0) or tonumber(money) > 0)) then
 		C_Timer.After(0.7, function()
 			if (NIT.db.global.instanceStatsOutput and NIT.db.global.instanceStatsOutputWhere == "group") then

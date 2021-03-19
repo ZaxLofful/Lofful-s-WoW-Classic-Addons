@@ -874,10 +874,34 @@ function ML:TableDemo(n, onlyText)
 end
 
 ---
+function ML:ScaleAdjustment()
+  if not self.useUIScale then
+    return 1
+  end
+  local sw, _= GetPhysicalScreenSize()
+  local ui = UIParent:GetWidth()
+  return sw/ui
+end
+
+function ML:AdjustScale(newScale)
+  if not newScale then
+    newScale = 1
+  end
+  if not self.useUIScale then
+    return newScale
+  end
+  local adj = self:ScaleAdjustment()
+  local ns = newScale * adj
+  self:Debug(2, "Using UI scale for Scale % x % -> ", newScale, adj, ns)
+  return ns
+end
+
+
 -- Changes the scale without changing the anchor
 function ML:ChangeScale(f, newScale)
   local pt1, parent, pt2, x, y = f:GetPoint()
   local oldScale = f:GetScale()
+  newScale = self:AdjustScale(newScale)
   local ptMult = oldScale / newScale -- correction for point
   self:Debug(7, "Changing scale from % to % for pt % / % x % y % - point multiplier %", oldScale, newScale, pt1, pt2, x,
              y, ptMult)
@@ -911,10 +935,15 @@ function ML:WipeFrame(f, ...)
   if not f then
     return nil -- nothing to wipe
   end
+  if f.isMinimapButton then
+    -- Do nothing so older addon code used to wipe and recreate on resize work without creating
+    -- errors for other minimap handling addons
+    f:Hide()
+    return f
+  end
   if f.isldbi then
-    self:WipeFrame(f.isldbi)
-    wipe(f)
-    return nil
+    f.isldbi:Hide()
+    return f
   end
   if f.Hide then
     f:Hide() -- first hide before we change children etc
@@ -1235,10 +1264,15 @@ end
 ML.allowLDBI = true -- set to false to use our own code even if LDBI is detected (better rendering)
 ML.minimapButtonAngle = 154 -- Make sure this is unique to your addon
 
+-- made it noop to call again
 function ML:minimapButton(pos, name, icon)
   name = name or (self.name .. "minimapButton")
   local ldbi = _G.LibStub and _G.LibStub:GetLibrary("LibDBIcon-1.0", true)
   if ldbi and icon and self.allowLDBI then
+    if _G[name] and _G[name].isldbi then
+      _G[name].isldbi:Show()
+      return _G[name]
+    end
     local b = {}
     b.isldbi = true
     b.SetScript = function(w, sname, fn)
@@ -1258,8 +1292,10 @@ function ML:minimapButton(pos, name, icon)
     b.isldbi.icon:SetSize(18, 18) -- fix up the 17,17 default in LDBI to more closely match ours
     return b
   end
-  local b = CreateFrame("Button", name, Minimap)
+  local b = _G[name] or CreateFrame("Button", name, Minimap)
   b.name = name
+  b.isMinimapButton = true
+  b:ClearAllPoints()
   b:SetFrameStrata("HIGH")
   if pos then
     local pt, xOff, yOff = unpack(pos)
@@ -1282,22 +1318,26 @@ function ML:minimapButton(pos, name, icon)
   b:RegisterForClicks("AnyUp")
   b:RegisterForDrag("LeftButton")
   b:SetHighlightTexture(136477) -- interface/minimap/ui-minimap-zoombutton-highlight
-  local bg = b:CreateTexture(nil, "BACKGROUND")
-  bg:SetSize(24, 24)
-  bg:SetTexture(136467) -- interface/minimap/ui-minimap-background
-  bg:SetPoint("CENTER", 1, 1)
-  local o = b:CreateTexture(nil, "OVERLAY")
-  o:SetSize(54, 54)
-  o:SetTexture(136430) -- interface/minimap/minimap-trackingborder
-  o:SetPoint("TOPLEFT")
-  if icon then
-    local t = b:CreateTexture(nil, "ARTWORK")
-    t:SetSize(19, 19)
-    t:SetTexture(icon)
-    t:SetPoint("TOPLEFT", 7, -6)
-    b.icon = t
+  if not b.bgTextures then
+    local bg = b:CreateTexture(nil, "BACKGROUND")
+    b.bgTextures= bg
+    bg:SetSize(24, 24)
+    bg:SetTexture(136467) -- interface/minimap/ui-minimap-background
+    bg:SetPoint("CENTER", 1, 1)
+    local o = b:CreateTexture(nil, "OVERLAY")
+    o:SetSize(54, 54)
+    o:SetTexture(136430) -- interface/minimap/minimap-trackingborder
+    o:SetPoint("TOPLEFT")
+    if icon then
+      local t = b:CreateTexture(nil, "ARTWORK")
+      t:SetSize(19, 19)
+      t:SetTexture(icon)
+      t:SetPoint("TOPLEFT", 7, -6)
+      b.icon = t
+    end
   end
-  self:Debug("Created minimap button % %", name, b)
+  self:Debug("[Re]Created minimap button % %", name, b)
+  b:Show()
   return b
 end
 
@@ -1360,7 +1400,7 @@ function ML:SavePosition(f)
   -- change point to TOPLEFT
   self:SetTopLeft(f)
   local point, relTo, relativePoint, xOfs, yOfs = f:GetPoint()
-  local scale = f:GetScale()
+  local scale = f:GetScale() / self:ScaleAdjustment()
   self:Debug(2, "SavePosition: Stopped moving/scaling widget % % % % relative to % % - scale %", point, relativePoint,
              xOfs, yOfs, relTo, relTo and relTo:GetName(), scale)
   local pos = {relativePoint, xOfs, yOfs} -- relativePoint seems to always be same as point, when called at the right time
@@ -1373,9 +1413,7 @@ end
 
 function ML:RestorePosition(f, pos, scale)
   self:Debug("# Restoring % %", pos, scale)
-  if scale then
-    f:SetScale(scale)
-  end
+  f:SetScale(self:AdjustScale(scale))
   f:ClearAllPoints()
   f:SetPoint("TOPLEFT", nil, unpack(pos))
   -- if our widget we use the widget function, otherwise the generic snap

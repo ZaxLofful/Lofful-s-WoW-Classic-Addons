@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------
--- 	Leatrix Plus 1.13.91 (22nd January 2021)
+-- 	Leatrix Plus 1.13.96 (10th March 2021)
 ----------------------------------------------------------------------
 
 --	01:Functions	20:Live			50:RunOnce		70:Logout			
@@ -20,7 +20,7 @@
 	local void
 
 	-- Version
-	LeaPlusLC["AddonVer"] = "1.13.91"
+	LeaPlusLC["AddonVer"] = "1.13.96"
 	LeaPlusLC["RestartReq"] = nil
 
 	-- Get locale table
@@ -9080,7 +9080,7 @@
 				-- Help panel
 				if not LeaPlusLC.HelpFrame then
 					local frame = CreateFrame("FRAME", nil, UIParent)
-					frame:SetSize(570, 340); frame:SetFrameStrata("FULLSCREEN_DIALOG"); frame:SetFrameLevel(100)
+					frame:SetSize(570, 360); frame:SetFrameStrata("FULLSCREEN_DIALOG"); frame:SetFrameLevel(100)
 					frame.tex = frame:CreateTexture(nil, "BACKGROUND"); frame.tex:SetAllPoints(); frame.tex:SetColorTexture(0.05, 0.05, 0.05, 0.9)
 					frame.close = CreateFrame("Button", nil, frame, "UIPanelCloseButton"); frame.close:SetSize(30, 30); frame.close:SetPoint("TOPRIGHT", 0, 0); frame.close:SetScript("OnClick", function() frame:Hide() end)
 					frame:ClearAllPoints(); frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
@@ -9092,7 +9092,7 @@
 					frame:SetScript("OnDragStart", frame.StartMoving)
 					frame:SetScript("OnDragStop", function() frame:StopMovingOrSizing() frame:SetUserPlaced(false) end)
 					frame:Hide()
-					LeaPlusLC:CreateBar("HelpPanelMainTexture", frame, 570, 340, "TOPRIGHT", 0.7, 0.7, 0.7, 0.7,  "Interface\\ACHIEVEMENTFRAME\\UI-GuildAchievement-Parchment-Horizontal-Desaturated.png")
+					LeaPlusLC:CreateBar("HelpPanelMainTexture", frame, 570, 360, "TOPRIGHT", 0.7, 0.7, 0.7, 0.7,  "Interface\\ACHIEVEMENTFRAME\\UI-GuildAchievement-Parchment-Horizontal-Desaturated.png")
 					-- Panel contents
 					local col1, col2, color1 = 10, 120, "|cffffffaa"
 					LeaPlusLC:MakeTx(frame, "Leatrix Plus Help", col1, -10)
@@ -9122,15 +9122,81 @@
 					LeaPlusLC:MakeWD(frame, "Follow your target persistently (toggle).", col2, -250)
 					LeaPlusLC:MakeWD(frame, color1 .. "/ltp rsnd", col1, -270)
 					LeaPlusLC:MakeWD(frame, "Restart the sound system.", col2, -270)
-					LeaPlusLC:MakeWD(frame, color1 .. "/ltp con", col1, -290)
-					LeaPlusLC:MakeWD(frame, "Launch the developer console with a large font.", col2, -290)
-					LeaPlusLC:MakeWD(frame, color1 .. "/rl", col1, -310)
-					LeaPlusLC:MakeWD(frame, "Reload the UI.", col2, -310)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp ra", col1, -290)
+					LeaPlusLC:MakeWD(frame, "Announce target in General chat channel (useful for rares).", col2, -290)
+					LeaPlusLC:MakeWD(frame, color1 .. "/ltp con", col1, -310)
+					LeaPlusLC:MakeWD(frame, "Launch the developer console with a large font.", col2, -310)
+					LeaPlusLC:MakeWD(frame, color1 .. "/rl", col1, -330)
+					LeaPlusLC:MakeWD(frame, "Reload the UI.", col2, -330)
 					LeaPlusLC.HelpFrame = frame
 					_G["LeaPlusGlobalHelpPanel"] = frame
 					table.insert(UISpecialFrames, "LeaPlusGlobalHelpPanel")
 				end
 				if LeaPlusLC.HelpFrame:IsShown() then LeaPlusLC.HelpFrame:Hide() else LeaPlusLC.HelpFrame:Show() end
+				return
+			elseif str == "ra" then
+				-- Announce target name, health percentage, coordinates and map pin link in General chat channel
+				local genChannel
+				if GameLocale == "deDE" 	then genChannel = "Allgemein"
+				elseif GameLocale == "esMX" then genChannel = "General"
+				elseif GameLocale == "esES" then genChannel = "General"
+				elseif GameLocale == "frFR" then genChannel = "Général"
+				elseif GameLocale == "itIT" then genChannel = "Generale"
+				elseif GameLocale == "ptBR" then genChannel = "Geral"
+				elseif GameLocale == "ruRU" then genChannel = "Общий"
+				elseif GameLocale == "koKR" then genChannel = "공개"
+				elseif GameLocale == "zhCN" then genChannel = "综合"
+				elseif GameLocale == "zhTW" then genChannel = "綜合"
+				else							 genChannel = "General"
+				end
+				if genChannel then
+					local index = GetChannelName(genChannel)
+					if index and index > 0 then
+						local mapID = C_Map.GetBestMapForUnit("player")
+						local pos = C_Map.GetPlayerMapPosition(mapID, "player")
+						if pos.x and pos.x ~= "0" and pos.y and pos.y ~= "0" then
+							local uHealth = UnitHealth("target")
+							local uHealthMax = UnitHealthMax("target")
+							-- Announce in chat
+							if uHealth and uHealth > 0 and uHealthMax and uHealthMax > 0 then
+								-- Get unit classification (elite, rare, rare elite or boss)
+								local unitType, unitTag = UnitClassification("target"), ""
+								if unitType then
+									if unitType == "rare" or unitType == "rareelite" then unitTag = "(" .. L["Rare"] .. ") " elseif unitType == "worldboss" then unitTag = "(" .. L["Boss"] .. ") " end
+								end
+								SendChatMessage(format("%%t " .. unitTag .. "(%d%%)%s", uHealth / uHealthMax * 100, " " .. string.format("%.0f", pos.x * 100) .. ":" .. string.format("%.0f", pos.y * 100)) .. " " .. L["by Leatrix Plus"], "CHANNEL", nil, index)
+								-- SendChatMessage(format("%%t " .. unitTag .. "(%d%%)%s", uHealth / uHealthMax * 100, " " .. string.format("%.0f", pos.x * 100) .. ":" .. string.format("%.0f", pos.y * 100)) .. " " .. L["by Leatrix Plus"], "WHISPER", nil, GetUnitName("player")) -- Debug
+							else
+								LeaPlusLC:Print("Invalid target.")
+							end
+						else
+							LeaPlusLC:Print("Cannot announce in this zone.")
+						end
+					else
+						LeaPlusLC:Print("Cannot find General chat channel.")
+					end
+				end
+				return
+			elseif str == "camp" then
+				-- Camp
+				local origCampMsg = _G.IDLE_MESSAGE
+				if not LeaPlusLC.NoCampFrame then
+					local frame = CreateFrame("FRAME", nil, UIParent)
+					LeaPlusLC.NoCampFrame = frame
+				end
+				if LeaPlusLC.NoCampFrame:IsEventRegistered("PLAYER_CAMPING") then
+					LeaPlusLC.NoCampFrame:UnregisterEvent("PLAYER_CAMPING")
+					_G.IDLE_MESSAGE = origCampMsg
+					LeaPlusLC:Print("Camping enabled.  You will camp.")
+				else
+					LeaPlusLC.NoCampFrame:RegisterEvent("PLAYER_CAMPING")
+					_G.IDLE_MESSAGE = nil
+					LeaPlusLC:Print("Camping disabled.  You won't camp.")
+				end
+				LeaPlusLC.NoCampFrame:SetScript("OnEvent", function()
+					local p = StaticPopup_Visible("CAMP")
+					_G[p .. "Button1"]:Click()
+				end)
 				return
 			elseif str == "admin" then
 				-- Preset profile (used for testing)

@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod("Horsemen", "DBM-Naxx", 4)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210129033150")
+mod:SetRevision("20210214212603")
 mod:SetCreatureID(16062, 16063, 16064, 16065)--30549
 mod:SetEncounterID(1121)
 mod:SetModelID(10729)
@@ -87,7 +87,7 @@ end
 do
 	local BoneBarrier = DBM:GetSpellInfo(29061)
 	function mod:SPELL_AURA_APPLIED(args)
-		if args.spellName == BoneBarrier then
+		if args.spellName == BoneBarrier and args:IsSrcTypeHostile() then
 			warnBoneBarrier:Show(args.destName)
 			timerBoneBarrier:Start(20, args.destName)
 		end
