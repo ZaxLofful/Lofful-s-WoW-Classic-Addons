@@ -3,9 +3,9 @@ if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
 end
 local mod	= DBM:NewMod("z628", "DBM-PvP")
 
-mod:SetRevision("20210102162846")
+mod:SetRevision("20210314225321")
 mod:SetZone(DBM_DISABLE_ZONE_DETECTION)
-mod:RegisterEvents("ZONE_CHANGED_NEW_AREA")
+mod:RegisterEvents("LOADING_SCREEN_DISABLED")
 
 do
 	local bgzone = false
@@ -19,13 +19,14 @@ do
 			generalMod:TrackHealth(34924, "AllianceBoss")
 			-- TODO: Add gate health
 		elseif bgzone then
+			bgzone = false
 			DBM:GetModByName("PvPGeneral"):StopTrackHealth()
 		end
 	end
 
-	function mod:ZONE_CHANGED_NEW_AREA()
+	function mod:LOADING_SCREEN_DISABLED()
 		self:Schedule(1, Init)
 	end
-	mod.PLAYER_ENTERING_WORLD	= mod.ZONE_CHANGED_NEW_AREA
-	mod.OnInitialize			= mod.ZONE_CHANGED_NEW_AREA
+	mod.PLAYER_ENTERING_WORLD	= mod.LOADING_SCREEN_DISABLED
+	mod.OnInitialize			= mod.LOADING_SCREEN_DISABLED
 end

@@ -1,9 +1,9 @@
 local mod	= DBM:NewMod("z30", "DBM-PvP")
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210102162846")
+mod:SetRevision("20210314225321")
 mod:SetZone(DBM_DISABLE_ZONE_DETECTION)
-mod:RegisterEvents("ZONE_CHANGED_NEW_AREA")
+mod:RegisterEvents("LOADING_SCREEN_DISABLED")
 
 mod:AddBoolOption("AutoTurnIn")
 
@@ -37,15 +37,16 @@ do
 		elseif bgzone then
 			bgzone = false
 			self:UnregisterShortTermEvents()
+			self:Stop()
 			DBM:GetModByName("PvPGeneral"):StopTrackHealth()
 		end
 	end
 
-	function mod:ZONE_CHANGED_NEW_AREA()
+	function mod:LOADING_SCREEN_DISABLED()
 		self:Schedule(1, Init, self)
 	end
-	mod.PLAYER_ENTERING_WORLD	= mod.ZONE_CHANGED_NEW_AREA
-	mod.OnInitialize			= mod.ZONE_CHANGED_NEW_AREA
+	mod.PLAYER_ENTERING_WORLD	= mod.LOADING_SCREEN_DISABLED
+	mod.OnInitialize			= mod.LOADING_SCREEN_DISABLED
 end
 
 do

@@ -3,9 +3,9 @@ if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
 end
 local mod	= DBM:NewMod("z1803", "DBM-PvP")
 
-mod:SetRevision("20210228223514")
+mod:SetRevision("20210314230414")
 mod:SetZone(DBM_DISABLE_ZONE_DETECTION)
-mod:RegisterEvents("ZONE_CHANGED_NEW_AREA")
+mod:RegisterEvents("LOADING_SCREEN_DISABLED")
 
 do
 	local bgzone = false
@@ -21,11 +21,11 @@ do
 		end
 	end
 
-	function mod:ZONE_CHANGED_NEW_AREA()
+	function mod:LOADING_SCREEN_DISABLED()
 		self:Schedule(1, Init, self)
 	end
-	mod.PLAYER_ENTERING_WORLD	= mod.ZONE_CHANGED_NEW_AREA
-	mod.OnInitialize			= mod.ZONE_CHANGED_NEW_AREA
+	mod.PLAYER_ENTERING_WORLD	= mod.LOADING_SCREEN_DISABLED
+	mod.OnInitialize			= mod.LOADING_SCREEN_DISABLED
 end
 
 do
@@ -45,13 +45,14 @@ do
 		["0.29:0.56"] = "Waterfall"
 	}
 
-	local function round(num)
-		return math.floor(num * 10 ^ 2 + 0.5) / 10 ^ 2
-	end
-
-	local ipairs = ipairs
+	local ipairs, mfloor = ipairs, math.floor
 	local C_VignetteInfo = C_VignetteInfo
+
 	local spawnTimer = mod:NewTimer(30, "TimerSpawn", "1864730") -- interface/lfgframe/lfgicon-seethingshore.blp
+
+	local function round(num)
+		return mfloor(num * 10 ^ 2 + 0.5) / 10 ^ 2
+	end
 
 	function mod:VIGNETTES_UPDATED()
 		local checkedThisRound = {}
@@ -65,7 +66,7 @@ do
 				end
 				local pos = round(poss.x) .. ":" .. round(poss.y)
 				if not azeriteNames[pos] then
-					DBM:Debug(("Found azerite at position unknown: %d, %d"):format(poss.x, poss.y))
+					DBM:Debug(("Found azerite at position unknown: (%s) %f, %f"):format(pos, pos.x, pos.y))
 				end
 				checkedThisRound[pos] = true
 				if not knownAzerite[pos] then
