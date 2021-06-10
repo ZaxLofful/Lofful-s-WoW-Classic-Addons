@@ -1,0 +1,7 @@
+## Interface: 20501
+## Title: FollowMe2
+## Version: 2
+## Author: Morvass
+## Notes: FollowMe & FollowMeStop
+
+FollowMe2.lua
