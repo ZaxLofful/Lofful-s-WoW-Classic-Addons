@@ -1,7 +1,7 @@
 <!-- $Id: UIDropDownMenuTemplates.xml 22 2017-05-25 07:11:15Z arith-179865 $ -->
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
-	<Button name="Lib_UIDropDownMenuButtonTemplate" virtual="true">
+	<Button name="PuggleLib_UIDropDownMenuButtonTemplate" virtual="true">
 		<Size x="100" y="16"/>
 		<Layers>
 			<Layer level="BACKGROUND">
@@ -101,7 +101,7 @@
 					</OnClick>
 					<OnEnter>
 						local level =  self:GetParent():GetParent():GetID() + 1;
-						local listFrame = _G["Lib_DropDownList"..level];
+						local listFrame = _G["PuggleLib_DropDownList"..level];
 						if ( not listFrame or not listFrame:IsShown() or select(2, listFrame:GetPoint()) ~= self ) then
 							Lib_ToggleDropDownMenu(level, self:GetParent().value, nil, nil, nil, nil, self:GetParent().menuList, self);
 						end
@@ -156,7 +156,7 @@
 			<OnEnter>
 				if ( self.hasArrow ) then
 					local level =  self:GetParent():GetID() + 1;
-					local listFrame = _G["Lib_DropDownList"..level];
+					local listFrame = _G["PuggleLib_DropDownList"..level];
 					if ( not listFrame or not listFrame:IsShown() or select(2, listFrame:GetPoint()) ~= self ) then
 						Lib_ToggleDropDownMenu(self:GetParent():GetID() + 1, self.value, nil, nil, nil, nil, self.menuList, self);
 					end
@@ -200,7 +200,7 @@
 		<DisabledFont style="GameFontDisableSmallLeft"/>
 	</Button>
 	
-	<Button name="Lib_UIDropDownListTemplate" hidden="true" frameStrata="DIALOG" enableMouse="true" virtual="true">
+	<Button name="PuggleLib_UIDropDownListTemplate" hidden="true" frameStrata="DIALOG" enableMouse="true" virtual="true">
 		<Frames>
 			<Frame name="$parentBackdrop" setAllPoints="true">
 				<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background-Dark" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
@@ -215,25 +215,33 @@
 					</EdgeSize>
 				</Backdrop>
 			</Frame>
-			<Frame name="$parentMenuBackdrop" setAllPoints="true" inherits="BackdropTemplate">
-    			<KeyValues>
-	        		<KeyValue key="backdropInfo" value="BACKDROP_DIALOG_32_32" type="global"/>
-    			</KeyValues>
+			<Frame name="$parentMenuBackdrop" setAllPoints="true">
+				<Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16"/>
+					</TileSize>
+					<BackgroundInsets>
+						<AbsInset left="5" right="5" top="5" bottom="4"/>
+					</BackgroundInsets>
+				</Backdrop>
 				<Scripts>
-					<OnLoad  inherit="prepend" >
+					<OnLoad>
 						self:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b);
 						self:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b);
 					</OnLoad>
 				</Scripts>
 			</Frame>
-			<Button name="$parentButton1" inherits="Lib_UIDropDownMenuButtonTemplate" id="1"/>
-			<Button name="$parentButton2" inherits="Lib_UIDropDownMenuButtonTemplate" id="2"/>
-			<Button name="$parentButton3" inherits="Lib_UIDropDownMenuButtonTemplate" id="3"/>
-			<Button name="$parentButton4" inherits="Lib_UIDropDownMenuButtonTemplate" id="4"/>
-			<Button name="$parentButton5" inherits="Lib_UIDropDownMenuButtonTemplate" id="5"/>
-			<Button name="$parentButton6" inherits="Lib_UIDropDownMenuButtonTemplate" id="6"/>
-			<Button name="$parentButton7" inherits="Lib_UIDropDownMenuButtonTemplate" id="7"/>
-			<Button name="$parentButton8" inherits="Lib_UIDropDownMenuButtonTemplate" id="8"/>
+			<Button name="$parentButton1" inherits="PuggleLib_UIDropDownMenuButtonTemplate" id="1"/>
+			<Button name="$parentButton2" inherits="PuggleLib_UIDropDownMenuButtonTemplate" id="2"/>
+			<Button name="$parentButton3" inherits="PuggleLib_UIDropDownMenuButtonTemplate" id="3"/>
+			<Button name="$parentButton4" inherits="PuggleLib_UIDropDownMenuButtonTemplate" id="4"/>
+			<Button name="$parentButton5" inherits="PuggleLib_UIDropDownMenuButtonTemplate" id="5"/>
+			<Button name="$parentButton6" inherits="PuggleLib_UIDropDownMenuButtonTemplate" id="6"/>
+			<Button name="$parentButton7" inherits="PuggleLib_UIDropDownMenuButtonTemplate" id="7"/>
+			<Button name="$parentButton8" inherits="PuggleLib_UIDropDownMenuButtonTemplate" id="8"/>
 		</Frames>
 		<Scripts>
 			<OnClick>
@@ -259,7 +267,7 @@
 				end
 				self.showTimer = nil;
 				if ( self:GetID() > 1 ) then
-					self.parent = _G["Lib_DropDownList"..(self:GetID() - 1)];
+					self.parent = _G["PuggleLib_DropDownList"..(self:GetID() - 1)];
 				end
 			</OnShow>
 			<OnHide>
@@ -268,7 +276,7 @@
 		</Scripts>
 	</Button>
 	
-	<Frame name="Lib_UIDropDownMenuTemplate" virtual="true">
+	<Frame name="PuggleLib_UIDropDownMenuTemplate" virtual="true">
 		<Size>
 			<AbsDimension x="40" y="32"/>
 		</Size>

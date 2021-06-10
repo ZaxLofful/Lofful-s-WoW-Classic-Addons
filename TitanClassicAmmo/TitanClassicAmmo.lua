@@ -108,11 +108,6 @@ end
 
 local function GetAmmoCount()
 	weapon, weapon_type, ammo_type = GetWeaponInfo(rangedSlotID)
---[[
-print("GetAmmoCount"
-.." '"..tostring(weapon).."'"
-)
---]]
 
 	if IsThrown(ammo_type) then
 		ammo_name = select(1, GetItemInfo(GetInventoryItemID("player", rangedSlotID))) or _G["UNKNOWN"]
@@ -184,7 +179,7 @@ function TitanPanelAmmoButton_PLAYER_LOGIN()
 	-- Class check
 	if class ~= "ROGUE" and class ~= "WARRIOR" and class ~= "HUNTER" then
 		TitanPanelAmmoButton_PLAYER_LOGIN = nil
-		ClrAmmoInfo()
+		ammo_show = true
 		return
 	end
 
@@ -261,26 +256,25 @@ function TitanPanelAmmoButton_GetButtonText(id)
      
 	local labelText, ammoText, ammoRichText, color;
 
+	if not ammo_count then -- safeguard to prevent malformed labels
+		ClrAmmoInfo() 
+	end
+
 	if (IsThrown(ammo_type)) then		          
 		labelText = L["TITAN_AMMO_BUTTON_LABEL_THROWN"];
-		ammoText = format(L["TITAN_AMMO_FORMAT"], ammo_count);
-		labelText = weapon_type.." : "
-		if TitanGetVar(TITAN_AMMO_ID, "ShowAmmoName") and ammo_name ~= "" then
-			ammoText = ammoText.."|cffffff9a".." ("..ammo_name..")".."|r"
-		end
-	elseif IsAmmo(ammo_type) then
-		labelText = L["TITAN_AMMO_BUTTON_LABEL_AMMO"];
-		labelText = weapon_type.." : "
 		ammoText = format(L["TITAN_AMMO_FORMAT"], ammo_count);
 		if TitanGetVar(TITAN_AMMO_ID, "ShowAmmoName") and ammo_name ~= "" then
 			ammoText = ammoText.."|cffffff9a".." ("..ammo_name..")".."|r"
 		end
 	else   
-		ClrAmmoInfo()
-		ammoText = ammo_name
-		labelText = weapon_type..""
+		labelText = L["TITAN_AMMO_BUTTON_LABEL_AMMO"];
+		ammoText = format(L["TITAN_AMMO_FORMAT"], ammo_count);
+		if TitanGetVar(TITAN_AMMO_ID, "ShowAmmoName") and ammo_name ~= "" then
+			ammoText = ammoText.."|cffffff9a".." ("..ammo_name..")".."|r"
+		end
 	end
 
+	labelText = weapon_type.." : "
 --[[
 print("_GetButtonText"
 .." '"..tostring(weapon_type).."'"

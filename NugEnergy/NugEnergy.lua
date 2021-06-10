@@ -9,10 +9,9 @@ local onlyText = false
 local shouldBeFull = false
 local isFull = true
 local isVertical
-local APILevel = math.floor(select(4,GetBuildInfo())/10000)
-local isClassicTicker = APILevel <= 2
-local isClassic = APILevel <= 2
-local GetSpecialization = APILevel <= 3 and function() end or _G.GetSpecialization
+local isClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+local isShadowlands = select(4,GetBuildInfo()) > 90000
+local GetSpecialization = isClassic and function() end or _G.GetSpecialization
 
 NugEnergy = CreateFrame("StatusBar","NugEnergy",UIParent)
 
@@ -76,7 +75,6 @@ local twPlaySound
 local EPT = Enum.PowerType
 local Enum_PowerType_Insanity = EPT.Insanity
 local Enum_PowerType_Energy = EPT.Energy
-local Enum_PowerType_Mana = EPT.Mana
 local Enum_PowerType_RunicPower = EPT.RunicPower
 local Enum_PowerType_LunarPower = EPT.LunarPower
 local Enum_PowerType_Focus = EPT.Focus
@@ -332,52 +330,60 @@ local ClassicTickerColorUpdate = function(self, tp, prevColor)
     end
 end
 
-local ClassicTickerFrame = CreateFrame("Frame")
-local bit_band = bit.band
-local playerGUID = UnitGUID("player")
-local externalManaGainTimestamp = 0
-ClassicTickerFrame:SetScript("OnEvent", function()
-    local timestamp, eventType, hideCaster,
-    srcGUID, srcName, srcFlags, srcFlags2,
-    dstGUID, dstName, dstFlags, dstFlags2,
-    spellID, spellName, spellSchool, auraType, amount = CombatLogGetCurrentEventInfo()
-    if dstGUID == playerGUID then
-        if eventType == "SPELL_PERIODIC_ENERGIZE" or eventType == "SPELL_ENERGIZE" then
-            externalManaGainTimestamp = GetTime()
+local GetMP5FromGear = function(unit)
+    local mp5 = 0;
+    for i = 1, 18 do
+        local itemLink = GetInventoryItemLink(unit, i);
+        if itemLink then
+            local stats = GetItemStats(itemLink);
+            if stats then
+                -- This returns (mp5 - 1)
+                local statMP5 = stats["ITEM_MOD_POWER_REGEN0_SHORT"];
+                if (statMP5) then
+                    mp5 = mp5 + statMP5 + 1;
+                end
+            end
         end
     end
+    return mp5;
+end
+
+local ClassicTickerFrame = CreateFrame("Frame")
+
+ClassicTickerFrame:RegisterUnitEvent("UNIT_STATS", "player")
+local manaPerTick = 1
+ClassicTickerFrame:SetScript("OnEvent", function()
+    local baseManaPerSec, castingManaPerSec = GetManaRegen()
+    manaPerTick = baseManaPerSec * 2 + GetMP5FromGear("player") * 0.4
 end)
 
+local maxEnergy = 100
 local tickFiltering = true
 local ClassicTickerOnUpdate = function(self)
     local currentEnergy = UnitPower("player", PowerTypeIndex)
     local now = GetTime()
     local possibleTick = false
     if currentEnergy > lastEnergyValue then
-        if PowerTypeIndex == Enum_PowerType_Energy and tickFiltering then
-            local diff = currentEnergy - lastEnergyValue
-            if  (diff > 18 and diff < 22) or -- normal tick
-                (diff > 38 and diff < 42) or -- adr rush
-                (diff < 42 and currentEnergy == UnitPowerMax("player", PowerTypeIndex)) -- including tick to cap, but excluding thistle tea
-            then
+        -- Mana tick
+        if PowerTypeIndex == 0 then
+            local replenished = currentEnergy - lastEnergyValue
+            local deviation = currentEnergy - lastEnergyValue - manaPerTick
+            -- Actual mana tick is always integer so there are deviations
+            if (deviation > -1.5) and (deviation < 1.5) then
                 possibleTick = true
-
-                local now = GetTime()
-                if now - externalManaGainTimestamp < 0.02 then
-                    externalManaGainTimestamp = 0
-                    possibleTick = false
-                end
-            end
-        elseif PowerTypeIndex == Enum_PowerType_Mana then
-            possibleTick = true
-
-            local now = GetTime()
-            if now - externalManaGainTimestamp < 0.02 then
-                externalManaGainTimestamp = 0
-                possibleTick = false
             end
         else
-            possibleTick = true
+            if tickFiltering then
+                local diff = currentEnergy - lastEnergyValue
+                if  (diff > 18 and diff < 22) or -- normal tick
+                    (diff > 38 and diff < 42) or -- adr rush
+                    (diff < 42 and currentEnergy == maxEnergy) -- including tick to cap, but excluding thistle tea
+                then
+                    possibleTick = true
+                end
+            else
+                possibleTick = true
+            end
         end
     end
     if now >= lastEnergyTickTime + 2 then
@@ -389,19 +395,16 @@ local ClassicTickerOnUpdate = function(self)
     end
     lastEnergyValue = currentEnergy
 end
-ClassicTickerFrame.Enable = function(self, trackEnergize)
+ClassicTickerFrame.Enable = function(self)
     self:SetScript("OnUpdate", ClassicTickerOnUpdate)
-    if trackEnergize then
-        self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-    end
     self.isEnabled = true
 end
 ClassicTickerFrame.Disable = function(self)
     self:SetScript("OnUpdate", nil)
-    self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     self.isEnabled = false
 end
 local UNIT_MAXPOWER_ClassicTicker = function(self)
+    maxEnergy = UnitPowerMax("player", PowerTypeIndex)
     self:SetMinMaxValues(0, 2)
 end
 
@@ -466,9 +469,9 @@ function NugEnergy.Initialize(self)
             end
         end
 
-        if isClassicTicker and NugEnergyDB.enableClassicTicker then
+        if isClassic and NugEnergyDB.enableClassicTicker then
             GetPower = GetPower_ClassicRogueTicker(nil, 19, 0, false)
-            ClassicTickerFrame:Enable(true)
+            ClassicTickerFrame:Enable()
             self:SetScript("OnUpdate",self.UpdateEnergy)
             self:UpdateBarEffects() -- Will Disable Smoothing
             NugEnergy.UNIT_MAXPOWER = UNIT_MAXPOWER_ClassicTicker
@@ -522,15 +525,12 @@ function NugEnergy.Initialize(self)
                 self.PLAYER_REGEN_DISABLED = self.UPDATE_STEALTH
                 -- self.UPDATE_STEALTH = self.__UPDATE_STEALTH
                 -- self.UpdateEnergy = self.__UpdateEnergy
-                if isClassicTicker and NugEnergyDB.enableClassicTicker then
+                if isClassic and NugEnergyDB.enableClassicTicker then
                     GetPower = GetPower_ClassicRogueTicker(nil, 19, 0, false)
                     NugEnergy.UNIT_MAXPOWER = UNIT_MAXPOWER_ClassicTicker
                     self:UnregisterEvent("UNIT_POWER_FREQUENT")
-                    if APILevel == 2 then
-                        lastEnergyTickTime = GetTime()
-                    end
                     self:SetScript("OnUpdate",self.UpdateEnergy)
-                    ClassicTickerFrame:Enable(true)
+                    ClassicTickerFrame:Enable()
                     self:UpdateBarEffects()
                 else
                     GetPower = RageBarGetPower(nil, 5, nil, true)
@@ -565,7 +565,7 @@ function NugEnergy.Initialize(self)
                 self:SetScript("OnUpdate", nil)
                 self:UNIT_MAXPOWER()
                 self:UPDATE_STEALTH()
-            elseif newPowerType =="MANA" and isClassicTicker then
+            elseif newPowerType =="MANA" and isClassic then
                 if NugEnergyDB.manaDruid then
                     self:SwitchToMana()
                 else
@@ -610,7 +610,7 @@ function NugEnergy.Initialize(self)
             self:RegisterEvent("PLAYER_TARGET_CHANGED")
         end
 
-    elseif class == "PRIEST" and isClassicTicker and (NugEnergyDB.manaPriest or NugEnergyDB.mana) then
+    elseif class == "PRIEST" and isClassic and (NugEnergyDB.manaPriest or NugEnergyDB.mana) then
         self:SwitchToMana()
 
     elseif NugEnergyDB.mana then
@@ -819,7 +819,7 @@ function NugEnergy.UPDATE_STEALTH(self, event, fromUpdateEnergy)
     local inCombat = UnitAffectingCombat("player")
     upvalueInCombat = inCombat
     if (inCombat or
-        ((class == "ROGUE" or class == "DRUID") and IsStealthed() and (isClassicTicker or (shouldBeFull and not isFull))) or
+        ((class == "ROGUE" or class == "DRUID") and IsStealthed() and (isClassic or (shouldBeFull and not isFull))) or
         ForcedToShow)
         and PowerFilter
     then
@@ -2408,7 +2408,7 @@ function NugEnergy:SwitchToMana()
                 if self.FSRWatcher then self.FSRWatcher:Disable() end
 
                 self:SetScript("OnUpdate",self.UpdateEnergy)
-                ClassicTickerFrame:Enable("TRACK_MANA_GAINS")
+                ClassicTickerFrame:Enable()
                 self:UpdateBarEffects()
                 switchToManaCallback()
             end

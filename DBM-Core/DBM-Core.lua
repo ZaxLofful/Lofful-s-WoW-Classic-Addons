@@ -71,9 +71,9 @@ local function showRealDate(curseDate)
 end
 
 DBM = {
-	Revision = parseCurseDate("20210609223504"),
-	DisplayVersion = "2.5.5", -- the string that is shown as version
-	ReleaseRevision = releaseDate(2021, 6, 9) -- the date of the latest stable version that is available, optionally pass hours, minutes, and seconds for multiple releases in one day
+	Revision = parseCurseDate("20210608225221"),
+	DisplayVersion = "1.13.74 alpha", -- the string that is shown as version
+	ReleaseRevision = releaseDate(2021, 5, 26) -- the date of the latest stable version that is available, optionally pass hours, minutes, and seconds for multiple releases in one day
 }
 DBM.HighestRelease = DBM.ReleaseRevision --Updated if newer version is detected, used by update nags to reflect critical fixes user is missing on boss pulls
 
@@ -481,7 +481,7 @@ local instanceDifficultyBylevel = {
 	--Raids
 	[509]={60, 3},[531]={60, 3},[469]={60, 3},[409]={60, 3},[533]={60, 3},[309]={60, 3},[249]={60, 3},--Classic Raids (309 is legacy ZG)
 	[564]={70, 3},[534]={70, 3},[532]={70, 3},[565]={70, 3},[544]={70, 3},[548]={70, 3},[580]={70, 3},[550]={70, 3},[568]={70, 3},--BC Raids (568 is legacy ZA)
---	[615]={80, 3},[724]={80, 3},[649]={80, 3},[616]={80, 3},[631]={80, 3},[533]={80, 3},[249]={80, 3},[603]={80, 3},[624]={80, 3},--Wrath Raids
+--	[615]={80, 3},[724]={80, 3},[649]={80, 3},[616]={80, 3},[631]={80, 3},[533]={80, 3},[603]={80, 3},[624]={80, 3},--Wrath Raids
 --	[757]={85, 3},[671]={85, 3},[669]={85, 3},[967]={85, 3},[720]={85, 3},[951]={85, 3},[754]={85, 3},--Cata Raids
 --	[1009]={90, 3},[1008]={90, 3},[1136]={90, 3},[996]={90, 3},[1098]={90, 3},--MoP Raids
 --	[1205]={100},[1448]={100, 3},[1228]={100, 3},--WoD Raids (yes, only 3 kekw)
@@ -643,12 +643,12 @@ end
 local function sendSync(prefix, msg)
 	msg = msg or ""
 	if IsInGroup(2) and IsInInstance() then--For BGs, LFR and LFG (we also check IsInInstance() so if you're in queue but fighting something outside like a world boss, it'll sync in "RAID" instead)
-		SendAddonMessage("D4BC", prefix .. "\t" .. msg, "INSTANCE_CHAT")
+		SendAddonMessage("D4C", prefix .. "\t" .. msg, "INSTANCE_CHAT")
 	else
 		if IsInRaid() then
-			SendAddonMessage("D4BC", prefix .. "\t" .. msg, "RAID")
+			SendAddonMessage("D4C", prefix .. "\t" .. msg, "RAID")
 		elseif IsInGroup(1) then
-			SendAddonMessage("D4BC", prefix .. "\t" .. msg, "PARTY")
+			SendAddonMessage("D4C", prefix .. "\t" .. msg, "PARTY")
 		else--for solo raid
 			handleSync("SOLO", playerName, prefix, strsplit("\t", msg))
 		end
@@ -659,12 +659,12 @@ end
 local function sendLoggedSync(prefix, msg)
 	msg = msg or ""
 	if IsInGroup(2) and IsInInstance() then--For BGs, LFR and LFG (we also check IsInInstance() so if you're in queue but fighting something outside like a world boss, it'll sync in "RAID" instead)
-		C_ChatInfo.SendAddonMessageLogged("D4BC", prefix .. "\t" .. msg, "INSTANCE_CHAT")
+		C_ChatInfo.SendAddonMessageLogged("D4C", prefix .. "\t" .. msg, "INSTANCE_CHAT")
 	else
 		if IsInRaid() then
-			C_ChatInfo.SendAddonMessageLogged("D4BC", prefix .. "\t" .. msg, "RAID")
+			C_ChatInfo.SendAddonMessageLogged("D4C", prefix .. "\t" .. msg, "RAID")
 		elseif IsInGroup(1) then
-			C_ChatInfo.SendAddonMessageLogged("D4BC", prefix .. "\t" .. msg, "PARTY")
+			C_ChatInfo.SendAddonMessageLogged("D4C", prefix .. "\t" .. msg, "PARTY")
 		else--for solo raid
 			handleSync("SOLO", playerName, prefix, strsplit("\t", msg))
 		end
@@ -675,14 +675,14 @@ end
 local function SendWorldSync(self, prefix, msg, noBNet)
 	DBM:Debug("SendWorldSync running for "..prefix)
 	if IsInRaid() then
-		SendAddonMessage("D4BC", prefix.."\t"..msg, "RAID")
+		SendAddonMessage("D4C", prefix.."\t"..msg, "RAID")
 	elseif IsInGroup(1) then
-		SendAddonMessage("D4BC", prefix.."\t"..msg, "PARTY")
+		SendAddonMessage("D4C", prefix.."\t"..msg, "PARTY")
 	else--for solo raid
 		handleSync("SOLO", playerName, prefix, strsplit("\t", msg))
 	end
 	if IsInGuild() then
-		SendAddonMessage("D4BC", prefix.."\t"..msg, "GUILD")--Even guild syncs send realm so we can keep antispam the same across realid as well.
+		SendAddonMessage("D4C", prefix.."\t"..msg, "GUILD")--Even guild syncs send realm so we can keep antispam the same across realid as well.
 	end
 	if self.Options.EnableWBSharing and not noBNet then
 		local _, numBNetOnline = BNGetNumFriends()
@@ -705,7 +705,7 @@ local function SendWorldSync(self, prefix, msg, noBNet)
 					end
 				end
 				if sameRealm then--Only sending to friends on same realm
-					BNSendGameData(presenceID, "D4BC", prefix.."\t"..msg)
+					BNSendGameData(presenceID, "D4C", prefix.."\t"..msg)
 				end
 			end
 		end
@@ -969,7 +969,10 @@ do
 				registeredSpellIds[event] = {}
 			end
 
-			registeredSpellIds[event][spellId] = (registeredSpellIds[event][spellId] or 0) + 1--BC+ can use spellIDs
+			--registeredSpellIds[event][spellId] = (registeredSpellIds[event][spellId] or 0) + 1--BC+ can use spellIDs
+			if not registeredSpellIds[event][spellName] then--Don't register duplicate spell Names
+				registeredSpellIds[event][spellName] = (registeredSpellIds[event][spellName] or 0) + 1--But classic needs spellNames
+			end
 		end
 
 		function unregisterSpellId(event, spellId)
@@ -979,11 +982,18 @@ do
 				DBM:Debug("DBM unregisterSpellId Error: "..spellId.." spell id does not exist!")
 				return
 			end
+			local refs = (registeredSpellIds[event][spellName] or 1) - 1
+			registeredSpellIds[event][spellName] = refs
+			if refs <= 0 then
+				registeredSpellIds[event][spellName] = nil
+			end
+			--[[
 			local refs = (registeredSpellIds[event][spellId] or 1) - 1
 			registeredSpellIds[event][spellId] = refs
 			if refs <= 0 then
 				registeredSpellIds[event][spellId] = nil
 			end
+			--]]
 		end
 
 		--There are 2 tables. unfilteredCLEUEvents and registeredSpellIds table.
@@ -1242,7 +1252,8 @@ do
 		if not registeredEvents[event] then return end
 		local eventSub6 = event:sub(0, 6)
 		if (eventSub6 == "SPELL_" or eventSub6 == "RANGE_") and not unfilteredCLEUEvents[event] and registeredSpellIds[event] then
-			if not registeredSpellIds[event][extraArg1] then return end--SpellId filter for BC+
+			--if not registeredSpellIds[event][extraArg1] then return end--SpellId filter for BC+
+			if not registeredSpellIds[event][extraArg2] then return end--SpellName filter for Classic
 		end
 		-- process some high volume events without building the whole table which is somewhat faster
 		-- this prevents work-around with mods that used to have their own event handler to prevent this overhead
@@ -1358,7 +1369,7 @@ do
 			end
 		end
 		if IsInGuild() then
-			SendAddonMessage("D4BC", "GH", "GUILD")
+			SendAddonMessage("D4C", "GH", "GUILD")
 		end
 		if not savedDifficulty or not difficultyText or not difficultyIndex then--prevent error if savedDifficulty or difficultyText is nil
 			savedDifficulty, difficultyText, difficultyIndex, LastGroupSize = self:GetCurrentInstanceDifficulty()
@@ -1383,7 +1394,7 @@ do
 			end
 			onLoadCallbacks = nil
 			loadOptions(self)
-			if WOW_PROJECT_ID ~= (WOW_PROJECT_BURNING_CRUSADE_CLASSIC or 5) then
+			if WOW_PROJECT_ID ~= (WOW_PROJECT_CLASSIC or 2) then
 				self:Disable(true)
 				self:Schedule(15, infniteLoopNotice, self, L.CLASSIC_ONLY)
 				return
@@ -1401,7 +1412,7 @@ do
 			if GetAddOnEnableState(playerName, "DBM-SpellTimers") >= 1 then
 				local version = GetAddOnMetadata("DBM-SpellTimers", "Version") or "r0"
 				version = tonumber(string.sub(version, 2, 4)) or 0
-				if version < 131 and not self.Options.DebugMode then
+				if version < 122 and not self.Options.DebugMode then
 					self:Disable(true)
 					self:Schedule(15, infniteLoopNotice, self, L.OUTDATEDSPELLTIMERS)
 					return
@@ -1617,7 +1628,7 @@ do
 				"BOSS_KILL",
 				"UNIT_DIED",
 				"UNIT_DESTROYED",
-				"UNIT_HEALTH",
+				"UNIT_HEALTH mouseover target player",--focus
 				"CHAT_MSG_WHISPER",
 				"CHAT_MSG_BN_WHISPER",
 				"CHAT_MSG_MONSTER_YELL",
@@ -2700,7 +2711,7 @@ do
 			if whisperTarget then
 				--no dbm function uses whisper for pizza timers
 				--this allows weak aura creators or other modders to use the pizza timer object unicast via whisper instead of spamming group sync channels
-				C_ChatInfo.SendAddonMessageLogged("D4BC", ("UW\t%s\t%s"):format(time, text), "WHISPER", whisperTarget)
+				C_ChatInfo.SendAddonMessageLogged("D4C", ("UW\t%s\t%s"):format(time, text), "WHISPER", whisperTarget)
 			else
 				sendLoggedSync("U", ("%s\t%s"):format(time, text))
 			end
@@ -2852,7 +2863,7 @@ do
 		if GetAddOnEnableState(playerName, "DBM-SpellTimers") >= 1 then
 			local version = GetAddOnMetadata("DBM-SpellTimers", "Version") or "r0"
 			version = tonumber(string.sub(version, 2, 4)) or 0
-			if version < 131 and not self.Options.DebugMode then
+			if version < 122 and not self.Options.DebugMode then
 				self:AddMsg(L.OUTDATEDSPELLTIMERS)
 				return
 			end
@@ -3917,7 +3928,7 @@ do
 		if not self.Options.SpecialWarningFont or (self.Options.SpecialWarningFont == "Fonts\\2002.TTF" or self.Options.SpecialWarningFont == "Fonts\\ARKai_T.ttf" or self.Options.SpecialWarningFont == "Fonts\\blei00d.TTF" or self.Options.SpecialWarningFont == "Fonts\\FRIZQT___CYR.TTF" or self.Options.SpecialWarningFont == "Fonts\\FRIZQT__.TTF") then
 			self.Options.SpecialWarningFont = "standardFont"
 		end
-		if WOW_PROJECT_ID ~= (WOW_PROJECT_BURNING_CRUSADE_CLASSIC or 5) then return end--Don't do sound migration in a situation user is loading wrong DBM version, to avoid sound path corruption
+		if WOW_PROJECT_ID ~= (WOW_PROJECT_CLASSIC or 2) then return end--Don't do sound migration in a situation user is loading wrong DBM version, to avoid sound path corruption
 		--Migrate user sound options to soundkit Ids if selected media doesn't exist in Interface\\AddOns
 		local migrated = false
 		if type(self.Options.RaidWarningSound) == "string" and self.Options.RaidWarningSound ~= "" then
@@ -4615,7 +4626,7 @@ do
 	local function SendVersion(guild)
 		if guild then
 			local message = ("%s\t%s\t%s"):format(tostring(DBM.Revision), tostring(DBM.ReleaseRevision), DBM.DisplayVersion)
-			SendAddonMessage("D4BC", "GV\t" .. message, "GUILD")
+			SendAddonMessage("D4C", "GV\t" .. message, "GUILD")
 			return
 		end
 		if DBM.Options.FakeBWVersion then
@@ -4821,9 +4832,9 @@ do
 			inspopup:Hide()
 			savedSender = nil
 			if force then
-				SendAddonMessage("D4BC", "II\t" .. "denied", "WHISPER", sender)
+				SendAddonMessage("D4C", "II\t" .. "denied", "WHISPER", sender)
 			else
-				SendAddonMessage("D4BC", "II\t" .. "timeout", "WHISPER", sender)
+				SendAddonMessage("D4C", "II\t" .. "timeout", "WHISPER", sender)
 			end
 		end
 
@@ -4859,13 +4870,13 @@ do
 			for i = 1, GetNumSavedInstances() do
 				local name, id, _, difficulty, locked, extended, instanceIDMostSig, isRaid, maxPlayers, textDiff, _, progress = GetSavedInstanceInfo(i)
 				if (locked or extended) and isRaid then -- only report locked raid instances
-					SendAddonMessage("D4BC", "II\tData\t" .. name .. "\t" .. id .. "\t" .. difficulty .. "\t" .. maxPlayers .. "\t" .. (progress or 0) .. "\t" .. textDiff, "WHISPER", sender)
+					SendAddonMessage("D4C", "II\tData\t" .. name .. "\t" .. id .. "\t" .. difficulty .. "\t" .. maxPlayers .. "\t" .. (progress or 0) .. "\t" .. textDiff, "WHISPER", sender)
 					sentData = true
 				end
 			end
 			if not sentData then
 				-- send something even if there is nothing to report so the receiver is able to tell you apart from someone who just didn't respond...
-				SendAddonMessage("D4BC", "II\tNoData", "WHISPER", sender)
+				SendAddonMessage("D4C", "II\tNoData", "WHISPER", sender)
 			end
 		end
 
@@ -5251,7 +5262,7 @@ do
 	end
 
 	function DBM:CHAT_MSG_ADDON(prefix, msg, channel, sender)
-		if prefix == "D4BC" and msg and (channel == "PARTY" or channel == "RAID" or channel == "INSTANCE_CHAT" or channel == "WHISPER" or channel == "GUILD") then
+		if prefix == "D4C" and msg and (channel == "PARTY" or channel == "RAID" or channel == "INSTANCE_CHAT" or channel == "WHISPER" or channel == "GUILD") then
 			sender = Ambiguate(sender, "none")
 			handleSync(channel, sender, strsplit("\t", msg))
 		elseif prefix == "BigWigs" and msg and (channel == "PARTY" or channel == "RAID" or channel == "INSTANCE_CHAT") then
@@ -5304,7 +5315,7 @@ do
 	DBM.CHAT_MSG_ADDON_LOGGED = DBM.CHAT_MSG_ADDON
 
 	function DBM:BN_CHAT_MSG_ADDON(prefix, msg, channel, sender)
-		if prefix == "D4BC" and msg then
+		if prefix == "D4C" and msg then
 			handleSync("BN_WHISPER", sender, strsplit("\t", msg))
 		end
 	end
@@ -5534,14 +5545,14 @@ do
 					if DBM:GetRaidRank(playerName) == 0 then
 						DBM:AddMsg(L.ERROR_NO_PERMISSION)
 					else
-						SendAddonMessage("D4BC", "NS\t" .. msg, "RAID")
+						SendAddonMessage("D4C", "NS\t" .. msg, "RAID")
 						DBM:AddMsg(L.NOTESHARED)
 					end
 				elseif IsInGroup(1) then
 					if DBM:GetRaidRank(playerName) == 0 then
 						DBM:AddMsg(L.ERROR_NO_PERMISSION)
 					else
-						SendAddonMessage("D4BC", "NS\t" .. msg, "PARTY")
+						SendAddonMessage("D4C", "NS\t" .. msg, "PARTY")
 						DBM:AddMsg(L.NOTESHARED)
 					end
 				else--Solo
@@ -5998,9 +6009,9 @@ do
 	local function delayedGCSync(modId, difficultyIndex, name, thisTime, wipeHP)
 		if not statusGuildDisabled and updateNotificationDisplayed == 0 then
 			if thisTime then--Wipe event
-				SendAddonMessage("D4BC", "GCE\t"..modId.."\t8\t1\t"..thisTime.."\t"..difficultyIndex.."\t"..name.."\t"..wipeHP, "GUILD")
+				SendAddonMessage("D4C", "GCE\t"..modId.."\t8\t1\t"..thisTime.."\t"..difficultyIndex.."\t"..name.."\t"..wipeHP, "GUILD")
 			else
-				SendAddonMessage("D4BC", "GCB\t"..modId.."\t5\t"..difficultyIndex.."\t"..name, "GUILD")
+				SendAddonMessage("D4C", "GCB\t"..modId.."\t5\t"..difficultyIndex.."\t"..name, "GUILD")
 			end
 		end
 	end
@@ -6418,7 +6429,7 @@ do
 						msg = L.BOSS_DOWN_L:format(difficultyText..name, strFromTime(thisTime), strFromTime(lastTime), strFromTime(bestTime), totalKills)
 					end
 					if thisTimeString and difficultyIndex ~= 1 and (DBM:GetNumGuildPlayersInZone() >= 10) and not statusGuildDisabled and not self.Options.DisableGuildStatus and updateNotificationDisplayed == 0 then
-						SendAddonMessage("D4BC", "GCE\t"..modId.."\t8\t0\t"..thisTimeString.."\t"..difficultyIndex.."\t"..name, "GUILD")
+						SendAddonMessage("D4C", "GCE\t"..modId.."\t8\t0\t"..thisTimeString.."\t"..difficultyIndex.."\t"..name, "GUILD")
 					end
 					self:Schedule(1, self.AddMsg, self, msg)
 				end
@@ -6928,7 +6939,7 @@ do
 		self:Debug("Requesting timer recovery to "..selectedClient.name)
 		requestedFrom[selectedClient.name] = true
 		requestTime = GetTime()
-		SendAddonMessage("D4BC", "RT", "WHISPER", selectedClient.name)
+		SendAddonMessage("D4C", "RT", "WHISPER", selectedClient.name)
 	end
 
 	function DBM:ReceiveCombatInfo(sender, mod, time)
@@ -6989,7 +7000,7 @@ do
 			--But only if we are not in combat with a boss
 			if DBT:GetBar(L.TIMER_BREAK) then
 				local remaining = DBT:GetBar(L.TIMER_BREAK).timer
-				SendAddonMessage("D4BC", "BTR3\t"..remaining, "WHISPER", target)
+				SendAddonMessage("D4C", "BTR3\t"..remaining, "WHISPER", target)
 			end
 			return
 		end
@@ -7033,7 +7044,7 @@ do
 end
 
 function DBM:SendCombatInfo(mod, target)
-	return SendAddonMessage("D4BC", ("CI\t%s\t%s"):format(mod.id, GetTime() - mod.combatInfo.pull), "WHISPER", target)
+	return SendAddonMessage("D4C", ("CI\t%s\t%s"):format(mod.id, GetTime() - mod.combatInfo.pull), "WHISPER", target)
 end
 
 function DBM:SendTimerInfo(mod, target)
@@ -7049,7 +7060,7 @@ function DBM:SendTimerInfo(mod, target)
 				end
 				timeLeft = totalTime - elapsed
 				if timeLeft > 0 and totalTime > 0 then
-					SendAddonMessage("D4BC", ("TR\t%s\t%s\t%s\t%s\t%s"):format(mod.id, timeLeft, totalTime, uId, v.paused and "1" or "0"), "WHISPER", target)
+					SendAddonMessage("D4C", ("TR\t%s\t%s\t%s\t%s\t%s"):format(mod.id, timeLeft, totalTime, uId, v.paused and "1" or "0"), "WHISPER", target)
 				end
 			end
 		end
@@ -7060,7 +7071,7 @@ function DBM:SendVariableInfo(mod, target)
 	for vname, v in pairs(mod.vb) do
 		local v2 = tostring(v)
 		if v2 then
-			SendAddonMessage("D4BC", ("VI\t%s\t%s\t%s"):format(mod.id, vname, v2), "WHISPER", target)
+			SendAddonMessage("D4C", ("VI\t%s\t%s\t%s"):format(mod.id, vname, v2), "WHISPER", target)
 		end
 	end
 end
@@ -7072,7 +7083,7 @@ do
 			C_TimerAfter(30, function() if not self.Options.SettingsMessageShown then self.Options.SettingsMessageShown = true self:AddMsg(L.HOW_TO_USE_MOD) end end)
 		end
 		if type(C_ChatInfo.RegisterAddonMessagePrefix) == "function" then
-			if not C_ChatInfo.RegisterAddonMessagePrefix("D4BC") then -- main prefix for DBM4
+			if not C_ChatInfo.RegisterAddonMessagePrefix("D4C") then -- main prefix for DBM4
 				self:AddMsg("Error: unable to register DBM addon message prefix (reached client side addon message filter limit), synchronization will be unavailable") -- TODO: confirm that this actually means that the syncs won't show up
 			end
 			if not C_ChatInfo.IsAddonMessagePrefixRegistered("BigWigs") then
@@ -8278,7 +8289,7 @@ do
 			["HasInterrupt"] = true,
 			["HasImmunity"] = true,
 			["RemoveCurse"] = true,
-			["MagicDispeller"] = IsSpellKnown(30449),--Spellsteal in TBC
+			--["MagicDispeller"] = true,--Spellsteal in TBC
 		},
 		["PALADIN1"] = {	--Holy Paladin
 			["Healer"] = true,
@@ -11811,7 +11822,7 @@ end
 
 function bossModPrototype:SetRevision(revision)
 	revision = parseCurseDate(revision or "")
-	if not revision or revision == "20210609223504" then
+	if not revision or revision == "20210608225221" then
 		-- bad revision: either forgot the svn keyword or using github
 		revision = DBM.Revision
 	end

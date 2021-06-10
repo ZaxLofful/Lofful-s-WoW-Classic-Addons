@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod("TwilightLordKelris", "DBM-Party-Classic", 1)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210403094344")
+mod:SetRevision("20200524222200")
 mod:SetCreatureID(4832)
 --mod:SetEncounterID(1667)
 
@@ -21,14 +21,19 @@ function mod:OnCombatStart(delay)
 	timerSleepCD:Start(1-delay)
 end
 
-function mod:SPELL_CAST_START(args)
-	if args.spellId == 8399 and args:IsSrcTypeHostile() then
-		timerSleepCD:Start()
+do
+	local Sleep = DBM:GetSpellInfo(8399)
+	function mod:SPELL_CAST_START(args)
+		--if args.spellId == 8399 and args:IsSrcTypeHostile() then
+		if args.spellName == Sleep and args:IsSrcTypeHostile() then
+			timerSleepCD:Start()
+		end
 	end
-end
 
-function mod:SPELL_AURA_APPLIED(args)
-	if args.spellId == 8399 and args:IsDestTypePlayer() then
-		warningSleep:Show(args.destName)
+	function mod:SPELL_AURA_APPLIED(args)
+		--if args.spellId == 8399 and args:IsDestTypePlayer() then
+		if args.spellName == Sleep and args:IsDestTypePlayer() then
+			warningSleep:Show(args.destName)
+		end
 	end
 end

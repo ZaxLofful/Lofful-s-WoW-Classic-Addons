@@ -5,16 +5,19 @@ if not AL then return end
 -- These localization strings are translated on Curseforge: https://www.curseforge.com/wow/addons/atlaslootclassic/localization
 -- PvP
 AL["|cff33ff99Rank:|r %s"] = "|cff33ff99Rango:|r %s"
-AL["Arena"] = "Arena"
+--[[Translation missing --]]
+--[[ AL["Arena"] = "Arena"--]] 
 AL["Battlegrounds"] = "Campos de batalla"
 AL["Class Sets"] = "Conjuntos de Clase"
-AL["Gladiator Mount"] = "Montura de Gladiador"
-AL["Honor"] = "Honor"
 AL["Insignia"] = "Insignia"
-AL["Non Set '%s'"] = "No Conjunto '%s'"
-AL["One-Handed"] = "Una mano"
-AL["Open World"] = "Mundo"
+--[[Translation missing --]]
+--[[ AL["One-Handed"] = "One-Handed"--]] 
+--[[Translation missing --]]
+--[[ AL["Open World"] = "Open World"--]] 
 AL["PvP Ranks"] = "Rangos de JcJ"
-AL["Ranged"] = "A distancia"
-AL["Season %s"] = "Temporada %s"
-AL["Two-Handed"] = "Dos manos"
+--[[Translation missing --]]
+--[[ AL["Ranged"] = "Ranged"--]] 
+--[[Translation missing --]]
+--[[ AL["Season %s"] = "Season %s"--]] 
+--[[Translation missing --]]
+--[[ AL["Two-Handed"] = "Two-Handed"--]] 

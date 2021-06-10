@@ -218,7 +218,7 @@ local function creatre_UIDropDownList(name, parent)
 	f:SetFrameStrata("DIALOG")
 	f:EnableMouse(true)
 	
-	f.Backdrop = _G[name.."Backdrop"] or CreateFrame("Frame", name.."Backdrop", f, BackdropTemplateMixin and "BackdropTemplate")
+	f.Backdrop = _G[name.."Backdrop"] or CreateFrame("Frame", name.."Backdrop", f)
 	f.Backdrop:SetAllPoints()
 	f.Backdrop:SetBackdrop({
 		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
@@ -229,7 +229,7 @@ local function creatre_UIDropDownList(name, parent)
 		insets = { left = 11, right = 12, top = 12, bottom = 9, },
 	})
 	
-	f.MenuBackdrop= _G[name.."MenuBackdrop"] or CreateFrame("Frame", name.."MenuBackdrop", f, BackdropTemplateMixin and "BackdropTemplate")
+	f.MenuBackdrop= _G[name.."MenuBackdrop"] or CreateFrame("Frame", name.."MenuBackdrop", f)
 	f.MenuBackdrop:SetAllPoints()
 	f.MenuBackdrop:SetBackdrop({
 		bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
@@ -975,13 +975,7 @@ function L_UIDropDownMenu_AddButton(info, level)
 		button.b = info.b;
 		colorSwatch:Show();
 	else
-		--[[ Titan:
-		Not sure why we need to check this... but not checking causes an error in the re-released BC
-		--]]
-		if colorSwatch then
-			colorSwatch:Hide();
-		else
-		end
+		colorSwatch:Hide();
 	end
 
 	L_UIDropDownMenu_CheckAddCustomFrame(listFrame, button, info);

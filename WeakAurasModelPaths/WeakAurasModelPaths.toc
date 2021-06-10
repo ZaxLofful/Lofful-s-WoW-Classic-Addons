@@ -1,4 +1,4 @@
-## Interface: 20501
+## Interface: 11307
 ## Title: WeakAuras Model Paths
 ## Author: The WeakAuras Team
 ## Version: 3.4.2
@@ -13,4 +13,4 @@
 ## LoadOnDemand: 1
 ## Dependencies: WeakAuras, WeakAurasOptions
 
-ModelPathsBCC.lua
+ModelPathsClassic.lua

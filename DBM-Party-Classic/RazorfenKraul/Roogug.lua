@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod("Roogug", "DBM-Party-Classic", 11)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210403094344")
+mod:SetRevision("20190907034931")
 mod:SetCreatureID(6168)
 --mod:SetEncounterID(438)
 
@@ -14,8 +14,12 @@ mod:RegisterEventsInCombat(
 --Rumbler spawned on engage
 local warningSummonEarthRumbler		= mod:NewSpellAnnounce(8270, 2)
 
-function mod:SPELL_CAST_SUCCESS(args)
-	if args.spellId == 8270 then
-		warningSummonEarthRumbler:Show()
+do
+	local SummonEarthRumbler = DBM:GetSpellInfo(8270)
+	function mod:SPELL_CAST_SUCCESS(args)
+		--if args.spellId == 8270 then
+		if args.spellName == SummonEarthRumbler then
+			warningSummonEarthRumbler:Show()
+		end
 	end
 end

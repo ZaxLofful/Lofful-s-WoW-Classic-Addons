@@ -943,18 +943,19 @@ function TitanPanelRepairButton_GetButtonText(id)
 		end
 
 		if (not TPR.MerchantisOpen or (TPR.MerchantisOpen and not canRepair)) then
-			if TitanGetVar(TITAN_REPAIR_ID, "DiscountFriendly") then
-				sum = sum * 0.95;
-				discountlabel = FACTION_STANDING_LABEL5;
-			elseif TitanGetVar(TITAN_REPAIR_ID, "DiscountHonored") then
+			if TitanGetVar(TITAN_REPAIR_ID, "DiscountHonored") then
 				sum = sum * 0.90;
 				discountlabel = FACTION_STANDING_LABEL6;
-			elseif TitanGetVar(TITAN_REPAIR_ID, "DiscountRevered") then
-				sum = sum * 0.85;
-				discountlabel = FACTION_STANDING_LABEL7;
-			elseif TitanGetVar(TITAN_REPAIR_ID, "DiscountExalted") then
+			elseif TitanGetVar(TITAN_REPAIR_ID, "DiscountPVP") then
 				sum = sum * 0.80;
-				discountlabel = FACTION_STANDING_LABEL8;
+                local start=string.find("(",L["REPAIR_LOCALE"]["pvp"]);
+                local stop=string.find(")",L["REPAIR_LOCALE"]["pvp"],start+1);
+				discountlabel = string.sub(L["REPAIR_LOCALE"]["pvp"], start+1, stop-1);
+			elseif TitanGetVar(TITAN_REPAIR_ID, "DiscountCombined") then
+				sum = sum * 0.80;
+                local start=string.find("(",L["REPAIR_LOCALE"]["combined"]);
+                local stop=string.find(")",L["REPAIR_LOCALE"]["combined"],start+1);
+				discountlabel = string.sub(L["REPAIR_LOCALE"]["combined"], start+1, stop-1);
 			end  -- if merchant
 		end  -- if discounts
 
@@ -1031,10 +1032,9 @@ function TitanPanelRepairButton_GetTooltipText()
 		if (sum > 0) then
 			out = out..TitanUtils_GetGoldText(L["REPAIR_LOCALE"]["Discounts"])..TitanUtils_GetHighlightText("")
 			local costStr = TitanPanelRepair_GetTextGSC(sum);
-			local costfrStr = TitanPanelRepair_GetTextGSC(sum * 0.95);
 			local costhonStr = TitanPanelRepair_GetTextGSC(sum * 0.90);
-			local costrevStr = TitanPanelRepair_GetTextGSC(sum * 0.85);
-			local costexStr = TitanPanelRepair_GetTextGSC(sum * 0.80);
+			local costpvpStr = TitanPanelRepair_GetTextGSC(sum * 0.90);
+			local costcomStr = TitanPanelRepair_GetTextGSC(sum * 0.80);
 			if (costStr) then
 				if TPR.MerchantisOpen then
 					out = out .. "\n" .. TitanUtils_GetHighlightText(REPAIR_COST) .. " " .. costStr;
@@ -1047,10 +1047,9 @@ function TitanPanelRepairButton_GetTooltipText()
 					out = out .. "\n" .. TitanUtils_GetHighlightText(L["REPAIR_LOCALE"]["normal"]) .. "\t" .. costStr;
 				end
 				if (not TPR.MerchantisOpen) and (not TPR.WholeScanInProgress) then
-					out = out .. "\n" .. TitanUtils_GetHighlightText(L["REPAIR_LOCALE"]["friendly"]) .. "\t" .. costfrStr;
 					out = out .. "\n" .. TitanUtils_GetHighlightText(L["REPAIR_LOCALE"]["honored"]) .. "\t" .. costhonStr;
-					out = out .. "\n" .. TitanUtils_GetHighlightText(L["REPAIR_LOCALE"]["revered"]) .. "\t" .. costrevStr;
-					out = out .. "\n" .. TitanUtils_GetHighlightText(L["REPAIR_LOCALE"]["exalted"]) .. "\t" .. costexStr;
+					out = out .. "\n" .. TitanUtils_GetHighlightText(L["REPAIR_LOCALE"]["pvp"]) .. "\t" .. costpvpStr;
+					out = out .. "\n" .. TitanUtils_GetHighlightText(L["REPAIR_LOCALE"]["combined"]) .. "\t" .. costcomStr;
 				end
 			end
 			out = out.."\n\n"
@@ -1126,26 +1125,12 @@ local info;
 
 			info = {};
 			info.text = L["REPAIR_LOCALE"]["buttonNormal"];
-			info.checked = not TitanGetVar(TITAN_REPAIR_ID,"DiscountFriendly") and not TitanGetVar(TITAN_REPAIR_ID,"DiscountHonored") and not TitanGetVar(TITAN_REPAIR_ID,"DiscountRevered") and not TitanGetVar(TITAN_REPAIR_ID,"DiscountExalted");
+			info.checked = not TitanGetVar(TITAN_REPAIR_ID,"DiscountHonored") and not TitanGetVar(TITAN_REPAIR_ID,"DiscountPVP") and not TitanGetVar(TITAN_REPAIR_ID,"DiscountCombined");
 			info.disabled = TPR.MerchantisOpen;
 			info.func = function()
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountFriendly", nil)
 				TitanSetVar(TITAN_REPAIR_ID,"DiscountHonored", nil)
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountRevered", nil)
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountExalted", nil)
-				TitanPanelButton_UpdateButton(TITAN_REPAIR_ID)
-			end
-			L_UIDropDownMenu_AddButton(info, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
-
-			info = {};
-			info.text = L["REPAIR_LOCALE"]["buttonFriendly"];
-			info.checked = TitanGetVar(TITAN_REPAIR_ID,"DiscountFriendly");
-			info.disabled = TPR.MerchantisOpen;
-			info.func = function()
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountFriendly", 1)
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountHonored", nil)
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountRevered", nil)
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountExalted", nil)
+				TitanSetVar(TITAN_REPAIR_ID,"DiscountPVP", nil)
+				TitanSetVar(TITAN_REPAIR_ID,"DiscountCombined", nil)
 				TitanPanelButton_UpdateButton(TITAN_REPAIR_ID)
 			end
 			L_UIDropDownMenu_AddButton(info, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
@@ -1155,36 +1140,33 @@ local info;
 			info.checked = TitanGetVar(TITAN_REPAIR_ID,"DiscountHonored");
 			info.disabled = TPR.MerchantisOpen;
 			info.func = function()
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountFriendly", nil)
 				TitanSetVar(TITAN_REPAIR_ID,"DiscountHonored", 1)
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountRevered", nil)
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountExalted", nil)
+				TitanSetVar(TITAN_REPAIR_ID,"DiscountPVP", nil)
+				TitanSetVar(TITAN_REPAIR_ID,"DiscountCombined", nil)
 				TitanPanelButton_UpdateButton(TITAN_REPAIR_ID)
 			end
 			L_UIDropDownMenu_AddButton(info, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
 
 			info = {};
-			info.text = L["REPAIR_LOCALE"]["buttonRevered"];
-			info.checked = TitanGetVar(TITAN_REPAIR_ID,"DiscountRevered");
+			info.text = L["REPAIR_LOCALE"]["buttonPVP"];
+			info.checked = TitanGetVar(TITAN_REPAIR_ID,"DiscountPVP");
 			info.disabled = TPR.MerchantisOpen;
 			info.func = function()
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountFriendly", nil)
 				TitanSetVar(TITAN_REPAIR_ID,"DiscountHonored", nil)
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountRevered", 1)
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountExalted", nil)
+				TitanSetVar(TITAN_REPAIR_ID,"DiscountPVP", 1)
+				TitanSetVar(TITAN_REPAIR_ID,"DiscountCombined", nil)
 				TitanPanelButton_UpdateButton(TITAN_REPAIR_ID)
 			end
 			L_UIDropDownMenu_AddButton(info, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
 
 			info = {};
-			info.text = L["REPAIR_LOCALE"]["buttonExalted"];
-			info.checked = TitanGetVar(TITAN_REPAIR_ID,"DiscountExalted");
+			info.text = L["REPAIR_LOCALE"]["buttonCombined"];
+			info.checked = TitanGetVar(TITAN_REPAIR_ID,"DiscountCombined");
 			info.disabled = TPR.MerchantisOpen;
 			info.func = function()
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountFriendly", nil)
 				TitanSetVar(TITAN_REPAIR_ID,"DiscountHonored", nil)
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountRevered", nil)
-				TitanSetVar(TITAN_REPAIR_ID,"DiscountExalted", 1)
+				TitanSetVar(TITAN_REPAIR_ID,"DiscountPVP", nil)
+				TitanSetVar(TITAN_REPAIR_ID,"DiscountCombined", 1)
 				TitanPanelButton_UpdateButton(TITAN_REPAIR_ID)
 			end
 			L_UIDropDownMenu_AddButton(info, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);

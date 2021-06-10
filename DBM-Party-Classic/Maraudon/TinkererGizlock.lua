@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod(425, "DBM-Party-Classic", 8, 232)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210403094344")
+mod:SetRevision("20191001141144")
 mod:SetCreatureID(13601)
 mod:SetEncounterID(427)
 
@@ -21,9 +21,13 @@ function mod:OnCombatStart(delay)
 	timerGoblinDragonGunCD:Start(12.8-delay)
 end
 
-function mod:SPELL_CAST_SUCCESS(args)
-	if args.spellId == 21833 then
-		warningGoblinDragonGun:Show()
-		timerGoblinDragonGunCD:Start()
+do
+	local GoblinDragonGun = DBM:GetSpellInfo(21833)
+	function mod:SPELL_CAST_SUCCESS(args)
+		--if args.spellId == 21833 then
+		if args.spellName == GoblinDragonGun then
+			warningGoblinDragonGun:Show()
+			timerGoblinDragonGunCD:Start()
+		end
 	end
 end

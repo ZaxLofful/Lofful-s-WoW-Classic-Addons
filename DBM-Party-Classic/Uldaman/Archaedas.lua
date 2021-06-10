@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod(473, "DBM-Party-Classic", 18, 239)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210403094344")
+mod:SetRevision("20200524222200")
 mod:SetCreatureID(2748)
 mod:SetEncounterID(554)
 
@@ -24,18 +24,27 @@ function mod:OnCombatStart(delay)
 	timerGroundTremorCD:Start(1-delay)
 end
 
-function mod:SPELL_CAST_START(args)
-	if args.spellId == 10252 then
-		warningAwakenEarthenGuardians:Show()
-		timerAwakenEarthenGuardiansCD:Start()
-	elseif args.spellId == 10258 then
-		warningAwakenVaultWarder:Show()
+do
+	local EarthGuardians, VaultWarder = DBM:GetSpellInfo(10252), DBM:GetSpellInfo(10258)
+	function mod:SPELL_CAST_START(args)
+		--if args.spellId == 10252 then
+		if args.spellName == EarthGuardians then
+			warningAwakenEarthenGuardians:Show()
+			timerAwakenEarthenGuardiansCD:Start()
+		--elseif args.spellId == 10258 then
+		elseif args.spellName == VaultWarder then
+			warningAwakenVaultWarder:Show()
+		end
 	end
 end
 
-function mod:SPELL_CAST_SUCCESS(args)
-	if args.spellId == 6524 then
-		warningGroundTremor:Show()
-		timerGroundTremorCD:Start()
+do
+	local GroundTremor = DBM:GetSpellInfo(6524)
+	function mod:SPELL_CAST_SUCCESS(args)
+		--if args.spellId == 6524 then
+		if args.spellName == GroundTremor then
+			warningGroundTremor:Show()
+			timerGroundTremorCD:Start()
+		end
 	end
 end

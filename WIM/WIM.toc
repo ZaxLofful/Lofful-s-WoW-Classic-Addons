@@ -1,4 +1,4 @@
-## Interface: 20501
+## Interface: 11307
 
 ## X-Curse-Project-ID: 7474
 ## X-WoWI-ID: 5342

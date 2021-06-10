@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod("Ragnaros-Classic", "DBM-MC", 1)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210403080347")
+mod:SetRevision("20210322203214")
 mod:SetCreatureID(11502)
 mod:SetEncounterID(672)
 mod:SetModelID(11121)
@@ -85,26 +85,35 @@ local function emerged(self)
 	timerSubmerge:Start(180)
 end
 
-function mod:SPELL_CAST_START(args)
-	if args.spellId == 19774 and self:AntiSpam(5, 4) then
-		--This is still going to use a sync event because someone might start this RP from REALLY REALLY far away
-		self:SendSync("SummonRag")
+do
+	local summonRag = DBM:GetSpellInfo(19774)
+	function mod:SPELL_CAST_START(args)
+		--if args.spellId == 20566 then
+		if args.spellName == summonRag and self:AntiSpam(5, 4) then
+			--This is still going to use a sync event because someone might start this RP from REALLY REALLY far away
+			self:SendSync("SummonRag")
+		end
 	end
 end
 
-function mod:SPELL_CAST_SUCCESS(args)
-	if args.spellId == 20566 then
-		warnWrathRag:Show()
-		timerWrathRag:Start()
-	elseif args.spellId == 19773 then
-		--This is still going to use a sync event because someone might start this RP from REALLY REALLY far away
-		self:SendSync("DomoDeath")
+do
+	local Wrath, domoDeath = DBM:GetSpellInfo(20566), DBM:GetSpellInfo(19773)
+	function mod:SPELL_CAST_SUCCESS(args)
+		--if args.spellId == 20566 then
+		if args.spellName == Wrath then
+			warnWrathRag:Show()
+			timerWrathRag:Start()
+		elseif args.spellName == domoDeath then
+			--This is still going to use a sync event because someone might start this RP from REALLY REALLY far away
+			self:SendSync("DomoDeath")
+		end
 	end
 end
 
 function mod:UNIT_DIED(args)
 	local guid = args.destGUID
-	if self:GetCIDFromGUID(guid) == 12143 then--Son of Flame
+	local cid = self:GetCIDFromGUID(guid)
+	if cid == 12143 then--Son of Flame
 		--self:SendSync("AddDied", guid)--Send sync it died do to combat log range and size of room
 		--We're in range of event, no reason to wait for sync, especially in a raid that might not have many DBM users
 		if not addsGuidCheck[guid] then
@@ -151,9 +160,11 @@ function mod:OnSync(msg, guid)
 		local remaining = timerCombatStart:GetRemaining()
 		if remaining then
 			if remaining < 10 then
-				timerCombatStart:AddTime(10 - remaining)
+				local adjust = 10 - remaining
+				timerCombatStart:AddTime(adjust)
 			elseif remaining > 10 then
-				timerCombatStart:RemoveTime(remaining - 10)
+				local adjust = remaining - 10
+				timerCombatStart:RemoveTime(adjust)
 			end
 		end
 	end

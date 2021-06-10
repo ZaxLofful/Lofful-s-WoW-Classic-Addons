@@ -1,4 +1,4 @@
-## Interface: 20501
+## Interface: 11307
 ## Title: Peggle (Unofficial)
 ## Version: 2.3.3
 ## Notes: The popular game Peggle, now back in World of Warcraft Classic!

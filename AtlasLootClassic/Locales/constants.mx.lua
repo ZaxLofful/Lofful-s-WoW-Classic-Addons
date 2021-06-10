@@ -5,7 +5,6 @@ if not AL then return end
 -- These localization strings are translated on Curseforge: https://www.curseforge.com/wow/addons/atlaslootclassic/localization
 AL["--- or ---"] = "--- o ---"
 AL["%s will finish loading after combat."] = "%s terminará cargando después de combate."
-AL["(%d) Set:"] = "(%d) Conjunto:"
 AL["/al - Open the AtlasLoot window."] = "/al - Abre la ventana AtlasLoot."
 AL["/al mmb - Toggle MiniMapButton"] = "/al mmb -  Alternar MiniMapaBotón"
 AL["/al options - Open AtlasLoot Options window."] = "/al options - Abre ventana de Opciones de AtlasLoot"
@@ -28,7 +27,8 @@ AL["Atlas map"] = "Mapa de Atlas"
 AL["AtlasLoot"] = "AtlasLoot"
 AL["AtlasLoot Modules"] = "Módulos de AtlasLoot"
 AL["Balzaphon"] = "Balzaphon"
-AL["Bonus"] = "Bonus"
+--[[Translation missing --]]
+--[[ AL["Bonus"] = "Bonus"--]] 
 AL["Bow"] = "Arco"
 AL["Chat Link"] = "Enlace de Chat"
 AL["Click to open Atlas instance map."] = "Haz clic para abrir el mapa de instancias de Atlas."
@@ -53,25 +53,29 @@ AL["Global base list"] = "Lista basado en Mundial"
 AL["Global lists"] = "Listas Mundiales"
 AL["gold"] = "Oro"
 AL["Gun"] = "Arma de fuego"
-AL["Heroic"] = "Heroico"
-AL["Honor Hold"] = "Bastión del Honor"
+--[[Translation missing --]]
+--[[ AL["Heroic"] = "Heroic"--]] 
+--[[Translation missing --]]
+--[[ AL["Honor Hold"] = "Honor Hold"--]] 
 AL["Items"] = "Objetos"
 AL["Key"] = "Llave"
 AL["Keys"] = "Llaves"
-AL["Kurenai"] = "Kurenai"
+--[[Translation missing --]]
+--[[ AL["Kurenai"] = "Kurenai"--]] 
 AL["Lady Falther'ess"] = "Lady Falther'ess"
 AL["L-Click"] = "Clic-Izquierdo"
 AL["Left Click"] = "Clic Izquierdo"
 AL["Lists"] = "Listas"
 AL["Loot"] = "Botín"
-AL["Main"] = "Principal"
+--[[Translation missing --]]
+--[[ AL["Main"] = "Main"--]] 
 AL["Middle Click"] = "Clic Central"
 AL["Misc"] = "Varios"
 AL["Model"] = "Modelo"
 AL["Module %s is deactivated."] = "Módulo %s es desactivado."
 AL["Module %s is not installed."] = "Módulo %s no es instalado."
 --[[Translation missing --]]
---[[ AL["New version available!"] = "New version available!"--]] 
+--[[ AL["New version aviable!"] = "New version aviable!"--]] 
 AL["No module found."] = "No se encuentra módulo."
 AL["Normal"] = "Normal"
 AL["One-Hand, Axe"] = "Una mano, Hacha"
@@ -88,10 +92,9 @@ AL["PvP"] = "JcJ"
 AL["Quest"] = "Misión"
 AL["Quest objective."] = "Objetivo de misión."
 AL["Reagent for..."] = "Componente para..."
-AL["Regen"] = "Regeneración"
-AL["Remove item from list"] = "Quitar objeto de la lista"
 --[[Translation missing --]]
---[[ AL["Reputation"] = "Reputation"--]] 
+--[[ AL["Regen"] = "Regen"--]] 
+AL["Remove item from list"] = "Quitar objeto de la lista"
 AL["Required module %s is currently disabled."] = "Módulo requerido %s es desactivado."
 AL["Required module %s is not installed."] = "Módulo requerido %s no es instalado."
 AL["Right Click"] = "Clic Derecho"
@@ -121,14 +124,19 @@ AL["Shows the item in the Dressing room"] = "Muestra el objeto en el probador."
 AL["Shows the sound in the copy box"] = "Muestra el sonido en la caja de copiar."
 AL["Slash commands:"] = "Comandos Slash:"
 AL["Sounds"] = "Sonidos"
-AL["Special"] = "Especial"
+--[[Translation missing --]]
+--[[ AL["Special"] = "Special"--]] 
 AL["Staff"] = "Bastón"
-AL["The Mag'har"] = "Los Mag'har"
-AL["Thrallmar"] = "Thrallmar"
+--[[Translation missing --]]
+--[[ AL["The Mag'har"] = "The Mag'har"--]] 
+--[[Translation missing --]]
+--[[ AL["Thrallmar"] = "Thrallmar"--]] 
 AL["Tier %s Sets"] = "Conjuntos de Tier %s"
 AL["Toggle AtlasLoot"] = "Alternar AtlasLoot"
-AL["Token for..."] = "Token para..."
-AL["Tranquillien"] = "Tranquillien"
+--[[Translation missing --]]
+--[[ AL["Token for..."] = "Token for..."--]] 
+--[[Translation missing --]]
+--[[ AL["Tranquillien"] = "Tranquillien"--]] 
 AL["Two-Hand, Axe"] = "Dos manos, Hacha"
 AL["Two-Hand, Mace"] = "Dos manos, Maza"
 AL["Two-Hand, Sword"] = "Dos Manos, Espada"

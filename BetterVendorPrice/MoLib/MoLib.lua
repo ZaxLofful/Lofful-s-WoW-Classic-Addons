@@ -21,8 +21,7 @@ local ML = _G[addon]
 
 ML.name = addon
 
--- Cover both classic (2) and bc (5)
-ML.isClassic = (_G.WOW_PROJECT_ID >= _G.WOW_PROJECT_CLASSIC)
+ML.isClassic = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC)
 
 ML.Factions = {"Horde", "Alliance", "Neutral"}
 
@@ -204,7 +203,6 @@ function ML:MoLibInit()
   local wowV, wowP = GetBuildInfo()
   self.WowVersion = " v" .. wowV .. "-" .. wowP
   self:Print("MoLib embedded in " .. version .. " running on WoW " .. (self.isClassic and "classic" or "mainline") ..
-             " p" .. _G.WOW_PROJECT_ID ..
                self.WowVersion)
   return false -- so caller can continue with 1 time init
 end

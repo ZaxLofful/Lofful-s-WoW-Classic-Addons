@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod(430, "DBM-Party-Classic", 8, 232)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210403094344")
+mod:SetRevision("20200524222200")
 mod:SetCreatureID(13596)
 mod:SetEncounterID(428)
 
@@ -20,9 +20,13 @@ function mod:OnCombatStart(delay)
 	timerFatalBiteCD:Start(1-delay)
 end
 
-function mod:SPELL_CAST_SUCCESS(args)
-	if args.spellId == 16495 then
-		warningFatalBite:Show()
-		timerFatalBiteCD:Start()
+do
+	local FatalBite = DBM:GetSpellInfo(16495)
+	function mod:SPELL_CAST_SUCCESS(args)
+		--if args.spellId == 15976 then
+		if args.spellName == FatalBite then
+			warningFatalBite:Show()
+			timerFatalBiteCD:Start()
+		end
 	end
 end

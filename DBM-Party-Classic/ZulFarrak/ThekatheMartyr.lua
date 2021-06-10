@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod(485, "DBM-Party-Classic", 20, 241)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210403094344")
+mod:SetRevision("20190813032603")
 mod:SetCreatureID(7272)
 mod:SetEncounterID(596)
 
@@ -15,14 +15,22 @@ mod:RegisterEventsInCombat(
 local warningFeveredPlague			= mod:NewTargetNoFilterAnnounce(8600, 2, nil, "RemoveDisease")
 local warningThekaTransoform		= mod:NewSpellAnnounce(11089, 2)
 
-function mod:SPELL_CAST_SUCCESS(args)
-	if args.spellId == 11089 then
-		warningThekaTransoform:Show()
+do
+	local ThekaTransform = DBM:GetSpellInfo(11089)
+	function mod:SPELL_CAST_SUCCESS(args)
+		--if args.spellId == 11089 then
+		if args.spellName == ThekaTransform then
+			warningThekaTransoform:Show()
+		end
 	end
 end
 
-function mod:SPELL_AURA_APPLIED(args)
-	if args.spellId == 8600 and args:IsDestTypePlayer() and self:CheckDispelFilter() then
-		warningFeveredPlague:Show(args.destName)
+do
+	local FeveredPlague = DBM:GetSpellInfo(8600)
+	function mod:SPELL_AURA_APPLIED(args)
+		--if args.spellId == 8600 and self:CheckDispelFilter() then
+		if args.spellName == FeveredPlague and args:IsDestTypePlayer() and self:CheckDispelFilter() then
+			warningFeveredPlague:Show(args.destName)
+		end
 	end
 end

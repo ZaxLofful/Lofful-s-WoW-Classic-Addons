@@ -6,13 +6,8 @@
 	* but WITHOUT ANY WARRANTY
 ]]--
 
--- Done in 215
--- - readjusted the size of the scrolling window in "Search Patterns"
--- - fixed a backdrop issue in the dropdown component
 
-
-
-local puglocal_version = "216"  --change here, and in TOC
+local puglocal_version = "1.13.6.212"  --change here, and in TOC
 local puglocal_reqPrefix = "Puggle;"
 local puglocal_dispFrequency = 5  -- display refresh every x seconds
 local puglocal_whoFrequency = 10  -- seconds before allowing another /who
@@ -72,31 +67,6 @@ puglocal_dungeonNames["MISC"] = 	"Miscellaneous"
 puglocal_dungeonNames["UD1"] = 	"User Defined 1"
 puglocal_dungeonNames["UD2"] = 	"User Defined 2"
 puglocal_dungeonNames["UD3"] = 	"User Defined 3"
-puglocal_dungeonNames["RAMP"] = "Hellfire Ramparts"	
-puglocal_dungeonNames["BF"] = "Blood Furnace"
-puglocal_dungeonNames["SP"] = "Slave Pens"	
-puglocal_dungeonNames["UB"] = "Underbog"
-puglocal_dungeonNames["MT"] = "Mana-Tombs"
-puglocal_dungeonNames["AC"] = "Auchenai Crypts"
-puglocal_dungeonNames["DH"] = "Escape from Durnholde Keep"
-puglocal_dungeonNames["SETH"] = "Sethekk Halls"
-puglocal_dungeonNames["SL"] = "Shadow Labyrinth"
-puglocal_dungeonNames["SH"] = "Shattered Halls"
-puglocal_dungeonNames["BOT"] = "The Botanica"
-puglocal_dungeonNames["MECH"] = "The Mechanar"
-puglocal_dungeonNames["SV"] = "The Steamvault"
-puglocal_dungeonNames["MGT"] = "Magisters' Terrace"
-puglocal_dungeonNames["BM"] = "Opening of the Dark Portal"
-puglocal_dungeonNames["ARC"] = "The Arcatraz"
-puglocal_dungeonNames["KZ"] = "Karazhan"
-puglocal_dungeonNames["MAG"] = "Magtheridon's Lair"
-puglocal_dungeonNames["GRU"] = "Gruul's Lair"
-puglocal_dungeonNames["SSC"] = "Serpentshrine Cavern"
-puglocal_dungeonNames["TK"] = "The Eye"
-puglocal_dungeonNames["MH"] = "Mount Hyjal"
-puglocal_dungeonNames["BT"] = "Black Temple"
-puglocal_dungeonNames["ZA"] = "Zul'Aman"
-puglocal_dungeonNames["SWP"] = "Sunwell Plateau"
 
 
 local puglocal_dungeonTags = {}
@@ -141,99 +111,49 @@ puglocal_dungeonTags["MISC"] = 	{}
 puglocal_dungeonTags["UD1"] = 	{} 
 puglocal_dungeonTags["UD2"] = 	{} 
 puglocal_dungeonTags["UD3"] = 	{} 
-puglocal_dungeonTags["RAMP"] = 	{ "ramparts", "ramps"} 
-puglocal_dungeonTags["BF"] = 	{ "blood", "furnace", "bf"} 
-puglocal_dungeonTags["SP"] = 	{ "slave", "pens", "sp"} 
-puglocal_dungeonTags["UB"] = 	{ "ub", "underbog" } 
-puglocal_dungeonTags["MT"] = 	{ "mana-tombs", "mt", "manatombs", "tombs"} 
-puglocal_dungeonTags["AC"] = 	{ "crypts", "ac"} 
-puglocal_dungeonTags["DH"] = 	{ "durn", "durnholde", "escape", "hillsbrad", "oh", "dh"} 
-puglocal_dungeonTags["SETH"] = 	{ "setthekk", "setthek", "seth"} 
-puglocal_dungeonTags["SL"] = 	{ "sl", "shadowlabs", "labs"} 
-puglocal_dungeonTags["SH"] = 	{ "sh", "shattered", "halls"} 
-puglocal_dungeonTags["BOT"] = 	{ "botanica", "bot", "bota", "botanic"} 
-puglocal_dungeonTags["MECH"] = 	{ "mech", "mechanar", "mechanaar"} 
-puglocal_dungeonTags["SV"] = 	{ "steam", "vault", "steamvault", "sv"} 
-puglocal_dungeonTags["MGT"] = 	{ "mgt", "magister", "terrace", "magisters"} 
-puglocal_dungeonTags["BM"] = 	{ "black", "morass", "blackmorass", "bm", "opening", "dark", "portal"} 
-puglocal_dungeonTags["ARC"] = 	{ "arc", "arcatraz"} 
-puglocal_dungeonTags["KZ"] =	{ "karazhan", "kz", "kara" }
-puglocal_dungeonTags["MAG"] =	{ "mags", "magtheridon" }
-puglocal_dungeonTags["GRU"] =	{ "gruul", "grull", "gruull", "grul" }
-puglocal_dungeonTags["SSC"] =	{ "serpentshrine", "ssc" }
-puglocal_dungeonTags["TK"] =	{ "eye", "tk" }
-puglocal_dungeonTags["MH"] =	{ "hyjal", "hijal" }
-puglocal_dungeonTags["BT"] =	{ "black", "temple", "bt" }
-puglocal_dungeonTags["ZA"] =	{ "zulAman", "za" }
-puglocal_dungeonTags["SWP"] =	{ "sunwell", "plateau", "swp" }
 
 local puglocal_dungeons = {}
 -- SortOrder, LvlRange Low, LvlRange High, LvlMin
-puglocal_dungeons["RFC"] = 	{ 1, 	13, 	16, 	8  }
-puglocal_dungeons["WC"] = 	{ 2, 	17, 	21, 	10 }
-puglocal_dungeons["VC"] = 	{ 3, 	18, 	22, 	10 }
-puglocal_dungeons["SFK"] = 	{ 4,  	18, 	21, 	14 }
-puglocal_dungeons["STK"] = 	{ 5,	23, 	29, 	15 }
-puglocal_dungeons["GNO"] = 	{ 6, 	25, 	28, 	15 }
-puglocal_dungeons["RFK"] = 	{ 7, 	24, 	27, 	17 }
-puglocal_dungeons["BFD"] = 	{ 8, 	22, 	24, 	19 }
-puglocal_dungeons["SMG"] = 	{ 9, 	30, 	32, 	20 }
-puglocal_dungeons["SML"] = 	{ 10, 	33, 	35, 	20 }
-puglocal_dungeons["SMA"] = 	{ 11, 	35, 	37, 	20 }
-puglocal_dungeons["SMC"] = 	{ 12, 	36, 	40, 	20 }
-puglocal_dungeons["RFD"] = 	{ 13,	34, 	37, 	25 }
-puglocal_dungeons["ULD"] = 	{ 14, 	36, 	40, 	30 }
-puglocal_dungeons["MAR"] = 	{ 15, 	43, 	48, 	30 }
+puglocal_dungeons["RFC"] = 	{ 1, 	13, 	18, 	8	 }
+puglocal_dungeons["WC"] = 	{ 2, 	17, 	24, 	10 }
+puglocal_dungeons["VC"] = 	{ 3, 	17, 	26, 	10 }
+puglocal_dungeons["SFK"] = 	{ 4,  	22, 	30, 	14 }
+puglocal_dungeons["STK"] = 	{ 5,	24, 	32, 	15 }
+puglocal_dungeons["BFD"] = 	{ 6, 	24, 	32, 	15 }
+puglocal_dungeons["GNO"] = 	{ 7, 	29, 	38, 	19 }
+puglocal_dungeons["RFK"] = 	{ 8, 	29, 	38, 	19 }
+puglocal_dungeons["SMG"] = 	{ 9, 	34, 	45, 	21 }
+puglocal_dungeons["SML"] = 	{ 10, 	36, 	45, 	21 }
+puglocal_dungeons["SMA"] = 	{ 11, 	38, 	45, 	21 }
+puglocal_dungeons["SMC"] = 	{ 12, 	40, 	45, 	21 }
+puglocal_dungeons["RFD"] = 	{ 14,	37, 	46, 	25 }
+puglocal_dungeons["ULD"] = 	{ 15, 	41, 	51, 	30 }
 puglocal_dungeons["ZF"] = 	{ 16, 	42, 	46, 	35 }
-puglocal_dungeons["ST"] = 	{ 17, 	47, 	50, 	35 }
-puglocal_dungeons["BRD"] = 	{ 18, 	48, 	56, 	40 }
-puglocal_dungeons["DME"] = 	{ 19, 	55, 	58, 	45 }
-puglocal_dungeons["DMN"] = 	{ 20, 	57, 	60, 	45 }
-puglocal_dungeons["DMW"] = 	{ 21, 	57, 	60, 	45 }
-puglocal_dungeons["STL"] = 	{ 22, 	58, 	60, 	45 }
-puglocal_dungeons["STU"] = 	{ 23, 	58, 	60, 	45 }
-puglocal_dungeons["SCH"] = 	{ 24, 	58, 	60, 	45 }
-puglocal_dungeons["LBRS"] = { 25, 	54, 	60, 	45 }
-puglocal_dungeons["UBRS"] = { 26, 	58, 	60, 	45 }
-puglocal_dungeons["ONY"] = 	{ 27, 	60, 	60, 	50 }
-puglocal_dungeons["MC"] = 	{ 28, 	60, 	60, 	50 }
-puglocal_dungeons["ZG"] = 	{ 29, 	60, 	60, 	50 }
-puglocal_dungeons["AQ20"] = { 30, 	60, 	60, 	50 }
-puglocal_dungeons["BWL"] = 	{ 31, 	60, 	60, 	60 }
-puglocal_dungeons["AQ40"] = { 32, 	60, 	60, 	60 }
-puglocal_dungeons["NAX"] = 	{ 33, 	60, 	60, 	60 }
-puglocal_dungeons["WSG"] = 	{ 34, 	10, 	60, 	10 }
-puglocal_dungeons["AB"] = 	{ 35, 	20, 	60, 	20 }
-puglocal_dungeons["AV"] = 	{ 36, 	51, 	60, 	51 }
-puglocal_dungeons["RAMP"] = { 37, 	58, 	61, 	58 }
-puglocal_dungeons["BF"] = 	{ 38, 	58, 	61, 	58 }
-puglocal_dungeons["SP"] = 	{ 39, 	59, 	64, 	59 }
-puglocal_dungeons["UB"] = 	{ 40, 	60, 	63, 	60 }
-puglocal_dungeons["MT"] = 	{ 41, 	62, 	65, 	62 }
-puglocal_dungeons["AC"] = 	{ 42, 	63, 	67, 	63 }
-puglocal_dungeons["DH"] = 	{ 43, 	64, 	68, 	64 }
-puglocal_dungeons["SETH"] = { 44, 	65, 	68, 	65 }
-puglocal_dungeons["SL"] = 	{ 45, 	67, 	72, 	67 }
-puglocal_dungeons["SH"] = 	{ 46, 	67, 	72, 	67 }
-puglocal_dungeons["BOT"] = 	{ 47, 	67, 	72, 	67 }
-puglocal_dungeons["MECH"] = { 48, 	67, 	72, 	67 }
-puglocal_dungeons["SV"] = 	{ 49, 	67, 	72, 	67 }
-puglocal_dungeons["MGT"] = 	{ 50, 	68, 	72, 	68 }
-puglocal_dungeons["BM"] = 	{ 51, 	68, 	72, 	68 }
-puglocal_dungeons["ARC"] = 	{ 52, 	68, 	72, 	68 }
-puglocal_dungeons["KZ"] = 	{ 53, 	70, 	70, 	70 }
-puglocal_dungeons["MAG"] =	{ 54, 	70, 	70, 	70 }
-puglocal_dungeons["GRU"] =	{ 55, 	70, 	70, 	70 }
-puglocal_dungeons["SSC"] =	{ 56, 	70, 	70, 	70 }
-puglocal_dungeons["TK"] =	{ 57, 	70, 	70, 	70 }
-puglocal_dungeons["MH"] =	{ 58, 	70, 	70, 	70 }
-puglocal_dungeons["BT"] =	{ 59, 	70, 	70, 	70 }
-puglocal_dungeons["ZA"] =	{ 60, 	70, 	70, 	70 }
-puglocal_dungeons["SWP"] =	{ 61, 	70, 	70, 	70 }
-puglocal_dungeons["MISC"] = { 62, 	1, 		60, 	1  }
-puglocal_dungeons["UD1"] = 	{ 63, 	1, 		60, 	1  }
-puglocal_dungeons["UD2"] = 	{ 64, 	1, 		60, 	1  }
-puglocal_dungeons["UD3"] = 	{ 65, 	1, 		60, 	1  }
+puglocal_dungeons["MAR"] = 	{ 17, 	46, 	55, 	35 }
+puglocal_dungeons["ST"] = 	{ 18, 	50, 	55, 	35 }
+puglocal_dungeons["BRD"] = 	{ 19, 	52, 	60, 	40 }
+puglocal_dungeons["DME"] = 	{ 20, 	55, 	60, 	45 }
+puglocal_dungeons["DMN"] = 	{ 21, 	55, 	60, 	45 }
+puglocal_dungeons["DMW"] = 	{ 22, 	55, 	60, 	45 }
+puglocal_dungeons["STL"] = 	{ 23, 	58, 	60, 	45 }
+puglocal_dungeons["STU"] = 	{ 24, 	58, 	60, 	45 }
+puglocal_dungeons["SCH"] = 	{ 25, 	58, 	60, 	45 }
+puglocal_dungeons["LBRS"] = 	{ 26, 	55, 	60, 	45 }
+puglocal_dungeons["UBRS"] = 	{ 27, 	58, 	60, 	45 }
+puglocal_dungeons["ONY"] = 	{ 28, 	60, 	60, 	50 }
+puglocal_dungeons["MC"] = 	{ 29, 	60, 	60, 	58 }	
+puglocal_dungeons["ZG"] = 	{ 30, 	60, 	60, 	60 }
+puglocal_dungeons["AQ20"] = 	{ 31, 	60, 	60, 	60 }
+puglocal_dungeons["BWL"] = 	{ 32, 	60, 	60, 	60 }
+puglocal_dungeons["AQ40"] = 	{ 33, 	60, 	60, 	60 }
+puglocal_dungeons["NAX"] = 	{ 34, 	60, 	60, 	60 }
+puglocal_dungeons["WSG"] = 	{ 35, 	10, 	60, 	10 }
+puglocal_dungeons["AB"] = 	{ 36, 	20, 	60, 	20 }
+puglocal_dungeons["AV"] = 	{ 37, 	51, 	60, 	51 }
+puglocal_dungeons["MISC"] = 	{ 38, 	1, 	60, 	1	 }
+puglocal_dungeons["UD1"] = 	{ 39, 	1, 	60, 	1	 }
+puglocal_dungeons["UD2"] = 	{ 40, 	1, 	60, 	1	 }
+puglocal_dungeons["UD3"] = 	{ 41, 	1, 	60, 	1	 }
 
 local puglocal_searchTags = { "lfg", "lfm", "lf1m", "lf2m", "lf3m", "lftank", "lfheals", "lfhealer", "lfdps" }
 local puglocal_blacklistTags = { "" }
@@ -444,7 +364,7 @@ function Puggle_OnEvent(event, ...)
 		--add player to invariable meta if not found
 		if puglocal_playerToon == -1 then
 			puglocal_playerToon = Puggle_count(Puggle_pastPlayers)+1 --increment Id
-			print("|cffff00ff[Puggle]|r Adding "..UnitName("player") .. " to Puggle data")
+			print("Puggle: Adding "..UnitName("player") .. " to Puggle data")
 			_, classFile = UnitClass("player")
 			_, raceFile = UnitRace("player")
 			Puggle_pastPlayers[puglocal_playerToon] = {}
@@ -561,7 +481,6 @@ end
 
 function Puggle_ExtractWho(arg1) 
 	arg1 = gsub(arg1, "Night Elf", "NightElf") --transform minus space
-	arg1 = gsub(arg1, "Blood Elf", "BloodElf") --transform minus space
 	t = Puggle_split(arg1, " ");
 	local toon  = string.gsub(t[1], "|", "!")	-- unescape player link
 	toon  = string.sub(toon, string.find(toon, "%[") +1, string.len(toon)) -- remove front
@@ -632,7 +551,7 @@ function Puggle_UpdateCurrentGroup()
 						--add player to invariable meta if not found
 						if pId == -1 then
 							pId = Puggle_count(Puggle_pastPlayers)+1 --increment Id
-							print("|cffff00ff[Puggle]|r Adding "..UnitName("party"..i) .. " to Puggle data")
+							print("Puggle: Adding "..UnitName("party"..i) .. " to Puggle data")
 							_, classFile = UnitClass("party"..i)
 							_, raceFile = UnitRace("party"..i)
 							Puggle_pastPlayers[pId] = {}
@@ -735,7 +654,7 @@ function Puggle_loadGroups()
 			-- Create the dropdown, and configure its appearance
 			--local Puggle_dropDown = _G["Puggle_DropDownGroups"]
 			if _G["Puggle_DropDownGroups"] == nil then 
-				Puggle_dropDown = CreateFrame("Frame", "Puggle_DropDownGroups", myTabPage2, "Lib_UIDropDownMenuTemplate") 
+				Puggle_dropDown = CreateFrame("Frame", "Puggle_DropDownGroups", myTabPage2, "PuggleLib_UIDropDownMenuTemplate") 
 				Puggle_dropDown:SetPoint("TOPLEFT", "$parent", "TOPLEFT",20, -59)
 				Lib_UIDropDownMenu_SetWidth(Puggle_dropDown, 400)
 			else 
@@ -1098,9 +1017,9 @@ function Puggle_ratePlayer(self, nb)
 --		print(Puggle_dec(Puggle_pastPlayers[puglocal_selectedplayer].name))
 		Puggle_pastPlayers[puglocal_selectedplayer].lateststar = Puggle_enc(""..nb)
 		Puggle_pastPlayers[puglocal_selectedplayer].latesttime = puglocal_lastGroupId
-		print("|cffff00ff[Puggle]|r Giving " .. nb .. " stars to " .. Puggle_dec(Puggle_pastPlayers[puglocal_selectedplayer].name))
+		print("Puggle: Giving " .. nb .. " stars to " .. Puggle_dec(Puggle_pastPlayers[puglocal_selectedplayer].name))
 		
-		--print("|cffff00ff[Puggle]|r Giving " .. nb .. " stars to " .. Puggle_dec(Puggle_pastPlayers[Puggle_pastGroups[puglocal_lastGroupId].party[pid].id].name))
+		--print("Puggle: Giving " .. nb .. " stars to " .. Puggle_dec(Puggle_pastPlayers[Puggle_pastGroups[puglocal_lastGroupId].party[pid].id].name))
 		
 	end
 end
@@ -1663,7 +1582,7 @@ function Puggle_ShowEditTags()
 	
 	Puggle_yy = Puggle_yy - 40
 	
-	Puggle_ScrollChildFrameEditTags:SetHeight(-Puggle_yy -40)
+	Puggle_ScrollChildFrameEditTags:SetHeight(-Puggle_yy)
 	Puggle_ScrollChildFrameEditTags:SetWidth(676)	
 	Puggle_ScrollFrameEditTags:SetScrollChild(Puggle_ScrollChildFrameEditTags)
 
@@ -1681,7 +1600,7 @@ function Puggle_ValidateInstName(self)
 		if (self:GetText() == "") then 
 			Puggle_dungeonNames[code] = puglocal_dungeonNames[code]
 			_G["puggletags_"..code.."_instName"]:SetText(Puggle_dungeonNames[code])
-			print("|cffff00ff[Puggle]|r Resetting dungeon name for "..code.. " to its default")
+			print("Puggle: Resetting dungeon name for "..code.. " to its default")
 		else
 			Puggle_dungeonNames[code] = self:GetText()
 		end
@@ -1738,7 +1657,7 @@ function Puggle_ValidateInstTags(self)
 				for idt, dt in pairs(Puggle_searchTags) do allTags = allTags .. dt .. " "	end
 
 				_G["puggletags_LFG_instTags"]:SetText(allTags)
-				print("|cffff00ff[Puggle]|r Resetting search tags to their defaults")	
+				print("Puggle: Resetting search tags to their defaults")	
 			else 
 				if blacklist then 
 					Puggle_blacklistTags = puglocal_blacklistTags
@@ -1746,14 +1665,14 @@ function Puggle_ValidateInstTags(self)
 					for idt, dt in pairs(Puggle_blacklistTags) do allTags = allTags .. dt .. " "	end
 	
 					_G["puggletags_BL_instTags"]:SetText(allTags)
-					print("|cffff00ff[Puggle]|r Resetting blacklist tags to their defaults")	
+					print("Puggle: Resetting blacklist tags to their defaults")	
 				else
 					Puggle_dungeonTags[code] = puglocal_dungeonTags[code] 
 					local allTags = "";
 					for idt, dt in pairs(Puggle_dungeonTags[code]) do allTags = allTags .. dt .. " "	end
 
 					_G["puggletags_"..code.."_instTags"]:SetText(allTags)
-					print("|cffff00ff[Puggle]|r Resetting tags for "..code.. " to their defaults")
+					print("Puggle: Resetting tags for "..code.. " to their defaults")
 				end 
 			end
 		else
@@ -1986,7 +1905,6 @@ end
 -------------------------------------------------------------------------
 
 function Puggle_Icons(what, gender) 
-	
 	local icon = "Interface/Icons/inv_misc_questionmark"
 	if (what == "DRUID") 	then icon = "Interface\\Icons\\inv_misc_monsterclaw_04" end
 	if (what == "HUNTER") 	then icon = "Interface\\Icons\\inv_weapon_bow_07" end
@@ -2003,9 +1921,7 @@ function Puggle_Icons(what, gender)
 	if (what == "Dwarf") then icon = "Interface\\AddOns\\Puggle\\Images\\achievement_character_dwarf_"..g end
 	if (what == "Gnome") then icon = "Interface\\AddOns\\Puggle\\Images\\achievement_character_gnome_"..g end
 	if (what == "Human") then icon = "Interface\\AddOns\\Puggle\\Images\\achievement_character_human_"..g end
-	if (what == "Draenei") then icon = "Interface\\AddOns\\Puggle\\Images\\achievement_character_draenei_"..g end
 	if (what == "NightElf") then icon = "Interface\\AddOns\\Puggle\\Images\\achievement_character_nightelf_"..g end
-	if (what == "BloodElf") then icon = "Interface\\AddOns\\Puggle\\Images\\achievement_character_bloodelf_"..g end
 	if (what == "Orc") then icon = "Interface\\AddOns\\Puggle\\Images\\achievement_character_orc_"..g end
 	if (what == "Tauren") then icon = "Interface\\AddOns\\Puggle\\Images\\achievement_character_tauren_"..g end
 	if (what == "Troll") then icon = "Interface\\AddOns\\Puggle\\Images\\achievement_character_troll_"..g end
@@ -2164,7 +2080,7 @@ end
 
 function Puggle_AdjustScrollSizes() 
 	local newHeight = Puggle_ContainerFrame:GetHeight()
-	Puggle_ScrollFrameEditTags:SetHeight(newHeight -245 -40)
+	Puggle_ScrollFrameEditTags:SetHeight(newHeight -245)
 	Puggle_ScrollFrame:SetHeight(newHeight - 80)
 	Puggle_ScrollFrameGroups:SetHeight(newHeight - 285)
 	Puggle_ScrollFramePlayers:SetHeight(newHeight - 100)
@@ -2241,7 +2157,7 @@ end
 function Puggle_ToggleSound()
 	Puggle_playSoundOnNewRequest = not Puggle_playSoundOnNewRequest
 	myTabPage4_playSoundOnNewRequest:SetChecked(Puggle_playSoundOnNewRequest)
-	if Puggle_playSoundOnNewRequest then print("|cffff00ff[Puggle]|r Notification sound ON") else print("|cffff00ff[Puggle]|r Notification sound OFF") end
+	if Puggle_playSoundOnNewRequest then print("Puggle: Notification sound ON") else print("Puggle: Notification sound OFF") end
 end
 
 -------------------------------------------------------------------------

@@ -122,14 +122,18 @@ local FILTER_DATA = {
             [LE_ITEM_WEAPON_FISHINGPOLE] 	= true, -- Fishing Poles
         },
         [LE_ITEM_CLASS_GEM] = {
-            [1] = true, -- Blue
-            [2] = true, -- Yellow
-            [3] = true, -- Purple
-            [4] = true, -- Green
-            [5] = true, -- Orange
-            [6] = true, -- Meta
-            --[7] = true, -- Simple
-            [8] = true, -- Prismatic
+            [LE_ITEM_GEM_INTELLECT] 		= true, -- Intellect
+            [LE_ITEM_GEM_AGILITY] 		    = true, -- Agility
+            [LE_ITEM_GEM_STRENGTH] 		    = true, -- Strength
+            [LE_ITEM_GEM_STAMINA] 		    = true, -- Stamina
+            [LE_ITEM_GEM_SPIRIT] 		    = true, -- Spirit
+            [LE_ITEM_GEM_CRITICALSTRIKE]    = true, -- Critical Strike
+            [LE_ITEM_GEM_MASTERY] 		    = true, -- Mastery
+            [LE_ITEM_GEM_HASTE] 			= true, -- Haste
+            [LE_ITEM_GEM_VERSATILITY] 	    = true, -- Versatility
+            -- [9] -- ignore Other
+            [LE_ITEM_GEM_MULTIPLESTATS] 	= true, -- Multiple Stats
+            [LE_ITEM_GEM_ARTIFACTRELIC] 	= true, -- Artifact Relic
         },
         [LE_ITEM_CLASS_ARMOR] = {
             [LE_ITEM_ARMOR_GENERIC] 	= true, -- Miscellaneous
@@ -279,7 +283,6 @@ local LINKED_STATS = {
 
     ["ITEM_MOD_RESILIENCE_RATING"] = "ITEM_MOD_RESILIENCE_RATING_SHORT",
 }
-for k,v in pairs(LINKED_STATS) do LINKED_STATS[v] = v end
 
 local STAT_LIST = {
     {
@@ -371,9 +374,6 @@ AtlasLoot.AtlasLootDBDefaults.profile.ClassFilter = {
         ["ITEM_MOD_HIT_RANGED_RATING_SHORT"] = false,
         ["ITEM_MOD_CRIT_MELEE_RATING_SHORT"] = false,
         ["ITEM_MOD_CRIT_RANGED_RATING_SHORT"] = false,
-        ["ITEM_MOD_DEFENSE_SKILL_RATING_SHORT"] = false,
-        ["ITEM_MOD_PARRY_RATING_SHORT"] = false,
-        ["ITEM_MOD_DODGE_RATING_SHORT"] = false,
     },
     ["SHAMAN"] = {
         ["*"] = true,
@@ -390,9 +390,6 @@ AtlasLoot.AtlasLootDBDefaults.profile.ClassFilter = {
         ["ITEM_MOD_HIT_RANGED_RATING_SHORT"] = false,
         ["ITEM_MOD_CRIT_MELEE_RATING_SHORT"] = false,
         ["ITEM_MOD_CRIT_RANGED_RATING_SHORT"] = false,
-        ["ITEM_MOD_DEFENSE_SKILL_RATING_SHORT"] = false,
-        ["ITEM_MOD_PARRY_RATING_SHORT"] = false,
-        ["ITEM_MOD_DODGE_RATING_SHORT"] = false,
     },
     ["WARLOCK"] = {
         ["*"] = true,
@@ -406,9 +403,6 @@ AtlasLoot.AtlasLootDBDefaults.profile.ClassFilter = {
         ["ITEM_MOD_HIT_RANGED_RATING_SHORT"] = false,
         ["ITEM_MOD_CRIT_MELEE_RATING_SHORT"] = false,
         ["ITEM_MOD_CRIT_RANGED_RATING_SHORT"] = false,
-        ["ITEM_MOD_DEFENSE_SKILL_RATING_SHORT"] = false,
-        ["ITEM_MOD_PARRY_RATING_SHORT"] = false,
-        ["ITEM_MOD_DODGE_RATING_SHORT"] = false,
     },
     ["DRUID"] = {
         ["*"] = true,
@@ -453,18 +447,8 @@ local function BuildClassFilterList()
     FILTER_DATA = nil
 end
 
-local OptionsClassSort
 function ClassFilter.GetStatListForOptions()
-    if not OptionsClassSort then
-        local ownClass = UnitClassBase("player")
-        OptionsClassSort = { ownClass }
-        for k,v in ipairs(CLASS_SORT) do
-            if v ~= ownClass then
-                OptionsClassSort[#OptionsClassSort+1] = v
-            end
-        end
-    end
-    return STAT_LIST, OptionsClassSort, db
+    return STAT_LIST, CLASS_SORT, db
 end
 
 function ClassFilter.ClassCanUseItem(className, itemID)

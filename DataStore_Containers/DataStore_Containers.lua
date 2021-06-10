@@ -354,12 +354,6 @@ local function OnBagUpdateDelayed(event)
     wipe(bagUpdateQueue)
 end
 
-local function OnBagUpdateCooldown(event)
-    for i = 0, 4 do
-        ScanBag(i)
-    end
-end
-
 local function OnBankFrameClosed()
 	addon.isBankOpen = nil
 	addon:UnregisterEvent("BANKFRAME_CLOSED")
@@ -646,7 +640,6 @@ function addon:OnEnable()
 	
 	addon:RegisterEvent("BAG_UPDATE", OnBagUpdate)
     addon:RegisterEvent("BAG_UPDATE_DELAYED", OnBagUpdateDelayed)
-    addon:RegisterEvent("BAG_UPDATE_COOLDOWN", OnBagUpdateCooldown)
 	addon:RegisterEvent("BANKFRAME_OPENED", OnBankFrameOpened)
 	
 	-- disable bag updates during multi sell at the AH
@@ -656,7 +649,6 @@ end
 function addon:OnDisable()
 	addon:UnregisterEvent("BAG_UPDATE")
     addon:UnregisterEvent("BAG_UPDATE_DELAYED")
-    addon:UnregisterEvent("BAG_UPDATE_COOLDOWN")
 	addon:UnregisterEvent("BANKFRAME_OPENED")
 	addon:UnregisterEvent("AUCTION_HOUSE_SHOW")
 end

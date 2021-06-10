@@ -4,18 +4,18 @@
 	<Script file="UIDropDownMenu.lua"/>
 	<Include file="UIDropDownMenuTemplates.xml"/>
 	<Script file="EasyMenu.lua"/>
-	<Button name="Lib_DropDownList1" toplevel="true" frameStrata="FULLSCREEN_DIALOG" inherits="Lib_UIDropDownListTemplate" hidden="true" id="1">
+	<Button name="PuggleLib_DropDownList1" toplevel="true" frameStrata="FULLSCREEN_DIALOG" inherits="PuggleLib_UIDropDownListTemplate" hidden="true" id="1">
 		<Size>
 			<AbsDimension x="180" y="10"/>
 		</Size>
 		<Scripts>
 			<OnLoad>
-				local fontName, fontHeight, fontFlags = _G["Lib_DropDownList1Button1NormalText"]:GetFont();
+				local fontName, fontHeight, fontFlags = _G["PuggleLib_DropDownList1Button1NormalText"]:GetFont();
 				LIB_UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = fontHeight;
 			</OnLoad>
 		</Scripts>
 	</Button>
-	<Button name="Lib_DropDownList2" toplevel="true" frameStrata="FULLSCREEN_DIALOG" inherits="Lib_UIDropDownListTemplate" hidden="true" id="2">
+	<Button name="PuggleLib_DropDownList2" toplevel="true" frameStrata="FULLSCREEN_DIALOG" inherits="PuggleLib_UIDropDownListTemplate" hidden="true" id="2">
 		<Size>
 			<AbsDimension x="180" y="10"/>
 		</Size>

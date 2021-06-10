@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod(483, "DBM-Party-Classic", 20, 241)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210403094344")
+mod:SetRevision("20200524222200")
 mod:SetCreatureID(7273)
 mod:SetEncounterID(594)
 
@@ -25,21 +25,30 @@ function mod:OnCombatStart(delay)
 	timerSlamCD:Start(1-delay)
 end
 
-function mod:SPELL_CAST_START(args)
-	if args.spellId == 11836 and args:IsSrcTypeHostile() then
-		timerFreezeSolidCD:Start()
+do
+	local FreezeSolid = DBM:GetSpellInfo(11836)
+	function mod:SPELL_CAST_START(args)
+		--if args.spellId == 11836 then
+		if args.spellName == FreezeSolid and args:IsSrcTypeHostile() then
+			timerFreezeSolidCD:Start()
+		end
+	end
+
+	function mod:SPELL_AURA_APPLIED(args)
+		--if args.spellId == 11836 then
+		if args.spellName == FreezeSolid and args:IsDestTypePlayer() then
+			warningFreezeSolid:Show(args.destName)
+		end
 	end
 end
 
-function mod:SPELL_AURA_APPLIED(args)
-	if args.spellId == 11836 and args:IsDestTypePlayer() then
-		warningFreezeSolid:Show(args.destName)
-	end
-end
-
-function mod:SPELL_CAST_SUCCESS(args)
-	if args.spellId == 11902 and args:IsSrcTypeHostile() then
-		warningSlam:Show()
-		timerSlamCD:Start()
+do
+	local Slam = DBM:GetSpellInfo(11902)
+	function mod:SPELL_CAST_SUCCESS(args)
+		--if args.spellId == 11902 then
+		if args.spellName == Slam and args:IsSrcTypeHostile() then
+			warningSlam:Show()
+			timerSlamCD:Start()
+		end
 	end
 end

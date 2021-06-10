@@ -1,4 +1,4 @@
-## Interface: 20501
+## Interface: 11307
 ## Notes: World buff timers and pre warnings.
 ## Title: Nova World Buffs
 ## Author: Novaspark-Arugal OCE

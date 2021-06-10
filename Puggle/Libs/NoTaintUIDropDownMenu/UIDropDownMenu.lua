@@ -68,12 +68,12 @@ function Lib_UIDropDownMenu_InitializeHelper (frame)
 	-- Hide all the buttons
 	local button, dropDownList;
 	for i = 1, LIB_UIDROPDOWNMENU_MAXLEVELS, 1 do
-		dropDownList = _G["Lib_DropDownList"..i];
+		dropDownList = _G["PuggleLib_DropDownList"..i];
 		if ( i >= LIB_UIDROPDOWNMENU_MENU_LEVEL or frame ~= LIB_UIDROPDOWNMENU_OPEN_MENU ) then
 			dropDownList.numButtons = 0;
 			dropDownList.maxWidth = 0;
 			for j=1, LIB_UIDROPDOWNMENU_MAXBUTTONS, 1 do
-				button = _G["Lib_DropDownList"..i.."Button"..j];
+				button = _G["PuggleLib_DropDownList"..i.."Button"..j];
 				button:Hide();
 			end
 			dropDownList:Hide();
@@ -98,7 +98,7 @@ function Lib_UIDropDownMenu_Initialize(frame, initFunction, displayMode, level, 
 		level = 1;
 	end
 
-	local dropDownList = _G["Lib_DropDownList"..level]
+	local dropDownList = _G["PuggleLib_DropDownList"..level]
 	dropDownList.dropdown = frame;
 	dropDownList.shouldRefresh = true;
 
@@ -237,7 +237,7 @@ function Lib_UIDropDownMenu_CreateFrames(level, index)
 
 	while ( level > LIB_UIDROPDOWNMENU_MAXLEVELS ) do
 		LIB_UIDROPDOWNMENU_MAXLEVELS = LIB_UIDROPDOWNMENU_MAXLEVELS + 1;
-		local newList = CreateFrame("Button", "Lib_DropDownList"..LIB_UIDROPDOWNMENU_MAXLEVELS, nil, "Lib_UIDropDownListTemplate");
+		local newList = CreateFrame("Button", "PuggleLib_DropDownList"..LIB_UIDROPDOWNMENU_MAXLEVELS, nil, "PuggleLib_UIDropDownListTemplate");
 		newList:SetFrameStrata("FULLSCREEN_DIALOG");
 		newList:SetToplevel(true);
 		newList:Hide();
@@ -245,7 +245,7 @@ function Lib_UIDropDownMenu_CreateFrames(level, index)
 		newList:SetWidth(180)
 		newList:SetHeight(10)
 		for i=LIB_UIDROPDOWNMENU_MINBUTTONS+1, LIB_UIDROPDOWNMENU_MAXBUTTONS do
-			local newButton = CreateFrame("Button", "Lib_DropDownList"..LIB_UIDROPDOWNMENU_MAXLEVELS.."Button"..i, newList, "Lib_UIDropDownMenuButtonTemplate");
+			local newButton = CreateFrame("Button", "PuggleLib_DropDownList"..LIB_UIDROPDOWNMENU_MAXLEVELS.."Button"..i, newList, "PuggleLib_UIDropDownMenuButtonTemplate");
 			newButton:SetID(i);
 		end
 	end
@@ -253,7 +253,7 @@ function Lib_UIDropDownMenu_CreateFrames(level, index)
 	while ( index > LIB_UIDROPDOWNMENU_MAXBUTTONS ) do
 		LIB_UIDROPDOWNMENU_MAXBUTTONS = LIB_UIDROPDOWNMENU_MAXBUTTONS + 1;
 		for i=1, LIB_UIDROPDOWNMENU_MAXLEVELS do
-			local newButton = CreateFrame("Button", "Lib_DropDownList"..i.."Button"..LIB_UIDROPDOWNMENU_MAXBUTTONS, _G["Lib_DropDownList"..i], "Lib_UIDropDownMenuButtonTemplate");
+			local newButton = CreateFrame("Button", "PuggleLib_DropDownList"..i.."Button"..LIB_UIDROPDOWNMENU_MAXBUTTONS, _G["PuggleLib_DropDownList"..i], "PuggleLib_UIDropDownMenuButtonTemplate");
 			newButton:SetID(LIB_UIDROPDOWNMENU_MAXBUTTONS);
 		end
 	end
@@ -297,7 +297,7 @@ function Lib_UIDropDownMenu_AddButton(info, level)
 		level = 1;
 	end
 
-	local listFrame = _G["Lib_DropDownList"..level];
+	local listFrame = _G["PuggleLib_DropDownList"..level];
 	local index = listFrame and (listFrame.numButtons + 1) or 1;
 	local width;
 
@@ -305,7 +305,7 @@ function Lib_UIDropDownMenu_AddButton(info, level)
 	Lib_UIDropDownMenuDelegate:SetAttribute("createframes-index", index);
 	Lib_UIDropDownMenuDelegate:SetAttribute("createframes", true);
 
-	listFrame = listFrame or _G["Lib_DropDownList"..level];
+	listFrame = listFrame or _G["PuggleLib_DropDownList"..level];
 	local listFrameName = listFrame:GetName();
 
 	-- Set the number of buttons in the listframe
@@ -545,7 +545,7 @@ function Lib_UIDropDownMenu_AddButton(info, level)
 	-- If has a colorswatch, show it and vertex color it
 	local colorSwatch = _G[listFrameName.."Button"..index.."ColorSwatch"];
 	if ( info.hasColorSwatch ) then
-		_G["Lib_DropDownList"..level.."Button"..index.."ColorSwatch".."NormalTexture"]:SetVertexColor(info.r, info.g, info.b);
+		_G["PuggleLib_DropDownList"..level.."Button"..index.."ColorSwatch".."NormalTexture"]:SetVertexColor(info.r, info.g, info.b);
 		button.r = info.r;
 		button.g = info.g;
 		button.b = info.b;
@@ -621,11 +621,11 @@ function Lib_UIDropDownMenu_Refresh(frame, useValue, dropdownLevel)
 		dropdownLevel = LIB_UIDROPDOWNMENU_MENU_LEVEL;
 	end
 
-	local listFrame = _G["Lib_DropDownList"..dropdownLevel];
+	local listFrame = _G["PuggleLib_DropDownList"..dropdownLevel];
 	listFrame.numButtons = listFrame.numButtons or 0;
 	-- Just redraws the existing menu
 	for i=1, LIB_UIDROPDOWNMENU_MAXBUTTONS do
-		button = _G["Lib_DropDownList"..dropdownLevel.."Button"..i];
+		button = _G["PuggleLib_DropDownList"..dropdownLevel.."Button"..i];
 		checked = nil;
 
 		if(i <= listFrame.numButtons) then
@@ -650,8 +650,8 @@ function Lib_UIDropDownMenu_Refresh(frame, useValue, dropdownLevel)
 
 		if not button.notCheckable and button:IsShown() then
 			-- If checked show check image
-			checkImage = _G["Lib_DropDownList"..dropdownLevel.."Button"..i.."Check"];
-			uncheckImage = _G["Lib_DropDownList"..dropdownLevel.."Button"..i.."UnCheck"];
+			checkImage = _G["PuggleLib_DropDownList"..dropdownLevel.."Button"..i.."Check"];
+			uncheckImage = _G["PuggleLib_DropDownList"..dropdownLevel.."Button"..i.."UnCheck"];
 			if ( checked ) then
 				somethingChecked = true;
 				local icon = _G[frame:GetName().."Icon"];
@@ -686,16 +686,16 @@ function Lib_UIDropDownMenu_Refresh(frame, useValue, dropdownLevel)
 	end
 	if (not frame.noResize) then
 		for i=1, LIB_UIDROPDOWNMENU_MAXBUTTONS do
-			button = _G["Lib_DropDownList"..dropdownLevel.."Button"..i];
+			button = _G["PuggleLib_DropDownList"..dropdownLevel.."Button"..i];
 			button:SetWidth(maxWidth);
 		end
-		Lib_UIDropDownMenu_RefreshDropDownSize(_G["Lib_DropDownList"..dropdownLevel]);
+		Lib_UIDropDownMenu_RefreshDropDownSize(_G["PuggleLib_DropDownList"..dropdownLevel]);
 	end
 end
 
 function Lib_UIDropDownMenu_RefreshAll(frame, useValue)
 	for dropdownLevel = LIB_UIDROPDOWNMENU_MENU_LEVEL, 2, -1 do
-		local listFrame = _G["Lib_DropDownList"..dropdownLevel];
+		local listFrame = _G["PuggleLib_DropDownList"..dropdownLevel];
 		if ( listFrame:IsShown() ) then
 			Lib_UIDropDownMenu_Refresh(frame, nil, dropdownLevel);
 		end
@@ -757,7 +757,7 @@ function Lib_UIDropDownMenu_GetSelectedID(frame)
 		-- If no explicit selectedID then try to send the id of a selected value or name
 		local button;
 		for i=1, LIB_UIDROPDOWNMENU_MAXBUTTONS do
-			button = _G["Lib_DropDownList"..LIB_UIDROPDOWNMENU_MENU_LEVEL.."Button"..i];
+			button = _G["PuggleLib_DropDownList"..LIB_UIDROPDOWNMENU_MENU_LEVEL.."Button"..i];
 			-- See if checked or not
 			if ( Lib_UIDropDownMenu_GetSelectedName(frame) ) then
 				if ( button:GetText() == Lib_UIDropDownMenu_GetSelectedName(frame) ) then
@@ -822,7 +822,7 @@ function Lib_UIDropDownMenuButton_OnClick(self)
 end
 
 function Lib_HideDropDownMenu(level)
-	local listFrame = _G["Lib_DropDownList"..level];
+	local listFrame = _G["PuggleLib_DropDownList"..level];
 	listFrame:Hide();
 end
 
@@ -835,8 +835,8 @@ function Lib_ToggleDropDownMenu(level, value, dropDownFrame, anchorName, xOffset
 	Lib_UIDropDownMenuDelegate:SetAttribute("createframes", true);
 	LIB_UIDROPDOWNMENU_MENU_LEVEL = level;
 	LIB_UIDROPDOWNMENU_MENU_VALUE = value;
-	local listFrame = _G["Lib_DropDownList"..level];
-	local listFrameName = "Lib_DropDownList"..level;
+	local listFrame = _G["PuggleLib_DropDownList"..level];
+	local listFrameName = "PuggleLib_DropDownList"..level;
 	local tempFrame;
 	local point, relativePoint, relativeTo;
 	if ( not dropDownFrame ) then
@@ -942,7 +942,7 @@ function Lib_ToggleDropDownMenu(level, value, dropDownFrame, anchorName, xOffset
 			end
 			listFrame:ClearAllPoints();
 			-- If this is a dropdown button, not the arrow anchor it to itself
-			if ( strsub(button:GetParent():GetName(), 0,16) == "Lib_DropDownList" and strlen(button:GetParent():GetName()) == 17 ) then
+			if ( strsub(button:GetParent():GetName(), 0,16) == "PuggleLib_DropDownList" and strlen(button:GetParent():GetName()) == 17 ) then
 				anchorFrame = button;
 			else
 				anchorFrame = button:GetParent();
@@ -1038,7 +1038,7 @@ function Lib_ToggleDropDownMenu(level, value, dropDownFrame, anchorName, xOffset
 			end
 
 			listFrame:ClearAllPoints();
-			listFrame.parentLevel = tonumber(strmatch(anchorFrame:GetName(), "Lib_DropDownList(%d+)"));
+			listFrame.parentLevel = tonumber(strmatch(anchorFrame:GetName(), "PuggleLib_DropDownList(%d+)"));
 			listFrame.parentID = anchorFrame:GetID();
 			listFrame:SetPoint(point, anchorFrame, relativePoint, xOffset, yOffset);
 		end
@@ -1055,7 +1055,7 @@ function Lib_CloseDropDownMenus(level)
 		level = 1;
 	end
 	for i=level, LIB_UIDROPDOWNMENU_MAXLEVELS do
-		_G["Lib_DropDownList"..i]:Hide();
+		_G["PuggleLib_DropDownList"..i]:Hide();
 	end
 end
 
@@ -1116,12 +1116,12 @@ function Lib_UIDropDownMenu_ClearAll(frame)
 
 	local button, checkImage, uncheckImage;
 	for i=1, LIB_UIDROPDOWNMENU_MAXBUTTONS do
-		button = _G["Lib_DropDownList"..LIB_UIDROPDOWNMENU_MENU_LEVEL.."Button"..i];
+		button = _G["PuggleLib_DropDownList"..LIB_UIDROPDOWNMENU_MENU_LEVEL.."Button"..i];
 		button:UnlockHighlight();
 
-		checkImage = _G["Lib_DropDownList"..LIB_UIDROPDOWNMENU_MENU_LEVEL.."Button"..i.."Check"];
+		checkImage = _G["PuggleLib_DropDownList"..LIB_UIDROPDOWNMENU_MENU_LEVEL.."Button"..i.."Check"];
 		checkImage:Hide();
-		uncheckImage = _G["Lib_DropDownList"..LIB_UIDROPDOWNMENU_MENU_LEVEL.."Button"..i.."UnCheck"];
+		uncheckImage = _G["PuggleLib_DropDownList"..LIB_UIDROPDOWNMENU_MENU_LEVEL.."Button"..i.."UnCheck"];
 		uncheckImage:Hide();
 	end
 end
@@ -1175,15 +1175,15 @@ function Lib_UIDropDownMenuButton_OpenColorPicker(self, button)
 end
 
 function Lib_UIDropDownMenu_DisableButton(level, id)
-	_G["Lib_DropDownList"..level.."Button"..id]:Disable();
+	_G["PuggleLib_DropDownList"..level.."Button"..id]:Disable();
 end
 
 function Lib_UIDropDownMenu_EnableButton(level, id)
-	_G["Lib_DropDownList"..level.."Button"..id]:Enable();
+	_G["PuggleLib_DropDownList"..level.."Button"..id]:Enable();
 end
 
 function Lib_UIDropDownMenu_SetButtonText(level, id, text, colorCode)
-	local button = _G["Lib_DropDownList"..level.."Button"..id];
+	local button = _G["PuggleLib_DropDownList"..level.."Button"..id];
 	if ( colorCode) then
 		button:SetText(colorCode..text.."|r");
 	else
@@ -1192,11 +1192,11 @@ function Lib_UIDropDownMenu_SetButtonText(level, id, text, colorCode)
 end
 
 function Lib_UIDropDownMenu_SetButtonNotClickable(level, id)
-	_G["Lib_DropDownList"..level.."Button"..id]:SetDisabledFontObject(GameFontHighlightSmallLeft);
+	_G["PuggleLib_DropDownList"..level.."Button"..id]:SetDisabledFontObject(GameFontHighlightSmallLeft);
 end
 
 function Lib_UIDropDownMenu_SetButtonClickable(level, id)
-	_G["Lib_DropDownList"..level.."Button"..id]:SetDisabledFontObject(GameFontDisableSmallLeft);
+	_G["PuggleLib_DropDownList"..level.."Button"..id]:SetDisabledFontObject(GameFontDisableSmallLeft);
 end
 
 function Lib_UIDropDownMenu_DisableDropDown(dropDown)
@@ -1225,9 +1225,9 @@ end
 
 function Lib_UIDropDownMenu_GetValue(id)
 	--Only works if the dropdown has just been initialized, lame, I know =(
-	local button = _G["Lib_DropDownList1Button"..id];
+	local button = _G["PuggleLib_DropDownList1Button"..id];
 	if ( button ) then
-		return _G["Lib_DropDownList1Button"..id].value;
+		return _G["PuggleLib_DropDownList1Button"..id].value;
 	else
 		return nil;
 	end

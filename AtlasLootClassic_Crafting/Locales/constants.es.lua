@@ -7,32 +7,42 @@ if not AL then return end
 AL["Apprentice"] = "Aprendiz"
 AL["Artisan"] = "Artesano"
 AL["Axes"] = "Hachas"
-AL["Cauldrons"] = "Calderas"
+--[[Translation missing --]]
+--[[ AL["Cauldrons"] = "Cauldrons"--]] 
 AL["Class Professions"] = "Profesiones de clase"
-AL["Drums"] = "Tambores"
-AL["Elixirs"] = "Elixires"
+--[[Translation missing --]]
+--[[ AL["Drums"] = "Drums"--]] 
+--[[Translation missing --]]
+--[[ AL["Elixirs"] = "Elixirs"--]] 
 AL["Enhancements"] = "Mejoras"
 AL["Expert"] = "Experto"
 AL["Fireworks"] = "Fuegos artificiales"
-AL["Flares"] = "Bengalas"
+--[[Translation missing --]]
+--[[ AL["Flares"] = "Flares"--]] 
 AL["Flasks"] = "Frascos"
 AL["Healing/Mana Potions"] = "Pociones de sanación/maná"
 AL["Journeyman"] = "Oficial"
 AL["Maces"] = "Mazas"
-AL["Master"] = "Maestro"
+--[[Translation missing --]]
+--[[ AL["Master"] = "Master"--]] 
 AL["Misc Elixirs"] = "Elixires varios"
 AL["Oil"] = "Aceite"
-AL["Pet"] = "Mascota"
+--[[Translation missing --]]
+--[[ AL["Pet"] = "Pet"--]] 
 AL["Pets"] = "Mascotas"
 AL["Protection Potions"] = "Pociones de protección"
-AL["Resistance"] = "Resistencia"
-AL["Ring"] = "Anillo"
+--[[Translation missing --]]
+--[[ AL["Resistance"] = "Resistance"--]] 
+--[[Translation missing --]]
+--[[ AL["Ring"] = "Ring"--]] 
 AL["Secondary Professions"] = "Habilidades secundarias"
 AL["Smelting"] = "Fundir"
 AL["Special Elixirs"] = "Elixires especiales"
-AL["Spell Damage"] = "Daño de hechizos mágicos"
+--[[Translation missing --]]
+--[[ AL["Spell Damage"] = "Spell Damage"--]] 
 AL["Stat Elixirs"] = "Elixires de estadísticas"
-AL["Stones"] = "Piedras"
+--[[Translation missing --]]
+--[[ AL["Stones"] = "Stones"--]] 
 AL["Swords"] = "Espadas"
 AL["Transmutes"] = "Transmutar"
 AL["Util Potions"] = "Pociones de utilidad"

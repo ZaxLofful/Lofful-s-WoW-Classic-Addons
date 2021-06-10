@@ -56,7 +56,6 @@ function Set.OnSet(button, second)
 		button.secButton.ExtraFrameData = ItemSet.GetSetDataForExtraFrame(button.secButton.SetID)
 		button.secButton.SetIcon = ItemSet.GetSetIcon(button.secButton.SetID, true)
 		button.secButton.SetDescription = ItemSet.GetSetDescriptionString(button.secButton.SetID)
-		button.secButton.SetBonusData = ItemSet.GetSetBonusString(button.secButton.SetID)
 
 		Set.Refresh(button.secButton)
 	else
@@ -67,7 +66,6 @@ function Set.OnSet(button, second)
 		button.ExtraFrameData = ItemSet.GetSetDataForExtraFrame(button.SetID)
 		button.SetIcon = ItemSet.GetSetIcon(button.SetID, true)
 		button.SetDescription = ItemSet.GetSetDescriptionString(button.SetID)
-		button.SetBonusData = ItemSet.GetSetBonusString(button.SetID)
 
 		Set.Refresh(button)
 	end
@@ -126,7 +124,6 @@ function Set.OnClear(button)
 	button.SetIcon = nil
 	button.SetDescription = nil
 	button.SetID = nil
-	button.SetBonusData = nil
 
 	button.secButton.SetName = nil
 	button.secButton.Items = nil
@@ -134,7 +131,6 @@ function Set.OnClear(button)
 	button.secButton.SetIcon = nil
 	button.secButton.SetDescription = nil
 	button.secButton.SetID = nil
-	button.secButton.SetBonusData = nil
 	if button.ExtraFrameShown then
 		AtlasLoot.Button:ExtraItemFrame_ClearFrame()
 		button.ExtraFrameShown = false
@@ -201,19 +197,6 @@ function Set.ShowToolTipFrame(button)
 		frame.modelFrame:SetPortraitZoom(frame.modelFrame.zoomLevel)
 		frame.modelFrame.Reset = _G.Model_Reset
 
-		frame.bonusDataFrame = CreateFrame("Frame", name.."-bonus", frame, _G.BackdropTemplateMixin and "BackdropTemplate" or nil)
-		frame.bonusDataFrame:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", 0, -2)
-		frame.bonusDataFrame:SetSize(230, 50)
-		frame.bonusDataFrame:SetBackdrop(ALPrivate.BOX_BORDER_BACKDROP)
-		frame.bonusDataFrame:SetBackdropColor(0,0,0,1)
-
-		frame.bonusDataFrame.text = frame.bonusDataFrame:CreateFontString(name.."-bonusText", "ARTWORK", "GameFontNormalSmall")
-		frame.bonusDataFrame.text:SetPoint("TOPLEFT", frame.bonusDataFrame, 5, -5)
-		frame.bonusDataFrame.text:SetPoint("TOPRIGHT", frame.bonusDataFrame, -5, -5)
-		frame.bonusDataFrame.text:SetPoint("BOTTOM", frame.bonusDataFrame, 0, 5)
-		frame.bonusDataFrame.text:SetJustifyH("LEFT")
-		frame.bonusDataFrame.text:SetText("")
-
 		Set.tooltipFrame = frame
 		frame:Hide()
 	end
@@ -236,16 +219,4 @@ function Set.ShowToolTipFrame(button)
 		frame:TryOn(type(button.Items[i]) == "string" and button.Items[i] or "item:"..button.Items[i])
 	end
 
-	if not button.SetBonusData then
-		button.SetBonusData = ItemSet.GetSetBonusString(button.SetID)
-	end
-
-	if button.SetBonusData then
-		Set.tooltipFrame.bonusDataFrame:Show()
-		Set.tooltipFrame.bonusDataFrame.text:SetText(button.SetBonusData)
-		Set.tooltipFrame.bonusDataFrame:SetHeight(Set.tooltipFrame.bonusDataFrame.text:GetStringHeight()+14)
-		Set.tooltipFrame:SetPoint("BOTTOMLEFT", button, "TOPLEFT", (button:GetWidth() * 0.5), 5 + Set.tooltipFrame.bonusDataFrame:GetHeight())
-	else
-		Set.tooltipFrame.bonusDataFrame:Hide()
-	end
 end

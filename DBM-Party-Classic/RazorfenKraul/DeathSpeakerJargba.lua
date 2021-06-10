@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod("DeathSpeakerJargba", "DBM-Party-Classic", 11)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210403094344")
+mod:SetRevision("20190907034931")
 mod:SetCreatureID(4428)
 --mod:SetEncounterID(438)
 
@@ -19,23 +19,29 @@ local warningMC				= mod:NewTargetNoFilterAnnounce(14515, 4, nil, false, 2)--Don
 local timerMCCD				= mod:NewAITimer(180, 14515, nil, nil, nil, 3)--Uses success, because start can be interrupted by CC, evem though normal interrupts don't work, but boss recasts immediately on CC break
 
 function mod:OnCombatStart(delay)
-	--timerMCCD:Start(6-delay)--Cast Start
+--	timerMCCD:Start(6-delay)--Cast Start
 end
 
-function mod:SPELL_CAST_START(args)
-	if args.spellId == 14515 then
-		warningMCCast:Show()
+do
+	local DominateMind = DBM:GetSpellInfo(14515)
+	function mod:SPELL_CAST_START(args)
+		--if args.spellId == 14515 then
+		if args.spellName == DominateMind then
+			warningMCCast:Show()
+		end
 	end
-end
 
-function mod:SPELL_CAST_SUCCESS(args)
-	if args.spellId == 14515 then
-		timerMCCD:Start()--From Success to start when final, but while AI, success to success :\
+	function mod:SPELL_CAST_SUCCESS(args)
+		--if args.spellId == 14515 then
+		if args.spellName == DominateMind then
+			timerMCCD:Start()--From Success to start when final, but while AI, success to success :\
+		end
 	end
-end
 
-function mod:SPELL_AURA_APPLIED(args)
-	if args.spellId == 14515 then
-		warningMC:Show(args.destName)
+	function mod:SPELL_AURA_APPLIED(args)
+		--if args.spellId == 14515 then
+		if args.spellName == DominateMind then
+			warningMC:Show(args.destName)
+		end
 	end
 end

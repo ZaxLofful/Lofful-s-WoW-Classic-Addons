@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod("HoundmasterLoksey", "DBM-Party-Classic", 12)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210403094344")
+mod:SetRevision("20190810222722")
 mod:SetCreatureID(3974)
 --mod:SetEncounterID(585)
 
@@ -13,8 +13,12 @@ mod:RegisterEventsInCombat(
 
 local warningBloodLust		= mod:NewTargetNoFilterAnnounce(6742, 2)
 
-function mod:SPELL_AURA_APPLIED(args)
-	if args.spellId == 6742 and args:IsDestTypeHostile() then
-		warningBloodLust:Show(args.destName)
+do
+	local BloodLust = DBM:GetSpellInfo(6742)
+	function mod:SPELL_AURA_APPLIED(args)
+		--if args.spellId == 6742 then
+		if args.spellName == BloodLust and args:IsDestTypeHostile() then
+			warningBloodLust:Show(args.destName)
+		end
 	end
 end

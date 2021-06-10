@@ -1,9 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<Script file="RollRequestWindow.lua" />
-	<Frame name="LootReserveRollRequestWindow" parent="UIParent" toplevel="true" movable="true" resizable="true" enableMouse="true" clampedToScreen="true" hidden="true" inherits="BackdropTemplate">
-		<KeyValues>
-			<KeyValue key="backdropInfo" value="LOOTRESERVE_BACKDROP_BLACK_4" type="global" />
-		</KeyValues>
+	<Frame name="LootReserveRollRequestWindow" parent="UIParent" toplevel="true" movable="true" resizable="true" enableMouse="true" clampedToScreen="true" hidden="true">
 		<Size x="300" y="90" />
 		<Anchors>
 			<Anchor point="BOTTOM" y="200" />
@@ -115,7 +112,7 @@
 			</Button>
 		</Frames>
 		<Scripts>
-			<OnLoad inherit="prepend">
+			<OnLoad>
 				self.ItemFrame.Name:SetPoint("TOPLEFT", self.ItemFrame.Icon, "TOPRIGHT", 10, 0);
 			</OnLoad>
 			<OnUpdate>

@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod("LadySerevess", "DBM-Party-Classic", 1)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210403094344")
+mod:SetRevision("20200524222200")
 mod:SetCreatureID(4831)
 --mod:SetEncounterID(1667)
 
@@ -20,14 +20,19 @@ function mod:OnCombatStart(delay)
 	timerSlowCD:Start(1-delay)
 end
 
-function mod:SPELL_CAST_SUCCESS(args)
-	if args.spellId == 246 and args:IsSrcTypeHostile() then
-		timerSlowCD:Start()
+do
+	local Slow = DBM:GetSpellInfo(246)
+	function mod:SPELL_CAST_SUCCESS(args)
+		--if args.spellId == 246 and args:IsSrcTypeHostile() then
+		if args.spellName == Slow and args:IsSrcTypeHostile() then
+			timerSlowCD:Start()
+		end
 	end
-end
 
-function mod:SPELL_AURA_APPLIED(args)
-	if args.spellId == 246 and args:IsDestTypePlayer() then
-		warningSlow:Show(args.destName)
+	function mod:SPELL_AURA_APPLIED(args)
+		--if args.spellId == 246 and args:IsDestTypePlayer() then
+		if args.spellName == Slow and args:IsDestTypePlayer() then
+			warningSlow:Show(args.destName)
+		end
 	end
 end
