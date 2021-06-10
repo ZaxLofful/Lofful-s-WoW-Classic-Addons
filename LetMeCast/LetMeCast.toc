@@ -1,4 +1,4 @@
-## Interface: 11302
+## Interface: 20501
 ## Title: LetMeCast
 ## Notes: AutoDismount and AutoStand
 ## Author: Anilusion

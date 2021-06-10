@@ -300,7 +300,7 @@ function Talented:CreateCloseButton(parent, OnClickHandler)
 end
 
 function Talented:CreateBaseFrame()
-	local frame = TalentedFrame or CreateFrame("Frame", "TalentedFrame", UIParent)
+	local frame = TalentedFrame or CreateFrame("Frame", "TalentedFrame", UIParent, "BackdropTemplate")
 	frame:Hide()
 
 	frame:SetFrameStrata("DIALOG")
@@ -323,7 +323,8 @@ function Talented:CreateBaseFrame()
 
 
 	local close = self:CreateCloseButton(frame, function (self)
-		HideUIPanel(self:GetParent())
+		-- HideUIPanel(self:GetParent())
+		self:GetParent():Hide()
 	end)
 	frame.close = close
 	table.insert(Talented.uielements, close)
@@ -372,7 +373,7 @@ function Talented:EnableUI(enable)
 end
 
 function Talented:MakeAlternateView()
-	local frame = CreateFrame("Frame", "TalentedAltFrame", UIParent)
+	local frame = CreateFrame("Frame", "TalentedAltFrame", UIParent, "BackdropTemplate")
 
 	frame:SetFrameStrata("DIALOG")
 	if TalentedFrame then

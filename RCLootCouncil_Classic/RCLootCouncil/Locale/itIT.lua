@@ -39,6 +39,8 @@ L["Add rolls"] = "Add rolls"
 --[[Translation missing --]]
 L["Add Rolls"] = "Add Rolls"
 --[[Translation missing --]]
+L["add_candidate"] = "Add Candidate"
+--[[Translation missing --]]
 L["add_ranks_desc"] = "Choose minimum rank to participate in lootcouncil:"
 --[[Translation missing --]]
 L["add_ranks_desc2"] = [=[
@@ -60,10 +62,6 @@ L["All items have been awarded and the loot session concluded"] = "All items hav
 L["All items usable by the candidate"] = "All items usable by the candidate"
 --[[Translation missing --]]
 L["All unawarded items"] = "All unawarded items"
---[[Translation missing --]]
-L["Alt click Looting"] = "Alt click Looting"
---[[Translation missing --]]
-L["alt_click_looting_desc"] = "Enables Alt click Looting, i.e. start a looting session by holding down alt and (left)clicking an item."
 --[[Translation missing --]]
 L["Alternatively, flag the loot as award later."] = "Alternatively, flag the loot as award later."
 --[[Translation missing --]]
@@ -151,19 +149,15 @@ L["Auto pass BoE"] = "Auto pass BoE"
 --[[Translation missing --]]
 L["Auto Pass Trinkets"] = "Auto Pass Trinkets"
 --[[Translation missing --]]
-L["Auto Start"] = "Auto Start"
---[[Translation missing --]]
 L["Auto Trade"] = "Auto Trade"
 --[[Translation missing --]]
 L["auto_award_desc"] = "Activates Auto Award."
 --[[Translation missing --]]
-L["auto_award_to_desc"] = "The player to Auto Award items to. A selectable list of raid members appear if you're in a raid group."
+L["auto_award_to_desc"] = "Add a candidate to the list. You can add multiple be comma or space seperating the names. Only players you've seen recently has class information."
 --[[Translation missing --]]
 L["auto_close_desc"] = "Check to automatically close the voting frame when the Master Looter ends the session"
 --[[Translation missing --]]
 L["auto_enable_desc"] = "Check to always let RCLootCouncil handle loot. Unchecking will make the addon ask if you want to use it every time you enter a raid or become Master Looter."
---[[Translation missing --]]
-L["auto_loot_desc"] = "Automatically add all eligible items to a session."
 --[[Translation missing --]]
 L["auto_open_desc"] = "Check to Auto Open the voting frame when available. The voting frame can otherwise be opened with /rc open. Note: This requires permission from the Master Looter."
 --[[Translation missing --]]
@@ -172,16 +166,6 @@ L["auto_pass_boe_desc"] = "Uncheck to never autopass Bind on Equip items."
 L["auto_pass_desc"] = "Check to enable autopassing of items your class cannot use."
 --[[Translation missing --]]
 L["auto_pass_trinket_desc"] = "Check to autopass trinkets that's not listed in the Dungeon Journal for your class."
---[[Translation missing --]]
-L["auto_start_desc"] = "Enables Auto Start, i.e. start a session with all eligible items. Disabling will show a editable item list before starting a session."
---[[Translation missing --]]
-L["Autoloot all BoE"] = "Autoloot all BoE"
---[[Translation missing --]]
-L["Autoloot BoE"] = "Autoloot BoE"
---[[Translation missing --]]
-L["autoloot_BoE_desc"] = "Enables autolooting of BoE (Bind on Equip) items."
---[[Translation missing --]]
-L["autoloot_others_BoE_desc"] = "Enable to automatically add BoE items looted by others into a session."
 --[[Translation missing --]]
 L["autoloot_others_item_combat"] = "%s has looted %s. This item will be added to the session frame once combat ends."
 --[[Translation missing --]]
@@ -296,8 +280,6 @@ L["chat_commands_version"] = "Open the Version Checker (alt. 'v' or 'ver')"
 --[[Translation missing --]]
 L["chat_commands_whisper"] = "Displays help to whisper commands"
 --[[Translation missing --]]
-L["chat_commands_winners"] = "Display the winners of awarded items looted to your inventory"
---[[Translation missing --]]
 L["Check this to loot the items and distribute them later."] = "Check this to loot the items and distribute them later."
 --[[Translation missing --]]
 L["Check to append the realmname of a player from another realm"] = "Check to append the realmname of a player from another realm"
@@ -375,8 +357,6 @@ L["Discord friendly output."] = "Discord friendly output."
 L["disenchant_desc"] = "Select to use this reason when awarding an item via the 'Disenchant' button"
 --[[Translation missing --]]
 L["Do you want to keep %s for yourself or trade?"] = "Do you want to keep %s for yourself or trade?"
---[[Translation missing --]]
-L["Do you want to keep %s for yourself?"] = "Do you want to keep %s for yourself?"
 --[[Translation missing --]]
 L["Done syncing"] = "Done syncing"
 --[[Translation missing --]]
@@ -498,15 +478,11 @@ L["log_desc"] = "Enables logging in Loot History."
 --[[Translation missing --]]
 L["Loot announced, waiting for answer"] = "Loot announced, waiting for answer"
 --[[Translation missing --]]
-L["Loot Everything"] = "Loot Everything"
---[[Translation missing --]]
 L["Loot History"] = "Loot History"
 --[[Translation missing --]]
 L["Loot Status"] = "Loot Status"
 --[[Translation missing --]]
 L["Loot won:"] = "Loot won:"
---[[Translation missing --]]
-L["loot_everything_desc"] = "Enables autolooting of non-equippable items (e.g. mounts, tier-tokens, relics)"
 --[[Translation missing --]]
 L["loot_history_desc"] = [=[RCLootCouncil automatically records relevant information from sessions.
 The raw data is stored in ".../SavedVariables/RCLootCouncil.lua".
@@ -548,6 +524,10 @@ L["Minor Upgrade"] = "Incremento"
 L["Missing votes from:"] = "Missing votes from:"
 --[[Translation missing --]]
 L["ML sees voting"] = "ML sees voting"
+--[[Translation missing --]]
+L["ML_ADD_INVALID_ITEM"] = "Invalid itemLink or itemID: %s"
+--[[Translation missing --]]
+L["ML_ADD_ITEM_MAX_ATTEMPTS"] = "Couldn't fetch item info for %s - probably not a real item."
 --[[Translation missing --]]
 L["ml_sees_voting_desc"] = "Allows the Master Looter to see who's voting for whom."
 --[[Translation missing --]]
@@ -605,8 +585,6 @@ L["Not installed"] = "Not installed"
 --[[Translation missing --]]
 L["Notes"] = "Notes"
 --[[Translation missing --]]
-L["notes_desc"] = "Enables candidates to send a note to the council along with their roll."
---[[Translation missing --]]
 L["Now handles looting"] = "Now handles looting"
 --[[Translation missing --]]
 L["Number of buttons"] = "Number of buttons"
@@ -650,6 +628,12 @@ L["opt_autoAddItems_desc"] = "Automatically add all eligible items to a session.
 --[[Translation missing --]]
 L["opt_autoAddItems_name"] = "Auto Add Items"
 --[[Translation missing --]]
+L["opt_autoAddPets_desc"] = "Automatically add all Companion Pets to a session."
+--[[Translation missing --]]
+L["opt_autoAddPets_name"] = "Add Pets"
+--[[Translation missing --]]
+L["opt_autoAwardPrioList_desc"] = "Items are awarded to the first candidate found in your group according to this priority list."
+--[[Translation missing --]]
 L["opt_autoTrade_desc"] = "Check to automatically add awarded items to the trade window when trading with the winner. If disabled, you'll see a popup before items are added."
 --[[Translation missing --]]
 L["opt_award_later_desc"] = "Check to automatically check the 'Award Later' option in the Session Frame."
@@ -690,10 +674,6 @@ L["opt_printCompletedTrade_Name"] = "Trade Messages"
 L["opt_rejectTrade_Desc"] = "Check to enable candidates to choose whether they want to 'give' the item to the council or not. If unchecked, all tradeable PL items are added automatically."
 --[[Translation missing --]]
 L["opt_rejectTrade_Name"] = "Allow Keeping"
---[[Translation missing --]]
-L["opt_saveBonusRolls_Desc"] = "Check to save all bonus rolls from candidates to the Loot History."
---[[Translation missing --]]
-L["opt_saveBonusRolls_Name"] = "Save Bonus Rolls"
 --[[Translation missing --]]
 L["opt_skipSessionFrame_desc"] = "Skips the Session Frame. NOTE: This causes the addon to start a session with all eligble items without you having a chance to edit the list!"
 --[[Translation missing --]]

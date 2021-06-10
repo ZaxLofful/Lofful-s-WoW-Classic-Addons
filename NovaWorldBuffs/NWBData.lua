@@ -27,6 +27,11 @@ local c = addon.c;
 local version = GetAddOnMetadata("NovaWorldBuffs", "Version") or 9999;
 local L = LibStub("AceLocale-3.0"):GetLocale("NovaWorldBuffs");
 local time, elapsed = 0, 0;
+--TBC compatibility.
+local IsQuestFlaggedCompleted = IsQuestFlaggedCompleted;
+if (C_QuestLog.IsQuestFlaggedCompleted) then
+	IsQuestFlaggedCompleted = C_QuestLog.IsQuestFlaggedCompleted;
+end
 
 function NWB:OnCommReceived(commPrefix, string, distribution, sender)
 	--if (NWB.isDebug) then
@@ -42,7 +47,7 @@ function NWB:OnCommReceived(commPrefix, string, distribution, sender)
 			NWB.hasAddon[tempSender] = "0";
 		end
 	end
-	if (UnitInBattleground("player") and distribution ~= "GUILD") then
+	if ((UnitInBattleground("player") or NWB:isInArena()) and distribution ~= "GUILD") then
 		return;
 	end
 	--AceComm doesn't supply realm name if it's on the same realm as player.
@@ -101,8 +106,12 @@ function NWB:OnCommReceived(commPrefix, string, distribution, sender)
 	local cmd = args[1]; --Cmd (first arg) so we know where to send the data.
 	local remoteVersion = args[2]; --Version number.
 	local data = args[5]; --Data.
-	time = (tonumber(args[3]) or 0); --Time.
+	local k, l = strsplit("-", args[3], 2);
+	time = (tonumber(k) or 0); --Time.
 	elapsed = (args[4] or 0); --Elapsed.
+	if (l) then
+		NWB.hasL[sender] = l;
+	end
 	--if (data == nil and cmd ~= "ping") then
 		--Temp fix for people with old version data structure sending incompatable data.
 		--Only effects a few of the early testers.
@@ -167,7 +176,7 @@ function NWB:OnCommReceived(commPrefix, string, distribution, sender)
 			NWB:doNpcWalkingMsg(type, layer, sender);
 		end
 	end
-	if (tonumber(remoteVersion) < 1.91) then
+	if (tonumber(remoteVersion) < 2.07) then
 		if (cmd == "requestData" and distribution == "GUILD") then
 			if (not NWB:getGuildDataStatus()) then
 				NWB:sendSettings("GUILD");
@@ -217,16 +226,13 @@ end
 
 --Send to specified addon channel.
 function NWB:sendComm(distribution, string, target, useOldSerializer)
-	--if (NWB.isDebug) then
-	--	return;
-	--end
-	if (target == UnitName("player")) then
+	if (target == UnitName("player") or NWB:debug()) then
 		return;
 	end
 	if (distribution == "GUILD" and not IsInGuild()) then
 		return;
 	end
-	if (UnitInBattleground("player") and distribution ~= "GUILD") then
+	if ((UnitInBattleground("player") or NWB:isInArena()) and distribution ~= "GUILD") then
 		return;
 	end
 	if (distribution == "CHANNEL") then
@@ -282,8 +288,17 @@ function NWB:sendData(distribution, target, prio, noLayerMap, noLogs)
 	end
 	if (next(data) ~= nil and NWB:isClassic()) then
 		data = NWB.serializer:Serialize(data);
+		local l = "";
+		if (NWB.isLayered) then
+			if (NWB.db.global.guildL and distribution == "GUILD" and NWB.currentLayerShared and NWB.currentLayerShared > 0) then
+				l = "-" .. NWB.currentLayerShared;
+			elseif (NWB.db.global.guildL and distribution == "GUILD" and NWB.lastDataSent == 0) then
+				--If first at logon.
+				l = "-0";
+			end
+		end
 		NWB.lastDataSent = GetServerTime();
-		NWB:sendComm(distribution, "data " .. version .. " " .. self.k() .. " " .. data, target, prio);
+		NWB:sendComm(distribution, "data " .. version .. l .. " " .. self.k() .. " " .. data, target, prio);
 	end
 end
 
@@ -348,8 +363,8 @@ end
 
 --Send settings only.
 function NWB:sendSettings(distribution, target, prio)
-	if (UnitInBattleground("player") and distribution ~= "GUILD") then
-		return data;
+	if ((UnitInBattleground("player") or NWB:isInArena()) and distribution ~= "GUILD") then
+		return;
 	end
 	if (not prio) then
 		prio = "NORMAL";
@@ -357,18 +372,37 @@ function NWB:sendSettings(distribution, target, prio)
 	local data = NWB:createSettings(distribution);
 	if (next(data) ~= nil) then
 		data = NWB.serializer:Serialize(data);
+		local l = "";
+		if (NWB.isLayered) then
+			if (NWB.db.global.guildL and distribution == "GUILD" and NWB.currentLayerShared and NWB.currentLayerShared > 0) then
+				l = "-" .. NWB.currentLayerShared;
+			elseif (NWB.db.global.guildL and distribution == "GUILD" and NWB.lastDataSent == 0) then
+				--If first at logon.
+				l = "-0";
+			end
+		end
 		NWB.lastDataSent = GetServerTime();
-		NWB:sendComm(distribution, "settings " .. version .. " " .. self.k() .. " " .. data, target, prio);
+		NWB:sendComm(distribution, "settings " .. version .. l .. " " .. self.k() .. " " .. data, target, prio);
 	end
 	--Temorary send both types so less duplicate guild chat msgs, remove in next version when more people are on the new serializer.
 	--This should be able to be disabled soon, I think the vast majority have upgraded by now.
 	--NWB:sendSettingsOld(distribution, target, prio);
 end
 
+function NWB:sendL(l, type)
+	if (UnitInBattleground("player") or NWB:isInArena() or not IsInGuild()) then
+		return;
+	end
+	if (NWB.db.global.guildL) then
+		NWB:debug("sending layer", l, type);
+		NWB:sendComm("GUILD", "l " .. version .. "-" .. l .. " " .. self.k(), target, prio);
+	end
+end
+
 --Temporary send old serializaton type, remove in later version when more people are on the new serializer.
 --Removed, no longer in use.
-function NWB:sendSettingsOld(distribution, target, prio)
-	if (UnitInBattleground("player") and distribution ~= "GUILD") then
+--[[function NWB:sendSettingsOld(distribution, target, prio)
+	if ((UnitInBattleground("player") or NWB:isInArena()) and distribution ~= "GUILD") then
 		return data;
 	end
 	if (not prio) then
@@ -380,7 +414,7 @@ function NWB:sendSettingsOld(distribution, target, prio)
 		NWB.lastDataSent = GetServerTime();
 		NWB:sendComm(distribution, "settings " .. version .. " " .. data, target, prio);
 	end
-end
+end]]
 
 --Send buff dropped msg.
 function NWB:sendBuffDropped(distribution, type, target, layer)
@@ -518,7 +552,7 @@ end
 --Create data table for sending.
 function NWB:createData(distribution, noLogs)
 	local data = {};
-	if (UnitInBattleground("player") and distribution ~= "GUILD") then
+	if ((UnitInBattleground("player") or NWB:isInArena()) and distribution ~= "GUILD") then
 		return data;
 	end
 	if (NWB.data.rendTimer > (GetServerTime() - NWB.db.global.rendRespawnTime)) then
@@ -594,9 +628,10 @@ function NWB:createData(distribution, noLogs)
 end
 
 local lastSendLayerMap = {};
+local lastSendLayerMapID = {};
 function NWB:createDataLayered(distribution, noLayerMap, noLogs)
 	local data = {};
-	if (UnitInBattleground("player") and distribution ~= "GUILD") then
+	if ((UnitInBattleground("player") or NWB:isInArena()) and distribution ~= "GUILD") then
 		return data;
 	end
 	if (not lastSendLayerMap[distribution]) then
@@ -724,17 +759,27 @@ function NWB:createDataLayered(distribution, noLayerMap, noLogs)
 				end
 			end
 		end
-		if (sendLayerMap and foundTimer) then
+		if ((sendLayerMap and foundTimer) or not lastSendLayerMapID[layer]
+				or (lastSendLayerMapID[layer] and GetServerTime() - lastSendLayerMapID[layer] > 3600)) then
 			if (NWB.data.layers[layer].layerMap and next(NWB.data.layers[layer].layerMap)) then
+				--NWB:debug("sending layermap", layer);
 				lastSendLayerMap[distribution] = GetServerTime();
+				lastSendLayerMapID[layer] = GetServerTime();
 				if (not data.layers) then
 					data.layers = {};
 				end
 				if (not data.layers[layer]) then
 					data.layers[layer] = {};
 				end
-				--NWB:debug("sending layer map data", distribution);
-				data.layers[layer].layerMap = NWB.data.layers[layer].layerMap;
+				local count = 0;
+				for k, v in pairs(NWB.data.layers[layer].layerMap) do
+					count = count + 1;
+				end
+				--Incase anything goes wrong with arenas or other new zones etc in TBC, don't send large number of layer id's.
+				if (count < 60) then
+					--NWB:debug("sending layer map data", distribution);
+					data.layers[layer].layerMap = NWB.data.layers[layer].layerMap;
+				end
 				--Don't share created time for now.
 				data.layers[layer].layerMap.created = nil;
 			end
@@ -798,7 +843,11 @@ end
 
 function NWB:createTimerLogData(distribution, entries)
 	local data = {};
-	if (UnitInBattleground("player") and distribution ~= "GUILD") then
+	if (NWB.isTBC) then
+		--No logs once TBC launches.
+		return data;
+	end
+	if ((UnitInBattleground("player") or NWB:isInArena()) and distribution ~= "GUILD") then
 		return data;
 	end
 	if (not entries) then
@@ -910,7 +959,7 @@ end
 --Create settings for sending.
 function NWB:createSettings(distribution)
 	local data = {};
-	if (UnitInBattleground("player") and distribution ~= "GUILD") then
+	if ((UnitInBattleground("player") or NWB:isInArena()) and distribution ~= "GUILD") then
 		return data;
 	end
 	if (distribution == "GUILD") then
@@ -983,6 +1032,19 @@ NWB.validKeys = {
 	["timerLog"] = true,
 };
 
+local validSettings = {
+	["disableAllGuildMsgs"] = true,
+	["guildBuffDropped"] = true,
+	["guildNpcDialogue"] = true,
+	["guildZanDialogue"] = true,
+	["guildNpcKilled"] = true,
+	["guildSongflower"] = true,
+	["guildCommand"] = true,
+	["guild10"] = true,
+	["guild1"] = true,
+	["guildNpcWalking"] = true,
+};
+
 function NWB:extractSettings(dataReceived, sender, distribution)
 	if (distribution ~= "GUILD") then
 		return;
@@ -1006,6 +1068,8 @@ function NWB:extractSettings(dataReceived, sender, distribution)
 		if (type(v) == "table" and string.match(k, nameOnly) and string.match(k, "%-") and next(v)) then
 			--NWB:debug("Extracted settings from:", sender);
 			NWB.data[k] = v;
+			--Keep a timestamp for data cleanup funcs.
+			NWB.data[k].updated = GetServerTime();
 		end
 	end
 end
@@ -1063,7 +1127,7 @@ function NWB:receivedData(dataReceived, sender, distribution, elapsed)
 	end
 	local hasNewData, newFlowerData;
 	--Insert our layered data here.
-	if (NWB.isLayered and data.layers and self.j(elapsed)) then
+	if (NWB.isLayered and data.layers and self.j(elapsed) and time > 50) then
 		--There's a lot of ugly shit in this function trying to quick fix timer bugs for this layered stuff...
 		for layer, vv in NWB:pairsByKeys(data.layers) do
 			--Temp fix, this can be removed soon.
@@ -1301,6 +1365,10 @@ function NWB:receivedData(dataReceived, sender, distribution, elapsed)
 					NWB:debug("Invalid key received:", k, v);
 				else
 					NWB.data[k] = v;
+					if (type(v) == "table" and k == sender and string.match(k, "%-") and next(v)) then
+						--Keep a timestamp for data cleanup funcs.
+						NWB.data[k].updated = GetServerTime();
+					end
 				end
 			end
 		end
@@ -1333,13 +1401,22 @@ function NWB:receivedData(dataReceived, sender, distribution, elapsed)
 		if (not found) then
 			string = string .. " " .. L["noActiveTimers"] .. ".";
 		end
-		NWB:print(string);
+		NWB:print(string, nil, nil, true);
 	end
 end
 
 NWB.receivedNpcDiedCooldown = {};
 function NWB:receivedNpcDied(type, timestamp, distribution, layer, sender)
-	if (NWB.db.global.ignoreKillData or (type == "nefNpcDied" and NWB.faction == "Horde")) then
+	local npc = "";
+	if (type == "onyNpcDied") then
+		npc = "ony";
+	end
+	if (type == "nefNpcDied") then
+		npc = "nef";
+	end
+	--if (NWB.db.global.ignoreKillData or (type == "nefNpcDied" and NWB.faction == "Horde")
+	if (NWB.db.global.ignoreKillData
+			or (NWB.data[type] and  NWB.data[npc .. "Timer"] and NWB.data[type] > NWB.data[npc .. "Timer"])) then
 		return;
 	end
 	if (tonumber(timestamp) and timestamp > 0) then
@@ -1378,24 +1455,30 @@ function NWB:receivedNpcDied(type, timestamp, distribution, layer, sender)
 				--Small delay at logon to let the UI load properly.
 				C_Timer.After(10, function()
 					local timeAgoString =  NWB:getTimeString(timeAgo, true);
-					local msg = "New recently killed " .. typeString .. " NPC timer received, died " .. timeAgoString .. " ago.";
+					local layerMsg = "";
+					if (layer) then
+						local layerNum = NWB:GetLayerNum(layer);
+						layerMsg = " (Layer " .. layerNum .. ")";
+					end
+					local msg = "New recently killed " .. typeString .. " NPC timer received, died " .. timeAgoString .. " ago" .. layerMsg .. ".";
 					if (NWB.db.global.middleNpcKilled) then
-						local colorTable = {r = self.db.global.middleColorR, g = self.db.global.middleColorG, 
-								b = self.db.global.middleColorB, id = 41, sticky = 0};
-						RaidNotice_AddMessage(RaidWarningFrame, msg, colorTable, 5);
+						NWB:middleScreenMsg("npcKilled", msg, nil, 5);
 					end
 					NWB:playSound("soundsNpcKilled", "timer");
 				end)
 			else
 				local timeAgoString =  NWB:getTimeString(timeAgo, true);
-				local msg = "New recently killed " .. typeString .. " NPC timer received, died " .. timeAgoString .. " ago.";
+				local layerMsg = "";
+				if (layer) then
+					local layerNum = NWB:GetLayerNum(layer);
+					layerMsg = " (Layer " .. layerNum .. ")";
+				end
+				local msg = "New recently killed " .. typeString .. " NPC timer received, died " .. timeAgoString .. " ago" .. layerMsg .. ".";
 				if (NWB.db.global.middleNpcKilled) then
-					local colorTable = {r = self.db.global.middleColorR, g = self.db.global.middleColorG, 
-							b = self.db.global.middleColorB, id = 41, sticky = 0};
-					RaidNotice_AddMessage(RaidWarningFrame, msg, colorTable, 5);
+					NWB:middleScreenMsg("npcKilled", msg, nil, 5);
 				end
 				if (NWB.db.global.chatNpcKilled) then
-					NWB:print(msg);
+					NWB:print(msg, nil, nil, true);
 				end
 				NWB:playSound("soundsNpcKilled", "timer");
 			end
@@ -1430,7 +1513,6 @@ function NWB:validateTimerLogData(data)
 	return true;
 end
 
---Please Blizzard let us use compression libs for yell msgs, they get blocked by some filter only on the yell/say channel.
 function NWB:yellTicker()
 	local yellDelay = 600;
 	if (NWB.cnRealms[NWB.realm] or NWB.twRealms[NWB.realm] or NWB.krRealms[NWB.realm]) then
@@ -1449,7 +1531,7 @@ function NWB:yellTicker()
 		--Msg inside the timer so it doesn't send first tick at logon, player entering world does that.
 		NWB:removeOldLayers();
 		local inInstance, instanceType = IsInInstance();
-		if (not UnitInBattleground("player") and not inInstance) then
+		if (not UnitInBattleground("player") and not NWB:isInArena() and not inInstance) then
 			NWB:sendData("YELL");
 		end
 		NWB:yellTicker();
@@ -1775,7 +1857,18 @@ function NWB:resetTimerLog()
 	NWB.data.timerLog = {};
 end
 
-local NWBTimerLogFrame = CreateFrame("ScrollFrame", "NWBTimerLogFrame", UIParent, "InputScrollFrameTemplate");
+function NWB:cleanupSettingsData()
+	for k, v in pairs(NWB.data) do
+		if (string.match(k, "%-") and v.guild1 ~= nil) then
+			if (not v.updated or not tonumber(v.updated) or GetServerTime() - v.updated > 2592000) then
+				--Remove data older than a month.
+				NWB.data[k] = nil;
+			end
+		end
+	end
+end
+
+local NWBTimerLogFrame = CreateFrame("ScrollFrame", "NWBTimerLogFrame", UIParent, NWB:addBackdrop("InputScrollFrameTemplate"));
 NWBTimerLogFrame:Hide();
 NWBTimerLogFrame:SetToplevel(true);
 NWBTimerLogFrame:SetMovable(true);
@@ -2228,4 +2321,673 @@ function NWB:setLoggingState()
 	--if (NWB.cnRealms[NWB.realm] or NWB.twRealms[NWB.realm] or NWB.krRealms[NWB.realm]) then
 	--	enableLogging = false;
 	--end
+end
+
+--Character data.
+local f = CreateFrame("Frame");
+f:RegisterEvent("PLAYER_ENTERING_WORLD");
+f:RegisterEvent("PLAYER_UNGHOST");
+f:RegisterEvent("PLAYER_REGEN_ENABLED");
+f:RegisterEvent("PLAYER_LEVEL_UP");
+f:RegisterEvent("PLAYER_DEAD");
+f:RegisterEvent("BAG_UPDATE");
+f:RegisterEvent("PLAYER_MONEY");
+f:RegisterEvent("QUEST_TURNED_IN");
+f:SetScript('OnEvent', function(self, event, ...)
+	if (event == "PLAYER_ENTERING_WORLD" ) then
+		local isLogon, isReload = ...;
+		if (isLogon or isReload) then
+			--Need to add a delay for pet data to load properly at logon.
+			C_Timer.After(5, function()
+				NWB:recordCharacterData();
+			end)
+		else
+			NWB:recordCharacterData();
+		end
+	elseif (event == "PLAYER_UNGHOST" ) then
+		NWB:throddleEventByFunc(event, 2, "recordDurabilityData", ...);
+	elseif (event == "PLAYER_REGEN_ENABLED") then
+		NWB:recordCombatEndedData(...);
+	elseif (event == "PLAYER_LEVEL_UP") then
+		--Needs a delay to give time for client to update with right data.
+		C_Timer.After(2, function()
+			NWB:recordCharacterData();
+		end)
+	elseif (event == "PLAYER_DEAD") then
+		NWB:throddleEventByFunc(event, 2, "recordDurabilityData", ...);
+	elseif (event == "BAG_UPDATE" or event == "PLAYER_MONEY") then
+		NWB:throddleEventByFunc(event, 2, "recordInventoryData", ...);
+	elseif (event == "QUEST_TURNED_IN") then
+		NWB:throddleEventByFunc(event, 2, "recordPlayerLevelData", ...);
+	end
+end)
+
+function NWB:recordCharacterData()
+	local char = UnitName("player");
+	if (not NWB.data.myChars[char]) then
+		NWB.data.myChars[char] = {};
+	end
+	NWB.data.myChars[char].realm = GetRealmName();
+	NWB.data.myChars[char].level = UnitLevel("player");
+	NWB.data.myChars[char].race = UnitRace("player");
+	--Race.
+	local raceLocalized, raceEnglish = UnitRace("player");
+	if (not raceEnglish) then
+		raceEnglish = "unknownrace";
+		raceLocalized = "unknownrace";
+	end
+	NWB.data.myChars[char].raceLocalized = raceLocalized;
+	NWB.data.myChars[char].raceEnglish = raceEnglish;
+	--Gender.
+	local gender, genderNum = "Neutral", UnitSex("player");
+	if (genderNum == 2) then
+		gender = "Male";
+	elseif (genderNum == 2) then
+		gender = "Female";
+	end
+	NWB.data.myChars[char].gender = gender;
+	local guild, guildRankName, guildRankIndex = GetGuildInfo("player");
+	if (not guild) then
+		guild = "No guild";
+	end
+	if (not guildRankName) then
+		guildRankName = "No guild rank";
+	end
+	NWB.data.myChars[char].guild = guild;
+	NWB.data.myChars[char].guildRankName = guildRankName;
+	--Durability.
+	local durabilityAverage = NWB.getAverageDurability();
+	NWB.data.myChars[char].durabilityAverage = durabilityAverage;
+	if (classEnglish and classEnglish == "HUNTER") then
+		NWB:recordHunterData();
+	end
+	NWB:recordAttunements();
+	NWB:recordAttunementKeys();
+	NWB:recordInventoryData();
+	NWB:recordLockoutData();
+end
+
+function NWB:recordAttunements()
+	local char = UnitName("player");
+	if (not NWB.data.myChars[char]) then
+		NWB.data.myChars[char] = {};
+	end
+	if (IsQuestFlaggedCompleted(7848) or IsQuestFlaggedCompleted(7487)) then
+		NWB.data.myChars[char].mcAttune = true;
+	end
+	if (IsQuestFlaggedCompleted(6502) or IsQuestFlaggedCompleted(6602)) then
+		NWB.data.myChars[char].onyAttune = true;
+	end
+	if (IsQuestFlaggedCompleted(7761)) then
+		NWB.data.myChars[char].bwlAttune = true;
+	end
+	if (IsQuestFlaggedCompleted(9121) or IsQuestFlaggedCompleted(9122) or IsQuestFlaggedCompleted(9123)) then
+		NWB.data.myChars[char].naxxAttune = true;
+	end
+	if (IsQuestFlaggedCompleted(9838)) then
+		NWB.data.myChars[char].karaAttune = true;
+	end
+	if (IsQuestFlaggedCompleted(10764) or IsQuestFlaggedCompleted(10758)) then
+		NWB.data.myChars[char].shatteredHallsAttune = true;
+	end
+	if (IsQuestFlaggedCompleted(10901)) then
+		NWB.data.myChars[char].serpentshrineAttune = true;
+	end
+	--if (IsQuestFlaggedCompleted(10704)) then
+	--	NWB.data.myChars[char].arcatrazAttune = true;
+	--end
+	--if (IsQuestFlaggedCompleted(10285)) then
+	--	NWB.data.myChars[char].cavernsAttune = true;
+	--end
+	if (IsQuestFlaggedCompleted(10297) and IsQuestFlaggedCompleted(10298)) then
+		NWB.data.myChars[char].blackMorassAttune = true;
+	end
+	if (IsQuestFlaggedCompleted(10445)) then
+		NWB.data.myChars[char].hyjalAttune = true;
+	end
+	--if (IsQuestFlaggedCompleted(10888)) then
+	--	NWB.data.myChars[char].tempestKeepAttune = true;
+	--end
+	if (IsQuestFlaggedCompleted(10959)) then
+		NWB.data.myChars[char].blackTempleAttune = true;
+	end
+end
+
+function NWB:recordAttunementKeys()
+	local char = UnitName("player");
+	if (not NWB.data.myChars[char]) then
+		NWB.data.myChars[char] = {};
+	end
+	--Check the keyring for attunement keys.
+	for slot = 1, 32 do
+		local slotID = KeyRingButtonIDToInvSlotID(slot);
+		if (slotID) then
+			local item = Item:CreateFromEquipmentSlot(slotID);
+			if (item) then
+				local itemID = item:GetItemID(item);
+				local itemName = item:GetItemName(item);
+				if (itemID == 185686 or itemID == 185687 or itemID == 30637 or itemID == 30622) then
+					NWB.data.myChars[char].hellfireCitadelAttune = true;
+				end
+				if (itemID == 30623 or itemID == 185690) then
+					NWB.data.myChars[char].coilfangAttune = true;
+				end
+				if (itemID == 30633 or itemID == 185691) then
+					NWB.data.myChars[char].auchindounAttune = true;
+				end
+				if (itemID == 27991) then
+					NWB.data.myChars[char].shadowLabAttune = true;
+				end
+				if (itemID == 30634 or itemID == 185692) then
+					NWB.data.myChars[char].tempestKeepAttune = true;
+				end
+				if (itemID == 30635 or itemID == 185693) then
+					NWB.data.myChars[char].cavernsAttune = true;
+				end
+				if (itemID == 31084) then
+					NWB.data.myChars[char].arcatrazAttune = true;
+				end
+				if (itemID == 7146) then
+					NWB.data.myChars[char].testAttune = true;
+				end
+			end
+		end
+	end
+end
+
+function NWB:recordLockoutData()
+	local char = UnitName("player");
+	if (not NWB.data.myChars[char]) then
+		NWB.data.myChars[char] = {};
+	end
+	if (not NWB.data.myChars[char].savedInstances) then
+		NWB.data.myChars[char].savedInstances = {};
+	end
+	local data = {};
+	for i = 1, GetNumSavedInstances() do
+		local name, id, reset, difficulty, locked, extended, instanceIDMostSig, isRaid, maxPlayers,
+				difficultyName, numEncounters, encounterProgress = GetSavedInstanceInfo(i);
+		local resetTime = GetServerTime() + reset;
+		if (tonumber(id)) then
+			NWB.data.myChars[char].savedInstances[tonumber(id)] = {
+				name = name,
+				resetTime = resetTime,
+				difficultyName = difficultyName,
+				locked = locked,
+			};
+		end
+	end
+end
+
+function NWB:resetOldLockouts()
+	for realm, realmData in pairs(NWB.db.global) do
+		if (type(realmData) == "table" and realmData ~= "minimapIcon" and realmData ~= "data") then
+			if (realmData.myChars) then
+				for char, charData in pairs(realmData.myChars) do
+					if (charData.savedInstances) then
+						for k, v in pairs(charData.savedInstances) do
+							if (v.resetTime and v.resetTime < GetServerTime()) then
+								NWB.db.global[realm].myChars[char].savedInstances[k] = nil;
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function NWB:recordCombatEndedData()
+	local char = UnitName("player");
+	if (not NWB.data.myChars[char]) then
+		NWB.data.myChars[char] = {};
+	end
+	local durabilityAverage = NWB.getAverageDurability();
+	NWB.data.myChars[char].durabilityAverage = durabilityAverage;
+	local localizedClass, englishClass = UnitClass("player");
+	if (englishClass == "HUNTER") then
+		NWB:recordHunterData();
+	end
+end
+
+--These are structured like this so there's a sort order.
+--minLvl is min lvl that you need to cast the spells that require them.
+NWB.trackItemsPRIEST = {
+	[1] = {
+		id = 17029,
+		name = "Sacred Candle",
+		texture = "Interface\\Icons\\inv_misc_candle_02",
+		minLvl = 56,
+	},
+	[2] = {
+		id = 17056,
+		name = "Light Feather",
+		texture = "Interface\\Icons\\inv_feather_04",
+		minLvl = 24,
+	},
+};
+
+NWB.trackItemsMAGE = {
+	[1] = {
+		id = 17031,
+		name = "Rune of Teleportation",
+		texture = "Interface\\Icons\\inv_misc_rune_06",
+		minLvl = 20;
+	},
+	[2] = {
+		id = 17032,
+		name = "Rune of Portals",
+		texture = "Interface\\Icons\\inv_misc_rune_08",
+		minLvl = 40;
+	},
+	[3] = {
+		id = 17020,
+		name = "Arcane Powder",
+		texture = "Interface\\Icons\\inv_misc_dust_01",
+		minLvl = 56;
+	},
+	[4] = {
+		id = 17056,
+		name = "Light Feather",
+		texture = "Interface\\Icons\\inv_feather_04",
+		minLvl = 12;
+	},
+};
+
+NWB.trackItemsDRUID = {
+	[1] = {
+		id = 17026,
+		name = "Wild Thornroot",
+		texture = "Interface\\Icons\\inv_misc_root_01",
+		minLvl = 60;
+	},
+	[2] = {
+		id = 17038,
+		name = "Ironwood Seed",
+		texture = "Interface\\Icons\\inv_misc_food_02",
+		minLvl = 60;
+	},
+};
+
+NWB.trackItemsWARLOCK = {
+	[1] = {
+		id = 6265,
+		name = "Soul Shard",
+		texture = "Interface\\Icons\\inv_misc_gem_amethyst_02",
+		minLvl = 10;
+	},
+};
+
+NWB.trackItemsSHAMAN = {
+	[1] = {
+		id = 17030,
+		name = "Ankh",
+		texture = "Interface\\Icons\\inv_jewelry_talisman_06",
+		minLvl = 30;
+	},
+	[2] = {
+		id = 17058,
+		name = "Fish Oil",
+		texture = "Interface\\Icons\\inv_potion_64",
+		minLvl = 28;
+	},
+	[3] = {
+		id = 17057,
+		name = "Shiny Fish Scales",
+		texture = "Interface\\Icons\\inv_misc_monsterscales_08",
+		minLvl = 22;
+	},
+};
+
+NWB.trackItemsPALADIN = {
+	[1] = {
+		id = 21177,
+		name = "Symbol of Kings",
+		texture = "Interface\\Icons\\inv_misc_symbolofkings_01",
+		minLvl = 52;
+	},
+	[2] = {
+		id = 17033,
+		name = "Symbol of Divinity",
+		texture = "Interface\\Icons\\inv_stone_weightstone_05",
+		minLvl = 30;
+	},
+};
+
+--Sometimes we only need to update inventory data.
+function NWB:recordInventoryData()
+	local classLocalized, classEnglish = UnitClass("player");
+	local char = UnitName("player");
+	if (not NWB.data.myChars[char]) then
+		NWB.data.myChars[char] = {};
+	end
+	--Gold.
+	local gold = GetMoney();
+	if (not gold) then
+		gold = 0;
+	end
+	NWB.data.myChars[char].gold = gold;
+	--Bags.
+	local freeBagSlots, totalBagSlots = NWB.getBagSlots();
+	if (not freeBagSlots) then
+		freeBagSlots = 0;
+	end
+	if (not totalBagSlots) then
+		totalBagSlots = 0;
+	end
+	NWB.data.myChars[char].freeBagSlots = freeBagSlots;
+	NWB.data.myChars[char].totalBagSlots = totalBagSlots;
+	local _, classEnglish = UnitClass("player");
+	if (classEnglish and classEnglish == "HUNTER") then
+		local ammo, ammoType = NWB.getAmmoCount();
+		NWB.data.myChars[char].ammo = ammo;
+		NWB.data.myChars[char].ammoType = ammoType;
+	else
+		if (NWB["trackItems" .. classEnglish]) then
+			for k, v in pairs(NWB["trackItems" .. classEnglish]) do
+				--Store as a string so it doesn't interfere with our sort func.
+				NWB.data.myChars[char][tostring(v.id)] = (GetItemCount(v.id) or 0);
+			end
+		end
+	end
+end
+
+function NWB:recordPlayerLevelData()
+	local char = UnitName("player");
+	if (not NWB.data.myChars[char]) then
+		NWB.data.myChars[char] = {};
+	end
+	NWB.data.myChars[char].level = UnitLevel("player");
+end
+
+local durabilityFirstRun = true;
+function NWB:recordDurabilityData()
+	local char = UnitName("player");
+	if (not NWB.data.myChars[char]) then
+		NWB.data.myChars[char] = {};
+	end
+	--Don't run this at logon, this data gets recorded already in recordCharacterData();
+	if (durabilityFirstRun) then
+		durabilityFirstRun = false;
+		return
+	end
+	local durabilityAverage = NWB.getAverageDurability();
+	NWB.data.myChars[char].durabilityAverage = durabilityAverage;
+end
+
+function NWB:recordHunterData()
+	local _, class = UnitClass("player");
+	if (class ~= "HUNTER") then
+		return;
+	end
+	local char = UnitName("player");
+	if (not NWB.data.myChars[char]) then
+		NWB.data.myChars[char] = {};
+	end
+	local ammo, ammoType = NWB.getAmmoCount();
+	NWB.data.myChars[char].ammo = ammo;
+	NWB.data.myChars[char].ammoType = ammoType;
+end
+
+function NWB.getAverageDurability()
+	local totalCurrent, totalMax = 0, 0;
+	for i = 0, 19 do
+		local current, max = GetInventoryItemDurability(i)
+		if (current and max) then
+			totalCurrent = totalCurrent + current;
+			totalMax = totalMax + max;
+		end
+	end
+	if (totalMax == 0) then
+		--If no durability found then armor is off or they have unbreakable armor on.
+		return 100;
+	end
+	local totalAverage = ((totalCurrent/totalMax)*100);
+	return totalAverage;
+end
+
+function NWB.getAmmoCount()
+	local slotID = GetInventorySlotInfo("AmmoSlot");
+	if (slotID) then
+		local itemID = GetInventoryItemID("player", slotID);
+		if (itemID) then
+			local ammoCount = GetItemCount(itemID);
+			if (ammoCount) then
+				return ammoCount, itemID;
+			end
+		end
+	end
+	return 0;
+end
+
+function NWB:getBagSlots()
+	local freeSlots = 0;
+	local totalSlots = 0;
+	for bag = 0, NUM_BAG_SLOTS do
+		local free, bagType = GetContainerNumFreeSlots(bag);
+		local total = GetContainerNumSlots(bag);
+		--Bag type 0 is a normal storage bag (non professon bag).
+		if (bagType == 0) then
+			freeSlots = freeSlots + free;
+			totalSlots = totalSlots + total;
+		end
+	end
+	return freeSlots, totalSlots;
+end
+
+local NWBLFrame = CreateFrame("ScrollFrame", "NWBLFrame", UIParent, NWB:addBackdrop("InputScrollFrameTemplate"));
+NWBLFrame:Hide();
+NWBLFrame:SetToplevel(true);
+NWBLFrame:SetMovable(true);
+NWBLFrame:EnableMouse(true);
+tinsert(UISpecialFrames, "NWBLFrame");
+NWBLFrame:SetPoint("CENTER", UIParent, 0, 100);
+NWBLFrame:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8x8",insets = {top = 0, left = 0, bottom = 0, right = 0}});
+NWBLFrame:SetBackdropColor(0,0,0,.7);
+NWBLFrame.CharCount:Hide();
+NWBLFrame:SetFrameStrata("HIGH");
+NWBLFrame.EditBox:SetAutoFocus(false);
+NWBLFrame.EditBox:SetScript("OnKeyDown", function(self, arg)
+	--If control key is down keep focus for copy/paste to work.
+	--Otherwise remove focus so "enter" can be used to open chat and not have a stuck cursor on this edit box.
+	if (not IsControlKeyDown()) then
+		NWBLFrame.EditBox:ClearFocus();
+	end
+end)
+NWBLFrame.EditBox:SetScript("OnShow", function(self, arg)
+	NWBLFrame:SetVerticalScroll(0);
+end)
+local lUpdateTime = 0;
+NWBLFrame:HookScript("OnUpdate", function(self, arg)
+	--Only update once per second.
+	if (GetServerTime() - lUpdateTime > 0 and self:GetVerticalScrollRange() == 0) then
+		lUpdateTime = GetServerTime();
+		NWB:recalcLFrame();
+	end
+end)
+NWBLFrame.fs = NWBLFrame:CreateFontString("NWBLFrameFS", "HIGH");
+NWBLFrame.fs:SetPoint("TOP", 0, -0);
+NWBLFrame.fs:SetFont(NWB.regionFont, 14);
+NWBLFrame.fs:SetText("|cFFFFFF00Guild Layers|r");
+
+local NWBLDragFrame = CreateFrame("Frame", "NWBLDragFrame", NWBLFrame);
+NWBLDragFrame:SetToplevel(true);
+NWBLDragFrame:EnableMouse(true);
+NWBLDragFrame:SetWidth(205);
+NWBLDragFrame:SetHeight(38);
+NWBLDragFrame:SetPoint("TOP", 0, 4);
+NWBLDragFrame:SetFrameLevel(131);
+NWBLDragFrame.tooltip = CreateFrame("Frame", "NWBLDragTooltip", NWBLDragFrame, "TooltipBorderedFrameTemplate");
+NWBLDragFrame.tooltip:SetPoint("CENTER", NWBLDragFrame, "TOP", 0, 12);
+NWBLDragFrame.tooltip:SetFrameStrata("TOOLTIP");
+NWBLDragFrame.tooltip:SetFrameLevel(9);
+NWBLDragFrame.tooltip:SetAlpha(.8);
+NWBLDragFrame.tooltip.fs = NWBLDragFrame.tooltip:CreateFontString("NWBLDragTooltipFS", "HIGH");
+NWBLDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
+NWBLDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
+NWBLDragFrame.tooltip.fs:SetText("Hold to drag");
+NWBLDragFrame.tooltip:SetWidth(NWBLDragFrame.tooltip.fs:GetStringWidth() + 16);
+NWBLDragFrame.tooltip:SetHeight(NWBLDragFrame.tooltip.fs:GetStringHeight() + 10);
+NWBLDragFrame:SetScript("OnEnter", function(self)
+	NWBLDragFrame.tooltip:Show();
+end)
+NWBLDragFrame:SetScript("OnLeave", function(self)
+	NWBLDragFrame.tooltip:Hide();
+end)
+NWBLDragFrame.tooltip:Hide();
+NWBLDragFrame:SetScript("OnMouseDown", function(self, button)
+	if (button == "LeftButton" and not self:GetParent().isMoving) then
+		self:GetParent().EditBox:ClearFocus();
+		self:GetParent():StartMoving();
+		self:GetParent().isMoving = true;
+		--self:GetParent():SetUserPlaced(false);
+	end
+end)
+NWBLDragFrame:SetScript("OnMouseUp", function(self, button)
+	if (button == "LeftButton" and self:GetParent().isMoving) then
+		self:GetParent():StopMovingOrSizing();
+		self:GetParent().isMoving = false;
+	end
+end)
+NWBLDragFrame:SetScript("OnHide", function(self)
+	if (self:GetParent().isMoving) then
+		self:GetParent():StopMovingOrSizing();
+		self:GetParent().isMoving = false;
+	end
+end)
+
+--Top right X close button.
+local NWBLFrameClose = CreateFrame("Button", "NWBLFrameClose", NWBLFrame, "UIPanelCloseButton");
+--[[NWBLFrameClose:SetPoint("TOPRIGHT", -5, 8.6);
+NWBLFrameClose:SetWidth(31);
+NWBLFrameClose:SetHeight(31);]]
+NWBLFrameClose:SetPoint("TOPRIGHT", -12, 3.75);
+NWBLFrameClose:SetWidth(20);
+NWBLFrameClose:SetHeight(20);
+NWBLFrameClose:SetFrameLevel(3);
+NWBLFrameClose:SetScript("OnClick", function(self, arg)
+	NWBLFrame:Hide();
+end)
+--Adjust the X texture so it fits the entire frame and remove the empty clickable space around the close button.
+--Big thanks to Meorawr for this.
+NWBLFrameClose:GetNormalTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
+NWBLFrameClose:GetHighlightTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
+NWBLFrameClose:GetPushedTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
+NWBLFrameClose:GetDisabledTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
+
+--Config button.
+local NWBLFrameRefreshButton = CreateFrame("Button", "NWBLFrameRefreshButton", NWBLFrame.EditBox, "UIPanelButtonTemplate");
+NWBLFrameRefreshButton:SetPoint("TOPRIGHT", -8, 3);
+NWBLFrameRefreshButton:SetWidth(90);
+NWBLFrameRefreshButton:SetHeight(17);
+NWBLFrameRefreshButton:SetText(L["Refresh"]);
+NWBLFrameRefreshButton:SetNormalFontObject("GameFontNormalSmall");
+NWBLFrameRefreshButton:SetScript("OnClick", function(self, arg)
+	NWB:recalcLFrame()
+end)
+NWBLFrameRefreshButton:SetScript("OnMouseDown", function(self, button)
+	if (button == "LeftButton" and not self:GetParent():GetParent().isMoving) then
+		self:GetParent():GetParent().EditBox:ClearFocus();
+		self:GetParent():GetParent():StartMoving();
+		self:GetParent():GetParent().isMoving = true;
+	end
+end)
+NWBLFrameRefreshButton:SetScript("OnMouseUp", function(self, button)
+	if (button == "LeftButton" and self:GetParent():GetParent().isMoving) then
+		self:GetParent():GetParent():StopMovingOrSizing();
+		self:GetParent():GetParent().isMoving = false;
+	end
+end)
+NWBLFrameRefreshButton:SetScript("OnHide", function(self)
+	if (self:GetParent():GetParent().isMoving) then
+		self:GetParent():GetParent():StopMovingOrSizing();
+		self:GetParent():GetParent().isMoving = false;
+	end
+end)
+
+function NWB:openLFrame()
+	NWBLFrame.fs:SetFont(NWB.regionFont, 14);
+	if (NWBLFrame:IsShown()) then
+		NWBLFrame:Hide();
+	else
+		if (not NWB.db.global.guildL) then
+			NWB:print("You have disabled guild layer sharing.");
+		end
+		NWBLFrame:SetHeight(400);
+		NWBLFrame:SetWidth(400);
+		local fontSize = false
+		NWBLFrame.EditBox:SetFont(NWB.regionFont, 14);
+		NWBLFrame.EditBox:SetWidth(NWBLFrame:GetWidth() - 30);
+		NWBLFrame:Show();
+		NWB:recalcLFrame();
+		--Changing scroll position requires a slight delay.
+		--Second delay is a backup.
+		C_Timer.After(0.05, function()
+			NWBLFrame:SetVerticalScroll(0);
+		end)
+		C_Timer.After(0.3, function()
+			NWBLFrame:SetVerticalScroll(0);
+		end)
+		--So interface options and this frame will open on top of each other.
+		if (InterfaceOptionsFrame:IsShown()) then
+			NWBLFrame:SetFrameStrata("DIALOG")
+		else
+			NWBLFrame:SetFrameStrata("HIGH")
+		end
+	end
+end
+
+function NWB:recalcLFrame()
+	NWBLFrame.EditBox:SetText("\n\n");
+	if (not IsInGuild()) then
+		NWBLFrame.EditBox:Insert("|cffFFFF00You have no guild, this command shows guild members only.\n");
+	else
+		GuildRoster();
+		local numTotalMembers = GetNumGuildMembers();
+		local onlineMembers = {};
+		local me = UnitName("player") .. "-" .. GetNormalizedRealmName();
+		local sorted = {};
+		local guild = {};
+		for i = 1, numTotalMembers do
+			local name, _, _, _, class, zone, _, _, online, _, classEnglish, _, _, isMobile = GetGuildRosterInfo(i);
+			if (online and not isMobile) then
+				name = string.gsub(string.gsub(name, "'", ""), " ", "");
+				guild[name] = {
+					class = classEnglish,
+					zone = zone,
+				};
+			end
+		end
+		--Sort by name.
+		for k, v in pairs(NWB.hasL) do
+			if (guild[k] and tonumber(v) and tonumber(v) > 0) then
+				local who, realm = strsplit("-", k, 2);
+				--sorted[who] = guild[k];
+				--sorted[who].layer = v;
+				if (not sorted[v]) then
+					sorted[v] = {};
+				end
+				sorted[v][who] = guild[k];
+			else
+				--Remove if they go offline.
+				NWB.hasL[k] = nil;
+			end
+		end
+		local found;
+		local text = "";
+		for layer, data in NWB:pairsByKeys(sorted) do
+			text = text .. "|cff00ff00[Layer " .. layer .. "]|r\n";
+			for k, v in NWB:pairsByKeys(data) do
+				found = true;
+				local _, _, _, classColor = GetClassColor(v.class);
+				text = text .. "   |c" .. classColor .. k .. "|r  |cff9CD6DE(" .. v.zone .. ")|r\n"
+			end
+			text = text .. "\n";
+		end
+		if (found) then
+			NWBLFrame.EditBox:Insert(text);
+		else
+			NWBLFrame.EditBox:Insert("|cffFFFF00No guild members online sharing layer data found.");
+		end
+	end
 end

@@ -4,6 +4,13 @@
 --https://www.curseforge.com/members/venomisto/projects
 
 NIT = LibStub("AceAddon-3.0"):NewAddon("NovaInstanceTracker", "AceComm-3.0");
+if (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC) then
+	NIT.isClassic = true;
+elseif (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC) then
+	NIT.isTBC = true;
+elseif (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
+	NIT.isRetail = true;
+end
 NIT.LSM = LibStub("LibSharedMedia-3.0");
 NIT.commPrefix = "NIT";
 NIT.hasAddon = {};
@@ -19,9 +26,21 @@ NIT.LDBIcon = LibStub("LibDBIcon-1.0");
 local version = GetAddOnMetadata("NovaInstanceTracker", "Version") or 9999;
 NIT.classic = true;
 NIT.latestRemoteVersion = version;
-NIT.hourlyLimit = 5;
-NIT.dailyLimit = 30;
-NIT.maxLevel = 60;
+local tbcRelease = 1622570400;
+local utcTime = time(date("!*t", GetServerTime()));
+if (NIT.isTBC) then
+	NIT.hourlyLimit = 5;
+	NIT.dailyLimit = 200;  --No limit in prepatch, but maybe limit after portal opens?
+	if (utcTime > tbcRelease) then
+		NIT.maxLevel = 70;
+	else
+		NIT.maxLevel = 60;
+	end
+else
+	NIT.hourlyLimit = 5;
+	NIT.dailyLimit = 30;
+	NIT.maxLevel = 60;
+end
 NIT.prefixColor = "|cFFFF6900";
 NIT.perCharOnly = true;
 NIT.loadTime = GetServerTime();
@@ -543,6 +562,13 @@ function NIT:openConfig()
 	InterfaceOptionsFrame_OpenToCategory("NovaInstanceTracker");
 end
 
+function NIT:isInArena()
+	--Check if the func exists for classic.
+	if (IsActiveBattlefieldArena and IsActiveBattlefieldArena()) then
+		return true;
+	end
+end
+
 function NIT:debug(...)
 	if (NIT.isDebug) then
 		if (type(...) == "table") then
@@ -596,8 +622,8 @@ function SlashCmdList.NITCMD(msg, editBox)
 	  		NIT:print("You are not in a party.");
 	  		return;
 		end
-		local text, text24 = NIT:getInstanceLockoutInfoString();
-		NIT:print(text .. " " .. text24, msg);
+		local lockoutString, lockoutStringShort, lockoutStringColorized = NIT:getInstanceLockoutInfoString();
+		NIT:print(lockoutString, msg);
 	else
 		NIT:openInstanceLogFrame();
 	end
@@ -606,7 +632,7 @@ end
 local lockoutNum, lockoutNum24 = 0, 0;
 function NIT:ticker()
 	local hourCount, hourCount24, hourTimestamp, hourTimestamp24 = NIT:getInstanceLockoutInfo();
-	if (hourCount24 < lockoutNum24 and lockoutNum24 == 30 and GetServerTime() - NIT.lastMerge > 3) then
+	if (hourCount24 < lockoutNum24 and lockoutNum24 == NIT.dailyLimit and GetServerTime() - NIT.lastMerge > 3) then
 		local texture = "|TInterface\\AddOns\\NovaInstanceTracker\\Media\\redX2:12:12:0:0|t";
 		local hourCount, hourCount24, hourTimestamp, hourTimestamp24 = NIT:getInstanceLockoutInfo();
 		local countMsg = " (" .. NIT.prefixColor .. hourCount24 .. NIT.chatColor .. " " .. L["thisHour24"] .. ")";
@@ -757,7 +783,7 @@ function NIT:getMinimapButtonLockoutString()
 		lockoutInfo = L["in"] .. " " .. NIT:getTimeString(3600 - (GetServerTime() - hourTimestamp), true);
 	end
 	local msg = NIT.prefixColor .. hourCount .. NIT.chatColor.. " " .. L["instancesPastHour"] .. "\n"
-			.. NIT.prefixColor .. hourCount24 .. NIT.chatColor .. " " .. L["instancesPastHour24"] .. ".\n"
+			.. NIT.prefixColor .. hourCount24 .. NIT.chatColor .. " " .. L["instancesPastHour24"] .. "\n"
 			.. L["nextInstanceAvailable"] .. " " .. lockoutInfo .. ".";
 	return msg;
 end
@@ -816,7 +842,20 @@ function NIT:getMinimapButtonNextExpires(char)
 	end
 end
 
-local NITInstanceFrame = CreateFrame("ScrollFrame", "NITInstanceFrame", UIParent, "InputScrollFrameTemplate");
+function NIT:addBackdrop(string)
+	if (BackdropTemplateMixin) then
+		if (string) then
+			--Inherit backdrop first so our frames points etc don't get overwritten.
+			return "BackdropTemplate," .. string;
+		else
+			return "BackdropTemplate";
+		end
+	else
+		return string;
+	end
+end
+
+local NITInstanceFrame = CreateFrame("ScrollFrame", "NITInstanceFrame", UIParent, NIT:addBackdrop("InputScrollFrameTemplate"));
 local instanceFrameWidth = 620;
 NITInstanceFrame:Hide();
 NITInstanceFrame:SetToplevel(true);
@@ -1357,6 +1396,12 @@ end
 function NIT:buildInstanceLineFrameString(v, count)
 	local player = v.playerName;
 	local _, _, _, classColorHex = GetClassColor(v.classEnglish);
+	--Safeguard for weakauras/addons that like to overwrite and break the GetClassColor() function.
+	if (not classColorHex and v.classEnglish == "SHAMAN") then
+		classColorHex = "ff0070dd";
+	elseif (not classColorHex) then
+		classColorHex = "ffffffff";
+	end
 	local instance = v.instanceName;
 	local time = NIT:getTimeFormat(v.enteredTime, true, true);
 	local timeAgo = GetServerTime() - v.enteredTime;
@@ -1386,7 +1431,7 @@ function NIT:buildInstanceLineFrameString(v, count)
 			if (count == 1 and NIT.inInstance) then
 				lockoutTimeString = instance .. " (" .. L["stillInDungeon"] .. ")";
 			else
-				lockoutTimeString = instance .. " (" .. lockoutTime .. " " .. L["leftOnDailyLockout"] .. ")";
+				lockoutTimeString = instance .. " (" .. lockoutTime .. " " .. L["leftOnLockout"] .. ")";
 			end
 		end
 	elseif (timeAgo < 86400) then
@@ -1433,6 +1478,8 @@ function NIT:recalcInstanceLineFramesTooltip(obj)
 		local timeSpent = L["unknown"];
 		if (data.enteredTime and data.leftTime and data.enteredTime > 0 and data.leftTime > 0) then
 			timeSpent = NIT:getTimeString(data.leftTime - data.enteredTime, true);
+		elseif (data.enteredTime and data.leftTime and data.enteredTime > 0 and (GetServerTime() - data.enteredTime) < 21600) then
+			timeSpent = NIT:getTimeString(GetServerTime() - data.enteredTime, true);
 		end
 		local averageXP = L["unknown"];
 		if (data.xpFromChat and data.mobCount and data.enteredTime > 0 and data.mobCount > 0) then
@@ -1454,14 +1501,20 @@ function NIT:recalcInstanceLineFramesTooltip(obj)
 		end
 		local player = data.playerName;
 		local _, _, _, classColorHex = GetClassColor(data.classEnglish);
-		local text = timeColor .. "Instance " .. obj.count .. " (" .. data.instanceName .. ")";
+		--Safeguard for weakauras/addons that like to overwrite and break the GetClassColor() function.
+		if (not classColorHex and data.classEnglish == "SHAMAN") then
+			classColorHex = "ff0070dd";
+		elseif (not classColorHex) then
+			classColorHex = "ffffffff";
+		end
+		local text = timeColor .. "Instance " .. obj.count .. " (" .. data.instanceName .. ")|r";
 		if (data.instanceID and NIT.zones[data.instanceID] and NIT.zones[data.instanceID].noLockout) then
 			timeColor = "|cFFFFA500";
-			text = timeColor .. "Instance " .. obj.count .. " (" .. data.instanceName .. ") (Raid with no lockout)";
+			text = timeColor .. "Instance " .. obj.count .. " (" .. data.instanceName .. ") (Raid with no lockout)|r";
 		end
 		if (UnitName("player") ~= data.playerName) then
 			timeColor = "|cFFA1A1A1";
-			text = timeColor .. "Instance " .. obj.count .. " (" .. data.instanceName .. ") (Alt)";
+			text = timeColor .. "Instance " .. obj.count .. " (" .. data.instanceName .. ") (Alt)|r";
 		end
 		if (data.zoneID) then
 			text = text .. " (ZoneID: " .. data.zoneID .. ")";
@@ -1471,7 +1524,7 @@ function NIT:recalcInstanceLineFramesTooltip(obj)
 		text = text .. "\n|cFF9CD6DE" .. L["timeInside"] .. ":|r " .. timeSpent;
 		text = text .. "\n|cFF9CD6DE" .. L["mobCount"] .. ":|r " .. (data.mobCount or "Unknown");
 		text = text .. "\n|cFF9CD6DE" .. L["experience"] .. ":|r " .. (NIT:commaValue(data.xpFromChat) or "Unknown");
-		text = text .. "\n|cFF9CD6DE" .. L["statsAverageXP"] .. ":|r " .. (NIT:round(averageXP, 2) or "0");
+		text = text .. "\n|cFF9CD6DE" .. L["statsAverageXP"] .. "|r " .. (NIT:round(averageXP, 2) or "0");
 		if (data.rawMoneyCount and data.rawMoneyCount > 0) then
 			text = text .. "\n|cFF9CD6DE" .. L["rawGoldMobs"] .. ":|r " .. GetCoinTextureString(data.rawMoneyCount);
 		elseif (data.enteredMoney and data.leftMoney and data.enteredMoney > 0 and data.leftMoney > 0
@@ -1502,7 +1555,7 @@ function NIT:recalcInstanceLineFramesTooltip(obj)
 				if (v > 0) then
 					v = "+" .. NIT:commaValue(v);
 				else
-					v = NIT:commaValue(v);
+					v = "-" .. NIT:commaValue(v);
 				end
 				text = text .. "\n |cFF9CD6DE" .. k .. "|r " .. v;
 			end
@@ -1541,6 +1594,12 @@ function NIT:recalcInstanceLineFramesTooltip(obj)
 				local classColorHexString = "";
 				if (v.classEnglish) then
 					local _, _, _, classColorHex = GetClassColor(string.upper(v.classEnglish));
+					--Safeguard for weakauras/addons that like to overwrite and break the GetClassColor() function.
+					if (not classColorHex and string.upper(v.classEnglish) == "SHAMAN") then
+						classColorHex = "ff0070dd";
+					elseif (not classColorHex) then
+						classColorHex = "ffffffff";
+					end
 					classColorHexString = "|c" .. classColorHex;
 				end
 				if ((count ~= 1 and math.fmod(count, perLine) == 0)
@@ -1582,6 +1641,12 @@ function NIT:recalcInstanceLineFramesTooltip(obj)
 					and v.where == data.instanceName) then
 				local msg = "";
 				local _, _, _, classColorHex = GetClassColor(v.tradeWhoClass);
+				--Safeguard for weakauras/addons that like to overwrite and break the GetClassColor() function.
+				if (not classColorHex and v.tradeWhoClass == "SHAMAN") then
+					classColorHex = "ff0070dd";
+				elseif (not classColorHex) then
+					classColorHex = "ffffffff";
+				end
 				local time = NIT:getTimeFormat(v.time, true, true);
 				local timeAgo = GetServerTime() - v.time;
 				if (v.playerMoney > 0) then
@@ -1629,7 +1694,7 @@ function NIT:getAltLockoutString(char)
 	return msg;
 end
 
-local NITInstanceFrameDeleteConfirm = CreateFrame("ScrollFrame", "NITInstanceFrameDC", UIParent, "InputScrollFrameTemplate");
+local NITInstanceFrameDeleteConfirm = CreateFrame("ScrollFrame", "NITInstanceFrameDC", UIParent, NIT:addBackdrop("InputScrollFrameTemplate"));
 NITInstanceFrameDeleteConfirm:Hide();
 NITInstanceFrameDeleteConfirm:SetToplevel(true);
 NITInstanceFrameDeleteConfirm:SetHeight(130);
@@ -1700,6 +1765,12 @@ function NIT:openDeleteConfirmFrame(num, displayNum)
 		if (data) then
 			local player = data.playerName;
 			local _, _, _, classColorHex = GetClassColor(data.classEnglish);
+			--Safeguard for weakauras/addons that like to overwrite and break the GetClassColor() function.
+			if (not classColorHex and data.classEnglish == "SHAMAN") then
+				classColorHex = "ff0070dd";
+			elseif (not classColorHex) then
+				classColorHex = "ffffffff";
+			end
 			local instance = data.instanceName;
 			local time = NIT:getTimeFormat(data.enteredTime, true, true);
 			local timeAgo = GetServerTime() - data.enteredTime;
@@ -1738,7 +1809,7 @@ function NIT:openDeleteConfirmFrame(num, displayNum)
 end
 
 ---Trade Log---
-local NITTradeLogFrame = CreateFrame("ScrollFrame", "NITTradeLogFrame", UIParent, "InputScrollFrameTemplate");
+local NITTradeLogFrame = CreateFrame("ScrollFrame", "NITTradeLogFrame", UIParent, NIT:addBackdrop("InputScrollFrameTemplate"));
 NITTradeLogFrame:Hide();
 NITTradeLogFrame:SetToplevel(true);
 NITTradeLogFrame:SetMovable(true);
@@ -1902,31 +1973,29 @@ function NIT:recalcTradeLogFrame()
 		local msg = "";
 		local traded;
 		local _, _, _, classColorHex = GetClassColor(v.tradeWhoClass);
+		--Safeguard for weakauras/addons that like to overwrite and break the GetClassColor() function.
+		if (not classColorHex and v.tradeWhoClass == "SHAMAN") then
+			classColorHex = "ff0070dd";
+		elseif (not classColorHex) then
+			classColorHex = "ffffffff";
+		end
 		local time = NIT:getTimeFormat(v.time, true, true);
 		local timeAgo = GetServerTime() - v.time;
 		if (v.playerMoney > 0) then
-			msg = msg .. "[|cFFDEDE42" .. time .. "|r] |cFF9CD6DE" .. L["gave"] .. " |r"
-					.. NIT:getCoinString(v.playerMoney) .. "|r |cFF9CD6DE" .. L["to"] .. " |c"
-					.. classColorHex .. v.tradeWho .. NIT.chatColor .. " |cFF9CD6DE" .. L["in"] .. " " .. v.where 
-					.. " (" .. NIT:getTimeString(timeAgo, true) .. " ago)\n";
+			msg = msg .. "[|cFFDEDE42" .. time .. "|r] |cFF9CD6DE" .. L["gave"] .. "|r "
+					.. NIT:getCoinString(v.playerMoney) .. "|r |cFF9CD6DE" .. L["to"] .. "|r |c"
+					.. classColorHex .. v.tradeWho .. "|r |cFF9CD6DE" .. L["in"] .. " " .. v.where 
+					.. " (" .. NIT:getTimeString(timeAgo, true) .. " ago)|r\n";
 			traded = true;
 			found = true;
 		end
 		if (v.targetMoney > 0) then
-			msg = msg .. "[|cFFDEDE42" .. time .. "|r] |cFF9CD6DE" .. L["received"] .. " |r"
-					.. NIT:getCoinString(v.targetMoney) .. "|r |cFF9CD6DE" .. L["from"] .. " |c"
-					.. classColorHex .. v.tradeWho .. NIT.chatColor .. " |cFF9CD6DE" .. L["in"] .. " " .. v.where 
-					.. " (" .. NIT:getTimeString(timeAgo, true) .. " " .. L["ago"] .. ")\n";
+			msg = msg .. "[|cFFDEDE42" .. time .. "|r] |cFF9CD6DE" .. L["received"] .. "|r "
+					.. NIT:getCoinString(v.targetMoney) .. "|r |cFF9CD6DE" .. L["from"] .. "|r |c"
+					.. classColorHex .. v.tradeWho .. "|r |cFF9CD6DE" .. L["in"] .. " " .. v.where 
+					.. " (" .. NIT:getTimeString(timeAgo, true) .. " " .. L["ago"] .. ")|r\n";
 			found = true;
 		end
-		--[[
-		playerMoney = playerMoney,
-		targetMoney = targetMoney,
-		tradeWho = tradeWho,
-		tradeWhoClass = tradeWhoClass,
-		where = GetZoneText() or "",
-		time = GetServerTime(),
-		]]
 		NITTradeLogFrame.EditBox:Insert(msg);
 	end
 	if (not found) then
@@ -1941,7 +2010,7 @@ function NIT:resetTradeData()
 end
 
 --Copy Paste.
-local NITTradeCopyFrame = CreateFrame("ScrollFrame", "NITTradeCopyFrame", UIParent, "InputScrollFrameTemplate");
+local NITTradeCopyFrame = CreateFrame("ScrollFrame", "NITTradeCopyFrame", UIParent, NIT:addBackdrop("InputScrollFrameTemplate"));
 NITTradeCopyFrame:Hide();
 NITTradeCopyFrame:SetToplevel(true);
 NITTradeCopyFrame:SetMovable(true);
@@ -1968,7 +2037,7 @@ NITTradeCopyFrameClose:GetHighlightTexture():SetTexCoord(0.1875, 0.8125, 0.1875,
 NITTradeCopyFrameClose:GetPushedTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
 NITTradeCopyFrameClose:GetDisabledTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
 
-local NITTradeCopyDragFrame = CreateFrame("Frame", "NITTradeCopyDragFrame", NITTradeCopyFrame);
+local NITTradeCopyDragFrame = CreateFrame("Frame", "NITTradeCopyDragFrame", NITTradeCopyFrame, NIT:addBackdrop());
 NITTradeCopyDragFrame:SetToplevel(true);
 NITTradeCopyDragFrame:EnableMouse(true);
 --NITTradeCopyDragFrame:SetPoint("TOP", 0, 25);
@@ -2226,6 +2295,12 @@ function NIT:recalcTradeCopyFrame()
 		end
 		local msg = "";
 		local _, _, _, classColorHex = GetClassColor(v.tradeWhoClass);
+		--Safeguard for weakauras/addons that like to overwrite and break the GetClassColor() function.
+		if (not classColorHex and v.tradeWhoClass == "SHAMAN") then
+			classColorHex = "ff0070dd";
+		elseif (not classColorHex) then
+			classColorHex = "ffffffff";
+		end
 		local time = NIT:getTimeFormat(v.time, true, true);
 		local timeAgo = GetServerTime() - v.time;
 		if (v.playerMoney > 0) then
@@ -2313,7 +2388,7 @@ function NIT:calcRested(currentXP, maxXP, time, resting, restedXP, online)
 	return percent, bubbles, totalRestedXP;
 end
 
-local NITAltsFrame = CreateFrame("ScrollFrame", "NITAltsFrame", UIParent, "InputScrollFrameTemplate");
+local NITAltsFrame = CreateFrame("ScrollFrame", "NITAltsFrame", UIParent, NIT:addBackdrop("InputScrollFrameTemplate"));
 local altsFrameWidth = 550;
 NITAltsFrame:Hide();
 NITAltsFrame:SetToplevel(true);
@@ -2620,6 +2695,12 @@ function NIT:recalcAltsLineFrames()
 					}
 					foundRested = nil;
 					local _, _, _, classColor = GetClassColor(v.classEnglish);
+					--Safeguard for weakauras/addons that like to overwrite and break the GetClassColor() function.
+					if (not classColor and v.classEnglish == "SHAMAN") then
+						classColor = "ff0070dd";
+					elseif (not classColor) then
+						classColor = "ffffffff";
+					end
 					local msg = "  -|c" .. classColor .. k .. "|r";
 					local online;
 					local stateString = "";
@@ -2733,11 +2814,17 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 	--NIT:debug(data)
 	if (data) then
 		if (obj.type == "realm") then
-			local text = "|cFFFFAE42" .. L["realmGold"] .. " |cff00ff00[" .. data.realm .. "]|r";
+			local text = "|cFFFFAE42" .. L["realmGold"] .. "|r |cff00ff00[" .. data.realm .. "]|r";
 			local total = 0;
 			for k, v in NIT:pairsByKeys(data) do
 				if (v.gold) then
 					local _, _, _, classColor = GetClassColor(v.classEnglish);
+					--Safeguard for weakauras/addons that like to overwrite and break the GetClassColor() function.
+					if (not classColor and v.classEnglish == "SHAMAN") then
+						classColor = "ff0070dd";
+					elseif (not classColor) then
+						classColor = "ffffffff";
+					end
 					total = total + v.gold;
 					local line = "\n|c" .. classColor .. k .. "|r";
 					obj.tooltip.fsCalc:SetText(line);
@@ -2767,6 +2854,12 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 			local color1, color2 = "|cFFFFAE42", "|cFF9CD6DE";
 			local player = data.playerName;
 			local _, _, _, classColorHex = GetClassColor(data.classEnglish);
+			--Safeguard for weakauras/addons that like to overwrite and break the GetClassColor() function.
+			if (not classColorHex and data.classEnglish == "SHAMAN") then
+				classColorHex = "ff0070dd";
+			elseif (not classColorHex) then
+				classColorHex = "ffffffff";
+			end
 			local online;
 			if (player == UnitName("player")) then
 				online = true;
@@ -2782,8 +2875,8 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 			else
 				text = "|c" .. classColorHex .. player .. "|r";
 			end
-			text = text .. "\n" .. color1 .. L["guild"] .. ": " .. color2 .. (data.guild or "none");
-			text = text .. "\n" .. color1 .. L["level"] .. ":|r " .. color2 .. data.level;
+			text = text .. "\n" .. color1 .. L["guild"] .. ":|r " .. color2 .. (data.guild or "none") .. "|r";
+			text = text .. "\n" .. color1 .. L["level"] .. ":|r " .. color2 .. data.level .. "|r";
 			if (timeOffline and data.level < NIT.maxLevel) then
 				local percent, bubbles, xp = NIT:calcRested(data.currentXP, data.maxXP, timeOffline, data.resting, data.restedXP, online);
 				if (data.currentXP) then
@@ -2793,8 +2886,8 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 					else
 						percentXP = (data.currentXP / data.maxXP) * 100;
 					end
-					text = text .. "\n" .. color1 .. L["experienceShort"] .. ":|r " .. color2 .. NIT:commaValue(data.currentXP) .. color1 .. "/"
-							.. color2 .. NIT:commaValue(data.maxXP) .. " (" .. NIT:round(percentXP) .. "%)";
+					text = text .. "\n" .. color1 .. L["experienceShort"] .. ":|r " .. color2 .. NIT:commaValue(data.currentXP) .. "|r"
+							.. color1 .. "/|r" .. color2 .. NIT:commaValue(data.maxXP) .. " (" .. NIT:round(percentXP) .. "%)|r";
 				end
 				if (data.restedXP) then
 					local percentString = percent .. "\%";
@@ -2808,9 +2901,9 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 						percentMax = " (Max)";
 					end
 					text = text .. "\n" .. color1 .. L["rested"] .. ":|r " .. color2 .. percentString .. " ("
-							.. NIT:commaValue(data.restedXP) .. string.lower(L["experienceShort"]) .. ")" .. percentMax;
-					text = text .. "\n" .. color1 .. L["restedBubbles"] .. ":|r " .. color2 .. bubbles;
-					text = text .. "\n" .. color1 .. L["restedState"] .. ":|r " .. color2 .. stateString;
+							.. NIT:commaValue(data.restedXP) .. string.lower(L["experienceShort"]) .. ")" .. percentMax .. "|r";
+					text = text .. "\n" .. color1 .. L["restedBubbles"] .. ":|r " .. color2 .. bubbles .. "|r";
+					text = text .. "\n" .. color1 .. L["restedState"] .. ":|r " .. color2 .. stateString .. "|r";
 				end
 			end
 			if (data.freeBagSlots and data.totalBagSlots) then
@@ -2819,10 +2912,11 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 					--Display in red when less than 10% of bag space left.
 					displayFreeSlots = "|cffff0000" .. data.freeBagSlots .. "|r";
 				end
-				text = text .. "\n" .. color1 .. L["bagSlots"] .. ":|r " .. displayFreeSlots .. color1 .. "/" .. color2 .. data.totalBagSlots;
+				text = text .. "\n" .. color1 .. L["bagSlots"] .. ":|r " .. displayFreeSlots .. color1 .. "/|r"
+						.. color2 .. data.totalBagSlots .. "|r";
 			end
 			if (data.gold) then
-				text = text .. "\n" .. color1 .. L["Gold"] .. ":|r " .. color2 .. GetCoinTextureString(data.gold, 10);
+				text = text .. "\n" .. color1 .. L["Gold"] .. ":|r " .. color2 .. GetCoinTextureString(data.gold, 10) .. "|r";
 			end
 			local durabilityAverage = data.durabilityAverage or 100;
 			local displayDurability;
@@ -2833,7 +2927,7 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 			else
 				displayDurability = color2 .. NIT:round(durabilityAverage) .. "%|r";
 			end
-			text = text .. "\n" .. color1 .. L["durability"] .. ": " .. displayDurability;
+			text = text .. "\n" .. color1 .. L["durability"] .. ": " .. displayDurability .. "|r";
 			
 			if (data.classEnglish == "PRIEST" or data.classEnglish == "MAGE" or data.classEnglish == "DRUID"
 					or data.classEnglish == "WARLOCK" or data.classEnglish == "SHAMAN" or data.classEnglish == "PALADIN"
@@ -2849,7 +2943,8 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 							ammoTypeString = " (" .. itemName .. " " .. ammoTexture .. ")";
 						end
 					end
-					itemString = itemString .. "\n  |c" .. classColorHex .. L["ammunition"] .. ":|r " .. color2 .. (data.ammo or 0) .. ammoTypeString;
+					itemString = itemString .. "\n  |c" .. classColorHex .. L["ammunition"] .. ":|r " .. color2 .. (data.ammo or 0)
+							.. ammoTypeString .. "|r";
 					foundItems = true;
 				end
 				if (_G["NIT"]["trackItems" .. data.classEnglish]) then
@@ -2865,7 +2960,8 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 							if (not itemName) then
 								itemName = v.name;
 							end
-							itemString = itemString .. "\n  " .. texture .. "|c" .. classColorHex .. itemName .. ":|r " .. color2 .. (data[v.id] or 0);
+							itemString = itemString .. "\n  " .. texture .. "|c" .. classColorHex .. itemName .. ":|r "
+									.. color2 .. (data[v.id] or 0) .. "|r";
 							foundItems = true;
 						end
 					end
@@ -2890,27 +2986,27 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 				end
 				text = text .. "\n\n|cFFFFFF00" .. L["currentPet"] .. "|r";
 				if (data.isPetDead and data.hasPet) then
-					text = text .. "\n" .. color1 .. "  " .. L["petStatus"] .. ":|r (|cFFFF2222Dead" .. color2 .. ")";
+					text = text .. "\n" .. color1 .. "  " .. L["petStatus"] .. ":|r (|cFFFF2222Dead" .. color2 .. ")|r";
 				elseif (data.hasPet) then
-					text = text .. "\n" .. color1 .. "  " .. L["petStatus"] .. ":|r (|cFF00C800Alive" .. color2 .. ")";
+					text = text .. "\n" .. color1 .. "  " .. L["petStatus"] .. ":|r (|cFF00C800Alive" .. color2 .. ")|r";
 				else
-					text = text .. "\n" .. color1 .. "  " .. L["petStatus"] .. ":|r " .. color2 .. "(" .. L["noPetSummoned"] .. ")";
+					text = text .. "\n" .. color1 .. "  " .. L["petStatus"] .. ":|r " .. color2 .. "(" .. L["noPetSummoned"] .. ")|r";
 					text = text ..	"\n  |cFF989898" .. L["lastSeenPetDetails"] .. ":|r";
 				end
 				if (data.petName) then
-					text = text .. "\n" .. color1 .. "  " .. L["name"] .. ":|r " .. color2 .. data.petName;
+					text = text .. "\n" .. color1 .. "  " .. L["name"] .. ":|r " .. color2 .. data.petName .. "|r";
 				end
 				if (data.petLevel) then
-					text = text .. "\n" .. color1 .. "  " .. L["level"] .. ":|r " .. color2 .. data.petLevel;
+					text = text .. "\n" .. color1 .. "  " .. L["level"] .. ":|r " .. color2 .. data.petLevel .. "|r";
 				end
 				if (data.petFamily) then
-					text = text .. "\n" .. color1 .. "  " .. L["family"] .. ":|r " .. color2 .. data.petFamily;
+					text = text .. "\n" .. color1 .. "  " .. L["family"] .. ":|r " .. color2 .. data.petFamily .. "|r";
 				end
 				if (data.petHappiness) then
-					text = text .. "\n" .. color1 .. "  " .. L["happiness"] .. ":|r " .. happinessTexture;
+					text = text .. "\n" .. color1 .. "  " .. L["happiness"] .. ":|r " .. happinessTexture .. "|r";
 				end
 				if (data.petLoyaltyRate) then
-					text = text .. "\n" .. color1 .. "  " .. L["loyaltyRate"] .. ":|r " .. color2 .. data.petLoyaltyRate;
+					text = text .. "\n" .. color1 .. "  " .. L["loyaltyRate"] .. ":|r " .. color2 .. data.petLoyaltyRate .. "|r";
 				end
 				if (data.loyaltyString) then
 					text = text .. "\n  " .. color1 .. data.loyaltyString;
@@ -2922,15 +3018,15 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 					else
 						percentXP = (data.petCurrentXP / data.petMaxXP) * 100;
 					end
-					text = text .. "\n" .. color1 .. "  " .. L["petExperience"] .. ":|r " .. color2 .. data.petCurrentXP .. color1 .. "/" .. color2 
-							.. data.petMaxXP .. " (" .. NIT:round(percentXP) .. "%)";
+					text = text .. "\n" .. color1 .. "  " .. L["petExperience"] .. ":|r " .. color2 .. data.petCurrentXP .. "|r"
+							.. color1 .. "/|r" .. color2 .. data.petMaxXP .. " (" .. NIT:round(percentXP) .. "%)|r";
 				end
 				if (data.totalPetPoints and data.spentPetPoints) then
 					local unspentPetPoints = data.totalPetPoints - data.spentPetPoints;
 					if (unspentPetPoints < 0) then
 						unspentPetPoints = 0;
 					end
-					text = text .. "\n" .. color1 .. "  " .. L["unspentTrainingPoints"] .. ":|r " .. color2 .. unspentPetPoints;
+					text = text .. "\n" .. color1 .. "  " .. L["unspentTrainingPoints"] .. ":|r " .. color2 .. unspentPetPoints .. "|r";
 				end
 			end
 			text = text .. "\n\n|cFFFFFF00" .. L["professions"] .. "|r";
@@ -2942,7 +3038,8 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 			end]]
 			local foundprofs;
 			if (data.prof1 and data.prof1 ~= "none") then
-				text = text .. "\n  " .. color1 .. data.prof1 .. ": " .. color2 .. data.profSkill1 .. color1 .. "/" .. color2 .. data.profSkillMax1;
+				text = text .. "\n  " .. color1 .. data.prof1 .. ":|r " .. color2 .. data.profSkill1 .. "|r"
+						.. color1 .. "/|r" .. color2 .. data.profSkillMax1 .. "|r";
 				foundprofs = true;
 				--[[for k, v in pairs(cooldowns) do
 					if (v.prof == data.prof11) then
@@ -2952,7 +3049,8 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 				end]]
 			end
 			if (data.prof2 and data.prof2 ~= "none") then
-				text = text .. "\n  " .. color1 .. data.prof2 .. ": " .. color2 .. data.profSkill2 .. color1 .. "/" .. color2 .. data.profSkillMax2;
+				text = text .. "\n  " .. color1 .. data.prof2 .. ":|r " .. color2 .. data.profSkill2 .. "|r"
+						.. color1 .. "/|r" .. color2 .. data.profSkillMax2 .. "|r";
 				foundprofs = true;
 				--[[for k, v in pairs(cooldowns) do
 					if (v.prof == data.prof2) then
@@ -2962,19 +3060,22 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 				end]]
 			end
 			if (data.firstaidSkill and data.firstaidSkill > 0) then
-				text = text .. "\n  " .. color1 .. PROFESSIONS_FIRST_AID .. ": " .. color2 .. data.firstaidSkill .. color1 .. "/" .. color2 .. data.firstaidSkillMax;
+				text = text .. "\n  " .. color1 .. PROFESSIONS_FIRST_AID .. ":|r " .. color2 .. data.firstaidSkill .. "|r"
+						.. color1 .. "/|r" .. color2 .. data.firstaidSkillMax;
 				foundprofs = true;
 			end
 			if (data.fishingSkill and data.fishingSkill > 0) then
-				text = text .. "\n  " .. color1 .. PROFESSIONS_FISHING .. ": " .. color2 .. data.fishingSkill .. color1 .. "/" .. color2 .. data.fishingSkillMax;
+				text = text .. "\n  " .. color1 .. PROFESSIONS_FISHING .. ":|r " .. color2 .. data.fishingSkill .. "|r"
+						.. color1 .. "/|r" .. color2 .. data.fishingSkillMax;
 				foundprofs = true;
 			end
 			if (data.cookingSkill and data.cookingSkill > 0) then
-				text = text .. "\n  " .. color1 .. PROFESSIONS_COOKING .. ": " .. color2 .. data.cookingSkill .. color1 .. "/" .. color2 .. data.cookingSkillMax;
+				text = text .. "\n  " .. color1 .. PROFESSIONS_COOKING .. ":|r " .. color2 .. data.cookingSkill .. "|r"
+						.. color1 .. "/|r" .. color2 .. data.cookingSkillMax;
 				foundprofs = true;
 			end
 			if (not foundprofs) then
-				text = text .. "\n  " .. color2 .. L["noProfessions"];
+				text = text .. "\n  " .. color2 .. L["noProfessions"] .. "|r";
 			end
 			local cooldownText = "\n\n|cFFFFFF00" .. L["cooldowns"] .. "|r";
 			local foundCooldowns;
@@ -2982,10 +3083,10 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 				for k, v in pairs(data.cooldowns) do
 					if (v.time > GetServerTime()) then
 						local timeString = "(" .. NIT:getTimeString(v.time - GetServerTime(), true, NIT.db.global.timeStringType) .. " " .. L["left"] .. ")";
-						cooldownText = cooldownText .. "\n    " .. color1 .. k .. ": " .. color2 .. timeString;
+						cooldownText = cooldownText .. "\n    " .. color1 .. k .. ":|r " .. color2 .. timeString .. "|r";
 					elseif (GetServerTime() - v.time < 1209600) then
 						--Display cooldowns are ready only for 2 weeks after last used so we don't have to worrie about dropped professions.
-						cooldownText = cooldownText .. "\n    " .. color1 .. k .. ": " .. color2 .. L["ready"];
+						cooldownText = cooldownText .. "\n    " .. color1 .. k .. ":|r " .. color2 .. L["ready"] .. "|r";
 					end
 					foundCooldowns = true;
 				end
@@ -2993,35 +3094,89 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 			if (foundCooldowns) then
 				text = text .. cooldownText;
 			end
-			local pvpRank = "\n\n|cFFFFFF00" .. L["pvp"] .. " " .. L["rank"] .. "|r";
-			if (data.pvpRankName and data.pvpRankNumber and data.pvpRankPercent) then
-				local percent = (string.match(tostring(data.pvpRankPercent), "%.(%d+)") or 0);
-				percent = string.sub(percent, 1, 2);
-				pvpRank = pvpRank .. "\n  " .. color1 .. data.pvpRankName .. " (" .. L["rank"] .. " " .. data.pvpRankNumber .. ") " .. percent .. "%";
-				text = text .. pvpRank;
-				if (data.pvpRankNameLastWeek and data.pvpRankNumberLastWeek and data.pvpRankPercentLastWeek) then
-					local percent = (string.match(tostring(data.pvpRankPercentLastWeek), "%.(%d+)") or 0);
+			if (not NIT.isTBC) then
+				local pvpRank = "\n\n|cFFFFFF00" .. L["pvp"] .. " " .. L["rank"] .. "|r";
+				if (data.pvpRankName and data.pvpRankNumber and data.pvpRankPercent) then
+					local percent = (string.match(tostring(data.pvpRankPercent), "%.(%d+)") or 0);
 					percent = string.sub(percent, 1, 2);
-					pvpRank = "\n  |cFFA1A1A1(" .. L["lastWeek"] .. ": " .. L["rank"] .. " " .. data.pvpRankNumberLastWeek .. " " .. percent .. "%)";
+					pvpRank = pvpRank .. "\n  " .. color1 .. data.pvpRankName .. " (" .. L["rank"] .. " " .. data.pvpRankNumber .. ") " .. percent .. "%|r";
 					text = text .. pvpRank;
+					if (data.pvpRankNameLastWeek and data.pvpRankNumberLastWeek and data.pvpRankPercentLastWeek) then
+						local percent = (string.match(tostring(data.pvpRankPercentLastWeek), "%.(%d+)") or 0);
+						percent = string.sub(percent, 1, 2);
+						pvpRank = "\n  |cFFA1A1A1(" .. L["lastWeek"] .. ": " .. L["rank"] .. " " .. data.pvpRankNumberLastWeek .. " " .. percent .. "%)|r";
+						text = text .. pvpRank;
+					end
 				end
 			end
 			local attunements = "\n\n|cFFFFFF00" .. L["attunements"] .. "|r";
 			local foundAttune;
 			if (data.mcAttune) then
-				attunements = attunements .. "\n  " .. color1 .. "Molten Core";
+				attunements = attunements .. "\n  " .. color1 .. "Molten Core|r";
 				foundAttune = true;
 			end
 			if (data.onyAttune) then
-				attunements = attunements .. "\n  " .. color1 .. "Onyxia's Lair";
+				attunements = attunements .. "\n  " .. color1 .. "Onyxia's Lair|r";
 				foundAttune = true;
 			end
 			if (data.bwlAttune) then
-				attunements = attunements .. "\n  " .. color1 .. "Blackwing Lair";
+				attunements = attunements .. "\n  " .. color1 .. "Blackwing Lair|r";
 				foundAttune = true;
 			end
 			if (data.naxxAttune) then
-				attunements = attunements .. "\n  " .. color1 .. "Naxxramas";
+				attunements = attunements .. "\n  " .. color1 .. "Naxxramas|r";
+				foundAttune = true;
+			end
+			if (data.karaAttune) then
+				attunements = attunements .. "\n  " .. color1 .. "Karazhan|r";
+				foundAttune = true;
+			end
+			if (data.shatteredHallsAttune) then
+				attunements = attunements .. "\n  " .. color1 .. "The Shattered Halls|r"; --Key.
+				foundAttune = true;
+			end
+			if (data.serpentshrineAttune) then
+				attunements = attunements .. "\n  " .. color1 .. "Serpentshrine Cavern|r";
+				foundAttune = true;
+			end
+			if (data.arcatrazAttune) then
+				attunements = attunements .. "\n  " .. color1 .. "The Arcatraz|r"; --Key.
+				foundAttune = true;
+			end
+			if (data.blackMorassAttune) then
+				attunements = attunements .. "\n  " .. color1 .. "Black Morass|r";
+				foundAttune = true;
+			end
+			if (data.hyjalAttune) then
+				attunements = attunements .. "\n  " .. color1 .. "Battle of Mount Hyjal|r";
+				foundAttune = true;
+			end
+			if (data.blackTempleAttune) then
+				attunements = attunements .. "\n  " .. color1 .. "Black Temple|r";
+				foundAttune = true;
+			end
+			if (data.hellfireCitadelAttune) then
+				attunements = attunements .. "\n  " .. color1 .. "Hellfire Citadel|r"; --Key.
+				foundAttune = true;
+			end
+			if (data.coilfangAttune) then
+				attunements = attunements .. "\n  " .. color1 .. "Coilfang Reservoir|r"; --Key.
+				foundAttune = true;
+			end
+			if (data.shadowLabAttune) then
+				attunements = attunements .. "\n  " .. color1 .. "Shadow Labyrinth|r"; --Key.
+				foundAttune = true;
+			end
+			if (data.auchindounAttune) then
+				attunements = attunements .. "\n  " .. color1 .. "Auchindoun|r"; --Key.
+				foundAttune = true;
+			end
+			if (data.tempestKeepAttune) then
+				attunements = attunements .. "\n  " .. color1 .. "Tempest Keep|r"; --Key
+				foundAttune = true;
+			end
+			if (data.cavernAttune) then
+				attunements = attunements .. "\n  " .. color1 .. "Caverns of Time|r"; --Key.
 				foundAttune = true;
 			end
 			if (foundAttune) then
@@ -3040,26 +3195,26 @@ function NIT:recalcAltsLineFramesTooltip(obj)
 				for k, v in NIT:pairsByKeys(data.savedInstances) do
 					if (v.locked and v.resetTime and v.resetTime > GetServerTime()) then
 						local timeString = "(" .. NIT:getTimeString(v.resetTime - GetServerTime(), true, NIT.db.global.timeStringType) .. " " .. L["left"] .. ")";
-						lockoutString = lockoutString .. "\n  " .. color1 .. v.name .. " " .. color2 .. timeString;
+						lockoutString = lockoutString .. "\n  " .. color1 .. v.name .. "|r " .. color2 .. timeString .. "|r";
 						foundLockout = true;
 					end
 				end
 			end
 			if (not foundLockout) then
-				text = text .. "\n  " .. color2 .. L["none"];
+				text = text .. "\n  " .. color2 .. L["none"] .. "|r";
 			else
 				text = text .. lockoutString;
 			end
 			obj.tooltip.fs:SetText(text);
 		end
 	else
-		obj.tooltip.fs:SetText("|CffDEDE42No data found for this character.");
+		obj.tooltip.fs:SetText("|CffDEDE42No data found for this character.|r");
 	end
 	obj.tooltip:SetWidth(obj.tooltip.fs:GetStringWidth() + 18);
 	obj.tooltip:SetHeight(obj.tooltip.fs:GetStringHeight() + 12);
 end
 
-local NITCharsFrameDeleteConfirm = CreateFrame("ScrollFrame", "NITCharsFrameDC", UIParent, "InputScrollFrameTemplate");
+local NITCharsFrameDeleteConfirm = CreateFrame("ScrollFrame", "NITCharsFrameDC", UIParent, NIT:addBackdrop("InputScrollFrameTemplate"));
 NITCharsFrameDeleteConfirm:Hide();
 NITCharsFrameDeleteConfirm:SetToplevel(true);
 NITCharsFrameDeleteConfirm:SetHeight(130);
@@ -3121,6 +3276,12 @@ function NIT:openDeleteCharConfirmFrame(realm, char)
 		local data = NIT.db.global[realm].myChars[char];
 		if (data) then
 			local _, _, _, classColorHex = GetClassColor(data.classEnglish);
+			--Safeguard for weakauras/addons that like to overwrite and break the GetClassColor() function.
+			if (not classColorHex and data.classEnglish == "SHAMAN") then
+				classColorHex = "ff0070dd";
+			elseif (not classColorHex) then
+				classColorHex = "ffffffff";
+			end
 			local text = NIT.prefixColor .. L["confirmCharacterDeletion"] .. "|r\n";
 			text = text .. "\n\n|cff00ff00[" .. realm .. "]";
 			text = text .. "\n\|c" .. classColorHex ..char;
@@ -3154,12 +3315,15 @@ f:SetScript('OnEvent', function(self, event, ...)
 		if (not g1 or not npcID) then
 			return;
 		end
-		if (NIT.db.global.autoSfkDoor) then
+		if (npcID == "3849" and NIT.db.global.autoSfkDoor) then
 			--Deathstalker Adamant Creature-0-4672-33-573-3849-000012AA57
-			if (npcID == "3849") then
-				SelectGossipOption(1);
-				return;
-			end
+			SelectGossipOption(1);
+			return;
+		end
+		if (npcID == "17893" and NIT.db.global.autoSlavePens) then
+			--Naturalist Bite Creature-0-4672-547-7775-17893-0000371B0A
+			SelectGossipOption(1);
+			return;
 		end
 	end
 end)

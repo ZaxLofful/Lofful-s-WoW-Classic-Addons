@@ -5,6 +5,7 @@
 
 local L = LibStub("AceLocale-3.0"):GetLocale("NovaInstanceTracker");
 local maxRecordsKept = 300;
+local maxTradesKept = 3000;
 NIT.maxRecordsShown = 300;
 
 NIT.options = {
@@ -432,6 +433,14 @@ NIT.options = {
 			get = "getInstanceStatsOutputRunsNextLevel",
 			set = "setInstanceStatsOutputRunsNextLevel",
 		},
+		instanceStatsOutputRep = {
+			type = "toggle",
+			name = L["instanceStatsOutputRepTitle"],
+			desc = L["instanceStatsOutputRepDesc"],
+			order = 86,
+			get = "getInstanceStatsOutputRep",
+			set = "setInstanceStatsOutputRep",
+		},
 		trimDataHeader = {
 			type = "header",
 			name = L["trimDataHeaderDesc"],
@@ -531,6 +540,7 @@ NIT.optionDefaults = {
 		timeStringType = "medium",
 		showLockoutTime = true,
 		maxRecordsKept = maxRecordsKept,
+		maxTradesKept = maxTradesKept,
 		instanceResetMsg = true;
 		enteredMsg = true;
 		timeStampFormat = 12,
@@ -543,6 +553,7 @@ NIT.optionDefaults = {
 		instanceStatsOutputTime = true,
 		instanceStatsOutputGold = true,
 		instanceStatsOutputAverageGroupLevel = false,
+		instanceStatsOutputRep = true,
 		lastVersionMsg = 0,
 		moneyString = "textures",
 		instanceStatsOutput = true,
@@ -556,6 +567,7 @@ NIT.optionDefaults = {
 		statsOnlyWhenActivity = false,
 		show24HourOnly = false,
 		autoSfkDoor = true,
+		autoSlavePens = true,
 		trimDataBelowLevel = 1,
 		instanceStatsOutputRunsPerLevel = true,
 		instanceStatsOutputRunsNextLevel = false,
@@ -889,6 +901,15 @@ end
 
 function NIT:getInstanceStatsOutputRunsNextLevel(info)
 	return self.db.global.instanceStatsOutputRunsNextLevel;
+end
+
+--Rep stats output when exiting dungeon.
+function NIT:setInstanceStatsOutputRep(info, value)
+	self.db.global.instanceStatsOutputRep = value;
+end
+
+function NIT:getInstanceStatsOutputRep(info)
+	return self.db.global.instanceStatsOutputRep;
 end
 
 --Instance window dimensions.

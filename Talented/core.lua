@@ -256,7 +256,8 @@ function Talented:OpenTemplate(template)
 	end
 	self:SetTemplate(template)
 	if not base:IsVisible() then
-		ShowUIPanel(base)
+		-- ShowUIPanel(base)
+		base:Show()
 	end
 end
 
@@ -287,6 +288,7 @@ end
 
 function Talented:OnEnable()
 	self:RawHook("ToggleTalentFrame", true)
+	--Non-taint option that loads Talented's frame IN ADDITION to Blizzard's frame: self:SecureHook("ToggleTalentFrame")
 	self:SecureHook("UpdateMicroButtons")
 
 	UIParent:UnregisterEvent("CONFIRM_TALENT_WIPE")
@@ -312,7 +314,8 @@ function Talented:CONFIRM_TALENT_WIPE(_, cost)
 		local frame = self.base
         if not frame or not frame:IsVisible() then
 			self:Update()
-			ShowUIPanel(self.base)
+			-- ShowUIPanel(self.base)
+			self.base:Show()
 		end
         --dialog:SetFrameLevel(self.base:GetFrameLevel() + 5) frame level dosn't work, so let's us set the frame strata
         dialog:SetFrameStrata('FULLSCREEN_DIALOG')
@@ -349,9 +352,11 @@ function Talented:ToggleTalentFrame()
 			-- reset editing mode to the default every time we open the panel after the initial open
 			self:SetMode(self:GetDefaultMode())
 		end
-		ShowUIPanel(self.base)
+		-- ShowUIPanel(self.base)
+		self.base:Show()
 	else
-		HideUIPanel(frame)
+		-- HideUIPanel(frame)
+		frame:Hide()
 	end
 end
 

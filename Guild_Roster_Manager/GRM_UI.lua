@@ -2524,14 +2524,10 @@ GRM_UI.GR_MetaDataInitializeUIFirst = function( isManualUpdate )
                             if CommunitiesFrame.GuildMemberDetailFrame.NoteBackground.PersonalNoteText and CommunitiesFrame.GuildMemberDetailFrame.NoteBackground.PersonalNoteText:IsVisible() then
                                 CommunitiesFrame.GuildMemberDetailFrame.NoteBackground.PersonalNoteText:SetText ( theNote );
                             end
-                        end
 
-                        if PersonalNoteText and PersonalNoteText:IsVisible() then
+                            -- Classic era < 8.0
+                        elseif PersonalNoteText and PersonalNoteText:IsVisible() then
                             PersonalNoteText:SetText ( theNote );
-                        end
-
-                        if GRM_UI.MemberDetailFrame:IsVisible() then
-                            GRM_UI.MemberDetailFrame.NoteBackground.PersonalNoteText:SetText( theNote );
                         end
                     end
     

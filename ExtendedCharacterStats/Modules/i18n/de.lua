@@ -57,6 +57,8 @@ strings = {
     ["MELEE_ATTACK_POWER_SETTING_DESC"] = "Zeigt/Versteckt den Nahkampf Angriffskraftwert.",
     ["MELEE_CRIT_SETTING"] = "Nahkampf Kritisch",
     ["MELEE_CRIT_SETTING_DESC"] = "Zeigt/Versteckt die Chance im Nahkampf kritisch zu treffen.",
+    ["MELEE_EXPERTISE_SETTING"] = "Waffenkundewertung",
+    ["MELEE_EXPERTISE_SETTING_DESC"] = "Zeigt/Versteckt die Waffenkundewertung.",
     ["MELEE_HIT_SETTING"] = "Nahkampf Trefferwertung",
     ["MELEE_HIT_SETTING_DESC"] = "Zeigt/Versteckt alle Trefferwertungen im Nahkampf.",
     ["MELEE_HIT_VALUES_SETTING"] = "Nahkampf Trefferwertung",
@@ -84,6 +86,8 @@ strings = {
     ["RANGED_MISS_CHANCE_SETTING_DESC"] = "Zeigt/Versteckt die Chance einen Gegner des gleichen Levels im Fernkampf zu verfehlen.",
     ["RANGED_MISS_CHANCE_BOSS_SETTING_DESC"] =
         "Zeigt/Versteckt die Chance einen Gegner mit 3 Level über dem eigenen im Fernkampf zu verfehlen.",
+    ["RANGED_ATTACK_SPEED_SETTING"] = "Angriffstempo",
+    ["RANGED_ATTACK_SPEED_SETTING_DESC"] = "Zeigt/Versteckt das Fernkampf Angriffstempo.",
     -- Defense Settings
     ["DEFENSE_SETTINGS"] = "Verteidigungswerte anzeigen",
     ["DEFENSE_SETTINGS_DESC"] = "Zeigt/Versteckt alle Verteidigungswerte.",
@@ -99,6 +103,8 @@ strings = {
     ["PARRY_CHANCE_SETTING_DESC"] = "Zeigt/Versteckt die Parrierwertung.",
     ["DODGE_CHANCE_SETTING"] = "Ausweichchance",
     ["DODGE_CHANCE_SETTING_DESC"] = "Zeigt/Versteckt die Ausweichchance.",
+    ["RESILIENCE_SETTING"] = "Abhärtung",
+    ["RESILIENCE_SETTING_DESC"] = "Zeigt/Versteckt den Abhärtungswert.",
     -- Mana Settings
     ["MANA_SETTINGS"] = "Manawerte anzeigen",
     ["MANA_SETTINGS_DESC"] = "Zeigt/Versteckt alle Manawerte.",
@@ -115,6 +121,8 @@ strings = {
     ["SPELL_SETTINGS_DESC"] = "Zeigt/Versteckt alle Zauberwerte.",
     ["SPELL_CRIT_SETTING"] = "Zauber Kritisch",
     ["SPELL_CRIT_SETTING_DESC"] = "Zeigt/Versteckt die Chance mit einem Zauber kritisch zu treffen.",
+    ["SPELL_PENETRATION_SETTING"] = "Zauberdurchschlagskraft",
+    ["SPELL_PENETRATION_SETTING_DESC"] = "Zeigt/Versteckt die Zauberdurchschlagskraft.",
     ["SPELL_HIT_SETTING"] = "Zauber Trefferwertung",
     ["SPELL_HIT_SETTING_DESC"] = "Zeigt/Versteckt alle Trefferwertungswertungen für Zauber.",
     ["SPELL_HIT_VALUES_SETTING"] = "Zauber Trefferwertungen",
@@ -166,7 +174,9 @@ strings = {
     ["BONUS"] = "Bonus: ",
     ["ATTACK_POWER"] = "Angriffskraft: ",
     ["CRIT_CHANCE"] = "Kritische Chance: ",
-    ["ATTACK_SPEED"] = "Angriffstempo",
+    ["EXPERTISE"] = "Waffenkundewertung: ",
+    ["ATTACK_SPEED_HEADER"] = "Angriffstempo",
+    ["ATTACK_SPEED"] = "Attack Speed: ",
     ["ATTACK_SPEED_MAIN_HAND"] = "Waffenhand: ",
     ["ATTACK_SPEED_OFF_HAND"] = "Schildhand: ",
 
@@ -181,6 +191,7 @@ strings = {
     ["BLOCK_VALUE"] = "Blockwertung: ",
     ["PARRY_CHANCE"] = "Parrierchance: ",
     ["DODGE_CHANCE"] = "Ausweichchance: ",
+    ["RESILIENCE_VALUE"] = "Abhärtung: ",
 
     ["MP5_ITEMS"] = "MP5 (Gegenstände): ",
     ["MP5_SPIRIT"] = "MP5 (Willenskraft): ",
@@ -188,6 +199,7 @@ strings = {
     ["MP5_CASTING"] = "MP5 (Zaubernd): ",
 
     ["SPELL"] = "Zauber",
+    ["SPELL_PENETRATION"] = "Durchschlagskraft: ",
 
     ["SPELL_POWER"] = "Zauberkraft",
     ["HEALING_POWER"] = "Heilungskraft: ",

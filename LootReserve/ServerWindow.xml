@@ -313,7 +313,10 @@
 			</OnLoad>
 		</Scripts>
 	</Button>
-	<Frame name="LootReserveReserveListTemplate" virtual="true" enableMouse="true">
+	<Frame name="LootReserveReserveListTemplate" virtual="true" enableMouse="true" inherits="BackdropTemplate">
+		<KeyValues>
+			<KeyValue key="backdropInfo" value="LOOTRESERVE_BACKDROP_BLACK_4" type="global" />
+		</KeyValues>
 		<Size y="200" />
 		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border">
 			<BackgroundInsets left="5" right="5" top="5" bottom="5" />
@@ -663,7 +666,10 @@
 			</Frame>
 		</Frames>
 	</Frame>
-	<Frame name="LootReserveRollPlaceholderTemplate" virtual="true" enableMouse="true">
+	<Frame name="LootReserveRollPlaceholderTemplate" virtual="true" enableMouse="true" inherits="BackdropTemplate">
+		<KeyValues>
+			<KeyValue key="backdropInfo" value="LOOTRESERVE_BACKDROP_BLACK_4" type="global" />
+		</KeyValues>
 		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border">
 			<BackgroundInsets left="5" right="5" top="5" bottom="5" />
 			<EdgeSize val="16" />
@@ -1159,7 +1165,7 @@
 			</Frame>
 		</Frames>
 		<Scripts>
-			<OnLoad>
+			<OnLoad inherit="prepend">
 				self.SetItem = function(self, item)
 					if item then
 						self.Item = item;
@@ -1642,8 +1648,13 @@
 											LootReserve.Server.Import:SessionSettingsUpdated();
 											UIDropDownMenu_SetSelectedValue(self, info.value);
 										end
-										for id, category in LootReserve:Ordered(LootReserve.Data.Categories) do
-											if id > 0 then
+										local lastExpansion = nil;
+										for id, category in LootReserve:Ordered(LootReserve.Data.Categories, LootReserve.Data.CategorySorter) do
+											if id > 0 and LootReserve.Data:IsCategoryVisible(category) then
+												if LootReserve:GetCurrentExpansion() > 0 and category.Expansion ~= lastExpansion then
+													lastExpansion = category.Expansion;
+													UIDropDownMenu_AddButton({ text = _G["EXPANSION_NAME"..lastExpansion], isTitle = true });
+												end
 												info.text = category.Name;
 												info.value = id;
 												info.checked = LootReserve.Server.NewSessionSettings.LootCategory == id;

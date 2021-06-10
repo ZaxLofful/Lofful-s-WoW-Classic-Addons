@@ -1,34 +1,44 @@
-# [3.2.2](https://github.com/WeakAuras/WeakAuras2/tree/3.2.2) (2021-03-14)
+# [3.4.2](https://github.com/WeakAuras/WeakAuras2/tree/3.4.2) (2021-05-27)
 
-[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/3.2.1...3.2.2)
+[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/3.4.1...3.4.2)
 
 ## Highlights
 
- - DBM triggers rework
-- Bug fixes 
+ - More work on nested groups.
+- Make more WeakAuras functions private.
+- BCC fixes and model updates. 
 
 ## Commits
 
-InfusOnWoW (2):
+InfusOnWoW (13):
 
-- Fix aura_env being unavailable in some condition checks
-- Fix Legendary ID mapping
+- Prepare another small part of WeakAurasOptions for nested
+- Prepare TriggerTemplates for nested
+- Make Private accessible for Templates
+- Prepare TriggerOptions for nested
+- Prepare another part of ActionOptions for nested
+- Prepare GetOverlayInfo for nested
+- Prepare SortDisplayButtons for nested
+- Prepare automatic frame level setting for nested
+- Slightly Simplify ProgressTexture Options code
+- Cast Trigger: Deprecate the old Spell Name check
+- Move Swing Timer remaining time check to the right place
+- Improve scam checks
+- Fix regression on dragging auras
 
-Stanzilla (5):
+Stanzilla (3):
 
-- Publish Classic to Wago Addons as well
-- Publish Retail to Wago Addons as well
+- Move SortDisplayButtons to private namespace (#3116)
 - Update WeakAurasModelPaths from wow.tools
 - Update WeakAurasModelPaths from wow.tools
-- Update WeakAurasModelPaths from wow.tools
 
-mrbuds (7):
+emptyrivers (1):
 
-- fix nameFunc for "Cooldown Ready (Equipment Slot)" trigger fixes #2976
-- set tocversion as an internal field for import diff
-- add DBT (DBM options) to .luacheckrc
-- DBM bars options table was moved
-- handle BigWigs_PauseBar and BigWigs_ResumeBar events
-- handle DBM_TimerPause & DBM_TimerResume callbacks fixes #2951
-- add state.paused support for timed progress auras
+- privatise DisplayToString
+
+mrbuds (3):
+
+- swing timer: do not reset swing on SPELL_EXTRA_ATTACKS
+- Swing Timer trigger, fix remaining time check fixes #3106
+- fix CorrectSpellName for linked spells on TBC
 

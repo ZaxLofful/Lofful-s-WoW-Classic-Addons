@@ -895,10 +895,10 @@ GRM_Patch.SettingsCheck = function ( numericV , count , patch )
         end
     end
 
-    if numericV < 1.928 and baseValue < 1.928 then
+    if numericV < 1.929 and baseValue < 1.929 then
         GRM_Patch.ModifyMemberData ( GRM_Patch.fixAltGroups , true , false , true );
 
-        if loopCheck ( 1.928 ) then
+        if loopCheck ( 1.929 ) then
             return;
         end
     end

@@ -1,4 +1,4 @@
-﻿if GetLocale() ~= "ptBR" then return end
+if GetLocale() ~= "ptBR" then return end
 
 if not DBM_GUI_L then DBM_GUI_L = {} end
 
@@ -19,15 +19,6 @@ L.OTabOptions	= "Opções"
 L.OTabAbout		= "Sobre"
 
 L.TabCategory_Options	 	= "Opções Gerais"
-L.TabCategory_BFA	 		= "Battle for Azeroth"
-L.TabCategory_LEG	 		= "Legion"
-L.TabCategory_WOD	 		= "Warlords of Draenor"
-L.TabCategory_MOP	 		= "Mists of Pandaria"
-L.TabCategory_CATA	 		= "Cataclysm"
-L.TabCategory_WOTLK 		= "Wrath of the Lich King"
-L.TabCategory_BC 			= "The Burning Crusade"
-L.TabCategory_CLASSIC		= "Classic"
-L.TabCategory_PVP 			= "JxJ"
 L.TabCategory_OTHER    		= "Outros módulos"
 
 L.BossModLoaded 			= "%s estatísticas"
@@ -310,7 +301,7 @@ L.ExpandUpwards				= "Expandir para cima"
 L.FillUpBars				= "Barras enchem"
 L.ClickThrough				= "Desabilitar eventos de mouse (permite clicar através das barras)"
 L.Bar_Decimal				= "Exibir porcentagens abaixo do cronômetro: %d"
-L.Bar_Alpha					= "Alfa da barra: %0.1f"
+L.Bar_Alpha					= "Alfa: %0.1f"
 L.Bar_EnlargeTime			= "Barras aumentam abaixo deste tempo: %d"
 L.BarSpark					= "Barra faísca"
 L.BarFlash					= "Barra pisca quando estiver para expirar"

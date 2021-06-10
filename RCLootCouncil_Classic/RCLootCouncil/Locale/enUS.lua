@@ -2,9 +2,9 @@
 -- http://wow.curseforge.com/addons/rclootcouncil/localization/
 
 local debug = false
---[===[@debug@
+--[==[@debug@
 debug = false
---@end-debug@]===]
+--@end-debug@]==]
 
 -- Default english translation
 local L = LibStub("AceLocale-3.0"):NewLocale("RCLootCouncil", "enUS", true, debug)

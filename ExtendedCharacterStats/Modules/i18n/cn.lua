@@ -57,6 +57,8 @@ strings = {
     ["MELEE_ATTACK_POWER_SETTING_DESC"] = "显示/隐藏 近战攻击强度",
     ["MELEE_CRIT_SETTING"] = "近战暴击",
     ["MELEE_CRIT_SETTING_DESC"] = "显示/隐藏 近战暴击几率",
+    ["MELEE_EXPERTISE_SETTING"] = "Expertise",
+    ["MELEE_EXPERTISE_SETTING_DESC"] = "Shows/Hides the expertise value.",
     ["MELEE_HIT_SETTING"] = "近战命中",
     ["MELEE_HIT_SETTING_DESC"] = "显示/隐藏 所有近战命中率",
     ["MELEE_HIT_VALUES_SETTING"] = "近战命中率",
@@ -82,6 +84,8 @@ strings = {
     ["RANGED_HIT_BONUS_SETTING_DESC"] = "显示/隐藏 远程命中率",
     ["RANGED_MISS_CHANCE_SETTING_DESC"] = "显示/隐藏 针对同等级敌人的远程未命中率",
     ["RANGED_MISS_CHANCE_BOSS_SETTING_DESC"] = "显示/隐藏 针对BOSS的远程未命中率 (+3 等级)。",
+    ["RANGED_ATTACK_SPEED_SETTING"] = "Attack Speed",
+    ["RANGED_ATTACK_SPEED_SETTING_DESC"] = "Shows/Hides the ranged attack speed.",
     -- Defense Settings
     ["DEFENSE_SETTINGS"] = "显示防御属性",
     ["DEFENSE_SETTINGS_DESC"] = "显示/隐藏 所有防御属性",
@@ -97,6 +101,8 @@ strings = {
     ["PARRY_CHANCE_SETTING_DESC"] = "显示/隐藏 招架几率",
     ["DODGE_CHANCE_SETTING"] = "躲闪",
     ["DODGE_CHANCE_SETTING_DESC"] = "显示/隐藏 躲闪几率",
+    ["RESILIENCE_SETTING"] = "Resilience",
+    ["RESILIENCE_SETTING_DESC"] = "Shows/Hides the resilience value.",
     -- Mana Settings
     ["MANA_SETTINGS"] = "显示法力回复",
     ["MANA_SETTINGS_DESC"] = "显示/隐藏 所有法力回复",
@@ -113,6 +119,8 @@ strings = {
     ["SPELL_SETTINGS_DESC"] = "显示/隐藏 法术属性",
     ["SPELL_CRIT_SETTING"] = "法术暴击",
     ["SPELL_CRIT_SETTING_DESC"] = "显示/隐藏 法术暴击",
+    ["SPELL_PENETRATION_SETTING"] = "Spell Penetration",
+    ["SPELL_PENETRATION_SETTING_DESC"] = "Shows/Hides the spell penetration value.",
     ["SPELL_HIT_SETTING"] = "法术命中",
     ["SPELL_HIT_SETTING_DESC"] = "显示/隐藏 法术命中",
     ["SPELL_HIT_VALUES_SETTING"] = "法术命中率",
@@ -163,7 +171,9 @@ strings = {
     ["BONUS"] = "命中: ",
     ["ATTACK_POWER"] = "攻击强度: ",
     ["CRIT_CHANCE"] = "暴击几率: ",
-    ["ATTACK_SPEED"] = "Attack Speed",
+    ["EXPERTISE"] = "Expertise: ",
+    ["ATTACK_SPEED_HEADER"] = "Attack Speed",
+    ["ATTACK_SPEED"] = "Attack Speed: ",
     ["ATTACK_SPEED_MAIN_HAND"] = "Main Hand: ",
     ["ATTACK_SPEED_OFF_HAND"] = "Off Hand: ",
 
@@ -178,6 +188,7 @@ strings = {
     ["BLOCK_VALUE"] = "格挡值: ",
     ["PARRY_CHANCE"] = "招架几率: ",
     ["DODGE_CHANCE"] = "躲闪几率: ",
+    ["RESILIENCE_VALUE"] = "Resilience: ",
 
     ["MP5_ITEMS"] = "装备回蓝: ",
     ["MP5_SPIRIT"] = "精神回蓝: ",
@@ -185,6 +196,7 @@ strings = {
     ["MP5_CASTING"] = "附魔回蓝: ",
 
     ["SPELL"] = "法术强度",
+    ["SPELL_PENETRATION"] = "Penetration: ",
 
     ["SPELL_POWER"] = "法术强度",
     ["HEALING_POWER"] = "法术治疗: ",

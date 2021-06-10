@@ -3,18 +3,18 @@ local Data = ECSLoader:ImportModule("Data")
 ---@type DataUtils
 local DataUtils = ECSLoader:ImportModule("DataUtils")
 
-local _GetMP5ValueOnItems, _GetTalentModifier, _GetBlessingOfWisdomModifier, _HasLightningShield
+local _MP5 = {}
 
 local _, _, classId = UnitClass("player")
 
 -- Get MP5 from items
 function Data:GetMP5FromItems()
-    local mp5 = _GetMP5ValueOnItems()
+    local mp5 = _MP5:GetMP5ValueOnItems()
     mp5 = mp5 + Data:GetSetBonusValueMP5()
     return mp5
 end
 
-_GetMP5ValueOnItems = function ()
+function _MP5:GetMP5ValueOnItems()
     local mp5 = 0
     for i = 1, 18 do
         local itemLink = GetInventoryItemLink("player", i)
@@ -70,7 +70,7 @@ function Data:GetMP5FromSpirit()
     return DataUtils:Round(base * 5, 1)
 end
 
--- Get manaregen while casting
+-- Get mana regen while casting
 function Data:GetMP5WhileCasting()
     local _, casting = GetManaRegen() -- Returns mana reg per 1 second
     if casting < 1 then
@@ -78,7 +78,13 @@ function Data:GetMP5WhileCasting()
     end
     lastManaReg = casting
 
-    local mod = _GetTalentModifier()
+    if ECS.IsTBC then
+        casting = (casting * 5) + _MP5:GetTalentBonus()
+
+        return DataUtils:Round(casting, 2)
+    end
+
+    local mod = _MP5:GetTalentModifier()
     if Data:HasSetBonusModifierMP5() then
         mod = mod + 0.15
     end
@@ -95,7 +101,7 @@ function Data:GetMP5WhileCasting()
     return DataUtils:Round(casting, 2)
 end
 
-_GetTalentModifier = function()
+function _MP5:GetTalentModifier()
     local mod = 0
 
     if classId == Data.PRIEST then
@@ -105,17 +111,44 @@ _GetTalentModifier = function()
         local _, _, _, _, points, _, _, _ = GetTalentInfo(1, 12)
         mod = points * 0.05 -- 0-15% Arcane Meditation
     elseif classId == Data.DRUID then
-        local _, _, _, _, points, _, _, _ = GetTalentInfo(3, 6)
-        mod = points * 0.05 -- 0-15% from Reflection
+        local _, _, _, _, reflectionPoints, _, _, _ = GetTalentInfo(3, 6)
+        mod = reflectionPoints * 0.05 -- 0-15% from Reflection
     end
 
     return mod
 end
 
+-- This is only relevant for the TBC client
+function _MP5:GetTalentBonus()
+    local bonus = 0
+
+    if classId == Data.DRUID then
+        local _, _, _, _, points, _, _, _ = GetTalentInfo(1, 17)
+        local _, intValue, _, _ = UnitStat("player", 4)
+
+        if points == 1 then
+            bonus = 0.04 * intValue -- 4% of Int as MP5
+        elseif points == 2 then
+            bonus = 0.07 * intValue -- 7% of Int as MP5
+        elseif points == 3 then
+            bonus = 0.1 * intValue -- 10% of Int as MP5
+        end
+    end
+
+    if classId == Data.SHAMAN then
+        local _, _, _, _, points, _, _, _ = GetTalentInfo(1, 14)
+        local _, intValue, _, _ = UnitStat("player", 4)
+
+        bonus = points * 0.02 * intValue -- 0-10% of Int as MP5
+    end
+
+    return bonus
+end
+
 function Data:GetMP5FromBuffs()
     local mod = 0
     local bonus = 0
-    local has2pEarthshatterer = Data:IsSetBonusActive(Data.setNames.THE_EARTHSHATTERER, 2)
+    local has4pEarthshatterer = Data:IsSetBonusActive(Data.setNames.THE_EARTHSHATTERER, 4)
 
     for i = 1, 40 do
         local _, _, _, _, _, _, _, _, _, spellId, _ = UnitAura("player", i, "HELPFUL")
@@ -129,9 +162,6 @@ function Data:GetMP5FromBuffs()
         if spellId == 24363 then
             bonus = bonus + 12 -- 12 MP5 from Mageblood Potion
         end
-        if spellId == 16609 then
-            bonus = bonus + 10 -- 10 MP5 from Warchief's Blessing
-        end
         if spellId == 18194 then
             bonus = bonus + 8 -- 8 MP5 from Nightfin Soup
         end
@@ -139,72 +169,102 @@ function Data:GetMP5FromBuffs()
             bonus = bonus + 6 -- 6 MP5 from Sagefish Delight
         end
         if spellId == 25690 then
-            bonus = bonus + 3 -- 8 MP5 from Smoked Sagefish
+            bonus = bonus + 3 -- 3 MP5 from Smoked Sagefish
         end
+        if spellId == 33266 then
+            bonus = bonus + 8 -- 8 MP5 from Blackened Sporefish
+        end
+
         if spellId == 5677 then
             bonus = bonus + 10 -- 4 Mana per 2 seconds from Mana Spring Totem (Rank 1)
-            if has2pEarthshatterer then
+            if has4pEarthshatterer then
                 bonus = bonus + 2.5 -- + 0,25% for Shaman T3 2 piece bonus
             end
         end
         if spellId == 10491 then
             bonus = bonus + 15 -- 6 Mana per 2 seconds from Mana Spring Totem (Rank 2)
-            if has2pEarthshatterer then
+            if has4pEarthshatterer then
                 bonus = bonus + 3.75 -- + 0,25% for Shaman T3 2 piece bonus
             end
         end
         if spellId == 10493 then
             bonus = bonus + 20 -- 8 Mana per 2 seconds from Mana Spring Totem (Rank 3)
-            if has2pEarthshatterer then
+            if has4pEarthshatterer then
                 bonus = bonus + 5 -- + 0,25% for Shaman T3 2 piece bonus
             end
         end
         if spellId == 10494 then
             bonus = bonus + 25 -- 10 Mana per 2 seconds from Mana Spring Totem (Rank 4)
-            if has2pEarthshatterer then
+            if has4pEarthshatterer then
                 bonus = bonus + 6.25 -- + 0,25% for Shaman T3 2 piece bonus
             end
         end
-        if _HasLightningShield(spellId) and Data:IsSetBonusActive(Data.setNames.THE_EARTHSHATTERER, 8) then
+        if spellId == 25569 then
+            bonus = bonus + 50 -- 20 Mana per 2 seconds from Mana Spring Totem (Rank 5)
+            if has4pEarthshatterer then
+                bonus = bonus + 6.25 -- + 0,25% for Shaman T3 2 piece bonus
+            end
+        end
+
+        if _MP5:HasLightningShield(spellId) and Data:IsSetBonusActive(Data.setNames.THE_EARTHSHATTERER, 8) then
             bonus = bonus + 15 -- 15 MP5 from Shaman T3 8 piece bonus when Lightning Shield is active
-        end
-        if spellId == 25894 then
-            local blessingMod = _GetBlessingOfWisdomModifier() + 1
-            bonus = bonus + math.ceil(30 * blessingMod) -- Greater Blessing of Wisdom Rank 1
-        end
-        if spellId == 25918 then
-            local blessingMod = _GetBlessingOfWisdomModifier() + 1
-            bonus = bonus + math.ceil(33 * blessingMod) -- Greater Blessing of Wisdom Rank 2
-        end
-        if spellId == 19742 then
-            local blessingMod = _GetBlessingOfWisdomModifier() + 1
-            bonus = bonus + math.ceil(10 * blessingMod) -- Blessing of Wisdom Rank 1
-        end
-        if spellId == 19850 then
-            local blessingMod = _GetBlessingOfWisdomModifier() + 1
-            bonus = bonus + math.ceil(15 * blessingMod) -- Blessing of Wisdom Rank 2
-        end
-        if spellId == 19852 then
-            local blessingMod = _GetBlessingOfWisdomModifier() + 1
-            bonus = bonus + math.ceil(20 * blessingMod) -- Blessing of Wisdom Rank 3
-        end
-        if spellId == 19853 then
-            local blessingMod = _GetBlessingOfWisdomModifier() + 1
-            bonus = bonus + math.ceil(25 * blessingMod) -- Blessing of Wisdom Rank 4
-        end
-        if spellId == 19854 then
-            local blessingMod = _GetBlessingOfWisdomModifier() + 1
-            bonus = bonus + math.ceil(30 * blessingMod) -- Blessing of Wisdom Rank 5
-        end
-        if spellId == 25290 then
-            local blessingMod = _GetBlessingOfWisdomModifier() + 1
-            bonus = bonus + math.ceil(33 * blessingMod) -- Blessing of Wisdom Rank 6
-        end
-        if spellId == 17252 then
-            bonus = bonus + 22 -- 22 MP5 from Mark of the Dragon Lord
         end
         if spellId == 28824 then
             bonus = bonus + 28 -- 28 MP5 from Shaman T3 6 piece proc Totemic Power
+        end
+        if spellId == 24398 then
+            bonus = bonus + 43 -- 43 MP5 from Water Shield Rank 1
+        end
+        if spellId == 33736 then
+            bonus = bonus + 50 -- 50 MP5 from Water Shield Rank 2
+        end
+
+        if spellId == 25894 then
+            local blessingMod = _MP5:GetBlessingOfWisdomModifier() + 1
+            bonus = bonus + math.ceil(30 * blessingMod) -- Greater Blessing of Wisdom Rank 1
+        end
+        if spellId == 25918 then
+            local blessingMod = _MP5:GetBlessingOfWisdomModifier() + 1
+            bonus = bonus + math.ceil(33 * blessingMod) -- Greater Blessing of Wisdom Rank 2
+        end
+        if spellId == 27143 then
+            local blessingMod = _MP5:GetBlessingOfWisdomModifier() + 1
+            bonus = bonus + math.ceil(41 * blessingMod) -- Greater Blessing of Wisdom Rank 3
+        end
+        if spellId == 19742 then
+            local blessingMod = _MP5:GetBlessingOfWisdomModifier() + 1
+            bonus = bonus + math.ceil(10 * blessingMod) -- Blessing of Wisdom Rank 1
+        end
+        if spellId == 19850 then
+            local blessingMod = _MP5:GetBlessingOfWisdomModifier() + 1
+            bonus = bonus + math.ceil(15 * blessingMod) -- Blessing of Wisdom Rank 2
+        end
+        if spellId == 19852 then
+            local blessingMod = _MP5:GetBlessingOfWisdomModifier() + 1
+            bonus = bonus + math.ceil(20 * blessingMod) -- Blessing of Wisdom Rank 3
+        end
+        if spellId == 19853 then
+            local blessingMod = _MP5:GetBlessingOfWisdomModifier() + 1
+            bonus = bonus + math.ceil(25 * blessingMod) -- Blessing of Wisdom Rank 4
+        end
+        if spellId == 19854 then
+            local blessingMod = _MP5:GetBlessingOfWisdomModifier() + 1
+            bonus = bonus + math.ceil(30 * blessingMod) -- Blessing of Wisdom Rank 5
+        end
+        if spellId == 25290 then
+            local blessingMod = _MP5:GetBlessingOfWisdomModifier() + 1
+            bonus = bonus + math.ceil(33 * blessingMod) -- Blessing of Wisdom Rank 6
+        end
+        if spellId == 27142 then
+            local blessingMod = _MP5:GetBlessingOfWisdomModifier() + 1
+            bonus = bonus + math.ceil(41 * blessingMod) -- Blessing of Wisdom Rank 7
+        end
+
+        if spellId == 16609 then
+            bonus = bonus + 10 -- 10 MP5 from Warchief's Blessing
+        end
+        if spellId == 17252 then
+            bonus = bonus + 22 -- 22 MP5 from Mark of the Dragon Lord
         end
         if spellId == 28145 then
             bonus = bonus + 11 -- 11 MP5 from Druid Atiesh
@@ -214,11 +274,11 @@ function Data:GetMP5FromBuffs()
     return mod, bonus
 end
 
-_HasLightningShield = function(spellId)
+function _MP5:HasLightningShield(spellId)
     return spellId == 324 or spellId == 325 or spellId == 905 or spellId == 945 or spellId == 8134 or spellId == 10431 or spellId == 10432
 end
 
-_GetBlessingOfWisdomModifier = function()
+function _MP5:GetBlessingOfWisdomModifier()
     local mod = 0
     if classId == Data.PALADIN then
         local _, _, _, _, points, _, _, _ = GetTalentInfo(1, 10)

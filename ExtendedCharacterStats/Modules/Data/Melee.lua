@@ -3,6 +3,8 @@ local Data = ECSLoader:ImportModule("Data")
 ---@type DataUtils
 local DataUtils = ECSLoader:ImportModule("DataUtils")
 
+local _Melee = {}
+local _, _, classId = UnitClass("player")
 
 ---@return string
 function Data:GetMeleeAttackPower()
@@ -29,7 +31,69 @@ end
 
 ---@return string
 function Data:MeleeHitBonus()
-    return DataUtils:Round(GetHitModifier(), 2) .. "%"
+    return DataUtils:Round(_Melee:GetHitRating(), 2) .. "%"
+end
+
+---@return number
+function _Melee:GetHitRating()
+    if CR_HIT_MELEE then
+        return GetCombatRatingBonus(CR_HIT_MELEE) + _Melee:GetHitTalentBonus() + _Melee:GetHitFromBuffs()
+    end
+    return GetHitModifier()
+end
+
+function _Melee:GetHitTalentBonus()
+    local mod = 0
+
+    if classId == Data.WARRIOR and ECS.IsTBC then
+        local _, _, _, _, points, _, _, _ = GetTalentInfo(2, 17)
+        mod = points * 1 -- 0-3% Precision
+    end
+
+    if classId == Data.HUNTER then
+        local _, _, _, _, points, _, _, _ = GetTalentInfo(3, 12)
+        mod = points * 1 -- 0-3% Surefooted
+    end
+
+    if classId == Data.SHAMAN then
+        local _, _, _, _, points, _, _, _ = GetTalentInfo(3, 6)
+        mod = points * 1 -- 0-3% Nature's Guidance
+    end
+
+    if classId == Data.PALADIN then
+        local _, _, _, _, points, _, _, _ = GetTalentInfo(2, 3)
+        mod = points * 1 -- 0-3% Precision
+    end
+
+    if classId == Data.ROGUE then
+        local _, _, _, _, points, _, _, _ = GetTalentInfo(2, 6)
+        mod = points * 1 -- 0-5% Precision
+    end
+
+    return mod
+end
+
+function _Melee:GetHitFromBuffs()
+    local mod = 0
+    local otherDraeneiInGroup = false
+
+    for i = 1, 40 do
+        local _, _, _, _, _, _, _, _, _, spellId, _ = UnitAura("player", i, "HELPFUL")
+        if spellId == nil then
+            break
+        end
+
+        if spellId == 6562 then
+            mod = mod + 1 -- 1% from Heroic Presence
+            otherDraeneiInGroup = true
+        end
+    end
+
+    if (not otherDraeneiInGroup) and IsSpellKnown(6562) then
+        mod = mod + 1
+    end
+
+    return mod
 end
 
 ---@return string
@@ -45,9 +109,9 @@ function Data:MeleeHitMissChanceSameLevel()
         missChance = DataUtils:GetMissChanceByDifference(mainBase + mainMod, enemyDefenseValue)
     end
 
-    local hitFromItems = GetHitModifier()
-    if hitFromItems then -- This needs to be checked because on dungeon entering it becomes nil
-        missChance = missChance - hitFromItems
+    local hitValue = _Melee:GetHitRating()
+    if hitValue then -- This needs to be checked because on dungeon entering it becomes nil
+        missChance = missChance - hitValue
     end
 
     if missChance < 0 then
@@ -72,9 +136,9 @@ function Data:MeleeHitMissChanceBossLevel()
         missChance = DataUtils:GetMissChanceByDifference(mainBase + mainMod, enemyDefenseValue)
     end
 
-    local hitFromItems = GetHitModifier()
-    if hitFromItems then -- This needs to be checked because on dungeon entering it becomes nil
-        missChance = missChance - hitFromItems
+    local hitValue = _Melee:GetHitRating()
+    if hitValue then -- This needs to be checked because on dungeon entering it becomes nil
+        missChance = missChance - hitValue
     end
 
     if missChance < 0 then
@@ -84,4 +148,10 @@ function Data:MeleeHitMissChanceBossLevel()
     end
 
     return DataUtils:Round(missChance, 2) .. "%"
+end
+
+---@return string
+function Data:GetExpertise()
+    local expertise, _ = GetExpertise()
+    return DataUtils:Round(expertise, 0)
 end

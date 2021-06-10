@@ -11,7 +11,11 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
        	enableMouse="true"
        	hidden="true"
 		clampedToScreen="true"
-       	parent="UIParent">
+       	parent="UIParent"
+		inherits="BackdropTemplate">
+    	<KeyValues>
+	        <KeyValue key="backdropInfo" value="BACKDROP_DIALOG_32_32" type="global"/>
+    	</KeyValues>
        	<Size>
         	<AbsDimension x="700" y="500"/>
       	</Size>
@@ -24,20 +28,6 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
                <Offset><AbsDimension x="0" y="50"/></Offset>
            </Anchor>
        </Anchors>
-       <Backdrop
-           bgFile="Interface\DialogFrame\UI-DialogBox-Background"
-           edgeFile="Interface\DialogFrame\UI-DialogBox-Border"
-           tile="true">
-           <BackgroundInsets>
-               <AbsInset left="11" right="12" top="12" bottom="11"/>
-           </BackgroundInsets>
-           <TileSize>
-               <AbsValue val="32"/>
-           </TileSize>
-           <EdgeSize>
-               <AbsValue val="32"/>
-           </EdgeSize>
-       </Backdrop>
        <Layers>
            <Layer level="ARTWORK">
                <Texture name="myFrameHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
@@ -184,17 +174,6 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 							</OnClick>
 						</Scripts>
 					</Button>
-<!-- 					<Frame name="Puggle_DropDownGroups" inherits="UIDropDownMenuTemplate"> 
-					<Frame name="Puggle_DropDownGroups">
-						<Size><AbsDimension x="616" y="45"/></Size>
-						<Anchors><Anchor point="TOPLEFT" relativeTo="$parent"><Offset><AbsDimension x="20" y="-59"/></Offset></Anchor></Anchors>
-						<Scripts>
-							<OnLoad>
-								Puggle_loadGroups()
-							</OnLoad>
-						</Scripts>
-					</Frame>
--->					
 					<Button name="$parent_delete" inherits="OptionsButtonTemplate" text="Delete this group">
 						<Size><AbsDimension x="200" y="25" /></Size>
 						<Anchors><Anchor point="TOPRIGHT" relativeTo="$parent"><Offset x="-30" y="-60" /></Anchor></Anchors>
@@ -694,7 +673,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 
 		</Frames>
 		<Scripts>
-			<OnLoad>
+			<OnLoad inherit="prepend" >
 			    self.elapsed = 0;
 			    PanelTemplates_SetNumTabs(Puggle_ContainerFrame, 5);
 				PanelTemplates_SetTab(Puggle_ContainerFrame, 1);

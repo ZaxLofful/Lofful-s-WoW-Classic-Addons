@@ -322,3 +322,8 @@ L["resetFramesTitle"] = "Reset Windows";
 L["resetFramesDesc"] = "Reset all windows back to the middle of screen and sizes back to default.";
 
 L["resetFramesMsg"] = "Resetting all window positions and size.";
+
+L["statsRep"] = "Rep:";
+
+L["instanceStatsOutputRepTitle"] = "Reputation Gained";
+L["instanceStatsOutputRepDesc"] = "Show how much repuation gained while inside the dungeon?";

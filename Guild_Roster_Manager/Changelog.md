@@ -2,6 +2,49 @@
 
 _______________________
 
+
+**VERSION R1.9294 RELEASE - May 24th, 2021**
+
+* Fixed a bug that could cause the guild window to open when in combat and a new player joins - How annoying! This only affects Classic realms.
+
+
+**VERSION R1.9293 RELEASE - May 22nd, 2021**
+
+* Class coloring of the names should once again work in TBC.
+
+
+**VERSION R1.9292 RELEASE - May 21st, 2021**
+
+* Minor fixes for the public note in GRM Classic build and prevention of 1 Lua error
+
+
+**VERSION R1.9291 RELEASE - May 20th, 2021**
+
+* Typo fix pointing to wrong files in the retail .toc file
+
+
+**VERSION R1.929 RELEASE - May 18th, 2021**
+
+* Compatibility with TBC - also updates Classic - brings retail all into the same codebase.
+
+* Another minor bandaid fix to some alt group issues until the major release is ready - 
+
+Note: this is not a feature or bug update, but a compatibility one for TBC launch and unifying the codebase now. Larger update is pending soon, hopefully by June 1st (at least beta release on Discord).
+
+
+**VERSION R1.928 RELEASE - March 9th, 2021**
+
+* Compatibility release for the new 9.0.5 update
+
+* Minor bandaid fix for some alt grouping issues. This will disassociate broken groups and you will need to rebuild them, but it is a temporary fix tile major release.
+
+* Yes, this is the longest gap between releases ever. My next update is fairly significant and it is taking me a very very long time. It will be worth it. Join the discord channel for early access to beta within the next few weeks most likely
+
+
+**VERSION R1.927 RELEASE - December 10th, 2020**
+
+* Major bug fix for issue corrupting the log that has been overlooked since November 19th and can happen to anyone... BAD! Never before happened. If you have an in-game backup that predates this, or a windows backup, this can be fixed. It does not affect ALL people, but it effects enough to be a major issue.
+
 **VERSION R1.926 RELEASE - November 27th, 2020**
 
 ***BUG FIXES***

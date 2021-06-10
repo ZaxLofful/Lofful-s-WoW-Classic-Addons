@@ -6,7 +6,7 @@
 local Profile = ECSLoader:CreateModule("Profile")
 
 function Profile:GetProfileVersion()
-    return 7
+    return 9
 end
 
 ---@return ECSProfile
@@ -40,11 +40,12 @@ local function GetDefaultStatsProfile()
             },
             attackPower = {display = true, refName = "MeleeAttackPower", text = "ATTACK_POWER"},
             crit = {display = true, refName = "MeleeCritChance", text = "CRIT_CHANCE"},
+            expertise = {display = true, refName = "Expertise", text = "EXPERTISE"},
             attackSpeed = {
                 display = true,
                 isSubGroup = true,
                 refName = "MeleeAttackSpeedHeader",
-                text = "ATTACK_SPEED",
+                text = "ATTACK_SPEED_HEADER",
 
                 mainHand = {display = true, refName = "MeleeAttackSpeedMainHand", text = "ATTACK_SPEED_MAIN_HAND"},
                 offHand = {display = true, refName = "MeleeAttackSpeedOffHand", text = "ATTACK_SPEED_OFF_HAND"},
@@ -69,7 +70,8 @@ local function GetDefaultStatsProfile()
                 bossLevel = {display = true, refName = "RangedHitBossLevel", text = "MISS_BOSS"},
             },
             attackPower = {display = true, refName = "RangeAttackpower", text = "ATTACK_POWER"},
-            crit = {display = true, refName = "RangedCritChance", text = "CRIT_CHANCE"}
+            crit = {display = true, refName = "RangedCritChance", text = "CRIT_CHANCE"},
+            attackSpeed = {display = true, refName = "RangedAttackSpeed", text = "ATTACK_SPEED"},
         },
 
         ---@type Category
@@ -83,7 +85,8 @@ local function GetDefaultStatsProfile()
             blockChance = {display = true, refName = "BlockChance", text = "BLOCK_CHANCE"},
             blockValue = {display = true, refName = "BlockValue", text = "BLOCK_VALUE"},
             parry = {display = true, refName = "ParryChance", text = "PARRY_CHANCE"},
-            dodge = {display = true, refName = "DodgeChance", text = "DODGE_CHANCE"}
+            dodge = {display = true, refName = "DodgeChance", text = "DODGE_CHANCE"},
+            resilience = {display = true, refName = "ResilienceValue", text = "RESILIENCE_VALUE"},
         },
 
         ---@type Category
@@ -115,7 +118,8 @@ local function GetDefaultStatsProfile()
                 sameLevel = {display = true, refName = "SpellHitSameLevel", text = "MISS"},
                 bossLevel = {display = true, refName = "SpellHitBossLevel", text = "MISS_BOSS"},
             },
-            crit = {display = true, refName = "SpellCritChance", text = "CRIT_CHANCE"}
+            crit = {display = true, refName = "SpellCritChance", text = "CRIT_CHANCE"},
+            penetration = {display = true, refName = "SpellPenetration", text = "SPELL_PENETRATION"},
         },
 
         ---@type Category

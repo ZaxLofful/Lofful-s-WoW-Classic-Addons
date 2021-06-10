@@ -1,18 +1,22 @@
-if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
+if WOW_PROJECT_ID ~= (WOW_PROJECT_MAINLINE or 1) then -- Added in MoP
 	return
 end
 local mod	= DBM:NewMod("z727", "DBM-PvP")
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210322085128")
+mod:SetRevision("20210519214524")
 mod:SetZone(DBM_DISABLE_ZONE_DETECTION)
-mod:RegisterEvents("LOADING_SCREEN_DISABLED")
+mod:RegisterEvents(
+	"LOADING_SCREEN_DISABLED",
+	"ZONE_CHANGED_NEW_AREA"
+)
 
 do
 	local bgzone = false
 
 	local function Init(self)
-		if DBM:GetCurrentArea() == 727 then
+		local zoneID = DBM:GetCurrentArea()
+		if not bgzone and zoneID == 727 then
 			bgzone = true
 			self:RegisterShortTermEvents(
 				"CHAT_MSG_BG_SYSTEM_HORDE",
@@ -21,7 +25,7 @@ do
 				"CHAT_MSG_RAID_BOSS_EMOTE",
 				"PVP_VEHICLE_INFO_UPDATED"
 			)
-		elseif bgzone then
+		elseif bgzone and zoneID ~= 727 then
 			bgzone = false
 			self:UnregisterShortTermEvents()
 			self:Stop()
@@ -31,6 +35,7 @@ do
 	function mod:LOADING_SCREEN_DISABLED()
 		self:Schedule(1, Init, self)
 	end
+	mod.ZONE_CHANGED_NEW_AREA	= mod.LOADING_SCREEN_DISABLED
 	mod.PLAYER_ENTERING_WORLD	= mod.LOADING_SCREEN_DISABLED
 	mod.OnInitialize			= mod.LOADING_SCREEN_DISABLED
 end

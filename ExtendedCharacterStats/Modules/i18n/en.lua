@@ -57,6 +57,8 @@ strings = {
     ["MELEE_ATTACK_POWER_SETTING_DESC"] = "Shows/Hides the melee attack power value.",
     ["MELEE_CRIT_SETTING"] = "Melee Crit",
     ["MELEE_CRIT_SETTING_DESC"] = "Shows/Hides the melee crit chance.",
+    ["MELEE_EXPERTISE_SETTING"] = "Expertise",
+    ["MELEE_EXPERTISE_SETTING_DESC"] = "Shows/Hides the expertise value.",
     ["MELEE_HIT_SETTING"] = "Melee Hit",
     ["MELEE_HIT_SETTING_DESC"] = "Shows/Hides all melee hit chance.",
     ["MELEE_HIT_VALUES_SETTING"] = "Melee Hit Values",
@@ -82,6 +84,8 @@ strings = {
     ["RANGED_HIT_BONUS_SETTING_DESC"] = "Shows/Hides the ranged hit bonus.",
     ["RANGED_MISS_CHANCE_SETTING_DESC"] = "Shows/Hides the ranged miss chance against enemies on the same level.",
     ["RANGED_MISS_CHANCE_BOSS_SETTING_DESC"] = "Shows/Hides the ranged miss chance against boss enemies (+3 Level).",
+    ["RANGED_ATTACK_SPEED_SETTING"] = "Attack Speed",
+    ["RANGED_ATTACK_SPEED_SETTING_DESC"] = "Shows/Hides the ranged attack speed.",
     -- Defense Settings
     ["DEFENSE_SETTINGS"] = "Show Defense Stats",
     ["DEFENSE_SETTINGS_DESC"] = "Shows/Hides all defense stats.",
@@ -97,6 +101,8 @@ strings = {
     ["PARRY_CHANCE_SETTING_DESC"] = "Shows/Hides the parry chance.",
     ["DODGE_CHANCE_SETTING"] = "Dodge Chance",
     ["DODGE_CHANCE_SETTING_DESC"] = "Shows/Hides the dodge chance.",
+    ["RESILIENCE_SETTING"] = "Resilience",
+    ["RESILIENCE_SETTING_DESC"] = "Shows/Hides the resilience value.",
     -- Mana Settings
     ["MANA_SETTINGS"] = "Show Mana Stats",
     ["MANA_SETTINGS_DESC"] = "Shows/Hides all mana stats.",
@@ -113,6 +119,8 @@ strings = {
     ["SPELL_SETTINGS_DESC"] = "Shows/Hides all spell stats.",
     ["SPELL_CRIT_SETTING"] = "Spell Crit",
     ["SPELL_CRIT_SETTING_DESC"] = "Shows/Hides the spell crit chance.",
+    ["SPELL_PENETRATION_SETTING"] = "Spell Penetration",
+    ["SPELL_PENETRATION_SETTING_DESC"] = "Shows/Hides the spell penetration value.",
     ["SPELL_HIT_SETTING"] = "Spell Hit",
     ["SPELL_HIT_SETTING_DESC"] = "Shows/Hides all spell hit chance.",
     ["SPELL_HIT_VALUES_SETTING"] = "Spell Hit Values",
@@ -163,7 +171,9 @@ strings = {
     ["BONUS"] = "Bonus: ",
     ["ATTACK_POWER"] = "Attack Power: ",
     ["CRIT_CHANCE"] = "Crit Chance: ",
-    ["ATTACK_SPEED"] = "Attack Speed",
+    ["EXPERTISE"] = "Expertise: ",
+    ["ATTACK_SPEED_HEADER"] = "Attack Speed",
+    ["ATTACK_SPEED"] = "Attack Speed: ",
     ["ATTACK_SPEED_MAIN_HAND"] = "Main Hand: ",
     ["ATTACK_SPEED_OFF_HAND"] = "Off Hand: ",
 
@@ -178,6 +188,7 @@ strings = {
     ["BLOCK_VALUE"] = "Block Value: ",
     ["PARRY_CHANCE"] = "Parry Chance: ",
     ["DODGE_CHANCE"] = "Dodge Chance: ",
+    ["RESILIENCE_VALUE"] = "Resilience: ",
 
     ["MP5_ITEMS"] = "MP5 (Items): ",
     ["MP5_SPIRIT"] = "MP5 (Spirit): ",
@@ -185,6 +196,7 @@ strings = {
     ["MP5_CASTING"] = "MP5 (Casting): ",
 
     ["SPELL"] = "Spell",
+    ["SPELL_PENETRATION"] = "Penetration: ",
 
     ["SPELL_POWER"] = "Spell Power",
     ["HEALING_POWER"] = "Healing Power: ",

@@ -5,6 +5,8 @@
 ---@class ECS
 ECS = {...}
 
+ECS.IsTBC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
+
 ---@type i18n
 local i18n = ECSLoader:ImportModule("i18n")
 ---@type Stats
@@ -25,7 +27,7 @@ local loadingFrame = CreateFrame("Frame", nil, UIParent)
 loadingFrame:RegisterEvent("ADDON_LOADED") -- Triggers whenever all non-lod addons has been loaded, this will initialize the addon
 loadingFrame:RegisterEvent("PLAYER_LOGIN") -- Triggers whenever the player has logged in and all addons are loaded
 
-loadingFrame:SetScript("OnEvent", function(self, event, arg1, ...)
+loadingFrame:SetScript("OnEvent", function(_, event, arg1, ...)
 
     if event == "ADDON_LOADED" and arg1 == "ExtendedCharacterStats" then
         _InitAddon()
@@ -62,7 +64,7 @@ _InitAddon = function()
     local targetProfileVersion = Profile:GetProfileVersion()
 
     if _ProfileVersionIsDifferent(ecs, targetProfileVersion) then
-        print("|cFF1de9b6[ECS]|r Migrating ECS profile from version " .. currentProfileVersion .. " to " .. targetProfileVersion)
+        ECS:Print("Migrating ECS profile from version " .. currentProfileVersion .. " to " .. targetProfileVersion)
         _MigrateToLatestProfileVersion(currentProfileVersion, defaultProfile)
         ExtendedCharacterStats.general.profileVersion = targetProfileVersion
     end
@@ -88,6 +90,20 @@ _MigrateToLatestProfileVersion = function(profileVersion, defaultProfile)
         ExtendedCharacterStats.profile.melee.attackPower.refName = "MeleeAttackPower"
         ExtendedCharacterStats.profile.melee.attackSpeed = defaultProfile.profile.melee.attackSpeed
     end
+
+    if profileVersion < 8 then
+        ExtendedCharacterStats.profile.ranged.attackSpeed = defaultProfile.profile.ranged.attackSpeed
+        ExtendedCharacterStats.profile.spell.penetration = defaultProfile.profile.spell.penetration
+        if ECS.IsTBC then
+            ExtendedCharacterStats.profile.melee.expertise = defaultProfile.profile.melee.expertise
+        end
+    end
+
+    if profileVersion < 9 then
+        if ECS.IsTBC then
+            ExtendedCharacterStats.profile.defense.resilience = defaultProfile.profile.defense.resilience
+        end
+    end
 end
 
 ---@return boolean
@@ -108,7 +124,7 @@ _InitGUI = function ()
 
     -- Event handler for all the subscribed events
     -- Calls the update functions to update all the relevant stats
-    eventFrame:SetScript("OnEvent", function(self, event, eventTarget, ...)
+    eventFrame:SetScript("OnEvent", function(_, event, eventTarget, ...)
         if eventTarget == "player" then
             if event == "UNIT_SPELLCAST_SUCCEEDED" then -- If a player casted something the 5 sec rule comes into play
                 lastSuccessfulSpellTime = GetTime()
@@ -149,6 +165,15 @@ _RegisterEvents = function (eventFrame)
     eventFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED") -- Triggers whenever the player changes gear
     eventFrame:RegisterEvent("UNIT_POWER_UPDATE") -- Triggers whenever the player changes gear
     eventFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORM") -- Triggers whenever the player changes gear
+    eventFrame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED") -- Triggers whenever the player mounts or dismounts
     eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED") -- Triggers whenever a cast was successful
     eventFrame:RegisterEvent("INSPECT_READY") -- Triggers whenever the player inspects someone else and the inspect frame is ready
+end
+
+function ECS:Error(message)
+   ECS:Print("|cffff0000ERROR|r " .. message)
+end
+
+function ECS:Print(message)
+    print("|cFF1de9b6[ECS]|r " .. message)
 end

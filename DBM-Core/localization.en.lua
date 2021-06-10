@@ -22,7 +22,7 @@ L.LOAD_GUI_COMBAT					= "GUI cannot be initially loaded in combat. GUI will be l
 L.BAD_LOAD							= L.DBM .. " has detected your mod for this instance failed to fully load correctly because of combat. As soon as you are out of combat, please do /console reloadui as soon as possible."
 L.LOAD_MOD_VER_MISMATCH				= "%s could not be loaded because your " .. L.DBM .. "-Core does not meet requirements. An updated version is required"
 L.LOAD_MOD_EXP_MISMATCH				= "%s could not be loaded because it is designed for a WoW expansion that's not currently available. When expansion becomes available, this mod will automatically work."
-L.LOAD_MOD_TOC_MISMATCH				= "%s could not be loaded because it is not designed for Classic WoW. You likely installed a retail version of a module. Remove this module and use only addons designed for Classic World of Warcraft"
+L.LOAD_MOD_TOC_MISMATCH				= "%s could not be loaded because it is not designed for Burning Crusade Classic WoW. You likely installed a retail or Classic Era version of a module. Remove this module and use only addons designed for Burning Crusade Classic WoW."
 L.LOAD_MOD_DISABLED					= "%s is installed but currently disabled. This mod will not be loaded unless you enable it."
 L.LOAD_MOD_DISABLED_PLURAL			= "%s are installed but currently disabled. These mods will not be loaded unless you enable them."
 
@@ -181,7 +181,7 @@ L.DPMCORE							= "WARNING: Deadly PvP mods is discontinued and not compatible w
 L.DBMLDB							= "WARNING: DBM-LDB is now built into DBM-Core. While it won't do any harm, it's recommended to remove 'DBM-LDB' from your addons folder"
 L.UPDATE_REQUIRES_RELAUNCH			= "WARNING: This " .. L.DBM .. " update will not work correctly if you don't fully restart your game client. This update contains new files or .toc file changes that cannot be loaded via ReloadUI. You may encounter broken functionality or errors if you continue without a client restart."
 L.OUT_OF_DATE_NAG					= "Your version of " .. L.DBM.. " is out-of-date and this specific fight mod has newer features or bug fixes. It is recommended you update for this fight to improve your experience."
-L.CLASSIC_ONLY						= "WARNING: This version of " .. L.DBM .. " is only meant to be used with World of Warcraft: Classic. Uninstall this version and install correct version of " .. L.DBM .. " for Retail WoW."
+L.CLASSIC_ONLY						= "WARNING: This version of " .. L.DBM .. " is only meant to be used with WoW Burning Crusade Classic. Uninstall this version and install correct version of " .. L.DBM .. " for your WoW version."
 
 L.MOVABLE_BAR						= "Drag me!"
 
@@ -264,6 +264,8 @@ L.ERROR_NO_PERMISSION				= "You don't have the required permission to do this."
 L.TIME_TOO_SHORT					= "Pull timer must be longer than 3 seconds."
 
 --Common Locals
+L.NONE								= "None"
+L.RANDOM							= "Random"
 L.NEXT								= "Next %s"
 L.COOLDOWN							= "%s CD"
 L.UNKNOWN							= "Unknown"--UNKNOWN which is "Unknown" (does u vs U matter?)
@@ -283,20 +285,26 @@ L.NORTH								= "North"
 L.SOUTH								= "South"
 L.INTERMISSION						= "Intermission"--No blizz global for this, and will probably be used in most end tier fights with intermission phases
 L.ORB								= "Orb"
+L.ORBS								= "Orbs"
 L.CHEST								= "Chest"--As in Treasure 'Chest'. Not Chest as in body part.
 L.NO_DEBUFF							= "Not %s"--For use in places like info frame where you put "Not Spellname"
 L.ALLY								= "Ally"--Such as "Move to Ally"
+L.ALLIES							= "Allies"--Such as "Move to Allies"
 L.ADD								= "Add"--A fight Add as in "boss spawned extra adds"
 L.ADDS								= "Adds"
 L.BIG_ADD							= "Big Add"
 L.BOSS								= "Boss"
-L.ROOM_EDGE							= "Room Edge"
+L.EDGE								= "Room Edge"
 L.FAR_AWAY							= "Far Away"
 L.BREAK_LOS							= "Break LOS"
+L.RESTORE_LOS						= "Restore/Maintain LOS"
 L.SAFE								= "Safe"
+L.NOTSAFE							= "Not Safe"
 L.SHIELD							= "Shield"
 L.PILLAR							= "Pillar"
 L.INCOMING							= "%s Incoming"
+L.BOSSTOGETHER						= "Bosses Together"
+L.BOSSAPART							= "Bosses Apart"
 --Common Locals end
 
 L.BREAK_USAGE						= "Break timer cannot be longer than 60 minutes. Make sure you're inputting time in minutes and not seconds."
@@ -404,7 +412,7 @@ L.AUTO_SPEC_WARN_TEXTS = {
 	stack							= "%%d stacks of %s on you",
 	switch							= "%s - switch targets",
 	switchcount						= "%s - switch targets (%%s)",
-	gtfo							= "%%s under you - move away",
+	gtfo							= "%%s damage - move away",
 	adds							= "Incoming Adds - switch targets",
 	addscustom						= "Incoming Adds - %%s",
 	targetchange					= "Target Change - switch to %%s"
@@ -667,17 +675,6 @@ L.SILENTMODE_IS                     = "SilentMode is "
 
 L.LDB_LOAD_MODS						= "Load boss mods"
 
-L.LDB_CAT_BFA						= "Battle for Azeroth"
-L.LDB_CAT_LEG						= "Legion"
-L.LDB_CAT_WOD						= "Warlords of Draenor"
-L.LDB_CAT_MOP						= "Mists of Pandaria"
-L.LDB_CAT_CATA						= "Cataclysm"
-L.LDB_CAT_WOTLK						= "Wrath of the Lich King"
-L.LDB_CAT_BC						= "Burning Crusade"
-L.LDB_CAT_CLASSIC 					= EXPANSION_NAME0
-L.LDB_CAT_OTHER						= "Other Boss Mods"
-
-L.LDB_CAT_GENERAL					= "General"
 L.LDB_ENABLE_BOSS_MOD				= "Enable boss mod"
 
 --Localizers, do not copy entire table, follow same guidelines as other tables, overwrite each entry with L.WORLD_BUFFS.hordeOny = "stuff" for example.

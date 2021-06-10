@@ -2,7 +2,7 @@
 
 LootReserve = LibStub("AceAddon-3.0"):NewAddon("LootReserve", "AceComm-3.0");
 LootReserve.Version = GetAddOnMetadata(addon, "Version");
-LootReserve.MinAllowedVersion = "2020-12-22";
+LootReserve.MinAllowedVersion = GetAddOnMetadata(addon, "X-Min-Allowed-Version");
 LootReserve.LatestKnownVersion = LootReserve.Version;
 LootReserve.Enabled = true;
 
@@ -47,6 +47,14 @@ StaticPopupDialogs["LOOTRESERVE_GENERIC_ERROR"] =
     timeout = 0,
     whileDead = 1,
     hideOnEscape = 1,
+};
+
+LOOTRESERVE_BACKDROP_BLACK_4 =
+{
+    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+    edgeSize = 16,
+    insets = { left = 4, right = 4, top = 4, bottom = 4 },
 };
 
 SLASH_LOOTRESERVE1 = "/lootreserve";
@@ -243,6 +251,12 @@ function LootReserve:SendChatMessage(text, channel, target)
         end
         Send(self:StringTrim(accumulator));
     end
+end
+
+function LootReserve:GetCurrentExpansion()
+    local version = GetBuildInfo();
+    local expansion, major, minor = strsplit(".", version);
+    return tonumber(expansion) - 1;
 end
 
 function LootReserve:GetNumClasses()

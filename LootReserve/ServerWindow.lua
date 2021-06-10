@@ -234,7 +234,7 @@ function LootReserve.Server:UpdateReserveList(lockdown)
     end
     local function getSortingSource(reserve)
         local customIndex = 0;
-        for item, conditions in pairs(self.CurrentSession.Settings.ItemConditions) do
+        for item, conditions in pairs(self.CurrentSession.ItemConditions) do
             if conditions.Custom then
                 customIndex = customIndex + 1;
                 if item == reserve.Item then
@@ -242,8 +242,8 @@ function LootReserve.Server:UpdateReserveList(lockdown)
                 end
             end
         end
-        for id, category in LootReserve:Ordered(LootReserve.Data.Categories) do
-            if category.Children and (not self.CurrentSession or id == self.CurrentSession.Settings.LootCategory) then
+        for id, category in LootReserve:Ordered(LootReserve.Data.Categories, LootReserve.Data.CategorySorter) do
+            if category.Children and (not self.CurrentSession or id == self.CurrentSession.Settings.LootCategory) and LootReserve.Data:IsCategoryVisible(category) then
                 for childIndex, child in ipairs(category.Children) do
                     if child.Loot then
                         for lootIndex, loot in ipairs(child.Loot) do
@@ -519,7 +519,7 @@ function LootReserve.Server:UpdateRollList(lockdown)
             frame:SetHeight(44 + durationHeight + reservesHeight);
         else
             frame:SetShown(not self.RequestedRoll);
-            frame:SetHeight(frame:IsShown() and 45 or 0.00001);
+            frame:SetHeight(frame:IsShown() and 44 or 0.00001);
         end
 
         if historical and firstHistorical then

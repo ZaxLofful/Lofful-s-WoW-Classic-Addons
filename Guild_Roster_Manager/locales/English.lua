@@ -1485,4 +1485,6 @@ GRML.English = function()
     GRM_L["Macro rank changes have been validated!"] = true
     GRM_L["Warning! Macro changes were not able to be validated. Please verify expected results before using the macro tool further."] = true
 
+    GRM_L["{custom1} to open Player Window"] = true
+
 end

@@ -17,8 +17,12 @@ local QuestiePlayer = QuestieLoader:ImportModule("QuestiePlayer")
 local QuestieDB = QuestieLoader:ImportModule("QuestieDB")
 ---@type QuestieEvent
 local QuestieEvent = QuestieLoader:ImportModule("QuestieEvent")
+---@type l10n
+local l10n = QuestieLoader:ImportModule("l10n")
 
-local tinsert = table.insert
+local WRAP_TEXT = 1;
+
+local tinsert = table.insert;
 local tremove = table.remove;
 local _QuestieFramePool = QuestieFramePool.private
 _QuestieFramePool.numberOfFrames = 0
@@ -40,42 +44,35 @@ HBDPins.MinimapGroup = CreateFrame("Frame", "QuestieFrameGroup", Minimap)
 
 
 function QuestieFramePool:SetIcons()
-    if (Questie.db.char.enableMinimalisticIcons) then
-        ICON_TYPE_SLAY =  QuestieLib.AddonPath.."Icons\\slay_tiny.blp"
-        ICON_TYPE_LOOT =  QuestieLib.AddonPath.."Icons\\loot_tiny.blp"
-        ICON_TYPE_EVENT =  QuestieLib.AddonPath.."Icons\\event_tiny.blp"
-        ICON_TYPE_OBJECT =  QuestieLib.AddonPath.."Icons\\object_tiny.blp"
-    else
-        ICON_TYPE_SLAY =  QuestieLib.AddonPath.."Icons\\slay.blp"
-        ICON_TYPE_LOOT =  QuestieLib.AddonPath.."Icons\\loot.blp"
-        ICON_TYPE_EVENT =  QuestieLib.AddonPath.."Icons\\event.blp"
-        ICON_TYPE_OBJECT =  QuestieLib.AddonPath.."Icons\\object.blp"
-    end
-    --TODO: Add all types (we gotta stop using globals, needs refactoring)
+    ICON_TYPE_SLAY =  QuestieLib.AddonPath.."Icons\\slay.blp"
+    ICON_TYPE_LOOT =  QuestieLib.AddonPath.."Icons\\loot.blp"
+    ICON_TYPE_EVENT =  QuestieLib.AddonPath.."Icons\\event.blp"
+    ICON_TYPE_OBJECT =  QuestieLib.AddonPath.."Icons\\object.blp"
+
+    -- TODO Add all types (we gotta stop using globals, needs refactoring)
     ICON_TYPE_AVAILABLE =  QuestieLib.AddonPath.."Icons\\available.blp"
     ICON_TYPE_AVAILABLE_GRAY =  QuestieLib.AddonPath.."Icons\\available_gray.blp"
     ICON_TYPE_COMPLETE =  QuestieLib.AddonPath.."Icons\\complete.blp"
     ICON_TYPE_GLOW = QuestieLib.AddonPath.."Icons\\glow.blp"
-    ICON_TYPE_BLACK = QuestieLib.AddonPath.."Icons\\black.blp"
     ICON_TYPE_REPEATABLE =  QuestieLib.AddonPath.."Icons\\repeatable.blp"
 end
 
 
 StaticPopupDialogs["QUESTIE_CONFIRMHIDE"] = {
     text = "", -- set before showing
-    QuestID = 0, -- set before showing
-    button1 = QuestieLocale:GetUIString("CONFIRM_HIDE_YES"),
-    button2 = QuestieLocale:GetUIString("CONFIRM_HIDE_NO"),
+    questID = 0, -- set before showing
+    button1 = l10n("Yes"),
+    button2 = l10n("No"),
     OnAccept = function()
-        QuestieQuest:HideQuest(StaticPopupDialogs["QUESTIE_CONFIRMHIDE"].QuestID)
+        QuestieQuest:HideQuest(StaticPopupDialogs["QUESTIE_CONFIRMHIDE"].questID)
     end,
     SetQuest = function(self, id)
-        self.QuestID = id
-        self.text = QuestieLocale:GetUIString("CONFIRM_HIDE_QUEST", QuestieDB:GetQuest(self.QuestID):GetColoredQuestName())
+        self.questID = id
+        self.text = l10n("Are you sure you want to hide the quest '%s'?\nIf this quest isn't actually available, please report it to us!", QuestieLib:GetColoredQuestName(id, Questie.db.global.enableTooltipsQuestLevel, false, true))
 
         -- locale might not be loaded when this is first created (this does happen almost always)
-        self.button1 = QuestieLocale:GetUIString("CONFIRM_HIDE_YES")
-        self.button2 = QuestieLocale:GetUIString("CONFIRM_HIDE_NO")
+        self.button1 = l10n("Yes")
+        self.button2 = l10n("No")
     end,
     OnShow = function(self)
         self:SetFrameStrata("TOOLTIP")
@@ -445,24 +442,24 @@ end
 function _QuestieFramePool:GetAvailableOrCompleteTooltip(icon)
     local tip = {};
     if icon.data.Type == "complete" then
-        tip.type = QuestieLocale:GetUIString("TOOLTIP_QUEST_COMPLETE");
+        tip.type = "(" .. l10n("Complete") .. ")";
     else
 
         local quest = icon.data.QuestData
         local questType, questTag = quest:GetQuestTagInfo();
 
-        if (icon.data.QuestData.IsRepeatable) then
-            tip.type = QuestieLocale:GetUIString("TOOLTIP_QUEST_REPEATABLE");
+        if (QuestieDB:IsRepeatable(icon.data.Id)) then
+            tip.type = "(" .. l10n("Repeatable") .. ")";
         elseif (questType == 41 or questType == 81 or questType == 83 or questType == 62 or questType == 1) then
             -- Dungeon or Legendary or Raid or Group(Elite)
             tip.type = "("..questTag..")";
         elseif (QuestieEvent and QuestieEvent.activeQuests[icon.data.Id]) then
-            tip.type = QuestieLocale:GetUIString("TOOLTIP_QUEST_EVENT");
+            tip.type = "(" .. l10n("Event") .. ")";
         else
-            tip.type = QuestieLocale:GetUIString("TOOLTIP_QUEST_AVAILABLE");
+            tip.type = "(" .. l10n("Available") .. ")";
         end
     end
-    tip.title = icon.data.QuestData:GetColoredQuestName(false, true)
+    tip.title = QuestieLib:GetColoredQuestName(icon.data.Id, Questie.db.global.enableTooltipsQuestLevel, false, true)
     tip.subData = icon.data.QuestData.Description
     tip.questId = icon.data.Id;
 
@@ -502,7 +499,7 @@ function _QuestieFramePool:GetObjectiveTooltip(icon)
                     playerColor = QuestieComms.remotePlayerClasses[playerName]
                     if playerColor then
                         playerColor = Questie:GetClassColor(playerColor)
-                        playerType = " ("..QuestieLocale:GetUIString("Nearby")..")"
+                        playerType = " (".. l10n("Nearby")..")"
                     end
                 end
                 if playerColor then
@@ -576,8 +573,8 @@ end
 function _QuestieFramePool:QuestieTooltip()
     --Questie:Debug(DEBUG_DEVELOP, "[_QuestieFramePool:QuestieTooltip]", "minimapIcon =", self.miniMapIcon)
 
-    local r, g, b, a = self.texture:GetVertexColor();
-    if (a == 0) then
+    local _, _, _, alpha = self.texture:GetVertexColor();
+    if alpha == 0 then
         Questie:Debug(DEBUG_DEVELOP, "[_QuestieFramePool:QuestieTooltip]", "Alpha of texture is 0, nothing to show")
         return
     end
@@ -591,7 +588,6 @@ function _QuestieFramePool:QuestieTooltip()
     Tooltip:SetOwner(self, "ANCHOR_CURSOR"); --"ANCHOR_CURSOR" or (self, self)
 
     --if QuestieQuest._isResetting then -- temporary fix for lua errors during smoothreset. We need to dig through this and find a proper fix later
-    --    Tooltip:AddLine(QuestieLocale:GetUIString("QUESTIE_IS_LOADING"), 1, 0.2, 0.1)
     --    Tooltip:SetFrameStrata("TOOLTIP")
     --    Tooltip:Show()
     --    return
@@ -611,7 +607,8 @@ function _QuestieFramePool:QuestieTooltip()
             maxDistCluster = 0.5 / (1+Minimap:GetZoom())
         end
     end
-    r, g, b, a = unpack(QuestieMap.zoneWaypointHoverColorOverrides[self.AreaID] or _QuestieFramePool.wayPointColorHover)
+
+    local r, g, b, a = unpack(QuestieMap.zoneWaypointHoverColorOverrides[self.AreaID] or _QuestieFramePool.wayPointColorHover)
     --Highlight waypoints if they exist.
     for _, lineFrame in pairs(self.data.lineFrames or {}) do
       lineFrame.line:SetColorTexture(
@@ -732,14 +729,14 @@ function _QuestieFramePool:QuestieTooltip()
     Tooltip.manualOrder = manualOrder
     Tooltip.miniMapIcon = self.miniMapIcon
     Tooltip._Rebuild = function(self)
-        local xpString = QuestieLocale:GetUIString('XP');
+        local xpString = l10n('xp');
         local shift = IsShiftKeyDown()
         local haveGiver = false -- hack
         local firstLine = true;
         for questTitle, quests in pairs(self.npcOrder) do -- this logic really needs to be improved
             haveGiver = true
             if (firstLine and not shift) then
-                self:AddDoubleLine(questTitle, "("..QuestieLocale:GetUIString('ICON_SHIFT_HOLD')..")", 0.2, 1, 0.2, 0.43, 0.43, 0.43); --"(Shift+click)"
+                self:AddDoubleLine(questTitle, "(".. l10n('Hold Shift')..")", 0.2, 1, 0.2, 0.43, 0.43, 0.43); --"(Shift+click)"
                 firstLine = false;
             elseif (firstLine and shift) then
                 self:AddLine(questTitle, 0.2, 1, 0.2);
@@ -752,9 +749,9 @@ function _QuestieFramePool:QuestieTooltip()
                     local quest = QuestieDB:GetQuest(questData.questId)
                     if (quest and shift) then
                         local rewardString = ""
-                        local rewardXP = GetQuestLogRewardXP(questData.questId)
-                        if rewardXP > 0 then -- Quest rewards XP
-                            rewardString = QuestieLib:PrintDifficultyColor(quest.level, "(".. rewardXP .. xpString .. ") ")
+                        local xpReward = GetQuestLogRewardXP(questData.questId)
+                        if xpReward > 0 then -- Quest rewards XP
+                            rewardString = QuestieLib:PrintDifficultyColor(quest.level, "(".. FormatLargeNumber(xpReward) .. xpString .. ") ")
                         end
 
                         local moneyReward = GetQuestLogRewardMoney(questData.questId)
@@ -770,10 +767,10 @@ function _QuestieFramePool:QuestieTooltip()
                     local dataType = type(questData.subData)
                     if dataType == "table" then
                         for _, line in pairs(questData.subData) do
-                            self:AddLine("      " .. line, 0.86, 0.86, 0.86);
+                            self:AddLine(line, 0.86, 0.86, 0.86, WRAP_TEXT);
                         end
                     elseif dataType == "string" then
-                        self:AddLine("      " .. questData.subData, 0.86, 0.86, 0.86);
+                        self:AddLine(questData.subData, 0.86, 0.86, 0.86, WRAP_TEXT);
                         --self:AddLine("      |cFFDDDDDD" .. v2.subData);
                     end
                 end
@@ -783,18 +780,19 @@ function _QuestieFramePool:QuestieTooltip()
         for questId, textList in pairs(self.questOrder) do -- this logic really needs to be improved
             ---@type Quest
             local quest = QuestieDB:GetQuest(questId);
-            local questTitle = quest:GetColoredQuestName();
+            local questTitle = QuestieLib:GetColoredQuestName(questId, Questie.db.global.enableTooltipsQuestLevel, true, true);
             if haveGiver then
                 self:AddLine(" ");
-                self:AddDoubleLine(questTitle, QuestieLocale:GetUIString("TOOLTIP_QUEST_ACTIVE"), 1, 1, 1, 1, 1, 0);
+                self:AddDoubleLine(questTitle, "(" .. l10n("Active") .. ")", 1, 1, 1, 1, 1, 0);
                 haveGiver = false -- looks better when only the first one shows (active)
             else
-                if (quest and shift and QuestiePlayer:GetPlayerLevel() ~= 60) then
+                local xpReward = GetQuestLogRewardXP(questId)
+                if (quest and shift and xpReward > 0) then
                     r, g, b = QuestieLib:GetDifficultyColorPercent(quest.level);
-                    self:AddDoubleLine(questTitle, "("..GetQuestLogRewardXP(questId)..xpString..")", 0.2, 1, 0.2, r, g, b);
+                    self:AddDoubleLine(questTitle, "("..FormatLargeNumber(xpReward)..xpString..")", 0.2, 1, 0.2, r, g, b);
                     firstLine = false;
                 elseif (firstLine and not shift) then
-                    self:AddDoubleLine(questTitle, "("..QuestieLocale:GetUIString('ICON_SHIFT_HOLD')..")", 0.2, 1, 0.2, 0.43, 0.43, 0.43); --"(Shift+click)"
+                    self:AddDoubleLine(questTitle, "(".. l10n('Hold Shift')..")", 0.2, 1, 0.2, 0.43, 0.43, 0.43); --"(Shift+click)"
                     firstLine = false;
                 else
                     self:AddLine(questTitle);

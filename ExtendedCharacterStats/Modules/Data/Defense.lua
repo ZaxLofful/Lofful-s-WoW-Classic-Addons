@@ -3,7 +3,7 @@ local Data = ECSLoader:ImportModule("Data")
 ---@type DataUtils
 local DataUtils = ECSLoader:ImportModule("DataUtils")
 
-local _GetTalentModifierDefense, _GetItemModifierBlockValue
+local _Defense = {}
 
 
 ---@return number
@@ -34,23 +34,13 @@ function Data:GetDefenseValue()
         skillModifier = select(6, GetSkillLineInfo(skillIndex))
     end
 
-    skillModifier = skillModifier + _GetTalentModifierDefense()
+    if ECS.IsTBC then
+        skillModifier = skillModifier + math.floor(GetCombatRatingBonus(CR_DEFENSE_SKILL))
+    end
 
     return skillRank .. " + " .. skillModifier
 end
 
----@return number
-_GetTalentModifierDefense = function()
-    local _, _, classId = UnitClass("player")
-    local mod = 0
-
-    if classId == Data.WARRIOR then
-        local _, _, _, _, points, _, _, _ = GetTalentInfo(3, 2)
-        mod = points * 2 -- 0-10 Anticipation
-    end
-
-    return mod
-end
 
 ---@return string
 function Data:GetDodgeChance()
@@ -69,13 +59,18 @@ end
 
 ---@return number
 function Data:GetBlockValue()
-    local setBonus = _GetItemModifierBlockValue()
+    local setBonus = _Defense:GetItemModifierBlockValue()
     local blockValue = GetShieldBlock() + setBonus
 
     return DataUtils:Round(blockValue, 2)
 end
 
-_GetItemModifierBlockValue = function()
+---@return number
+function Data:GetResilienceValue()
+    return DataUtils:Round(GetCombatRating(15), 2)
+end
+
+function _Defense:GetItemModifierBlockValue()
     local mod = 0
 
     if Data:HasSetBonusModifierBlockValue() then

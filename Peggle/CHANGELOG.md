@@ -1,9 +1,6 @@
 # Peggle (Unofficial)
 
-## [2.3.2](https://github.com/ketho-wow/wow_peggle/tree/2.3.2) (2021-02-02)
-[Full Changelog](https://github.com/ketho-wow/wow_peggle/compare/2.3.1...2.3.2) [Previous Releases](https://github.com/ketho-wow/wow_peggle/releases)
+## [2.3.3](https://github.com/ketho-wow/wow_peggle/tree/2.3.3) (2021-05-10)
+[Full Changelog](https://github.com/ketho-wow/wow_peggle/compare/2.3.2...2.3.3) [Previous Releases](https://github.com/ketho-wow/wow_peggle/releases)
 
-- Update workflow  
-- Check for only the name part without realm  
-- Temporarily update workflow to package only for github  
-- Compare with realm name  
+- Update for 9.0.5, 1.13.7, 2.5.1  

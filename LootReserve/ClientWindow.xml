@@ -18,13 +18,47 @@
 		<HighlightTexture file="Interface\QUESTFRAME\UI-QuestTitleHighlight" alphaMode="ADD" />
 		<CheckedTexture file="Interface\QUESTFRAME\UI-QuestTitleHighlight" alphaMode="ADD" />
 	</CheckButton>
+	<CheckButton name="LootReserveCategoryListExpansionTemplate" virtual="true">
+		<Size y="28" />
+		<Layers>
+			<Layer>
+				<FontString parentKey="Text" inherits="GameFontHighlightMedium">
+					<Anchors>
+						<Anchor point="TOPLEFT" y="-5" />
+						<Anchor point="BOTTOMRIGHT" />
+					</Anchors>
+				</FontString>
+				<Texture parentKey="GlowLeft" alpha="0.5" file="Interface\CHATFRAME\ChatFrameTab-NewMessage" alphaMode="ADD">
+					<Size y="16" />
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativeKey="$parent" relativePoint="BOTTOMLEFT" x="-16" />
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent" relativePoint="BOTTOM" />
+					</Anchors>
+					<TexCoords left="0" right="0.25" top="0" bottom="1" />
+					<Color r="1" g="0.82" b="0" />
+				</Texture>
+				<Texture parentKey="GlowRight" alpha="0.5" file="Interface\CHATFRAME\ChatFrameTab-NewMessage" alphaMode="ADD">
+					<Size y="16" />
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativeKey="$parent" relativePoint="BOTTOM" />
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent" relativePoint="BOTTOMRIGHT" x="16" />
+					</Anchors>
+					<TexCoords left="0.75" right="1" top="0" bottom="1" />
+					<Color r="1" g="0.82" b="0" />
+				</Texture>
+			</Layer>
+		</Layers>
+		<HighlightTexture file="Interface\QUESTFRAME\UI-QuestTitleHighlight" alphaMode="ADD" />
+		<CheckedTexture file="Interface\QUESTFRAME\UI-QuestTitleHighlight" alphaMode="ADD" />
+	</CheckButton>
 	<CheckButton name="LootReserveCategoryListHeaderTemplate" virtual="true">
 		<Size y="28" />
 		<Layers>
 			<Layer>
 				<FontString parentKey="Text" inherits="GameFontNormal">
+					<Size y="18" />
 					<Anchors>
-						<Anchor point="TOPLEFT" x="5" y="-10" />
+						<Anchor point="BOTTOMLEFT" x="5" />
 						<Anchor point="BOTTOMRIGHT" x="-5" />
 					</Anchors>
 				</FontString>
@@ -32,6 +66,19 @@
 		</Layers>
 		<HighlightTexture file="Interface\QUESTFRAME\UI-QuestTitleHighlight" alphaMode="ADD" />
 		<CheckedTexture file="Interface\QUESTFRAME\UI-QuestTitleHighlight" alphaMode="ADD" />
+	</CheckButton>
+	<CheckButton name="LootReserveCategoryListSubheaderTemplate" virtual="true">
+		<Size y="18" />
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontWhite" justifyH="LEFT" alpha="0.5">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="5" />
+						<Anchor point="BOTTOMRIGHT" x="-5" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
 	</CheckButton>
 	<CheckButton name="LootReserveCategoryListSeparatorTemplate" virtual="true">
 		<Size y="6" />
@@ -47,7 +94,12 @@
 			</Layer>
 		</Layers>
 	</CheckButton>
-	<Frame name="LootReserveLootListTemplate" virtual="true" enableMouse="true">
+	<Frame name="LootReserveLootListTemplate" virtual="true" enableMouse="true" inherits="BackdropTemplate">
+		<KeyValues>
+			<KeyValue key="backdropInfo" value="BACKDROP_TOOLTIP_0_16_5555" type="global" />
+			<KeyValue key="backdropBorderColor" value="NORMAL_FONT_COLOR" type="global" />
+			<KeyValue key="backdropBorderColorAlpha" value="0" type="number" />
+		</KeyValues>
 		<Size y="44" />
 		<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border">
 			<EdgeSize val="16" />
@@ -288,6 +340,11 @@
 							{ text = "Show Popup", checked = LootReserve.Client.Settings.RollRequestShow, notCheckable = false, keepShownOnClick = true, func = function() LootReserve.Client.Settings.RollRequestShow = not LootReserve.Client.Settings.RollRequestShow; end },
 							{ text = "Show For Unusable Items", checked = LootReserve.Client.Settings.RollRequestShowUnusable, notCheckable = false, keepShownOnClick = true, func = function() LootReserve.Client.Settings.RollRequestShowUnusable = not LootReserve.Client.Settings.RollRequestShowUnusable; end },
 							{ text = "Glow Only For Reserved Items", checked = LootReserve.Client.Settings.RollRequestGlowOnlyReserved, notCheckable = false, keepShownOnClick = true, func = function() LootReserve.Client.Settings.RollRequestGlowOnlyReserved = not LootReserve.Client.Settings.RollRequestGlowOnlyReserved; end },
+							{ text = "Open Example Popup", notCheckable = true, func = function() LootReserve.Client:RollRequested(LootReserve:Me(), 19019, { LootReserve:Me() }, true, 30, 30, "Swag-Spec", true); end },
+							LootReserve:MakeMenuSeparator(),
+							{ text = "Data Broker", isTitle = true },
+							{ text = "Show Minimap Icon", checked = not LootReserve.Client.Settings.LibDBIcon.hide, notCheckable = false, keepShownOnClick = true, func = function() LootReserve.Client.Settings.LibDBIcon.hide = not LootReserve.Client.Settings.LibDBIcon.hide; if LootReserve.Client.Settings.LibDBIcon.hide then LibStub("LibDBIcon-1.0"):Hide("LootReserve"); else LibStub("LibDBIcon-1.0"):Show("LootReserve") end end },
+							{ text = "Swap Button Functions", tooltipTitle = "Swap Button Functions", tooltipText = "Enable to make left-clicking the LDB/minimap icon open the server window instead.", tooltipOnButton = true, checked = LootReserve.Client.Settings.SwapLDBButtons, notCheckable = false, keepShownOnClick = true, func = function() LootReserve.Client.Settings.SwapLDBButtons = not LootReserve.Client.Settings.SwapLDBButtons; end },
 							LootReserve:MakeMenuSeparator(),
 							{ text = "Close" },
 						};
@@ -314,8 +371,9 @@
 					<OnTextChanged inherit="prepend">
 						if #self:GetText() > 0 then
 							for _, frame in ipairs(self:GetParent().Categories.Scroll.Container.Frames) do
-								if frame.Category.Search then
+								if frame.Category and frame.Category.Search then
 									frame:Click();
+									break;
 								end
 							end
 						end
@@ -323,7 +381,10 @@
 					</OnTextChanged>
 				</Scripts>
 			</EditBox>
-			<Frame parentKey="Categories">
+			<Frame parentKey="Categories" inherits="BackdropTemplate">
+				<KeyValues>
+					<KeyValue key="backdropInfo" value="LOOTRESERVE_BACKDROP_BLACK_4" type="global" />
+				</KeyValues>
 				<Anchors>
 					<Anchor point="TOPRIGHT" relativeKey="$parent.Search" relativePoint="BOTTOMRIGHT" x="1" />
 					<Anchor point="BOTTOMLEFT" x="16" y="16" />
@@ -341,7 +402,10 @@
 					</ScrollFrame>
 				</Frames>
 			</Frame>
-			<Frame parentKey="Loot">
+			<Frame parentKey="Loot" inherits="BackdropTemplate">
+				<KeyValues>
+					<KeyValue key="backdropInfo" value="LOOTRESERVE_BACKDROP_BLACK_4" type="global" />
+				</KeyValues>
 				<Anchors>
 					<Anchor point="TOPLEFT" relativeKey="$parent.Search" relativePoint="TOPRIGHT" />
 					<Anchor point="BOTTOMRIGHT" x="-16" y="16" />
@@ -367,6 +431,10 @@
 			</OnLoad>
 			<OnShow>
 				PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN);
+				if not self.openedOnce then
+					self.openedOnce = true;
+					LootReserve.Client:UpdateCategories(); -- Needed to update collapsed state after settings are loaded
+				end
 			</OnShow>
 			<OnHide>
 				CloseMenus();

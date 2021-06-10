@@ -57,6 +57,8 @@ strings = {
     ["MELEE_ATTACK_POWER_SETTING_DESC"] = "Affiche/Cache la puissance d'attaque en mêlée.",
     ["MELEE_CRIT_SETTING"] = "Critique en mêlée",
     ["MELEE_CRIT_SETTING_DESC"] = "Affiche/cache les chances d'infliger un coup critique en mêlée.",
+    ["MELEE_EXPERTISE_SETTING"] = "Expertise",
+    ["MELEE_EXPERTISE_SETTING_DESC"] = "Shows/Hides the expertise value.",
     ["MELEE_HIT_SETTING"] = "Toucher en mêlée",
     ["MELEE_HIT_SETTING_DESC"] = "Affiche/cache les chances de toucher en mêlée.",
     ["MELEE_HIT_VALUES_SETTING"] = "Valeurs de toucher en mêlée",
@@ -82,6 +84,8 @@ strings = {
     ["RANGED_HIT_BONUS_SETTING_DESC"] = "Affiche/cache le bonus de toucher à distance.",
     ["RANGED_MISS_CHANCE_SETTING_DESC"] = "Affiche/cache les chances de rater à distance contre un ennemi du même niveau.",
     ["RANGED_MISS_CHANCE_BOSS_SETTING_DESC"] = "Affiche/cache les chances de rater à distance contre un boss de 3 niveaux supérieurs.",
+    ["RANGED_ATTACK_SPEED_SETTING"] = "Attack Speed",
+    ["RANGED_ATTACK_SPEED_SETTING_DESC"] = "Shows/Hides the ranged attack speed.",
     -- Defense Settings
     ["DEFENSE_SETTINGS"] = "Défense Général",
     ["DEFENSE_SETTINGS_DESC"] = "Affiche/cache toutes les statistiques de défense.",
@@ -97,6 +101,8 @@ strings = {
     ["PARRY_CHANCE_SETTING_DESC"] = "Affiche/cache les chances de parer.",
     ["DODGE_CHANCE_SETTING"] = "Chances d'esquiver",
     ["DODGE_CHANCE_SETTING_DESC"] = "Affiche/cache les chances d'esquiver.",
+    ["RESILIENCE_SETTING"] = "Résilience",
+    ["RESILIENCE_SETTING_DESC"] = "Affiche/cache la valeur de résilience.",
     -- Mana Settings
     ["MANA_SETTINGS"] = "Mana Général",
     ["MANA_SETTINGS_DESC"] = "Affiche/cache toutes les statistiques de mana.",
@@ -113,6 +119,8 @@ strings = {
     ["SPELL_SETTINGS_DESC"] = "Affiche/cache toutes les statistiques des sorts.",
     ["SPELL_CRIT_SETTING"] = "Critique des sorts",
     ["SPELL_CRIT_SETTING_DESC"] = "Affiche/cache les chances d'infliger un coup critique avec les sorts.",
+    ["SPELL_PENETRATION_SETTING"] = "Spell Penetration",
+    ["SPELL_PENETRATION_SETTING_DESC"] = "Shows/Hides the spell penetration value.",
     ["SPELL_HIT_SETTING"] = "Toucher des sorts",
     ["SPELL_HIT_SETTING_DESC"] = "Affiche/cache les chances de toucher avec les sorts.",
     ["SPELL_HIT_VALUES_SETTING"] = "Val. de toucher sorts",
@@ -163,7 +171,9 @@ strings = {
     ["BONUS"] = "Bonus: ",
     ["ATTACK_POWER"] = "Puissance d'attaque: ",
     ["CRIT_CHANCE"] = "Chances de critique: ",
-    ["ATTACK_SPEED"] = "Attack Speed",
+    ["EXPERTISE"] = "Expertise: ",
+    ["ATTACK_SPEED_HEADER"] = "Attack Speed",
+    ["ATTACK_SPEED"] = "Attack Speed: ",
     ["ATTACK_SPEED_MAIN_HAND"] = "Main Hand: ",
     ["ATTACK_SPEED_OFF_HAND"] = "Off Hand: ",
 
@@ -178,6 +188,7 @@ strings = {
     ["BLOCK_VALUE"] = "Bloquage: ",
     ["PARRY_CHANCE"] = "Chances de parrer: ",
     ["DODGE_CHANCE"] = "Chances d'esquiver: ",
+    ["RESILIENCE_VALUE"] = "Résilience: ",
 
     ["MP5_ITEMS"] = "MP5 (Objets): ",
     ["MP5_SPIRIT"] = "MP5 (Esprit): ",
@@ -185,6 +196,7 @@ strings = {
     ["MP5_CASTING"] = "MP5 (Lancer): ",
 
     ["SPELL"] = "Sorts",
+    ["SPELL_PENETRATION"] = "Penetration: ",
 
     ["SPELL_POWER"] = "Puissance des sorts",
     ["HEALING_POWER"] = "Puissance des soins: ",

@@ -3,11 +3,13 @@ local L		= mod:GetLocalizedStrings()
 
 local DBM = DBM
 local GetPlayerFactionGroup = GetPlayerFactionGroup or UnitFactionGroup -- Classic Compat fix
-local isClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+local isClassic = WOW_PROJECT_ID == (WOW_PROJECT_CLASSIC or 2)
+local isTBC = WOW_PROJECT_ID == (WOW_PROJECT_BURNING_CRUSADE_CLASSIC or 5)
 
-mod:SetRevision("20210322085043")
+mod:SetRevision("20210520134703")
 mod:SetZone(DBM_DISABLE_ZONE_DETECTION)
 mod:RegisterEvents(
+	"ZONE_CHANGED_NEW_AREA",
 	"LOADING_SCREEN_DISABLED",
 	"PLAYER_ENTERING_WORLD",
 	"PLAYER_DEAD",
@@ -163,10 +165,12 @@ do
 	local function Init(self)
 		local _, instanceType = IsInInstance()
 		if instanceType == "pvp" or instanceType == "arena" then
-			SendAddonMessage(isClassic and "D4C" or "D4", "H", "INSTANCE_CHAT")
-			self:Schedule(3, DBM.RequestTimers, DBM)
-			if not bgzone and self.Options.HideBossEmoteFrame then
-				DBM:HideBlizzardEvents(1, true)
+			if not bgzone then
+				SendAddonMessage(isTBC and "D4BC" or isClassic and "D4C" or "D4", "H", "INSTANCE_CHAT")
+				self:Schedule(3, DBM.RequestTimers, DBM)
+				if self.Options.HideBossEmoteFrame then
+					DBM:HideBlizzardEvents(1, true)
+				end
 			end
 			bgzone = true
 		elseif bgzone then
@@ -197,6 +201,7 @@ do
 	function mod:LOADING_SCREEN_DISABLED()
 		self:Schedule(0.5, Init, self)
 	end
+	mod.ZONE_CHANGED_NEW_AREA	= mod.LOADING_SCREEN_DISABLED
 	mod.PLAYER_ENTERING_WORLD	= mod.LOADING_SCREEN_DISABLED
 	mod.OnInitialize			= mod.LOADING_SCREEN_DISABLED
 end
@@ -283,7 +288,7 @@ do
 	local startTimer		= mod:NewTimer(120, "TimerStart", GetPlayerFactionGroup("player") == "Alliance" and "132486" or "132485") -- Interface\\Icons\\INV_BannerPVP_02.blp || Interface\\Icons\\INV_BannerPVP_01.blp
 	local remainingTimer	= mod:NewTimer(780, "TimerRemaining", GetPlayerFactionGroup("player") == "Alliance" and "132486" or "132485") -- Interface\\Icons\\INV_BannerPVP_02.blp || Interface\\Icons\\INV_BannerPVP_01.blp
 	local vulnerableTimer, timerShadow, timerDamp
-	if not isClassic then
+	if not isClassic and not isTBC then
 		vulnerableTimer	= mod:NewNextTimer(60, 46392)
 		timerShadow		= mod:NewNextTimer(90, 34709)
 		timerDamp		= mod:NewCastTimer(300, 110310)
@@ -304,7 +309,7 @@ do
 				startTimer:Update(timeSeconds, 120)
 			end
 			self:Schedule(timeSeconds + 1, function()
-				if not isClassic and instanceType == "arena" then
+				if not isClassic and not isTBC and instanceType == "arena" then
 					timerShadow:Start()
 					timerDamp:Start()
 				end
@@ -329,7 +334,7 @@ do
 				flagTimer:SetColor({r=1, g=0, b=0})
 				flagTimer:UpdateIcon("132485") -- Interface\\Icons\\INV_BannerPVP_01.blp
 			end
-			if not isClassic then
+			if not isClassic and not isTBC then
 				vulnerableTimer:Cancel()
 			end
 		end
@@ -365,10 +370,10 @@ do
 	local resourcesPerSec = {
 		[3] = {1e-300, 0.5, 1.5, 2}, -- Gilneas
 		[4] = {1e-300, 1, 1.5, 2, 6}, -- TempleOfKotmogu/EyeOfTheStorm
-		[5] = {1e-300, 1, 1.5, 2, 3.5, 30--[[Unknown]]} -- Arathi/Deepwind
+		[5] = {1e-300, 1, 1.5, 2, 3.5, 30} -- Arathi/Deepwind
 	}
 
-	if isClassic then
+	if isClassic or isTBC then
 		-- 2014 values seem ok https://github.com/DeadlyBossMods/DBM-PvP/blob/843a882eae2276c2be0646287c37b114c51fcffb/DBM-PvP/Battlegrounds/Arathi.lua#L32-L39
 		resourcesPerSec[5] = {1e-300, 10/12, 10/9, 10/6, 10/3, 30}
 	end
@@ -475,7 +480,7 @@ do
 		-- retail av
 		[91]    = 243,
 		-- classic av
-		[1459]  = 304,
+		[1459]  = WOW_PROJECT_ID == (WOW_PROJECT_BURNING_CRUSADE_CLASSIC or 5) and 243 or 304,
 		-- korrak
 		[1537]  = 243
 	}
@@ -487,15 +492,15 @@ do
 	}
 	local icons = {
 		-- Graveyard
-		[isClassic and 3 or 4]      = State.ALLY_CONTESTED,
-		[isClassic and 14 or 15]    = State.ALLY_CONTROLLED,
-		[isClassic and 13 or 14]    = State.HORDE_CONTESTED,
-		[isClassic and 12 or 13]    = State.HORDE_CONTROLLED,
+		[(isClassic or isTBC) and 3 or 4]      = State.ALLY_CONTESTED,
+		[(isClassic or isTBC) and 14 or 15]    = State.ALLY_CONTROLLED,
+		[(isClassic or isTBC) and 13 or 14]    = State.HORDE_CONTESTED,
+		[(isClassic or isTBC) and 12 or 13]    = State.HORDE_CONTROLLED,
 		-- Tower/Lighthouse
-		[isClassic and 8 or 9]      = State.ALLY_CONTESTED,
-		[isClassic and 10 or 11]    = State.ALLY_CONTROLLED,
-		[isClassic and 11 or 12]    = State.HORDE_CONTESTED,
-		[isClassic and 9 or 10]     = State.HORDE_CONTROLLED,
+		[(isClassic or isTBC) and 8 or 9]      = State.ALLY_CONTESTED,
+		[(isClassic or isTBC) and 10 or 11]    = State.ALLY_CONTROLLED,
+		[(isClassic or isTBC) and 11 or 12]    = State.HORDE_CONTESTED,
+		[(isClassic or isTBC) and 9 or 10]     = State.HORDE_CONTROLLED,
 		-- Mine/Quarry
 		[17]                        = State.ALLY_CONTESTED,
 		[18]                        = State.ALLY_CONTROLLED,
@@ -557,7 +562,7 @@ do
 		[219]                       = State.HORDE_CONTESTED,
 		[216]                       = State.HORDE_CONTROLLED
 	}
-	local capTimer = mod:NewTimer(isClassic and 64 or 60, "TimerCap", "136002") -- Interface\\icons\\spell_misc_hellifrepvphonorholdfavor.blp
+	local capTimer = mod:NewTimer((isTBC or isClassic) and 64 or 60, "TimerCap", "136002") -- Interface\\icons\\spell_misc_hellifrepvphonorholdfavor.blp
 
 	function mod:AREA_POIS_UPDATED(widget)
 		local allyBases, hordeBases = 0, 0

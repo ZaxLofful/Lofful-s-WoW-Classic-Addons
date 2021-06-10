@@ -5,12 +5,13 @@ local Utils = ECSLoader:ImportModule("Utils")
 ---@type DataUtils
 local DataUtils = ECSLoader:ImportModule("DataUtils")
 
-local _IsRangeAttackClass
+local _Ranged = {}
 
+local _, _, classId = UnitClass("player")
 
 ---@return string
 function Data:GetRangeAttackPower()
-    if not _IsRangeAttackClass() then
+    if not _Ranged:IsRangeAttackClass() then
         return 0
     end
 
@@ -19,39 +20,61 @@ function Data:GetRangeAttackPower()
 end
 
 ---@return boolean
-_IsRangeAttackClass = function()
-    local _, _, classId = UnitClass("player")
-
+function _Ranged:IsRangeAttackClass()
     return classId == Data.WARRIOR or classId == Data.ROGUE or classId == Data.HUNTER
 end
 
+---@return string
+function Data:GetRangedAttackSpeed()
+    local speed, _ = UnitRangedDamage("player")
+    return DataUtils:Round(speed, 2)
+end
 
 ---@return string
 function Data:RangedCrit()
     return DataUtils:Round(GetRangedCritChance(), 2) .. "%"
 end
 
+---@return string
+function Data:RangeHitBonus()
+    return DataUtils:Round(_Ranged:GetHitBonus(), 2) .. "%"
+end
+
 ---@return number
-local function _GetRangeHitBonus()
+function _Ranged:GetHitBonus()
     local hitValue = 0
 
-    local rangedEnchant = DataUtils:GetEnchantForEquipSlot(Utils.CHAR_EQUIP_SLOTS["Range"])
-    if rangedEnchant and rangedEnchant == Data.enchantIds.BIZNIK_SCOPE then
-        hitValue = hitValue + 3
+    -- Biznick Scope awards Hit rating in TBC and is part of CR_HIT_RANGED
+    if (not ECS.IsTBC) then
+        local rangedEnchant = DataUtils:GetEnchantForEquipSlot(Utils.CHAR_EQUIP_SLOTS["Range"])
+        if rangedEnchant and rangedEnchant == Data.enchantIds.BIZNICK_SCOPE then
+            hitValue = hitValue + 3
+        end
     end
 
-    -- From Items
-    local hitFromItems = GetHitModifier()
+    local hitFromItems
+    if CR_HIT_RANGED then
+        hitFromItems = GetCombatRatingBonus(CR_HIT_RANGED)
+    else
+        hitFromItems = GetHitModifier()
+    end
+
     if hitFromItems then -- This needs to be checked because on dungeon entering it becomes nil
-        hitValue = hitValue + hitFromItems
+        hitValue = hitValue + hitFromItems + _Ranged:GetHitTalentBonus()
     end
 
     return hitValue
 end
 
----@return string
-function Data:RangeHitBonus()
-    return DataUtils:Round(_GetRangeHitBonus(), 2) .. "%"
+function _Ranged:GetHitTalentBonus()
+    local bonus = 0
+
+    if classId == Data.HUNTER then
+        local _, _, _, _, points, _, _, _ = GetTalentInfo(3, 12)
+        bonus = points * 1 -- 0-3% Surefooted
+    end
+
+    return bonus
 end
 
 ---@return string
@@ -61,7 +84,7 @@ function Data:RangeMissChanceSameLevel()
     local enemyDefenseValue = playerLevel * 5
 
     local missChance = DataUtils:GetMissChanceByDifference(rangedAttackBase + rangedAttackMod, enemyDefenseValue)
-    missChance = missChance - _GetRangeHitBonus()
+    missChance = missChance - _Ranged:GetHitBonus()
 
     if missChance < 0 then
         missChance = 0
@@ -80,7 +103,7 @@ function Data:RangeMissChanceBossLevel()
     local enemyDefenseValue = (playerLevel + 3) * 5
 
     local missChance = DataUtils:GetMissChanceByDifference(rangedWeaponSkill, enemyDefenseValue)
-    local hitBonus = _GetRangeHitBonus()
+    local hitBonus = _Ranged:GetHitBonus()
     if rangedWeaponSkill < 305 and hitBonus >= 1 then
         hitBonus = hitBonus - 1
     end

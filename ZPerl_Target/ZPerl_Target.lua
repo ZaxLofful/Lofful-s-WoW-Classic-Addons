@@ -23,11 +23,12 @@ XPerl_RequestConfig(function(new)
 	if (XPerl_PetTarget) then
 		XPerl_PetTarget.conf = conf.pettarget
 	end
-end, "$Revision: db18dc5e0c4c75bd4409e62e8418da694d08e359 $")
+end, "$Revision: f59e7d739fe667c357cee87d003de6e802c8ae29 $")
 
-local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
-local LCD = IsClassic and LibStub and LibStub("LibClassicDurations")
-if IsClassic then
+local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
+local IsVanillaClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+local LCD = IsVanillaClassic and LibStub and LibStub("LibClassicDurations", true)
+if LCD then
 	LCD.RegisterCallback("ZPerl", "UNIT_BUFF", function(event, unit)
 		if unit == "target" then
 			XPerl_Target_Events:UNIT_AURA(event, unit)
@@ -172,7 +173,7 @@ function XPerl_Target_OnLoad(self, partyid)
 		self.statsFrame.focusTarget:SetVertexColor(0.7, 1, 1, 0.5)
 
 		self:RegisterEvent("PLAYER_TARGET_CHANGED")
-		if not IsClassic then
+		if not IsVanillaClassic then
 			self:RegisterEvent("PLAYER_FOCUS_CHANGED")
 		end
 
@@ -183,7 +184,7 @@ function XPerl_Target_OnLoad(self, partyid)
 	else
 		XPerl_BlizzFrameDisable(FocusFrame)
 
-		if not IsClassic then
+		if not IsVanillaClassic then
 			self:RegisterEvent("PLAYER_FOCUS_CHANGED")
 		end
 		self:RegisterEvent("PLAYER_ENTERING_WORLD")

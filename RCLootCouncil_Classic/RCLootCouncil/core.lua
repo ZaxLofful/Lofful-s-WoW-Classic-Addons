@@ -401,7 +401,7 @@ function RCLootCouncil:ChatCommand(msg)
 
 	elseif input == "history" or input == string.lower(_G.HISTORY) or input == "h" or input == "his" then
 		self:CallModule("history")
---[===[@debug@
+--[==[@debug@
 	elseif input == "nnp" then
 		self.nnp = not self.nnp
 		self:Print("nnp = "..tostring(self.nnp))
@@ -412,7 +412,7 @@ function RCLootCouncil:ChatCommand(msg)
 		self:Test(1, false, true)
 	elseif input == "exporttokendata" then
 		self:ExportTokenData()
---@end-debug@]===]
+--@end-debug@]==]
 	elseif input == "whisper" or input == string.lower(_G.WHISPER) then
 		self:Print(L["whisper_help"])
 
@@ -490,7 +490,7 @@ function RCLootCouncil:ChatCommand(msg)
 
 	elseif input == "trade" then
 		self.TradeUI:Show(true)
---[===[@debug@
+--[==[@debug@
 	elseif input == 't' then -- Tester cmd
 		-- Test items with several modifiers. Should probably be added to the regular test func
 		local items = {
@@ -507,7 +507,7 @@ function RCLootCouncil:ChatCommand(msg)
 		self:CallModule("masterlooter")
 		self:GetActiveModule("masterlooter"):NewML(self.masterLooter)
 		self:GetActiveModule("masterlooter"):Test(items)
---@end-debug@]===]
+--@end-debug@]==]
 	else
 		-- Check if the input matches anything
 		for k, v in pairs(self.customChatCmd) do
@@ -2566,7 +2566,7 @@ end
 -- @param height Height of the frame, defaults to 325.
 -- @return The frame object.
 function RCLootCouncil:CreateFrame(name, cName, title, width, height)
-	local f = CreateFrame("Frame", name, UIParent) -- LibWindow seems to work better with nil parent
+	local f = CreateFrame("Frame", name, UIParent, BackdropTemplateMixin and "BackdropTemplate") -- LibWindow seems to work better with nil parent
 	f:Hide()
 	f:SetFrameStrata("DIALOG")
 	f:SetWidth(450)
@@ -2577,10 +2577,11 @@ function RCLootCouncil:CreateFrame(name, cName, title, width, height)
 	f:RestorePosition() -- might need to move this to after whereever GetFrame() is called
 	f:MakeDraggable()
 	f:SetScript("OnMouseWheel", function(f,delta) if IsControlKeyDown() then lwin.OnMouseWheel(f,delta) end end)
+	f:SetToplevel(true)
 
-	local tf = CreateFrame("Frame", "RC_UI_"..cName.."_Title", f)
+	local tf = CreateFrame("Frame", "RC_UI_"..cName.."_Title", f, BackdropTemplateMixin and "BackdropTemplate")
 	--tf:SetFrameStrata("DIALOG")
-	tf:SetToplevel(true)
+	tf:SetFrameLevel(2)
 	tf:SetBackdrop({
 	   --   bgFile = AceGUIWidgetLSMlists.background[db.UI.default.background],
 	   --   edgeFile = AceGUIWidgetLSMlists.border[db.UI.default.border],
@@ -2596,7 +2597,10 @@ function RCLootCouncil:CreateFrame(name, cName, title, width, height)
 	tf:SetMovable(true)
 	tf:SetWidth(width or 250)
 	tf:SetPoint("CENTER",f,"TOP",0,-1)
-	tf:SetScript("OnMouseDown", function(self) self:GetParent():StartMoving() end)
+	tf:SetScript("OnMouseDown", function(self)
+		self:GetParent():StartMoving()
+		self:GetParent():SetToplevel(true)
+	end)
 	tf:SetScript("OnMouseUp", function(self) -- Get double click by trapping time betweem mouse up
 		local frame = self:GetParent()
 		frame:StopMovingOrSizing()
@@ -2618,13 +2622,14 @@ function RCLootCouncil:CreateFrame(name, cName, title, width, height)
 	tf.text = text
 	f.title = tf
 
-	local c = CreateFrame("Frame", "RC_UI_"..cName.."_Content", f) -- frame that contains the actual content
+	local c = CreateFrame("Frame", "RC_UI_"..cName.."_Content", f, BackdropTemplateMixin and "BackdropTemplate") -- frame that contains the actual content
 	c:SetBackdrop({
 		bgFile = AceGUIWidgetLSMlists.background[db.skins[db.currentSkin].background],
 		edgeFile = AceGUIWidgetLSMlists.border[db.skins[db.currentSkin].border],
 	   tile = true, tileSize = 255, edgeSize = 16,
 	   insets = { left = 2, right = 2, top = 2, bottom = 2 }
 	})
+	c:SetFrameLevel(1)
 	c:EnableMouse(true)
 	c:SetWidth(450)
 	c:SetHeight(height or 325)
@@ -2960,7 +2965,7 @@ function RCLootCouncil:GetResponseColor(type, name)
 end
 
 --#end UI Functions -----------------------------------------------------
---[===[@debug@
+--[==[@debug@
 -- debug func
 _G.printtable = function( data, level )
 	if not data then return end
@@ -2978,7 +2983,7 @@ _G.printtable = function( data, level )
         print( ident .. '}' );
 	until true end
 end
---@end-debug@]===]
+--@end-debug@]==]
 
 -- v2.3.1 added some new stuff. This will update old history entries with most of that for english clients.
 -- Should be kept for a while so people can update in case their ML is slow to get it done.

@@ -185,7 +185,11 @@ _CreateStatInfos = function()
     _CreateStatInfo(category, category.movementSpeed)
 
     category = profile.melee
-    _CreateStatInfo(category, category.attackPower, category.crit)
+    if ECS.IsTBC then
+        _CreateStatInfo(category, category.attackPower, category.crit, category.expertise)
+    else
+        _CreateStatInfo(category, category.attackPower, category.crit)
+    end
     if category.display then
         category = category.hit
         _CreateStatInfo(category, category.bonus, category.sameLevel, category.bossLevel)
@@ -194,20 +198,25 @@ _CreateStatInfos = function()
     end
 
     category = profile.ranged
-    _CreateStatInfo(category, category.attackPower, category.crit)
+    _CreateStatInfo(category, category.attackPower, category.crit, category.attackSpeed)
     if category.display then
         category = category.hit
         _CreateStatInfo(category, category.bonus, category.sameLevel, category.bossLevel)
     end
 
     category = profile.defense
-    _CreateStatInfo(category, category.armor, category.defense, category.blockChance, category.blockValue, category.parry, category.dodge)
-
+    if ECS.IsTBC then
+        _CreateStatInfo(category, category.armor, category.defense, category.blockChance, category.blockValue, category.parry,
+            category.dodge, category.resilience)
+    else
+        _CreateStatInfo(category, category.armor, category.defense, category.blockChance, category.blockValue, category.parry,
+            category.dodge)
+    end
     category = profile.regen
     _CreateStatInfo(category, category.mp5Items, category.mp5Spirit, category.mp5Buffs, category.mp5Casting)
 
     category = profile.spell
-    _CreateStatInfo(category, category.crit)
+    _CreateStatInfo(category, category.crit, category.penetration)
     if category.display then
         category = category.hit
         _CreateStatInfo(category, category.bonus, category.sameLevel, category.bossLevel)

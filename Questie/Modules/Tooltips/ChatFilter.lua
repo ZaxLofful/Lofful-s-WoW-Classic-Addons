@@ -9,31 +9,29 @@ local QuestieLib = QuestieLoader:ImportModule("QuestieLib")
 ---------------------------------------------------------------------------------------------------
 
 --- Message Event Filter which intercepts incoming linked quests and replaces them with Hyperlinks
-local function QuestsFilter(chatFrame, event, msg, playerName, languageName, channelName, playerName2, specialFlags, zoneChannelID, channelIndex, channelBaseName, unused, lineID, senderGUID, bnSenderID, ...)
+local function QuestsFilter(chatFrame, _, msg, playerName, languageName, channelName, playerName2, specialFlags, zoneChannelID, channelIndex, channelBaseName, unused, lineID, senderGUID, bnSenderID, ...)
     if string.find(msg, "%[(..-) %((%d+)%)%]") then
         if chatFrame and chatFrame.historyBuffer and #(chatFrame.historyBuffer.elements) > 0 and chatFrame ~= _G.ChatFrame2 then
             for k in string.gmatch(msg, "%[%[?%d?..?%]?..-%]") do
-                local complete, sqid, questId, questLevel, questName, realQuestName, realQuestLevel
-                _, _, questName, sqid = string.find(k, "%[(..-) %((%d+)%)%]")
+                local sqid, questId, questLevel, questName, realQuestName, realQuestLevel
+
+                questName, sqid = string.match(k, "%[(..-) %((%d+)%)%]")
 
                 if questName and sqid then
                     questId = tonumber(sqid)
 
                     if string.find(questName, "(%[%d+.-%]) ") ~= nil then
-                        _, _, questLevel, questName = string.find(questName, "%[(..-)%] (.+)")
+                        questLevel, questName = string.match(questName, "%[(..-)%] (.+)")
                     end
 
                     if QuestieDB.QueryQuest then
-                        realQuestName, realQuestLevel = unpack(QuestieDB.QueryQuest(questId, "name", "questLevel"))
-
-                        if questName and questId then
-                            complete = QuestieDB:IsComplete(questId)
-                        end
+                        realQuestName = QuestieDB.QueryQuestSingle(questId, "name");
+                        realQuestLevel, _ = QuestieLib:GetTbcLevel(questId);
                     end
                 end
 
                 if realQuestName and questId then
-                    local coloredQuestName = QuestieLib:GetColoredQuestName(questId, questName, realQuestLevel, Questie.db.global.trackerShowQuestLevel, true, false)
+                    local coloredQuestName = QuestieLib:GetColoredQuestName(questId, Questie.db.global.trackerShowQuestLevel, true, false)
 
                     if senderGUID == nil then
                         playerName = BNGetFriendInfoByID(bnSenderID)

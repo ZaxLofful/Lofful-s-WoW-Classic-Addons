@@ -47,7 +47,7 @@ function Data:GetStatInfo(refName)
     if dataFunction then
         return dataFunction()
     else
-        print("[ECS] Invalid data refName:", refName)
+        ECS:Print("Invalid data refName: " .. refName)
     end
 end
 
@@ -56,6 +56,13 @@ dataFunctionRefs = {
     -- Melee
     ["MeleeAttackPower"] = function() return Data:GetMeleeAttackPower() end,
     ["MeleeCritChance"] = function() return Data:MeleeCrit() end,
+    ["Expertise"] = function()
+        if ECS.IsTBC then
+            return Data:GetExpertise()
+        else
+            return ""
+        end
+    end,
     ["MeleeHitBonus"] = function() return Data:MeleeHitBonus() end,
     ["MeleeHitSameLevel"] = function() return Data:MeleeHitMissChanceSameLevel() end,
     ["MeleeHitBossLevel"] = function() return Data:MeleeHitMissChanceBossLevel() end,
@@ -67,6 +74,7 @@ dataFunctionRefs = {
     ["RangedHitBonus"] = function() return Data:RangeHitBonus() end,
     ["RangedHitSameLevel"] = function() return Data:RangeMissChanceSameLevel() end,
     ["RangedHitBossLevel"] = function() return Data:RangeMissChanceBossLevel() end,
+    ["RangedAttackSpeed"] = function() return Data:GetRangedAttackSpeed() end,
     -- Defense
     ["Armor"] = function() return Data:GetArmorValue() end,
     ["DefenseValue"] = function() return Data:GetDefenseValue() end,
@@ -74,11 +82,19 @@ dataFunctionRefs = {
     ["ParryChance"] = function() return Data:GetParryChance() end,
     ["BlockChance"] = function() return Data:GetBlockChance() end,
     ["BlockValue"] = function() return Data:GetBlockValue() end,
+    ["ResilienceValue"] = function()
+        if ECS.IsTBC then
+            return Data:GetResilienceValue()
+        else
+            return ""
+        end
+    end,
     -- Spell
     ["SpellHitBonus"] = function() return Data:SpellHitBonus() end,
     ["SpellHitSameLevel"] = function() return Data:SpellMissChanceSameLevel() end,
     ["SpellHitBossLevel"] = function() return Data:SpellMissChanceBossLevel() end,
-    ["SpellCritChance"] = function() return Data.GetSpellCrit(0) end,
+    ["SpellCritChance"] = function() return Data:GetSpellCrit(0) end,
+    ["SpellPenetration"] = function() return Data:GetSpellPenetration() end,
     -- MP5
     ["MP5Items"] = function() return Data:GetMP5FromItems() end,
     ["MP5Spirit"] = function() return Data:GetMP5FromSpirit() end,
