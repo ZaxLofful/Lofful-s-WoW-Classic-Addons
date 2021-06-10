@@ -1,5 +1,5 @@
 
-## Interface: 11307
+## Interface: 20501
 ## Author: Arkaan
 ## Version: 1.9294
 ## Title: Guild Roster Manager
