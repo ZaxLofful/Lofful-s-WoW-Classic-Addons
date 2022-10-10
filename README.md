@@ -1,4 +1,6 @@
 # Lofful's WoW Classic Addons
+![If you are looking for WoW WOTLK (Click here)](https://github.com/ZaxLofful/Lofful-s-WoW-WOTLK-Addons)
+
 I dual-box as Rogue/Priest (compltely manualy not software asisted in anyway). It can become a hassle to update the addons on both of my computers. So I created this repo initally for that, but some friends wanted my addons as well.
 
 This is an autoupdated list of the addons I use in game. Lots of good stuff...
