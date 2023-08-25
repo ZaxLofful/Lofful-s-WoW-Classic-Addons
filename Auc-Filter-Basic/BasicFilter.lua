@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - BasicFilter
-	Version: 8.2.6364 (SwimmingSeadragon)
-	Revision: $Id: BasicFilter.lua 6364 2019-10-20 00:10:07Z none $
+	Version: 3.4.6803 (SwimmingSeadragon)
+	Revision: $Id: BasicFilter.lua 6803 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -394,7 +394,7 @@ end
 
 --[[ Prompt and Dialog Setup ]]--
 
-private.IgnorePrompt = CreateFrame("Frame", nil, UIParent)
+private.IgnorePrompt = CreateFrame("Frame", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate")
 private.IgnorePrompt:Hide()
 private.IgnorePrompt:SetBackdrop({
 	  bgFile = "Interface/Tooltips/ChatBubble-Background",
@@ -429,4 +429,4 @@ private.IgnorePrompt.no:SetPoint("BOTTOMRIGHT", private.IgnorePrompt, "BOTTOMRIG
 private.IgnorePrompt.no:SetScript("OnClick", private.OnPromptNo)
 private.IgnorePrompt.no:SetText(NO)
 
-AucAdvanced.RegisterRevision("$URL: Auc-Filter-Basic/BasicFilter.lua $", "$Rev: 6364 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Filter-Basic/BasicFilter.lua $", "$Rev: 6803 $")

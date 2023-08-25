@@ -1,7 +1,7 @@
 ﻿--[[
 	Auctioneer - Search UI - Searcher Arbitrage
-	Version: 8.2.6464 (SwimmingSeadragon)
-	Revision: $Id: SearcherArbitrage.lua 6464 2019-10-20 00:10:07Z none $
+	Version: 3.4.6829 (SwimmingSeadragon)
+	Revision: $Id: SearcherArbitrage.lua 6829 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is a plugin module for the SearchUI that assists in searching by refined paramaters
@@ -109,7 +109,7 @@ default("arbitrage.seen.check", false)
 default("arbitrage.seen.min", 10)
 default("arbitrage.adjust.brokerage", true)
 default("arbitrage.adjust.deposit", true)
-default("arbitrage.adjust.deplength", 48)
+default("arbitrage.adjust.deplength", resources.defaultAuctionLength)
 default("arbitrage.adjust.listings", 3)
 default("arbitrage.allow.bid", true)
 default("arbitrage.allow.buy", true)
@@ -288,10 +288,8 @@ function lib.Search(item)
 		market = market * private.searchAdjust
 	end
 	if get("arbitrage.adjust.deposit") then
-		local amount = AucAdvanced.Post.GetDepositCost(link, get("arbitrage.adjust.deplength"), market, 0, count)
-		if amount then
-			market = market - amount * get("arbitrage.adjust.listings")
-		end
+		local amount = resources.GetDepositCost(link, get("arbitrage.adjust.deplength"), resources.Faction, 1) or 0
+		market = market - amount * get("arbitrage.adjust.listings") * count
 	end
 
 	local value = min(market*(100-get("arbitrage.profit.pct"))/100, market-get("arbitrage.profit.min"))
@@ -303,4 +301,4 @@ function lib.Search(item)
 	return false, "Not enough profit"
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearcherArbitrage.lua $", "$Rev: 6464 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearcherArbitrage.lua $", "$Rev: 6829 $")

@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Scan Button module
-	Version: 8.2.6346 (SwimmingSeadragon)
-	Revision: $Id: ScanButton.lua 6346 2019-10-20 00:10:07Z none $
+	Version: 3.4.6785 (SwimmingSeadragon)
+	Revision: $Id: ScanButton.lua 6785 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an Auctioneer module that adds a textual scan progress
@@ -154,7 +154,7 @@ function private.HookAH()
 	private.buttons.getall.tex:SetTexCoord(0.75, 1, 0, 1)
 	private.buttons.getall.tex:SetVertexColor(0.3, 0.7, 1.0)
 
-	local msg = CreateFrame("Frame", nil, UIParent)
+	local msg = CreateFrame("Frame", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate")
 	private.message = msg
 	msg:Hide()
 	msg:SetPoint("CENTER", "UIParent", "CENTER")
@@ -397,22 +397,25 @@ This means we do not have to directly modify blizzards filter frame
 --Resets the selections table to 0 if an alt click is not used, or after a scan has been implemented
 private.Filters = {}
 function private.AuctionFrameFilters_ClearSelection()
-	for i,v in pairs(CLASS_FILTERS) do -- ### Legion : CLASS_FILTERS exists, but is not used by Blizzard code (empty table)
-		private.Filters[v] = {0,i} --store cleared table of selections
+	for _, category in pairs(AuctionCategories) do
+		-- store cleared table of selections
+		-- we will use the cat name from the button as it is clicked as a lookup
+		-- we store a reference to the category table within AuctionCategories
+		private.Filters[category.name] = {0, category}
 	end
 end
 --clear any current highlighting from a prev search
 function private.AuctionFrameFilters_ClearHighlight()
-	for i in pairs(CLASS_FILTERS) do
+	for i = 1, NUM_FILTERS_TO_DISPLAY do
 		_G["AuctionFilterButton"..i]:UnlockHighlight()
 	end
 end
-
+-- Build queue according to currently highlighted categories
 function private.checkedFrames()
 	queue = {}
 	for i,v in pairs(private.Filters) do
 		if v[1] == 1 then
-			table.insert(queue, v[2])
+			tinsert(queue, v[2])
 		end
 	end
 
@@ -422,7 +425,7 @@ end
 function private.CreateSecondaryFilterButtons()
 	local base, frame, prev = AuctionFrameBrowse, nil, nil
 	private.AuctionFrameFilters_ClearSelection() --create the filter selection table
-	for i = 1,15 do
+	for i = 1, NUM_FILTERS_TO_DISPLAY do
 		frame = "AuctioneerFilterButton"..i
 		prev = "AuctioneerFilterButton"..(i - 1)
 		if i == 1 then
@@ -431,7 +434,7 @@ function private.CreateSecondaryFilterButtons()
 			base[frame]:SetPoint("LEFT",0,0)
 			base[frame]:SetWidth(156)
 			base[frame]:SetAlpha(0)
-			base[frame]:SetScript("OnClick", function()
+			base[frame]:SetScript("OnClick", function() -- (self, button, down) ###
 				if IsControlKeyDown() then
 					-- Test patch to clear AH settings when CTRL click is used just like we clear ours when non-ctrl is used
 					if (AuctionFrameBrowse.selectedClassIndex) then -- ### Legion : replaced by selectedCategoryIndex
@@ -502,13 +505,13 @@ function private.AuctionFrameFilters_UpdateClasses()
 	for i=1, NUM_FILTERS_TO_DISPLAY do
 		button = _G["AuctioneerFilterButton"..i]
 
-		if ( getn(OPEN_FILTER_LIST) > NUM_FILTERS_TO_DISPLAY ) then
+		if ( #OPEN_FILTER_LIST > NUM_FILTERS_TO_DISPLAY ) then
 			button:SetWidth(126)
 		else
 			button:SetWidth(126)
 		end
 		index = index + 1
-		if ( index <= getn(OPEN_FILTER_LIST) ) then
+		if ( index <= #OPEN_FILTER_LIST ) then
 			info = OPEN_FILTER_LIST[index]
 			while ((info[2] == "invtype") and (not info[6])) do
 				index = index + 1
@@ -521,7 +524,7 @@ function private.AuctionFrameFilters_UpdateClasses()
 				end
 			end
 			if ( info ) then
-				FilterButton_SetType(button, info[2], info[1], info[5])
+				FilterButton_SetType(button, info[2], info[1], info[5]) -- ### replaced by FilterButton_SetUp(button, info) ???
 				button.index = info[3]
 				if ( info[4] ) then
 					button:LockHighlight()
@@ -535,6 +538,55 @@ function private.AuctionFrameFilters_UpdateClasses()
 		end
 
 	end
+	
+	
+	
+	--[[
+	
+	-- Display the list of open filters
+	local offset = FauxScrollFrame_GetOffset(BrowseFilterScrollFrame);
+	if ( forceSelectionIntoView and AuctionFrameBrowse.selectedCategoryIndex and ( not AuctionFrameBrowse.selectedSubCategoryIndex and not AuctionFrameBrowse.selectedSubSubCategoryIndex ) ) then
+		if ( AuctionFrameBrowse.selectedCategoryIndex <= offset ) then
+			FauxScrollFrame_OnVerticalScroll(BrowseFilterScrollFrame, math.max(0.0, (AuctionFrameBrowse.selectedCategoryIndex - 1) * BROWSE_FILTER_HEIGHT), BROWSE_FILTER_HEIGHT);
+			offset = FauxScrollFrame_GetOffset(BrowseFilterScrollFrame);
+		end
+	end
+	
+	local dataIndex = offset;
+
+	local hasScrollBar = #OPEN_FILTER_LIST > NUM_FILTERS_TO_DISPLAY;
+	for i = 1, NUM_FILTERS_TO_DISPLAY do
+		local button = AuctionFrameBrowse.FilterButtons[i];
+		button:SetWidth(hasScrollBar and 136 or 156);
+
+		dataIndex = dataIndex + 1;
+
+		if ( dataIndex <= #OPEN_FILTER_LIST ) then
+			local info = OPEN_FILTER_LIST[dataIndex];
+
+			if ( info ) then
+				FilterButton_SetUp(button, info);
+				
+				if ( info.type == "category" ) then
+					button.categoryIndex = info.categoryIndex;
+				elseif ( info.type == "subCategory" ) then
+					button.subCategoryIndex = info.subCategoryIndex;
+				elseif ( info.type == "subSubCategory" ) then
+					button.subSubCategoryIndex = info.subSubCategoryIndex;
+				end
+				
+				if ( info.selected ) then
+					button:LockHighlight();
+				else
+					button:UnlockHighlight();
+				end
+				button:Show();
+			end
+		else
+			button:Hide();
+		end
+	end
+	--]]
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-ScanButton/ScanButton.lua $", "$Rev: 6346 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-ScanButton/ScanButton.lua $", "$Rev: 6785 $")

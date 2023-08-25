@@ -5,7 +5,7 @@
 GTFO Spell List - Mists of Pandaria
 ]]--
 
-if (not (GTFO.ClassicMode or GTFO.BurningCrusadeMode)) then
+if (not (GTFO.ClassicMode or GTFO.BurningCrusadeMode or GTFO.WrathMode)) then
 
 -- ***************
 -- * Scholomance *
@@ -177,6 +177,26 @@ GTFO.SpellID["146919"] = {
 	--desc = "Dash of Spice (Ghost of Lin Da-Gu)";
 	sound = 1;
 	trivialPercent = 0;
+};
+
+GTFO.SpellID["397785"] = {
+  --desc = "Wash Away (Wise Mari)";
+  sound = 1;
+};
+
+GTFO.SpellID["397799"] = {
+  --desc = "Corrupted Vortex (Wise Mari)";
+  sound = 1;
+};
+
+GTFO.SpellID["398301"] = {
+  --desc = "Flames of Doubt (Shambling Infester)";
+  sound = 1;
+};
+
+GTFO.SpellID["396003"] = {
+  --desc = "Terrorial Display (The Songbird Queen)";
+  sound = 1;
 };
 
 -- *********************

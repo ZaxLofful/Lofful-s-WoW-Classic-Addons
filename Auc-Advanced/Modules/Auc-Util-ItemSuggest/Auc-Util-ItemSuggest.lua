@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Item Suggest module
-	Version: 8.2.6418 (SwimmingSeadragon)
-	Revision: $Id: Auc-Util-ItemSuggest.lua 6418 2019-10-20 00:10:07Z none $
+	Version: 3.4.6791 (SwimmingSeadragon)
+	Revision: $Id: Auc-Util-ItemSuggest.lua 6791 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an Auctioneer module that allows the added tooltip for suggesting
@@ -40,7 +40,8 @@ local aucPrint,decode,_,_,replicate,_,get,set,default,debugPrint,_,_TRANS = AucA
 local Const = AucAdvanced.Const
 local Resources = AucAdvanced.Resources
 local ResolveServerKey = AucAdvanced.ResolveServerKey
-local GetDepositCost = GetDepositCost
+local GetDepositCost = AucAdvanced.Post.GetDepositCost
+local IsNeutralServerKey = AucAdvanced.IsNeutralServerKey
 local GetItemInfo = GetItemInfo
 
 local GetModelPrice -- function(model, link, serverKey)
@@ -317,16 +318,6 @@ function lib.GetAdjustmentInfo()
 
 	return cutAdjust, duration
 end
---[[ GetFactionInfo
-	Historical function retained for compatibility - Deprecated: modules should switch to GetAdjustmentInfo
-	With combined AuctionHouse there is only one set of fees and deposit costs.
-	serverKey parameter is accepted, but no longer makes any difference
-	faction return value returned for compatibility, but it should no longer be used in GetDepositCost
---]]
-function lib.GetFactionInfo(serverKey)
-	local cutAdjust, duration = lib.GetAdjustmentInfo()
-	return cutAdjust, duration, Resources.PlayerFaction
-end
 
 --[[ Price Model Support ]]--
 
@@ -431,7 +422,7 @@ local function GetAuctionValue(hyperlink, quantity, serverKey, additional)
 	local cutAdjust, duration = lib.GetAdjustmentInfo()
 	value = value * quantity * cutAdjust
 	if duration then
-		local deposit = GetDepositCost(hyperlink, duration, nil, quantity)
+		local deposit = GetDepositCost(hyperlink, duration, IsNeutralServerKey(serverKey), quantity)
 		if deposit then
 			value = value - deposit * lib.GetRelistTimes(hyperlink)
 		end
@@ -481,7 +472,7 @@ end
 
 local function GetProspectValue(hyperlink, quantity, serverKey, additional)
 	if not isEnchantrixLoaded then return end
-    if AucAdvanced.Classic then return end
+    if AucAdvanced.Classic and AucAdvanced.Classic < 2 then return end
 	local jcSkillRequired = EnchantrixUtil.JewelCraftSkillRequiredForItem(hyperlink)
 	if not jcSkillRequired or jcSkillRequired > get("util.itemsuggest.jewelcraftskill")  then
 		return
@@ -504,7 +495,7 @@ local function GetProspectValue(hyperlink, quantity, serverKey, additional)
 			-- determine deposit for each result (only if we found a price for it)
 			if duration then
 				-- to minimize problems with the 1 silver minimum deposit, we calculate for a stack of 20, then divide by 20 after
-				local deposit = GetDepositCost(result, duration, nil, 20)
+				local deposit = GetDepositCost(result, duration, IsNeutralServerKey(serverKey), 20)
 				if deposit then
 					depositTotal = depositTotal + deposit * yield * lib.GetRelistTimes(result) / 20
 				end
@@ -517,7 +508,7 @@ end
 
 local function GetMillingValue(hyperlink, quantity, serverKey, additional)
 	if not isEnchantrixLoaded then return end
-    if AucAdvanced.Classic then return end
+    if AucAdvanced.Classic and AucAdvanced.Classic < 3 then return end
 	local insSkillRequired = EnchantrixUtil.InscriptionSkillRequiredForItem(hyperlink)
 	if not insSkillRequired or insSkillRequired > get("util.itemsuggest.inscriptionskill")  then
 		return
@@ -540,7 +531,7 @@ local function GetMillingValue(hyperlink, quantity, serverKey, additional)
 			-- determine deposit for each result (only if we found a price for it)
 			if duration then
 				-- to minimize problems with the 1 silver minimum deposit, we calculate for a stack of 20, then divide by 20 after
-				local deposit = GetDepositCost(result, duration, nil, 20)
+				local deposit = GetDepositCost(result, duration, IsNeutralServerKey(serverKey), 20)
 				if deposit then
 					depositTotal = depositTotal + deposit * yield * lib.GetRelistTimes(result) / 20
 				end
@@ -707,7 +698,7 @@ local function GetConvertValue(hyperlink, quantity, serverKey, additional)
 	if duration then
 		-- to minimize problems with the 1 silver minimum deposit, we calculate for a stack of 10, then divide by 10 after
 		-- todo: not all results can be stacked to 10, but GetDepositCost should handle it for now
-		local deposit = GetDepositCost(newId, duration, nil, 10)
+		local deposit = GetDepositCost(newId, duration, IsNeutralServerKey(serverKey), 10)
 		if deposit then
 			value = value - lib.GetRelistTimes(newId) * deposit * yield / 10
 		end
@@ -883,8 +874,8 @@ do -- Copied and modified from SearcherSmelting.lua
 	findSmeltable[COPPERBAR] = {BRONZEBAR, 1, "smelting.enableMulti"}
 	findSmeltable[TINBAR] = {BRONZEBAR, 1, "smelting.enableMulti"}
 	findSmeltable[IRONBAR] = {STEELBAR, .95, "smelting.enableMulti"} -- using 95% to make up for Coal costs
-	findSmeltable[THORIUMBAR] = {ETHORIUMBAR, .5, "smelting.enableMulti"}
-	findSmeltable[DREAMDUST] = {ETHORIUMBAR, 1/6, "smelting.enableMulti"}
+	--findSmeltable[THORIUMBAR] = {ETHORIUMBAR, .5, "smelting.enableMulti"}
+	--findSmeltable[DREAMDUST] = {ETHORIUMBAR, 1/6, "smelting.enableMulti"}
 	findSmeltable[FELIRONBAR] = {FELSTEELBAR, 1/6, "smelting.enableMulti"}
 	findSmeltable[ETERNIUMBAR] = {FELSTEELBAR, .25, "smelting.enableMulti"}
 	findSmeltable[ADAMANTITEBAR] = {HADAMANTITEBAR, .1, "smelting.enableMulti"}
@@ -921,7 +912,7 @@ local function GetSmeltValue(hyperlink, quantity, serverKey, additional)
 	value = value * yield * cutAdjust
 	if duration then
 		-- to minimize problems with the 1 silver minimum deposit, we calculate for a stack of 10, then divide by 10 after
-		local deposit = GetDepositCost(newId, duration, nil, 10)
+		local deposit = GetDepositCost(newId, duration, IsNeutralServerKey(serverKey), 10)
 		if deposit then
 			value = value - lib.GetRelistTimes(newId) * deposit * yield / 10
 		end
@@ -951,7 +942,7 @@ local function OnLoadRunOnce()
 	OnLoadRunOnce = nil
 
     local defaultLength = 48
-    if AucAdvanced.Classic then
+    if AucAdvanced.Classic == 1 then
         defaultLength = 24
     end
 
@@ -981,12 +972,16 @@ local function OnLoadRunOnce()
 	lib.SetBiasSlider("Auction", nil, "Weight ItemSuggest recommendations for auction resale higher or lower.")
 	lib.SetSuggestText("Disenchant", "Disenchant", "ffff00") -- yellow
 	lib.SetBiasSlider("Disenchant", nil, "Weight ItemSuggest recommendations for Disenchanting higher or lower.")
-    if not AucAdvanced.Classic then
+    
+    if not AucAdvanced.Classic or AucAdvanced.Classic > 1 then
         lib.SetSuggestText("Prospect", "Prospect", "ffff00") -- yellow
         lib.SetBiasSlider("Prospect", nil, "Weight ItemSuggest recommendations for Prospecting higher or lower.")
+    end
+    if not AucAdvanced.Classic or AucAdvanced.Classic > 2 then
         lib.SetSuggestText("Mill", "Mill", "ffff00") -- yellow
         lib.SetBiasSlider("Mill", nil, "Weight ItemSuggest recommendations for Milling higher or lower.")
     end
+    
 	lib.SetSuggestText("Convert", "Convert", "007fee") -- blue
 	lib.SetBiasSlider("Convert", nil, "Weight ItemSuggest recommendations for Conversion higher or lower.")
 	lib.SetSuggestText("Smelt", "Smelt", "007fee") -- blue
@@ -1023,9 +1018,11 @@ local function SetupConfigGui(gui)
 	gui:AddControl(id, "WideSlider", 0, 2, "util.itemsuggest.enchantskill", 0, Const.MAXSKILLLEVEL, 25, "Max Enchanting Skill On Realm: %s")
 	gui:AddTip(id, "Set ItemSuggest limits based upon Enchanting skill for your characters on this realm.")
 
-    if not AucAdvanced.Classic then
+    if not AucAdvanced.Classic or AucAdvanced.Classic > 1 then
         gui:AddControl(id, "WideSlider", 0, 2, "util.itemsuggest.jewelcraftskill", 0, Const.MAXSKILLLEVEL, 25, "Max JewelCrafting Skill On Realm: %s")
         gui:AddTip(id, "Set ItemSuggest limits based upon Jewelcrafting skill for your characters on this realm.")
+    end
+    if not AucAdvanced.Classic or AucAdvanced.Classic > 2 then
         gui:AddControl(id, "WideSlider", 0, 2, "util.itemsuggest.inscriptionskill", 0, Const.MAXSKILLLEVEL, 25, "Max Inscription Skill On Realm: %s")
         gui:AddTip(id, "Set ItemSuggest limits based upon Inscription skill for your characters on this realm.")
     end
@@ -1111,4 +1108,4 @@ end
 -- Neither Enchantrix nor Informant triggers "load" processor events; instead, use LoadTriggers to detect either loading
 lib.LoadTriggers = {enchantrix = true, informant = true}
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-ItemSuggest/Auc-Util-ItemSuggest.lua $", "$Rev: 6418 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-ItemSuggest/Auc-Util-ItemSuggest.lua $", "$Rev: 6791 $")

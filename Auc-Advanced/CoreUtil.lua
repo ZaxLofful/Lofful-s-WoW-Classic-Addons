@@ -1,7 +1,7 @@
 --[[
 	Auctioneer
-	Version: 8.2.6430 (SwimmingSeadragon)
-	Revision: $Id: CoreUtil.lua 6430 2019-10-20 00:10:07Z none $
+	Version: 3.4.6844 (SwimmingSeadragon)
+	Revision: $Id: CoreUtil.lua 6844 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -239,24 +239,29 @@ end
 -- Common Dropdown Tables
 -- Usage: gui:AddControl(id, "Selectbox",  column, indent, AucAdvanced.selectorXXXX, "libtype.modulename.yyyy")
 do
-	local auctionlength = {
-		{12, FORMATED_HOURS:format(12)},
-		{24, FORMATED_HOURS:format(24)},
-		{48, FORMATED_HOURS:format(48)},
-	}
-
-    if AucAdvanced.Classic then
+	local auctionlength, defaultlength
+    if AucAdvanced.Classic == 1 then
         auctionlength = {
             {2, FORMATED_HOURS:format(2)},
             {8, FORMATED_HOURS:format(8)},
             {24, FORMATED_HOURS:format(24)},
         }
+		defaultlength = 24
+	else
+		auctionlength = {
+			{12, FORMATED_HOURS:format(12)},
+			{24, FORMATED_HOURS:format(24)},
+			{48, FORMATED_HOURS:format(48)},
+		}
+		defaultlength = 48
     end
 
 	-- List of Auction Durations for use in deposit cost dropdowns
 	function lib.selectorAuctionLength()
 		return auctionlength
 	end
+	-- Provide a valid default for above table, based on Client type.
+	lib.defaultAuctionLength = defaultlength
 
 	local alevelA = {
 		{Const.ALEVEL_OFF, "Off"},
@@ -322,7 +327,7 @@ do -- Faction related functions
 
 	function lib.GetFaction()
 		-- Compatibility function. Deprecated
-		return Resources.ServerKeyCurrent, Const.PlayerRealm, Resources.CurrentFaction
+		return Resources.ServerKey, Const.PlayerRealm, Resources.CurrentFaction
 	end
 
 	function lib.GetFactionGroup()
@@ -965,5 +970,5 @@ function lib.CreateMoney(height)
 	return (tooltip:CreateMoney(height))
 end
 
-lib.RegisterRevision("$URL: Auc-Advanced/CoreUtil.lua $", "$Rev: 6430 $")
+lib.RegisterRevision("$URL: Auc-Advanced/CoreUtil.lua $", "$Rev: 6844 $")
 lib.CoreFileCheckOut("CoreUtil")

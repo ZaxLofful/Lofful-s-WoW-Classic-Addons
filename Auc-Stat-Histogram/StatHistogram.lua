@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Histogram Statistics module
-	Version: 8.2.6366 (SwimmingSeadragon)
-	Revision: $Id: StatHistogram.lua 6366 2019-10-20 00:10:07Z none $
+	Version: 3.4.6805 (SwimmingSeadragon)
+	Revision: $Id: StatHistogram.lua 6805 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -412,7 +412,7 @@ function private.SetupConfigGui(gui)
 	frame.name:SetText("Insert or Alt-Click Item to start")
 	frame.name:SetTextColor(0.5, 0.5, 0.7)
 
-	frame.bargraph = CreateFrame("Frame", nil, frame)
+	frame.bargraph = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 	frame.bargraph:SetPoint("TOPLEFT", frame, "TOPLEFT", 30, -260)
 	frame.bargraph:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -30, -260)
 	frame.bargraph:SetHeight(300)
@@ -680,22 +680,19 @@ end
 
 function private.UpgradeDB()
 	private.UpgradeDB = nil
-	if type(AucAdvancedStatHistogramData) == "table" and AucAdvancedStatHistogramData.Version == DATABASE_VERSION then return end
 
-	-- "Upgrade" to Version 3.0: database format has changed completely; we shall wipe the data and start fresh
+	local saved = AucAdvancedStatHistogramData
+	if type(saved) == "table" and type(saved.RealmData) == "table" and saved.Version == DATABASE_VERSION then
+		return
+	end
+
 	AucAdvancedStatHistogramData = {Version = DATABASE_VERSION, RealmData = {}}
 end
 
 function private.InitData()
 	private.InitData = nil
-
 	private.UpgradeDB()
 	RealmData = AucAdvancedStatHistogramData.RealmData
-	if not RealmData then
-		RealmData = {} -- dummy value to avoid more errors - will not get saved
-		error("Error loading or creating "..LIBSTRING.." database")
-	end
-
 end
 
 
@@ -967,4 +964,4 @@ function lib.ChangeServerKey(oldKey, newKey)
 end
 
 
-AucAdvanced.RegisterRevision("$URL: Auc-Stat-Histogram/StatHistogram.lua $", "$Rev: 6366 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Stat-Histogram/StatHistogram.lua $", "$Rev: 6805 $")

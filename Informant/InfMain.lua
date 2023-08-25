@@ -1,8 +1,8 @@
 --[[
 	Informant - An addon for World of Warcraft that shows pertinent information about
 	an item in a tooltip when you hover over the item in the game.
-	Version: 8.2.6374 (SwimmingSeadragon)
-	Revision: $Id: InfMain.lua 6374 2019-10-20 00:10:07Z none $
+	Version: 3.4.6850 (SwimmingSeadragon)
+	Revision: $Id: InfMain.lua 6850 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/dl/Informant/
 
 	License:
@@ -27,21 +27,24 @@
 		since that is its designated purpose as per:
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 ]]
-Informant_RegisterRevision("$URL: Informant/InfMain.lua $","$Rev: 6374 $")
 
-INFORMANT_VERSION = "8.2.6374"
-if (INFORMANT_VERSION == "<".."%version%>") then
-	INFORMANT_VERSION = "5.2.DEV"
+local _G = _G
+local Informant = _G.Informant
+if not Informant then return end
+
+Informant_RegisterRevision("$URL: Informant/InfMain.lua $","$Rev: 6850 $")
+
+local VERSION = "3.4.6850"
+if VERSION:byte(1) == 60 then -- '<' character
+	VERSION = "6.1.DEV"
 end
 
-local _G=_G
 local type,pairs,ipairs,select = type,pairs,ipairs,select
 local tonumber,tostring,strmatch = tonumber,tostring,strmatch
 local strsplit,strsub,format = strsplit,strsub,format
 local tinsert,wipe = tinsert,wipe
 local GetItemInfo = GetItemInfo
-local Informant
--- GLOBALS: INFORMANT_VERSION, _TRANS, this, LibStub
+-- GLOBALS: LibStub
 -- GLOBALS: InformantLocalUpdates, InformantConfig
 -- GLOBALS: InformantFrame, InformantFrameScrollBar
 -- GLOBALS: UIParent, MerchantFrame
@@ -63,6 +66,7 @@ local infDebugPrint         -- debugPrint(message, category, title, errorCode, l
 local onEvent				-- onEvent(event)
 local onLoad				-- onLoad()
 local onVariablesLoaded		-- onVariablesLoaded()
+local onInitialize
 local onQuit				-- onQuit()
 local scrollUpdate			-- scrollUpdate(offset)
 local setDatabase			-- setDatabase(database)
@@ -91,15 +95,12 @@ local OnTooltipAddMoney
 local self = {}
 local lines = {}
 local addonName = "Informant"
-
+local _TRANS = Informant.Locale.Translate
 local tooltip = LibStub("nTipHelper:1")
 
 -- GLOBAL VARIABLES
 
-BINDING_HEADER_INFORMANT_HEADER = _TRANS('INF_Interface_BindingHeader')
-BINDING_NAME_INFORMANT_POPUPDOWN = _TRANS('INF_Interface_BindingTitle')
-
-InformantConfig = {}
+InformantConfig = {} -- ### TODO: do this properly during ADDON_LOADED, move to InfSettings.lua
 
 -- LOCAL DEFINES
 
@@ -121,8 +122,7 @@ CLASS_TO_CATEGORY_MAP = {
 	[12] = 12, --Quest
 }
 
-local soulbindtypes = {_TRANS("INF_Tooltip_SoulBindUse"),_TRANS("INF_Tooltip_SoulBindEquip"),_TRANS("INF_Tooltip_SoulBindPickup")}
-local specialbindtypes = {_TRANS("INF_Tooltip_SpecialBindAccount"),_TRANS("INF_Tooltip_SpecialBindGuild")}
+local soulbindtypes, specialbindtypes
 
 -- FUNCTION DEFINITIONS
 
@@ -181,7 +181,13 @@ function getItem(itemLink, static)
 	-- this must use the full itemLink, not just the item ID To get the data correct
 	local itemName, _link, itemQuality, itemLevel, itemUseLevel, itemType, itemSubType, itemStackSize, itemEquipLoc,
 		itemTexture, itemSell, itemClassID, itemSubClassID, itemBindType, itemExpacID, itemSetID, itemReagent = GetItemInfo(itemLink)
-	--debugPrintQuick("GetItem : ", itemLink, itemLink:match("item:([^|]+)"), GetItemInfo(itemLink) )	-- GetItemInfo is returning base level, not the level with upgrades!
+
+    -- get item level with upgrades
+    local effLevel = GetDetailedItemLevelInfo(itemLink)
+    if effLevel then
+        itemLevel = effLevel
+    end
+
 	local incompleteFlag = not itemName -- flag if GetItemInfo returns nils, so we know not to cache it
 
 	local itemID = idFromLink(itemLink)	-- not optimal, but needed for other code
@@ -407,7 +413,7 @@ function getItem(itemLink, static)
 
 	if not incompleteFlag then
 		-- only save cache/static if data complete
-		-- todo: consider caching partial data, with a flag to try to obtain missing data next time?
+		-- TODO: consider caching partial data, with a flag to try to obtain missing data next time?
 		if static then
 			-- we adjusted the static table, if called with static = true
 			-- so save the link info for future calls
@@ -442,6 +448,7 @@ end
 
 --Implementation of GetSellValue API proposed by Tekkub at http://www.wowwiki.com/API_GetSellValue
 -- May not be accurate if an itemID is passed in
+-- ### TODO: is this still valid or useful?
 local origGetSellValue = GetSellValue
 function GetSellValue(item)
 	local itemName, itemLink, _, _, _, _, _, _, _, _, itemSellPrice = GetItemInfo(item)
@@ -534,14 +541,11 @@ function setCraftCount(craft_counts)
 end
 
 function getLocale()
-	local locale = Informant.GetFilterVal('locale');
-	if (locale ~= 'on') and (locale ~= 'off') and (locale ~= 'default') then
-		return locale;
-	end
-	return GetLocale();
+	return Informant.Locale.GetLocale()
 end
 
 -- local categories = {GetAuctionItemClasses()} -- GetAuctionItemClasses removed in 7.0.0
+-- ### TODO - review categories for different WoW versions...
 local categories = {
 		AUCTION_CATEGORY_WEAPONS,
 		AUCTION_CATEGORY_ARMOR,
@@ -754,6 +758,12 @@ local function updateSellPricesFromMerchant()
 							-- is this item sell price correct in our database? or missing from our database?
 							local itemName, itemLink, itemQuality, itemLevel, itemUseLevel, itemType, itemSubType, itemStackSize, itemEquipLoc, itemTexture = GetItemInfo(scanningLink)
 
+                            -- get item level with upgrades
+                            local effLevel = GetDetailedItemLevelInfo(scanningLink)
+                            if effLevel then
+                                itemLevel = effLevel
+                            end
+
 							local cleanString = cleanStringFromLink( scanningLink )
 							local newItemInfo = InformantLocalUpdates.items[ cleanString ]
 							if (not newItemInfo) then newItemInfo = {} end
@@ -790,6 +800,12 @@ local function updateBuyPricesFromMerchant( vendorID )
 					-- is this item buy price correct in our database? or missing from our database?
 
 					local itemName, itemLink, itemQuality, itemLevel, itemUseLevel, itemType, itemSubType, itemStackSize, itemEquipLoc, itemTexture = GetItemInfo(link)
+
+                    -- get item level with upgrades
+                    local effLevel = GetDetailedItemLevelInfo(link)
+                    if effLevel then
+                        itemLevel = effLevel
+                    end
 
 -- ccox - currently this will hit often, because we don't take reputation discounts into account for buy pricing
 -- should we try to get rep discounts, or just update the price as seen?  Then they'll be wrong for alts!
@@ -957,7 +973,7 @@ local function slidebarclickhandler(_, button)
 	end
 end
 
-local function slidebar()
+local function setupSlidebar()
 	if LibStub then
 		local LibDataBroker = LibStub:GetLibrary("LibDataBroker-1.1", true)
 		if LibDataBroker then
@@ -984,46 +1000,11 @@ local function slidebar()
 	end
 end
 
-function onLoad()
-	InformantFrame:RegisterEvent("ADDON_LOADED")
-
-	Informant_ScanTooltip:SetScript("OnTooltipAddMoney", OnTooltipAddMoney);
-
-	InformantFrame:RegisterEvent("MERCHANT_SHOW");
-	InformantFrame:RegisterEvent("MERCHANT_UPDATE");
-
-	Informant_ScanTooltip:SetScript("OnTooltipAddMoney", OnTooltipAddMoney);
-
-	InformantFrame:RegisterEvent("MERCHANT_SHOW");
-	InformantFrame:RegisterEvent("MERCHANT_UPDATE");
-
-	InformantFrameTitle:SetText(_TRANS('INF_Interface_InfWinTitle'))
-	slidebar()
-end
-
-local ALTCHATLINKTOOLTIP_OPEN
-local function callbackAltChatLinkTooltip(link, text, button, chatFrame)
-	if button == "LeftButton"
-	and Informant.Settings.GetSetting("altchatlink-tooltip")
-	and link:sub(1, 4) == "item" then
-		return ALTCHATLINKTOOLTIP_OPEN
-	end
-end
-
-local function frameLoaded()
+local function setupStubby()
 	Stubby.RegisterEventHook("PLAYER_LEAVING_WORLD", "Informant", onQuit)
-
-	tooltip:Activate()
-	tooltip:AddCallback(Informant.TooltipHandler, 300)
-	tooltip:AltChatLinkRegister(callbackAltChatLinkTooltip)
-	ALTCHATLINKTOOLTIP_OPEN = tooltip:AltChatLinkConstants()
-
-	onLoad()
-
 	-- Setup the default for stubby to always load (people can override this on a
 	-- per toon basis)
 	Stubby.SetConfig("Informant", "LoadType", "always", true)
-
 	-- Register our temporary command hook with stubby
 	Stubby.RegisterBootCode("Informant", "CommandHandler",
 	-- Localize Me!
@@ -1059,23 +1040,69 @@ local function frameLoaded()
 		SLASH_INFORMANT3 = "/info"
 		SLASH_INFORMANT4 = "/inf"
 		SlashCmdList["INFORMANT"] = cmdHandler
-	]]);
+	]])
 	Stubby.RegisterBootCode("Informant", "Triggers", [[
 		local loadType = Stubby.GetConfig("Informant", "LoadType")
 		if (loadType == "always") then
 			LoadAddOn("Informant")
 		else
-			Stubby.Print("]].._TRANS('INF_Help_CmdLoadMsg')..[[");
+			Stubby.Print("]].._TRANS('INF_Help_CmdLoadMsg')..[["); -- ### _TRANS
 		end
-	]]);
+	]])
+end
+
+function onLoad()
+	InformantFrame:RegisterEvent("ADDON_LOADED")
+
+	Informant_ScanTooltip:SetScript("OnTooltipAddMoney", OnTooltipAddMoney);
+
+	InformantFrame:RegisterEvent("MERCHANT_SHOW");
+	InformantFrame:RegisterEvent("MERCHANT_UPDATE");
+
+	Informant_ScanTooltip:SetScript("OnTooltipAddMoney", OnTooltipAddMoney);
+
+	setupSlidebar()
+end
+
+local ALTCHATLINKTOOLTIP_OPEN
+local function callbackAltChatLinkTooltip(link, text, button, chatFrame)
+	if button == "LeftButton"
+	and Informant.Settings.GetSetting("altchatlink-tooltip")
+	and link:sub(1, 4) == "item" then
+		return ALTCHATLINKTOOLTIP_OPEN
+	end
+end
+
+local function frameLoaded()
+	tooltip:Activate()
+	tooltip:AddCallback(Informant.TooltipHandler, 300)
+	tooltip:AltChatLinkRegister(callbackAltChatLinkTooltip)
+	ALTCHATLINKTOOLTIP_OPEN = tooltip:AltChatLinkConstants()
+
+	InformantFrame:SetBackdrop({
+			bgFile = "Interface/DialogFrame/UI-DialogBox-Background",
+			edgeFile = "Interface/TutorialFrame/TutorialFrameBorder",
+			tile = true, tileSize = 32, edgeSize = 32,
+			insets = { left = 4, right = 4, top = 4, bottom = 4 }
+		})
+
+	onLoad()
 end
 
 function onVariablesLoaded()
 	if (not InformantConfig) then
 		InformantConfig = {}
 	end
+end
 
+function onInitialize()
+	-- Translations are now available
 	InformantFrameTitle:SetText(_TRANS('INF_Interface_InfWinTitle'))
+	BINDING_HEADER_INFORMANT_HEADER = _TRANS('INF_Interface_BindingHeader')
+	BINDING_NAME_INFORMANT_POPUPDOWN = _TRANS('INF_Interface_BindingTitle')
+
+	soulbindtypes = {_TRANS("INF_Tooltip_SoulBindUse"),_TRANS("INF_Tooltip_SoulBindEquip"),_TRANS("INF_Tooltip_SoulBindPickup")}
+	specialbindtypes = {_TRANS("INF_Tooltip_SpecialBindAccount"),_TRANS("INF_Tooltip_SpecialBindGuild")}
 
 	if (InformantConfig.position) then
 		InformantFrame:ClearAllPoints()
@@ -1088,13 +1115,16 @@ function onVariablesLoaded()
 		InformantConfig.welcomed = true
 	end
 
-	Informant.InitCommands()
+	Informant.Commands.OnLoad()
+	setupStubby()
 end
 
 function onEvent(event, addon)
 
 	if (event == "ADDON_LOADED" and addon:lower() == "informant") then
 		onVariablesLoaded()
+		Informant.Locale.OnLoad() -- Translations are available after this point
+		onInitialize()
 		InformantFrame:UnregisterEvent("ADDON_LOADED")
 		scrubLocalUpdateInfo()		-- to fix up data errors
 	end
@@ -1275,8 +1305,8 @@ function debugPrintQuick(...)
 	return printquick(...)
 end
 
-Informant = {
-	version = INFORMANT_VERSION,
+local install = {
+	version = VERSION,
 	GetItem = getItem,
 	GetRowCount = getRowCount,
 	AddLine = addLine,
@@ -1304,7 +1334,9 @@ Informant = {
 	GetQuestName = getQuestName,
 	OnEvent = onEvent,
 	DebugPrint = infDebugPrint,
-	DebugPrintQuick = debugPrintQuick
+	DebugPrintQuick = debugPrintQuick,
 }
 
-_G.Informant = Informant
+for k, v in pairs(install) do
+	Informant[k] = v
+end

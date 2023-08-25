@@ -1,7 +1,7 @@
 ﻿--[[
 	Enchantrix Addon for World of Warcraft(tm).
-	Version: 8.2.6428 (SwimmingSeadragon)
-	Revision: $Id: EnxAutoDisenchant.lua 6428 2019-10-20 00:10:07Z none $
+	Version: 3.4.6849 (SwimmingSeadragon)
+	Revision: $Id: EnxAutoDisenchant.lua 6849 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	Automatic disenchant scanner.
@@ -28,7 +28,7 @@
 		since that is its designated purpose as per:
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 ]]
-Enchantrix_RegisterRevision("$URL: Enchantrix/EnxAutoDisenchant.lua $", "$Rev: 6428 $")
+Enchantrix_RegisterRevision("$URL: Enchantrix/EnxAutoDisenchant.lua $", "$Rev: 6849 $")
 
 local auto_de_session_ignore_list = {}
 local auto_de_frame
@@ -156,15 +156,22 @@ end
 
 local function getDisenchantOrProspectValue(link, count)
 	local _, _, quality, level = GetItemInfo(link)
+
     --debugSpam("Checking Item ", link );
 	if not (quality and level) then
 		debugSpam("Item ", link, "quality and level nil" );
-	return end
+	    return
+    end
+
+    local effLevel = GetDetailedItemLevelInfo(link)
+    if effLevel then
+        level = effLevel
+    end
 
 	if quality >= 2 then
 		local enchSkillRequired = Enchantrix.Util.DisenchantSkillRequiredForItemLevel(level, quality)
-		-- debugSpam( "enchantskill required ", enchSkillRequired );
-		if (enchSkillRequired and enchSkillRequired > 0) and Enchantrix.Util.GetUserEnchantingSkill() > 0 then
+        --debugSpam( "enchantskill required ", enchSkillRequired );
+		if (enchSkillRequired and enchSkillRequired > 0) and Enchantrix.Util.GetUserEnchantingSkill() >= enchSkillRequired then
 			local hsp, median, baseline, valFive = Enchantrix.Storage.GetItemDisenchantTotals(link)
 			if (not hsp) or (hsp == 0) then
 				-- what to do when Auc4 isn't loaded, but Auc5 is
@@ -188,13 +195,12 @@ local function getDisenchantOrProspectValue(link, count)
 
 -- TODO - ccox - these could share some code
 		local jcSkillRequired = Enchantrix.Util.JewelCraftSkillRequiredForItem(link)
-        --debugSpam("Item ", link, "skill required", jcSkillRequired, Enchantrix.Util.GetUserJewelCraftingSkill() );
-		if (jcSkillRequired and jcSkillRequired > 0 and Enchantrix.Util.GetUserJewelCraftingSkill() > 0) then
-            --debugSpam("Item ", link, "skill passed" );
-
+--debugSpam("Item ", link, "skill required", jcSkillRequired, Enchantrix.Util.GetUserJewelCraftingSkill() );
+		if (jcSkillRequired and jcSkillRequired > 0 and Enchantrix.Util.GetUserJewelCraftingSkill() >= jcSkillRequired) then
+--debugSpam("Item ", link, "skill passed" );
 			local prospect = Enchantrix.Storage.GetItemProspects(link)
 			if prospect then
-                --debugSpam("Item ", link, "prospect results passed" );
+--debugSpam("Item ", link, "prospect results passed" );
 				local prospectValue = 0
 				for result, yield in pairs(prospect) do
 					local hsp, median, baseline, valFive = Enchantrix.Util.GetReagentPrice(result)
@@ -217,11 +223,11 @@ local function getDisenchantOrProspectValue(link, count)
 
 		local inscriptionSkillRequired = Enchantrix.Util.InscriptionSkillRequiredForItem(link)
 		--debugSpam("Item ", link, "skill required", inscriptionSkillRequired, Enchantrix.Util.GetUserInscriptionSkill() );
-		if (inscriptionSkillRequired and inscriptionSkillRequired > 0 and Enchantrix.Util.GetUserInscriptionSkill() > 0) then
-			--debugSpam("Item ", link, "skill passed" );
+		if (inscriptionSkillRequired and inscriptionSkillRequired > 0 and Enchantrix.Util.GetUserInscriptionSkill() >= inscriptionSkillRequired) then
+--debugSpam("Item ", link, "skill passed" );
 			local milling = Enchantrix.Storage.GetItemMilling(link)
 			if milling then
-				--debugSpam("Item ", link, "mill results passed" );
+--debugSpam("Item ", link, "mill results passed" );
 				local millingValue = 0
 				for result, yield in pairs(milling) do
 					local hsp, median, baseline, valFive = Enchantrix.Util.GetReagentPrice(result)
@@ -517,7 +523,7 @@ function showPrompt(link, bag, slot, value, spell)
 		return
 	end
 
-	debugSpam(link ..",".. bag ..",".. slot ..",".. value ..",".. spell)
+    --debugSpam(link ..",".. bag ..",".. slot ..",".. value ..",".. spell)
 
 	local _, count = GetContainerItemInfo(bag, slot)
 
@@ -526,7 +532,7 @@ function showPrompt(link, bag, slot, value, spell)
 
 	local texture = GetItemIcon(auto_de_prompt.link)
 	auto_de_prompt.Item:SetNormalTexture(texture)
-	debugSpam("item link used:", auto_de_prompt.link, itemStringFromLink(auto_de_prompt.link), auto_de_prompt.bag, auto_de_prompt.slot)
+	--debugSpam("item link used:", auto_de_prompt.link, itemStringFromLink(auto_de_prompt.link), auto_de_prompt.bag, auto_de_prompt.slot)
 
 	-- auto_de_prompt.Yes:SetAttribute("target-item", itemStringFromLink(auto_de_prompt.link))	-- this sees zombies for identical links in WoW 6.x
 	auto_de_prompt.Yes:SetAttribute("target-bag", auto_de_prompt.bag)
@@ -633,7 +639,7 @@ local function initUI()
 	auto_de_frame = CreateFrame("Frame")
 
 	-- prompt frame
-	auto_de_prompt = CreateFrame("Frame", "", UIParent)
+	auto_de_prompt = CreateFrame("Frame", "", UIParent, BackdropTemplateMixin and "BackdropTemplate")
 	auto_de_prompt:Hide()
 
 	auto_de_prompt:SetPoint("TOP", "UIParent", "TOP", 0, -100)
@@ -671,7 +677,7 @@ local function initUI()
 	-- prompt text
 	auto_de_prompt.Lines = {}
 	for i = 1, 5 do
-		auto_de_prompt.Lines[i] = auto_de_prompt:CreateFontString("AutoDisenchantPromptLine"..i, "HIGH")
+		auto_de_prompt.Lines[i] = auto_de_prompt:CreateFontString("AutoDisenchantPromptLine"..i, "ARTWORK")
 		if (i == 1) then
 			auto_de_prompt.Lines[i]:SetPoint("TOPLEFT", auto_de_prompt.Item, "TOPRIGHT", 5, 5)
 			auto_de_prompt.Lines[i]:SetFont(STANDARD_TEXT_FONT,16)
@@ -701,7 +707,7 @@ local function initUI()
 		dest:SetNormalTexture(tex)
 
 		dest:SetHighlightTexture(source:GetHighlightTexture())
-		dest:SetPushedTexture(source:GetPushedTexture())
+		--dest:SetPushedTexture(source:GetPushedTexture())
 		dest:SetText(source:GetText())
 		dest:SetNormalFontObject(GameFontNormal);
 		dest:SetHighlightFontObject(GameFontHighlight);
@@ -709,7 +715,8 @@ local function initUI()
 
 	-- create an invisible "Yes" OptionsButton, then copy its settings
 	-- across to the secure button
-	auto_de_prompt.DummyYes = CreateFrame("Button", "", auto_de_prompt, "OptionsButtonTemplate")
+	auto_de_prompt.DummyYes = CreateFrame("Button", "", auto_de_prompt, "UIPanelButtonTemplate")
+	auto_de_prompt.DummyYes:SetSize(90, 21)
 	auto_de_prompt.DummyYes:SetText(_ENCH("GuiYes"))
 	auto_de_prompt.DummyYes:SetPoint("BOTTOMRIGHT", auto_de_prompt, "BOTTOMRIGHT", -10, 10)
 	auto_de_prompt.DummyYes:Hide()
@@ -719,12 +726,14 @@ local function initUI()
 	auto_de_prompt.Yes:SetAttribute("unit", "none")
 	auto_de_prompt.Yes:SetAttribute("type", "spell")
 
-	auto_de_prompt.No = CreateFrame("Button", "AutoDEPromptNo", auto_de_prompt, "OptionsButtonTemplate")
+	auto_de_prompt.No = CreateFrame("Button", "AutoDEPromptNo", auto_de_prompt, "UIPanelButtonTemplate")
+	auto_de_prompt.No:SetSize(90, 21)
 	auto_de_prompt.No:SetText(_ENCH("GuiNo"))
 	auto_de_prompt.No:SetPoint("BOTTOMRIGHT", auto_de_prompt.Yes, "BOTTOMLEFT", -5, 0)
 	auto_de_prompt.No:SetScript("OnClick", promptNo)
 
-	auto_de_prompt.Ignore = CreateFrame("Button", "AutoDEPromptIgnore", auto_de_prompt, "OptionsButtonTemplate")
+	auto_de_prompt.Ignore = CreateFrame("Button", "AutoDEPromptIgnore", auto_de_prompt, "UIPanelButtonTemplate")
+	auto_de_prompt.Ignore:SetSize(90, 21)
 	auto_de_prompt.Ignore:SetText(_ENCH("GuiIgnore"))
 	auto_de_prompt.Ignore:SetPoint("BOTTOMRIGHT", auto_de_prompt.No, "BOTTOMLEFT", -5, 0)
 	auto_de_prompt.Ignore:SetScript("OnClick", promptIgnore)

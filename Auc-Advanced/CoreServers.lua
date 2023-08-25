@@ -1,7 +1,7 @@
 --[[
 	Auctioneer
-	Version: 8.2.6430 (SwimmingSeadragon)
-	Revision: $Id: CoreServers.lua 6430 2019-10-20 00:10:07Z none $
+	Version: 3.4.6844 (SwimmingSeadragon)
+	Revision: $Id: CoreServers.lua 6844 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -35,28 +35,16 @@
 --[[
 	Maintain a database of known servers and serverKeys
 
-	Realm names can be in a compact form, with all spaces and dashes stripped out.
-	This is the format provided by GetAutoCompleteRealms, which we use for detecting connected realms
+	Realm names can be in a compact form, with certain characters (currently spaces and dashes) stripped out.
+	(Standard Realm names can easily be converted to compact form by gsub("[ %-]", "") -- note the space character after the first square bracket)
 
-	Standard Realm names can easily be converted to compact form by gsub("[ %-]", "") -- note the space character after the first square bracket
 	Maintain a lookup table to allow Compact form to be converted to Standard form
 
 	Saved variable: AucAdvancedServers
-		ConnectedRealmTables {serverKey = RealmList}, RealmList is a copy of the table provided by GetAutoCompleteRealms
 		ExpandedNames {CompactName = ExpandedName}, entries only exist where ExpandedName is different from CompactName
-		KnownRealms {CompactName = serverKey}
-		KnownServerKeys {serverKey = timestamp}, records time of last login to each serverKey
-		ConvertedServerKeys {oldServerKey = {infotable}} -- info about any serverKey changes, mainly for debug
+		KnownRealms {CompactName = {login = timestamp, serverKey = timestamp, ...}}
 
-	Connected Realms will be represented by a serverKey of format '#'..CompactRealmName
-	where CompactRealmName is one of the realms from the connected realm set, typically the one first logged into
-	This means that it is possible for the serverKey for a given realm to change due to new realm connections,
-	(though we shall attempt to avoid having to do a rename whenever possible)
-	Situations this may occur:
-	When a non-connected realm joins a connected realm, and the user has data for the non-connected realm
-	When two sets of connected realms join together, and the user has data for both sets
-
-	Additionally, if the user deletes the AucAdvanced save file (including all serverKey data) but not the Stat save files,
+	Should the user deletes the AucAdvanced save file (including all serverKey data) but not the Stat save files,
 	we should attempt to match serverKey with the Stat files, so as to avoid leaving orphaned data in the Stat save files.
 
 --]]
@@ -70,19 +58,44 @@ if not (coremodule and internal) then return end
 local Const = AucAdvanced.Const
 local Resources = AucAdvanced.Resources
 
-local FullRealmName, CompactRealmName = Const.PlayerRealm, Const.CompactRealm
+local strsplit = strsplit
 
-local ConnectedRealmTables, ExpandedNames, KnownRealms, KnownServerKeys -- local references to saved variables
+local FullRealmName = Const.PlayerRealm
+local CompactRealmName -- to be filled in below using MakeCompact()
 
-local cacheKnown = {} -- cache to lookup/validate serverKeys
-local splitcache = {}
-local displaycache = {}
+local ExpandedNames, KnownRealms -- local references to saved variables
+
+local SessionRealms = {} -- Table containing various data related to each realm
+local SessionServerKeys = {} -- lookup to validate known serverKeys; provides CompactRealmName for use in SessionRealms
+local SessionResolveRealms = {} -- lookup cache to convert various strings into valid CompactRealmNames (for use in SessionRealms)
+
 local localizedfactions = {
 	-- the following entries are placeholders
 	["Alliance"] = "Alliance",
 	["Horde"] = "Horde",
 	["Neutral"] = "Neutral",
 }
+local lookupfactionkeys = {
+	["Home"] = "Home",
+	["Opposing"] = "Opposing",
+	["Neutral"] = "Neutral",
+	-- Alliance and Horde entries to be filled in by InitFaction, when known
+}
+
+-- Generate compact name
+-- Current version: strip out all space and hyphen characters
+local function MakeCompact(realm)
+	-- for now assume realm is a valid realm name
+	return realm:gsub("[ %-]", "")
+end
+CompactRealmName = MakeCompact(FullRealmName)
+Const.CompactRealm = CompactRealmName -- install into Const table
+
+-- Generate serverKey
+local function MakeServerKey(realm, faction)
+	-- for now assume realm is compact and faction is one of "Alliance", "Horde" or "Neutral"
+	return realm.."_"..faction
+end
 
 -- notify modules (primarily Stats) that a serverKey has been renamed
 -- modules should move oldKey to newKey in their database; if newKey is nil, modules should just delete oldKey
@@ -102,282 +115,171 @@ local function GetModuleServerKeys()
 		local modulelist = module.GetServerKeyList()
 		if modulelist then
 			for _, key in ipairs(modulelist) do
-				compile[key] = true
+				compile[key] = (compile[key] or 0) + 1
 			end
 		end
 	end
 	return compile
 end
 
--- helper function: called if we are on a connected realm and it is not recorded, or is recorded incorrectly
-local function ResolveConnectedRealms(sessionKey, sessionConnected, moduleKeys, oldCompactName)
 
-	-- [ADV-719] test
-	if not sessionKey and oldCompactName then
-		local testkey = "#"..oldCompactName
-		if moduleKeys[testkey] then
-			-- we've found some data, but testkey is an invalid serverKey
-			-- fudge sessionKey so the following sections will work on this data
-			sessionKey = testkey
-		end
-	end
-	-- end [ADV-719] test
+-- Install session serverKeys into Resources table
+-- Called internally by CoreResources after faction Resources have been generated
+function internalLib.InitFaction()
+	internalLib.InitFaction = nil
+	internal.Resources.SetResource("ServerKeyHome", MakeServerKey(CompactRealmName, Resources.PlayerFaction))
+	internal.Resources.SetResource("ServerKeyOpposing", MakeServerKey(CompactRealmName, Resources.OpposingFaction))
+	internal.Resources.SetResource("ServerKeyNeutral", MakeServerKey(CompactRealmName, "Neutral"))
 
-	if not next(ConnectedRealmTables) then -- empty table, no previous connected realms seen
-		local newServerKey
+	lookupfactionkeys[Resources.PlayerFaction] = "Home"
+	lookupfactionkeys[Resources.OpposingFaction] = "Opposing"
+end
 
-		-- look for an exisiting connected serverKey from one of the modules
-		for _, realm in ipairs(sessionConnected) do
-			local testKey = "#"..realm
-			if moduleKeys[testKey] then
-				newServerKey = testKey
-				break
-			end
-		end
+-- Update current serverKey in the Resources table
+-- This is called internally by CoreResources
+-- This is intended to handle serverKey switching when at a Neutral AH, such as Booty Bay
+function internalLib.UpdateCurrentServerKey()
+	-- Resources.ServerKey is used by CoreScan and other modules to determine which serverKey to write new data to
+	if Resources.IsNeutralZone then
+		internal.Resources.SetResource("ServerKey", Resources.ServerKeyNeutral)
 
-		if not newServerKey then -- default
-			newServerKey = "#"..CompactRealmName
-		end
-		ConnectedRealmTables[newServerKey] = sessionConnected
-		KnownRealms[CompactRealmName] = newServerKey
-
-		-- handle if there is non-connected serverKey for current realm - i.e. realm has just been connected
-		if sessionKey then
-			SendServerKeyChange(sessionKey, newServerKey)
-		end
-		return newServerKey
-	end
-
-	local lookupRealms, foundKeys = {}, {}
-	for _, realmName in ipairs(sessionConnected) do
-		lookupRealms[realmName] = true
-	end
-	for serverKey, connectedTable in pairs(ConnectedRealmTables) do
-		for pos, realmName in ipairs(connectedTable) do
-			if lookupRealms[realmName] then
-				tinsert(foundKeys, (serverKey:gsub("%-", ""))) -- [ADV-719] ensure found serverKey has '-' chars stripped
-				break
-			end
-		end
-	end
-
-	if #foundKeys == 0 then
-		-- this connected realm has not been seen before by CoreServers
-		local newServerKey
-
-		-- look for an exisiting connected serverKey from one of the modules
-		for _, realm in ipairs(sessionConnected) do
-			local testKey = "#"..realm
-			if moduleKeys[testKey] then
-				newServerKey = testKey
-				break
-			end
-		end
-
-		if not newServerKey then -- default
-			newServerKey = "#"..CompactRealmName
-		end
-		ConnectedRealmTables[newServerKey] = sessionConnected
-		KnownRealms[CompactRealmName] = newServerKey
-
-		-- handle if there is non-connected serverKey for current realm - i.e. realm has just been connected
-		if sessionKey then
-			SendServerKeyChange(sessionKey, newServerKey)
-		end
-		return newServerKey
-	elseif #foundKeys == 1 then
-		-- another realm in this set has been seen before, and we already have a master key for it
-		local newServerKey = foundKeys[1]
-		ConnectedRealmTables[newServerKey] = sessionConnected -- refresh the saved copy of the table
-		KnownRealms[CompactRealmName] = newServerKey
-		if sessionKey then
-			SendServerKeyChange(sessionKey, newServerKey)
-		end
-		return newServerKey
+		-- Ensure Neutral serverKey is recorded in the Session tables
+		SessionRealms[CompactRealmName].Neutral = Resources.ServerKeyNeutral
+		SessionServerKeys[Resources.ServerKeyNeutral] = CompactRealmName
 	else
-		-- found keys > 1, probably due to two sets of connected realms getting connected together
-		-- we need to choose which key will be the new master, the others will get discarded
-		-- we could come up with a complicated way of choosing the best key,
-		-- but this situation is likely to be extremely rare, so for now we'll just use the first one...
-		local newServerKey = foundKeys[1]
-		ConnectedRealmTables[newServerKey] = sessionConnected -- save new connected table
-		for i = 2, #foundKeys do
-			ConnectedRealmTables[foundKeys[i]] = nil
-		end
-
-		KnownRealms[CompactRealmName] = newServerKey
-		if sessionKey then
-			SendServerKeyChange(sessionKey, newServerKey)
-		end
-
-		for _, realmName in ipairs(sessionConnected) do
-			local known = KnownRealms[realmName]
-			if known and known ~= newServerKey then
-				KnownRealms[realmName] = newServerKey
-				SendServerKeyChange(known, newServerKey)
-			end
-		end
-
-		return newServerKey
+		internal.Resources.SetResource("ServerKey", Resources.ServerKeyHome)
 	end
+
+	-- Resources.ServerKeyDisplay may be used by tooltips
+	-- ### todo: recreate setting to show home serverKey in tooltip when in neutral zones - only showing neutral serverKey when Neutral AH is open
+	if Resources.DisplayFaction == "Neutral" then
+		internal.Resources.SetResource("ServerKeyDisplay", Resources.ServerKeyNeutral)
+	else
+		internal.Resources.SetResource("ServerKeyDisplay", Resources.ServerKeyHome)
+	end
+
+	-- ### todo: ServerKeyCurrent has been deprecated, hunt for any remaining instances and convert to ServerKey or ServerKeyDisplay as appropriate
+	internal.Resources.SetResource("ServerKeyCurrent", Resources.ServerKey)
 end
 
-local function FixNonConnectedRealm(sessionKey, moduleKeys)
-	-- [ADV-719] GetAutoCompleteRealms was changed to return {} for non-connected realms,
-	-- causing CoreServers to treat them as connected. We need to revert any changes caused by this
-	local testKey = "#"..FullRealmName:gsub(" ", "") -- construct the 'bad' realm name, as it would have been before [ADV-719]
-	assert(sessionKey ~= testKey) -- ###
-	if KnownServerKeys[testKey] then
-		-- found an entry for the 'bad' serverKey, start deleting or converting bad data
-		KnownServerKeys[testKey] = nil
-		ConnectedRealmTables[testKey] = nil
-		if not moduleKeys[sessionKey] then
-			-- only convert stat data if the correct key is not present
-			-- todo: should probably check/convert this on a per module basis
-			SendServerKeyChange(testKey, sessionKey)
-		end
-		if not AucAdvancedServers.ConvertedServerKeys then
-			AucAdvancedServers.ConvertedServerKeys = {}
-		end
-		AucAdvancedServers.ConvertedServerKeys[testKey] = {
-			old = testKey,
-			new = sessionKey,
-			timestamp = time(),
-			reason = "NonConnectedFix",
-		}
+-- ### todo: expand to check all old serverKeys, and to delete AucAdvancedServers.OldServerKeys when no longer needed
+local function CheckOldServerKeys(realm)
+	-- realm is CompactRealmName
+	local OldServerKeys = AucAdvancedServers.OldServerKeys
+	if not OldServerKeys then return end
+	local timestamp = OldServerKeys[realm]
+	if not timestamp then return end
+	-- timestamp exists for this realmname
+	local data = KnownRealms[realm]
+	if not data then
+		data = {}
+		KnownRealms[realm] = data
 	end
+	data.Login = timestamp
+	-- we shall assume this is also a timestamp for 'Home' (old version did not record AH Open timestamps so we need to fake one)
+	data[Resources.PlayerFaction] = timestamp
+
+	-- we shall also assume there are Stats associated with this old-style serverKey
+	local newKey = MakeServerKey(realm, Resources.PlayerFaction)
+	SendServerKeyChange(realm, newKey) -- instruct all Stat modules to change to the new serverKey, if the old key exists
+	OldServerKeys[realm] = nil
 end
 
-function internalLib.Activate()
-	internalLib.Activate = nil -- no longer needed after activation
+-- Called during Resources.Activate (during or after "PLAYER_ENTERING_WORLD")
+-- Note we require faction info to be available
+function internalLib.InitServers()
+	internalLib.InitServers = nil -- no longer needed after activation
+
+	-- Check and update saved variables
 
 	if FullRealmName ~= CompactRealmName then
 		ExpandedNames[CompactRealmName] = FullRealmName
 		AucAdvancedServers.ExpandedNames = ExpandedNames -- attach to save structure, if not already attached
 	end
-	local sessionConnected = GetAutoCompleteRealms()
-	if not sessionConnected or not next(sessionConnected) then -- GetAutoCompleteRealms returns non-connected realms as {}; previously it returned nil
-		sessionConnected = false
-	end
 
-	local sessionKey = KnownRealms[CompactRealmName] -- may be nil
+	local realmdata = KnownRealms[CompactRealmName]
+	if not realmdata then
+		realmdata = {}
+		KnownRealms[CompactRealmName] = realmdata
+
+		CheckOldServerKeys(CompactRealmName)
+	end
+	realmdata.Login = time()
+
 	local moduleKeys = GetModuleServerKeys() -- may be empty table
+	-- ### todo: install moduleKeys into SessionRealms below, (HomeData, OpposingData, NeutralData ?)
+	-- ### caution: be aware moduleKeys may contain old-style (or otherwise invalid) serverKeys
 
-	if not sessionConnected then
-		--if not sessionKey then -- ### temporarily we will always run this block to force fix incorrect entries [ADV-719]
-			sessionKey = CompactRealmName
-			KnownRealms[CompactRealmName] = sessionKey
-		--end
-		-- previously GetAutoCompleteRealms returned nil for non-connected realms, but has recently started returning {} instead
-		-- this caused CoreServers to incorrectly treat non-connected realms as connected [ADV-719]
-		FixNonConnectedRealm(sessionKey, moduleKeys) -- check if we need to correct previous errors
-	else -- handle connected realm
-		local needsCheck = false
-
-		-- [ADV-719] Previously our compact realm names only removed ' ' chars. We now also remove '-' chars.
-		-- Construct previous cname to see if it has changed
-		local oldCompactName = FullRealmName:gsub(" ", "")
-		if oldCompactName == CompactRealmName then
-			oldCompactName = nil
-		end
-
-		sort(sessionConnected) -- we need it in the same order every time
-		if not ConnectedRealmTables then
-			ConnectedRealmTables = {}
-			AucAdvancedServers.ConnectedRealmTables = ConnectedRealmTables
-			needsCheck = true
-		elseif not sessionKey then
-			needsCheck = true
-		else
-			-- Check that this exact sessionConnected table is already in ConnectedRealmTables
-			local savedConnectedRealms = ConnectedRealmTables[sessionKey]
-			if not savedConnectedRealms or #savedConnectedRealms ~= #sessionConnected then
-				needsCheck = true
-			else
-				for i = 1, #sessionConnected do
-					if sessionConnected[i] ~= savedConnectedRealms[i] then
-						needsCheck = true
-						break
-					end
-				end
+	-- Build SessionRealms and SessionServerKeys tables
+	local homefaction, oppfaction = Resources.PlayerFaction, Resources.OpposingFaction
+	for realmname, realmsavedata in pairs(KnownRealms) do
+		local realmdata = {}
+		for keydata in pairs(realmsavedata) do
+			if keydata == homefaction then
+				local serverKey = MakeServerKey(realmname, "Home")
+				realmdata.Home = serverKey
+				SessionServerKeys[serverKey] = realmname
+			elseif keydata == oppfaction then
+				local serverKey = MakeServerKey(realmname, "Opposing")
+				realmdata.Opposing = serverKey
+				SessionServerKeys[serverKey] = realmname
+			elseif keydata == "Neutral" then
+				local serverKey = MakeServerKey(realmname, "Neutral")
+				realmdata.Neutral = serverKey
+				SessionServerKeys[serverKey] = realmname
+			elseif keydata ~= "Login" then
+				error("Unknown key "..tostring(keydata))
 			end
 		end
-		if needsCheck then
-			sessionKey = ResolveConnectedRealms(sessionKey, sessionConnected, moduleKeys, oldCompactName)
-		end
-
-		if oldCompactName and KnownRealms[oldCompactName] then
-			-- [ADV-719] Remove invalid entries if we used names that contained a '-' char
-			-- ResolveConnectedRealms should have taken care of any data conversion
-			KnownRealms[oldCompactName] = nil
-			local oldServerKey = "#"..oldCompactName
-			KnownServerKeys[oldServerKey] = nil
-			ConnectedRealmTables[oldServerKey] = nil
-
-			if not AucAdvancedServers.ConvertedServerKeys then
-				AucAdvancedServers.ConvertedServerKeys = {}
-			end
-			AucAdvancedServers.ConvertedServerKeys[oldServerKey] = {
-				old = oldServerKey,
-				new = sessionKey,
-				timestamp = time(),
-				reason = "DashNameFix",
-			}
-		end
-
+		SessionRealms[realmname] = realmdata
 	end
 
-	KnownServerKeys[sessionKey] = time() -- record login time
+	-- Force current realm Home serverKey to always be in session tables
+	SessionRealms[CompactRealmName].Home = Resources.ServerKeyHome
+	SessionServerKeys[Resources.ServerKeyHome] = CompactRealmName
 
-	-- install to CoreResource (using SetResource, as nothing should write directly to Resources!)
-	internal.Resources.SetResource("ServerKey", sessionKey)
-	internal.Resources.SetResource("ConnectedRealms", sessionConnected)
-
-	-- populate cacheKnown
-	for key in pairs(KnownServerKeys) do
-		cacheKnown[key] = key
+	-- Build SessionResolveRealms - this will drive ResolveServerKey (below)
+	-- Install all known realms and serverKeys
+	for realmname in pairs(SessionRealms) do
+		SessionResolveRealms[realmname] = realmname
+		SessionResolveRealms[realmname:lower()] = realmname
 	end
-	for key in pairs(moduleKeys) do
-		cacheKnown[key] = key
+	for serverKey, realmname in pairs(SessionServerKeys) do
+		SessionResolveRealms[serverKey] = realmname
 	end
-	for realm, key in pairs(KnownRealms) do
-		cacheKnown[realm] = key
+	for realmname, expandedname in pairs(ExpandedNames) do
+		SessionResolveRealms[expandedname] = realmname
 	end
-	for compact, expanded in pairs(ExpandedNames) do
-		cacheKnown[expanded] = cacheKnown[compact]
-	end
-	if Resources.PlayerFaction == "Alliance" or Resources.PlayerFaction == "Horde" then
-		-- ensure we can recognise old style home serverKey
-		cacheKnown[Resources.ServerKeyHome] = sessionKey
-	end
-
-	-- issue serverkey message for compatibility
-	AucAdvanced.SendProcessorMessage("serverkey",sessionKey)
 end
+
 
 local function OnLoadRunOnce()
 	OnLoadRunOnce = nil
 
 	-- Saved Variables
-	if not AucAdvancedServers or AucAdvancedServers.Version ~= 1 then
-		AucAdvancedServers = {
+	local saved = AucAdvancedServers
+	if not saved or saved.Version ~= 2 then
+		local old = saved
+		saved = {
 			KnownRealms = {},
-			KnownServerKeys = {},
-			Version = 1,
+			Version = 2,
 			Timestamp = time(),
 		}
+		if old and old.Version == 1 then
+			saved.ExpandedNames = old.ExpandedNames -- ExpandedNames works the same in Version 2 as in Version 1
+			saved.OldServerKeys = old.KnownServerKeys -- Used to help convert stats from old serverKey to new
+		end
+		AucAdvancedServers = saved
 	end
-	ConnectedRealmTables = AucAdvancedServers.ConnectedRealmTables -- may be nil!
-	ExpandedNames = AucAdvancedServers.ExpandedNames or {}
-	KnownRealms = AucAdvancedServers.KnownRealms
-	KnownServerKeys = AucAdvancedServers.KnownServerKeys
+
+	ExpandedNames = saved.ExpandedNames or {}
+	KnownRealms = saved.KnownRealms
 
 	local L = AucAdvanced.localizations
 	localizedfactions.Alliance = L"ADV_Interface_FactionAlliance"
 	localizedfactions.Horde = L"ADV_Interface_FactionHorde"
 	localizedfactions.Neutral = L"ADV_Interface_FactionNeutral"
 
-	wipe(splitcache)
 end
 function coremodule.OnLoad(addon)
 	if addon == "auc-advanced" and OnLoadRunOnce then
@@ -385,57 +287,68 @@ function coremodule.OnLoad(addon)
 	end
 end
 
+coremodule.Processors = {
+	auctionopen = function()
+		-- record timestamp for current serverKey
+		KnownRealms[CompactRealmName][Resources.CurrentFaction] = time()
+	end,
+}
+
 --[[ Export functions ]]--
 
-local function ResolveServerKey(testKey)
-	if not testKey then -- default
-		return Resources.ServerKey
+local function ResolveServerKey(realm, faction)
+	local factionkey, realmdata
+	if not (realm or faction) then
+		return Resources.ServerKey -- default
 	end
-	local serverKey = cacheKnown[testKey]
-	if serverKey then -- cached
-		return serverKey
+
+	if faction then
+		factionkey = lookupfactionkeys[faction] -- convert to one of "Home", "Opposing", "Neutral"
+		if not factionkey then
+			return nil, "InvalidFaction"
+		end
+	else
+		-- special case: see if realm is a valid serverKey, in which case just return it
+		if SessionServerKeys[realm] then
+			return realm
+		end
+
+		factionkey = Resources.IsNeutralZone and "Neutral" or "Home" -- default faction
 	end
-	local compactKey = testKey:gsub("[ %-]", "")
-	serverKey = cacheKnown[compactKey]
-	if serverKey then -- testKey is expanded version of a known compact name
-		cacheKnown[testKey] = serverKey
-		return serverKey
+
+	if not realm then
+		-- use current realm
+		return SessionRealms[CompactRealmName][factionkey] -- may be nil
 	end
-	if compactKey:byte(1) == 35 then -- '#'
-		local trimKey2 = compactKey:sub(2)
-		serverKey = cacheKnown[trimKey2]
-		if serverKey then
-			cacheKnown[testKey] = serverKey
-			return serverKey
+
+	local realmkey = SessionResolveRealms[realm]
+	if realmkey then
+		realmdata = SessionRealms[realmkey]
+		if realmdata then -- ### this should always exist, consider reporting if this fails...
+			return realmdata[factionkey] -- may be nil
 		end
 	end
 
-	-- temporary code for old compact keys, having spaces removed but not dashes - pre-[ADV-719] -- ### to be removed
-	compactKey = testKey:gsub(" ", "")
-	serverKey = cacheKnown[compactKey]
-	if serverKey then
-		cacheKnown[testKey] = serverKey
-		return serverKey
+	-- try string modifications on realm to see if we can resolve a previously known realmname
+	local tryrealm = MakeCompact(realm)
+	realmkey = SessionResolveRealms[tryrealm]
+	if realmkey then
+		SessionResolveRealms[realm] = tryrealm
+		realmdata = SessionRealms[realmkey]
+		if realmdata then
+			return realmdata[factionkey]
+		end
 	end
-	if compactKey:byte(1) == 35 then -- '#'
-		local trimKey2 = compactKey:sub(2)
-		serverKey = cacheKnown[trimKey2]
-		if serverKey then
-			cacheKnown[testKey] = serverKey
-			return serverKey
+	tryrealm = tryrealm:lower()
+	realmkey = SessionResolveRealms[tryrealm]
+	if realmkey then
+		SessionResolveRealms[realm] = tryrealm
+		realmdata = SessionRealms[realmkey]
+		if realmdata then
+			return realmdata[factionkey]
 		end
 	end
 
-
-	-- check for old-style serverKey
-	local realm, faction = strmatch(compactKey, "^(.+)%-(%u%l+)$")
-	if localizedfactions[faction] then
-		serverKey = cacheKnown[realm]
-		if serverKey then
-			cacheKnown[testKey] = serverKey
-			return serverKey
-		end
-	end
 end
 
 local function GetServerKeyList(useTable)
@@ -447,7 +360,7 @@ local function GetServerKeyList(useTable)
 		list = {}
 	end
 
-	for key in pairs(KnownServerKeys) do
+	for key in pairs(SessionServerKeys) do
 		tinsert(list, key)
 	end
 
@@ -456,115 +369,112 @@ local function GetServerKeyList(useTable)
 	return list
 end
 
-local rltab = {}
-local function GetRealmList(serverKey, useTable, expanded)
-	serverKey = ResolveServerKey(serverKey)
-	if not serverKey then return end
-	local list = type(useTable) == "table" and useTable or rltab
-	wipe(list)
-
-	local connected = ConnectedRealmTables[serverKey]
-	if not connected then
-		-- it's a valid serverKey and it's not connected, so serverKey should be the compact realm name
-		if expanded then
-			serverKey = ExpandedNames[serverKey] or serverKey
-		end
-		tinsert(list, serverKey)
-		return list
+local function IsKnownServerKey(testKey)
+	if SessionServerKeys[testKey] then
+		return true
+	else
+		return false
 	end
+end
 
-	for _, realm in ipairs(connected) do
-		if expanded then
-			realm = ExpandedNames[realm] or realm
-		end
-		tinsert(list, realm)
-	end
-	return list
+local cacheNeutralServerKeys = {}
+local function IsNeutralServerKey(testKey)
+	local test = cacheNeutralServerKeys[testKey]
+	if test ~= nil then return test end
+
+	if type(testKey) ~= "string" then return end
+	local realm, faction = strsplit("_", testKey, 2)
+	test = localizedfactions[faction]
+	if not test then return end
+
+	test = faction == "Neutral"
+	cacheNeutralServerKeys[testKey] = test
+	return test
+end
+
+local function GetRealmList()
+	-- ### not implemented
 end
 
 local function GetExpandedRealmName(realmName)
 	return ExpandedNames[realmName] or realmName
 end
 
-local function GetServerKeyText(serverKey)
-	-- return displayable text
-	local displayKey = displaycache[serverKey]
-	if not displayKey then
-		displayKey = ResolveServerKey(serverKey)
-		if not displayKey then return end
-
-		local isConnected = false
-		if displayKey:byte(1) == 35 then -- '#'
-			displayKey = displayKey:sub(2)
-			isConnected = true
-		end
-		displayKey = ExpandedNames[displayKey] or displayKey
-		if isConnected then
-			displayKey = displayKey .. " (#)"
-		end
-
-		displaycache[serverKey] = displayKey
-	end
-	return displayKey
+local function GetLocalFactionName(factionName)
+	return localizedfactions[factionName]
 end
 
 local function SplitServerKey(serverKey)
-	local split = splitcache[serverKey]
-	if not split then
-		if type(serverKey) ~= "string" then return end
-
-		-- old style serverKey behaviour
-		local realm, faction = strmatch(serverKey, "^(.+)%-(%u%l+)$")
-		local transfaction = localizedfactions[faction]
-		if not transfaction then
-			-- deal with new style serverKey if we are passed one
-			local newKey = ResolveServerKey(serverKey)
-			if not newKey then return end
-			if newKey:byte(1) == 35 then -- '#'
-				newKey = newKey:sub(2)
-			end
-			realm = ExpandedNames[newKey] or newKey
-			faction = Resources.PlayerFaction -- fake it
-			transfaction = localizedfactions[faction]
-		end
-		split = {realm, faction, realm.." - "..transfaction}
-		splitcache[serverKey] = split
+	if type(serverKey) ~= "string" then return end
+	local realm, faction = strsplit("_", serverKey, 2)
+	local locfaction = localizedfactions[faction]
+	-- very basic validation - we see if it looks like a serverKey, but do not check if it is actually Known
+	if realm == "" or not locfaction then
+		return
 	end
-	return split[1], split[2], split[3]
+	local exprealm = GetExpandedRealmName(realm) or realm
+
+	return realm, faction, exprealm, locfaction
 end
+
+local function GetServerKeyText(serverKey)
+	local _, _, realmname, factionname = SplitServerKey(serverKey)
+	if not factionname then return end
+	return realmname.." - "..factionname
+end
+
+
 
 --[[ Exports ]]--
 
--- serverKey = AucAdvanced.ResolveServerKey(providedServerKey)
--- attempt to find a valid serverKey from providedServerKey. Returns nil if not recognised
--- calling with nil serverKey will return home serverKey as default
+-- serverKey = AucAdvanced.ResolveServerKey(realm, faction)
+-- attempt to find a valid serverKey from provided realm and faction. Returns nil if not known
+-- calling with:
+--	nil, nil - returns current serverKey
+--	realm, nil - returns serverKey based on specified realm and current map zone (neutral or home)
+--	nil, faction - returns serverKey based on current realm and specified faction
+--	serverKey, nil - returns that serverKey, if it is a known one
+-- Valid realm is the name of any known server (i.e. has been previously logged into), or a string which can be resolved to a valid name
+-- Valid faction can be nil, "Alliance", "Horde", "Neutral", "Home", "Opposing"
 AucAdvanced.ResolveServerKey = ResolveServerKey
 
 -- list = AucAdvanced.GetServerKeyList([useTable])
 -- returns list of serverKeys known by the CoreServers
--- if useTable is provided it will be populated with the list
+-- if useTable is provided it will be wiped and then populated with the list
 -- if useTable is not provided, caller must not store or modify the returned table object
 AucAdvanced.GetServerKeyList = GetServerKeyList
 
--- list = AucAdvanced.GetRealmList(serverKey [, useTable [, expanded]])
--- returns list of realm names associated with serverKey. returns nil for invalid serverKey
--- if useTable is provided it will be populated with the list
--- if useTable is not provided, caller must not store or modify the returned table object
--- if expanded is true, GetRealmList will return expanded realm names (where known), otherwise compact names are returned
+-- boolean = AucAdvanced.IsKnownServerKey(serverKey)
+AucAdvanced.IsKnownServerKey = IsKnownServerKey
+
+-- boolean = AucAdvanced.IsNeutralServerKey(serverKey)
+-- Intended to be used with AucAdvanced.Post.GetDepositCost, which is called very frequently in Auctioneer modules,
+-- Therefore it caches results for faster response after the first
+AucAdvanced.IsNeutralServerKey = IsNeutralServerKey
+
+-- list = AucAdvanced.GetRealmList()
+-- ### not implemented
 AucAdvanced.GetRealmList = GetRealmList
 
 -- text = AucAdvanced.GetExpandedRealmName(realmName)
 -- attempt to find expanded realm name from a compact realm name. If not found, just returns realmName
 AucAdvanced.GetExpandedRealmName = GetExpandedRealmName
 
--- text = AucAdvanced.GetServerKeyText(serverKey)
--- return printable text version of serverKey. Returns nil if invalid serverKey
-AucAdvanced.GetServerKeyText = GetServerKeyText
+-- text = AucAdvanced.GetLocalFactionName(faction)
+-- faction may be "Alliance", "Horde" or "Neutral"
+-- returns localized strings for these values (note the localizer defaults to enUS if the localization is missing)
+AucAdvanced.GetLocalFactionName = GetLocalFactionName
 
--- realm, faction, text = AucAdvanced.SplitServerKey(serverKey)
--- backward-compatible function - avoid using in new code
+
+-- compactrealm, faction, expandedrealm, localizedfaction = AucAdvanced.SplitServerKey(serverKey)
+-- splits a serverKey into realm and faction parts, also provides expanded realm name and localized faction name
+-- caution: does not confirm the serverKey is 'known', just that it has the format of a serverKey
 AucAdvanced.SplitServerKey = SplitServerKey
 
+-- text = AucAdvanced.GetServerKeyText(serverKey)
+-- return printable text version of serverKey, or nil if not a valid serverKey
+-- caution: does not confirm the serverKey is 'known', just that it has the format of a serverKey
+AucAdvanced.GetServerKeyText = GetServerKeyText
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreServers.lua $", "$Rev: 6430 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreServers.lua $", "$Rev: 6844 $")
 AucAdvanced.CoreFileCheckOut("CoreServers")

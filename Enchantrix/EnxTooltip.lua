@@ -1,7 +1,7 @@
 --[[
 	Enchantrix Addon for World of Warcraft(tm).
-	Version: 8.2.6428 (SwimmingSeadragon)
-	Revision: $Id: EnxTooltip.lua 6428 2019-10-20 00:10:07Z none $
+	Version: 3.4.6849 (SwimmingSeadragon)
+	Revision: $Id: EnxTooltip.lua 6849 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	Tooltip functions.
@@ -28,7 +28,7 @@
 		since that is its designated purpose as per:
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 ]]
-Enchantrix_RegisterRevision("$URL: Enchantrix/EnxTooltip.lua $", "$Rev: 6428 $")
+Enchantrix_RegisterRevision("$URL: Enchantrix/EnxTooltip.lua $", "$Rev: 6849 $")
 
 -- Global functions
 local addonLoaded	-- Enchantrix.Tooltip.AddonLoaded()
@@ -315,6 +315,10 @@ function itemTooltip(tooltip, name, link, itemType, itemId, quality, count)
 	if ( Enchantrix.Settings.GetSetting('TooltipShowItemDebugDetails') ) then
 --	if ( true ) then
 		local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, invTexture = GetItemInfo(link)
+        effLevel = GetDetailedItemLevelInfo(link)
+        if effLevel then
+            itemLevel = effLevel
+        end
 		tooltip:AddLine("Quality is "..itemRarity..", Type is "..itemType..", SubType is "..itemSubType..", EquipLoc is "..itemEquipLoc, nil, embed)
 	end
 
@@ -333,7 +337,8 @@ function itemTooltip(tooltip, name, link, itemType, itemId, quality, count)
 			end
 		end
 
-        if (not constants.Classic) then
+        if (not constants.Classic or constants.Classic >= 2) then        -- added in BC
+
             local prospectGem = constants.ReverseProspectingSources[ itemId ]
             if (prospectGem) then
                 local oreCount = #prospectGem
@@ -346,7 +351,9 @@ function itemTooltip(tooltip, name, link, itemType, itemId, quality, count)
                 tooltip:AddLine( prospectText, true, embed) -- the "true" enables line wrapping
                 return
             end
+        end
 
+        if (not constants.Classic or constants.Classic >= 3) then          -- added in LK
             local inkList = constants.ReverseInkList[ itemId ]
             if (inkList) then
                 local pigmentString = Enchantrix.Util.GetReagentInfo( inkList[1] )
@@ -360,14 +367,16 @@ function itemTooltip(tooltip, name, link, itemType, itemId, quality, count)
 	end
 
 
-    if (not constants.Classic) then
+    if (not constants.Classic or constants.Classic >= 2) then        -- added in BC
         -- first, see if this is a prospectable item (short list)
         local prospect = Enchantrix.Storage.GetItemProspects(link)
         if (prospect and Enchantrix.Settings.GetSetting('TooltipShowProspecting')) then
             prospectTooltip(prospect, tooltip, name, link, quality, count)
             return
         end
+    end
 
+    if (not constants.Classic or constants.Classic >= 3) then          -- added in LK
         -- next, see if this is a millable item (short list)
         local milling = Enchantrix.Storage.GetItemMilling(link)
         if (milling and Enchantrix.Settings.GetSetting('TooltipShowMilling')) then
@@ -813,7 +822,7 @@ function enchantTooltip(tooltip, name, link, isItem)
 		end
 		line = line.." x"..reagent[COUNT]
 		if reagent[COUNT] > 1 and reagent[PRICE] then
-			line = line.." ".._ENCH('FrmtPriceEach'):format(AucAdvanced.Coins(Enchantrix.Util.Round(reagent[PRICE], 3)))
+			line = line.." ".._ENCH('FrmtPriceEach'):format(tooltip.Coins(Enchantrix.Util.Round(reagent[PRICE], 3)))
 			tooltip:AddLine(line, Enchantrix.Util.Round(reagent[PRICE] * reagent[COUNT], 3), embed)
 			price = price + reagent[PRICE] * reagent[COUNT]
 		elseif reagent[PRICE] then
@@ -945,7 +954,7 @@ function callbackAltChatLinkTooltip(link, text, button, chatFrame)
 end
 
 Enchantrix.Tooltip = {
-	Revision		= "$Rev: 6428 $",
+	Revision		= "$Rev: 6849 $",
 
 	AddonLoaded		= addonLoaded,
 	Format			= tooltipFormat,

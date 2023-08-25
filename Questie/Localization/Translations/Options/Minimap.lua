@@ -38,6 +38,18 @@ local minimapOptionsLocales = {
         ["esES"] = "Mostrar aura detrás de los iconos de minimapa",
         ["frFR"] = "Surbrillance des icônes sur la mini-carte",
     },
+    ["Different Minimap Icon Color for Each Quest"] = {
+            ["ptBR"] = false,
+            ["ruRU"] = "Различные цвета значков (миникарта)",
+            ["deDE"] = "Minimap-Icons für jede Quest unterschiedlich färben",
+            ["koKR"] = false,
+            ["esMX"] = false,
+            ["enUS"] = true,
+            ["zhCN"] = false,
+            ["zhTW"] = false,
+            ["esES"] = false,
+            ["frFR"] = false,
+    },
     ["Draw a glow texture behind minimap icons, colored unique to each quest."] = {
         ["ptBR"] = "Desenhe uma textura luminescente por trás dos ícones mínimos do mapa, com cores exclusivas para cada missão",
         ["ruRU"] = "Показать/скрыть цветной ореол вокруг значков на миникарте",
@@ -124,7 +136,7 @@ local minimapOptionsLocales = {
     },
     ["Fades icons on the minimap when your player walks near them."] = {
         ["ptBR"] = "Desfoca os ícones no mini-mapa quando o jogador passa por perto.",
-        ["ruRU"] = "Когда включено, значки на миникарте блекнут, если игрок находится рядом с ними",
+        ["ruRU"] = "Значки на миникарте блекнут, если игрок находится рядом с ними",
         ["deDE"] = "Lässt Icons auf der Minimap verblassen, wenn der Spieler ihnen zu nahe kommt.",
         ["koKR"] = "플레이어 주변의 퀘스트 아이콘을 흐릿하게 표시합니다.",
         ["esMX"] = "Los iconos se desvanecen cuando el jugador se mueve cerca de ellos.",

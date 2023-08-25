@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Search UI - Realtime module
-	Version: 8.2.6464 (SwimmingSeadragon)
-	Revision: $Id: SearchRealTime.lua 6464 2019-10-20 00:10:07Z none $
+	Version: 3.4.6829 (SwimmingSeadragon)
+	Revision: $Id: SearchRealTime.lua 6829 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This Auctioneer module allows the user to search the current Browse tab
@@ -70,6 +70,7 @@ default("realtime.maxprice", 10000000)
 default("realtime.alert.chat", true)
 default("realtime.alert.showwindow", true)
 default("realtime.alert.sound", "DoorBell")
+default("realtime.alert.flashtaskbar", true);
 default("realtime.skipresults", false)
 
 function private.MakeGuiConfig(gui)
@@ -92,8 +93,11 @@ function private.MakeGuiConfig(gui)
 
 	gui:AddControl(id, "Subhead",       0,    "Alert Settings")
 	gui:AddControl(id, "Checkbox",      0, 1, "realtime.alert.chat", "Show alert in chat window")
-	gui:AddControl(id, "Checkbox",      0, 1, "realtime.alert.showwindow", "Show SearchUI window")
+	gui:AddTip(id, "When a bargain is found, print a message to chat displaying reason and price")
+	gui:AddControl(id, "Checkbox",      0, 1, "realtime.alert.showwindow", "Show SearchUI window on alert")
 	gui:AddTip(id, "When a bargain is found, opens the SearchUI window to facilitate buying the bargain")
+	gui:AddControl(id, "Checkbox",      0, 1, "realtime.alert.flashtaskbar", "Flash taskbar on alert")
+	gui:AddTip(id, "If WoW is running in the background, flash the taskbar icon when a bargain is found")
 	gui:AddControl(id, "Selectbox",     0, 1, {
 		{"none", "None (do not play a sound)"},
 		{"LEVELUP", "Level Up"},
@@ -101,7 +105,7 @@ function private.MakeGuiConfig(gui)
 		{"AuctionWindowClose", "AuctionHouse Close"},
 		{"RaidWarning", "Raid Warning"},
 		{"DoorBell", "DoorBell (BottomScan-style)"},
-	}, "realtime.alert.sound")
+	}, "realtime.alert.sound", 140, "Play alert sound")
 	gui:AddTip(id, "The selected sound will play whenever a bargain is found")
 	gui:AddControl(id, "Subhead",       0,    "Power-user setting: One-Click Buying")
 	gui:AddControl(id, "Checkbox",      0, 1, "realtime.skipresults", "Skip results and go straight to purchase confirmation !Power-user setting!")
@@ -357,6 +361,10 @@ end
 --both by opening the searchUI panel and playing a sound
 --(subject to options)
 function private.alert(link, cost, reason)
+	if (get("realtime.alert.flashtaskbar")) then
+		-- proposed by dannoe
+		FlashClientIcon()
+	end
 	if get("realtime.alert.chat") then
 		AucPrint("SearchUI: "..reason..": Found "..link.." for "..AucAdvanced.Coins(cost, true))
 	end
@@ -548,4 +556,4 @@ function private.HookAH()
 	BrowseRTSButton:SetPoint("TOPRIGHT", AuctionFrameBrowse, "TOPLEFT", 310, -15)
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearchRealTime.lua $", "$Rev: 6464 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearchRealTime.lua $", "$Rev: 6829 $")

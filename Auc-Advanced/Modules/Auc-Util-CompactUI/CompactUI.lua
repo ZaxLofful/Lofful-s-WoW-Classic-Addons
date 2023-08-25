@@ -1,7 +1,7 @@
 ﻿--[[
 	Auctioneer - Price Level Utility module
-	Version: 8.2.6452 (SwimmingSeadragon)
-	Revision: $Id: CompactUI.lua 6452 2019-10-20 00:10:07Z none $
+	Version: 3.4.6800 (SwimmingSeadragon)
+	Revision: $Id: CompactUI.lua 6800 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds a price level indicator
@@ -63,8 +63,16 @@ lib.Processors = {
 		if private.HookAH then private.HookAH() end
 	end,
 
-	configchanged = function()
-		if (private.Active) then
+	blockupdate = function()
+		if private.Active then
+			private.MyAuctionFrameUpdate()
+		end
+	end,
+
+	configchanged = function(callbackType, fullsetting, value, subsetting, modname, base)
+		if base == "profile" and private.LoadHeaderState then
+			private.LoadHeaderState() -- includes a call to MyAuctionFrameUpdate
+		elseif private.Active then
 			private.MyAuctionFrameUpdate()
 		end
 	end,
@@ -85,10 +93,8 @@ local OldSortAuctionApplySort
 function private.OnLoadRunOnce()
 	private.OnLoadRunOnce = nil
 
-	if SortAuctionApplySort then
-		OldSortAuctionApplySort = SortAuctionApplySort
-		SortAuctionApplySort = private.QueryCurrent
-	end
+	OldSortAuctionApplySort = SortAuctionApplySort
+	SortAuctionApplySort = private.QueryCurrent
 	hooksecurefunc("QueryAuctionItems", private.OnQuery)
 
 	default("util.compactui.activated", true)
@@ -97,6 +103,7 @@ function private.OnLoadRunOnce()
 	default("util.compactui.bidrequired", true)
 	default("util.compactui.priceperitem", false)
 	default("util.browseoverride.activated", false)
+	default("util.compactui.header_state", "8;1;1")
 end
 function lib.OnLoad()
 	if private.OnLoadRunOnce then private.OnLoadRunOnce() end
@@ -135,12 +142,11 @@ function private.HookAH()
 
 	if (not get("util.compactui.activated")) then
 		private.MyAuctionFrameUpdate = AucAdvanced.NOPFUNCTION
+		private.Active = false
 		return
 	end
 
 	AuctionFrameBrowse_Update = private.MyAuctionFrameUpdate
-	local button, lastButton
-	local line
 
 	local function HideBlizzardColumnHeaders()
 		BrowseQualitySort:Hide()
@@ -150,7 +156,7 @@ function private.HookAH()
 		BrowseCurrentBidSort:Hide()
 	end
 	HideBlizzardColumnHeaders()
-	if BrowseResetButton then -- doesn't exist in Classic
+	if not AucAdvanced.Classic then -- BrowseResetButton doesn't exist in Classic
 		BrowseResetButton:HookScript("OnClick", HideBlizzardColumnHeaders)
 	end
 	hooksecurefunc("AuctionFrameBrowse_Reset", HideBlizzardColumnHeaders) -- hook this too, in case it's called by a third party AddOn
@@ -164,6 +170,9 @@ function private.HookAH()
 		end
 	end) -- AuctionFrameFilter_OnClick
 
+	-- Setup Buttons
+
+	local lastButton
 	local NEW_NUM_BROWSE = 14
 	for i = 1, NEW_NUM_BROWSE do
 		local buttonName = "BrowseButton"..i
@@ -175,7 +184,7 @@ function private.HookAH()
 			_G[buttonName.."ItemIconTexture"] = nil
 			_G[buttonName.."Highlight"] = nil
 		end
-		button = CreateFrame("Button", buttonName, AuctionFrameBrowse)
+		local button = CreateFrame("Button", buttonName, AuctionFrameBrowse)
 		button.Orig = origButton
 		button.pos = i
 		private.buttons[i] = button
@@ -283,84 +292,109 @@ function private.HookAH()
 	end
 	NUM_BROWSE_TO_DISPLAY = NEW_NUM_BROWSE
 
-	local function selectHeader(self, ...)
-		local id = self.id
-		private.headers.sort = 0
-		private.headers.dir = 0
-		private.headers.pos = 0
-		for i=1, #private.headers do
-			local header = private.headers[i]
+	-- Setup Headers
+
+	private.headers = CreateFrame("Frame", nil, AuctionFrameBrowse)
+	tinsert(private.candy, private.headers)
+	local headerlist = {}
+
+	local function selectedHeader(id, dir, pos)
+		local headers = private.headers
+		headers.sort = 0
+		headers.dir = 0
+		headers.pos = 0
+		for i=1, #headerlist do
+			local header = headerlist[i]
 			if i == id then
-				if header.dir ~= 0 then
-					header.dir = header.dir * -1
-					if header.dir == header.defaultdir then
-						header.pos = header.pos + 1
-					end
-				else
-					header.pos = 1
-					header.dir = header.defaultdir
-				end
+				header.dir = dir or header.defaultdir
+				header.pos = pos or 1
 				if header.dir > 0 then
 					header.Back:SetVertexColor(0.6,1,1, 1)
 				else
 					header.Back:SetVertexColor(1,0.6,1, 1)
 				end
 				if header.cycle then
-					local headPos = ((header.pos-1) % #header.cycle)+1
-					header.Text:SetText(header.cycle[headPos])
-					private.headers.pos = headPos
+					header.Text:SetText(header.cycle[header.pos])
 				end
-				private.headers.sort = id
-				private.headers.dir = header.dir
-			else
+				headers.sort = id
+				headers.dir = header.dir
+				headers.pos = header.pos
+			else -- reset other headers to unselected / default
 				header.dir = 0
 				header.Back:SetVertexColor(1,1,1, 0.8)
 				header.Text:SetText(header.Text.default)
 			end
 		end
-		if SortAuctionSetSort then
-			local sort = private.headers.sort
-			local dir = private.headers.dir
-			local col = ""
-			if sort then
-				if sort == 1 then col = "quantity" -- Count
-				elseif sort == 2 then
-					local pos = private.headers.pos
-					if pos == 1 then col = "name" -- Name
-					elseif pos == 2 then
-						col = "quality" -- Quality
-						dir = - dir -- server's default quality sort order is the opposite of CompactUI's - so invert to make them match
-					end
-				elseif sort == 3 then col = "level" -- MinLevel
-				--elseif sort == 4 then <?> -- ItemLevel
-				elseif sort == 5 then col = "duration" -- TimeLeft
-				elseif sort == 6 then col = "seller" -- Owner
-				elseif sort == 7 then
-					local pos = private.headers.pos
-					if pos == 1 then col = "minbidbuyout" -- Buy
-					elseif pos == 2 then col = "bid" -- Bid
-					elseif pos == 3 then col = "unitprice" -- BuyEach
-					elseif pos == 4 then col = "unitprice" -- BidEach -- there is no BidEach server sort command, so we just use "unitprice" here
-					end
-				--elseif sort == 8 then <?> -- PriceLevel
-				end
-			end
-			if dir > 0 then
-				dir = false
-			else
-				dir = true
-			end
-			if (col ~= "") then
-				local pagesize=GetNumAuctionItems("list")
-				if pagesize <= 50 then -- don't try to sort a getall
-					SortAuctionSetSort("list", col, dir)
-					SortAuctionApplySort("list")
-				end
-			end
-		end
+		local savevalue = format("%d;%d;%d", headers.sort, headers.dir, headers.pos)
+		set("util.compactui.header_state", savevalue, true) -- silent to avoid conflict in "configchanged" handler
+		private.SetServerSort()
 		private.MyAuctionFrameUpdate()
 	end
 
+	function private.SetServerSort()
+		local pagesize=GetNumAuctionItems("list")
+		if pagesize > 50 then return end -- don't try to sort a getall
+
+		local sort = private.headers.sort
+		local dir = private.headers.dir
+		local col = ""
+		if sort == 1 then col = "quantity" -- Count
+		elseif sort == 2 then
+			local pos = private.headers.pos
+			if pos == 1 then col = "name" -- Name
+			elseif pos == 2 then
+				col = "quality" -- Quality
+				dir = - dir -- server's default quality sort order is the opposite of CompactUI's - so invert to make them match
+			end
+		elseif sort == 3 then col = "level" -- MinLevel
+		--elseif sort == 4 then <?> -- ItemLevel
+		elseif sort == 5 then col = "duration" -- TimeLeft
+		elseif sort == 6 then col = "seller" -- Owner
+		elseif sort == 7 then
+			local pos = private.headers.pos
+			if pos == 1 then col = "minbidbuyout" -- Buy
+			elseif pos == 2 then col = "bid" -- Bid
+			elseif pos == 3 then col = "unitprice" -- BuyEach
+			elseif pos == 4 then col = "unitprice" -- BidEach -- there is no BidEach server sort command, so we just use "unitprice" here
+			end
+		-- elseif sort == 8 then <?> -- PriceLevel
+		end
+		if dir > 0 then
+			dir = false
+		else
+			dir = true
+		end
+		if col ~= "" then
+			SortAuctionSetSort("list", col, dir)
+			if pagesize ~= 0 then
+				-- only apply sort immediately if we have results on the page
+				SortAuctionApplySort("list")
+			end
+		end
+	end
+
+	local function clickHeader(self)
+		local id, dir, pos, cycle = self.id, self.dir, self.pos, self.cycle
+
+		if dir ~= 0 then
+			dir = dir * -1
+			if cycle and dir == self.defaultdir then
+				pos = pos % #cycle + 1
+			end
+		else
+			pos = 1
+			dir = self.defaultdir
+		end
+
+		selectedHeader(id, dir, pos)
+	end
+
+	function private.LoadHeaderState()
+		local saved = get("util.compactui.header_state")
+		local id, dir, pos = strsplit(';', saved)
+		id, dir, pos = tonumber(id), tonumber(dir), tonumber(pos)
+		selectedHeader(id, dir, pos)
+	end
 
 	local function createHeader(id, dir, text, parentLeft, parentRight, lOfs, rOfs, cycle)
 		if not parentRight then parentRight = parentLeft end
@@ -383,17 +417,14 @@ function private.HookAH()
 		header.Back:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
 		header.Back:SetTexCoord(0.1, 0.8, 0, 1)
 		header.Back:SetVertexColor(1,1,1, 0.8)
-		header:SetScript("OnClick", selectHeader)
+		header:SetScript("OnClick", clickHeader)
 		header.defaultdir = dir
 		header.cycle = cycle
 		header.pos = 1
 		header.dir = 0
 		header.id = id
-		private.headers[id] = header
+		headerlist[id] = header
 	end
-
-	private.headers = CreateFrame("Frame", nil, AuctionFrameBrowse)
-	tinsert(private.candy, private.headers)
 
 	local bOne = private.buttons[1]
 	createHeader(1, 1, "#", bOne.Count)
@@ -406,26 +437,27 @@ function private.HookAH()
 	createHeader(8, 1, "Pct", bOne.Value, nil, 0, -2)
 
 	-- Column 3 special handling: label changes depending on queried class/subclass filters
-	local detail = private.headers[3]
-	function private.UpdateDetailColumn(name, minLevel, maxLevel, page, isUsable, qualityIndex, GetAll, exactMatch, filterData)
-		-- Detail should be set to "Slot" for bags, "Skill" for recipes, otherwise "Min"
-		-- Inspect filterData, looking for any classID other than for container or recipe
-		local detailText = "Min"
-
--- Classic doesn't show slots or recipe skills, just min level to use
--- see notes below about GetItemInfo
-		if filterData and not AucAdvanced.Classic then
-			local allBags, allRecipes = true, true
-			local bagID, recipeID = LE_ITEM_CLASS_CONTAINER, LE_ITEM_CLASS_RECIPE
-			for _, filter in ipairs(filterData) do
-				if filter.classID ~= bagID then allBags = false end
-				if filter.classID ~= recipeID then allRecipes = false end
+	-- Classic doesn't show slots or recipe skills, just min level to use, therefore this feature will not be implemented in Classic
+	-- see notes below about GetItemInfo
+	if not AucAdvanced.Classic then
+		local detail = headerlist[3]
+		function private.UpdateDetailColumn(name, minLevel, maxLevel, page, isUsable, qualityIndex, GetAll, exactMatch, filterData)
+			-- Detail should be set to "Slot" for bags, "Skill" for recipes, otherwise "Min"
+			-- Inspect filterData, looking for any classID other than for container or recipe
+			local detailText = "Min"
+			if filterData then
+				local allBags, allRecipes = true, true
+				local bagID, recipeID = LE_ITEM_CLASS_CONTAINER, LE_ITEM_CLASS_RECIPE
+				for _, filter in ipairs(filterData) do
+					if filter.classID ~= bagID then allBags = false end
+					if filter.classID ~= recipeID then allRecipes = false end
+				end
+				if allBags then detailText = "Slot"
+				elseif allRecipes then detailText = "Skill" end
 			end
-			if allBags then detailText = "Slot"
-			elseif allRecipes then detailText = "Skill" end
-		end
 
-		detail.Text:SetText(detailText)
+			detail.Text:SetText(detailText)
+		end
 	end
 
 	local tex
@@ -487,8 +519,8 @@ function private.HookAH()
 
 	private.Active = true
 
-	-- Select our PCT column
-	selectHeader(private.headers[8])
+	-- Set header state as saved in last session
+	private.LoadHeaderState()
 end
 
 function private.SetMoney(me, value, hasBid, highBidder)
@@ -621,7 +653,7 @@ end
 
 local lookupTimeLeft = {"30m", "2h", "12h", "48h"}
 
-if AucAdvanced.Classic then
+if AucAdvanced.Classic == 1 then
     lookupTimeLeft = {"30m", "2h", "8h", "24h"}
 end
 
@@ -816,7 +848,7 @@ function private.SetAuction(button, pos)
 end
 
 function private.MyAuctionFrameUpdate()
-	if AuctionFrameBrowse.selectedClass ~= TOKEN_FILTER_LABEL then
+	if AuctionFrameBrowse.selectedClass ~= TOKEN_FILTER_LABEL and AuctionFrameBrowse:IsVisible() then
 		if not BrowseScrollFrame then return end
 
 		if AucAdvanced.API.IsBlocked() then
@@ -925,7 +957,7 @@ function private.SetupConfigGui(gui)
 
 	gui:AddHelp(id, "what is required",
 		_TRANS('COMP_Help_WhatRequied'), --"What is the required bid?",
-		_TRANS('COMP_Help_WhatRequiedAnswered')) --"The stock standard interface shows you the current bid. In the case where the current bid is not the minimum (or starting) bid, your actual amount when you bid on this item will be the current bid, plus the minimum increment. Therefore what you pay will be more than what is displayed in the window when you are not the first bidder. By ticking this option, you change CompactUI's behaviour to instead show the required bid that you will need to bid, so that no matter if there is a bid or not, what you see is what you will pay."
+		_TRANS('COMP_Help_WhatRequiedAnswer')) --"The stock standard interface shows you the current bid. In the case where the current bid is not the minimum (or starting) bid, your actual amount when you bid on this item will be the current bid, plus the minimum increment. Therefore what you pay will be more than what is displayed in the window when you are not the first bidder. By ticking this option, you change CompactUI's behaviour to instead show the required bid that you will need to bid, so that no matter if there is a bid or not, what you see is what you will pay."
 
 	gui:AddHelp(id, "what is browseoverride",
 		_TRANS('COMP_Help_WhatBrowseOverride'), --"Why do I want to prevent other modules from changing the Browse window?"
@@ -958,4 +990,4 @@ function lib.GetButtons()
 end
 
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-CompactUI/CompactUI.lua $", "$Rev: 6452 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-CompactUI/CompactUI.lua $", "$Rev: 6800 $")

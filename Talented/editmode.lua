@@ -1,10 +1,13 @@
 local Talented = Talented
 local ipairs = ipairs
 local L = LibStub("AceLocale-3.0"):GetLocale("Talented")
+local isVanilla = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+local isTBC     = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
 
 function Talented:IsTemplateAtCap(template)
-	local max = RAID_CLASS_COLORS[template.class] and 61 or 20 --Level 70 is max
-	return self.db.profile.level_cap and self:GetPointCount(template) >= max
+	local maxPlayerLevel = isTBC and 61 or 51 --L70 for TBC, L60 for Vanilla
+	local maxLevel = RAID_CLASS_COLORS[template.class] and maxPlayerLevel or 20 --20 points for hunter pets
+	return self.db.profile.level_cap and self:GetPointCount(template) >= maxLevel
 end
 
 function Talented:GetPointCount(template)

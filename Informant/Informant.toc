@@ -1,14 +1,14 @@
 ## Title: Informant
 ## Notes: Displays detailed item information in tooltips, such as use, vendor sales information, and more.
 ##
-## Interface: 80200
+## Interface: 30400
 ## LoadOnDemand: 1
 ## Dependencies: Stubby
 ## OptionalDeps: !nLog, Babylonian, DebugLib, Configator, SlideBar, LibExtraTip, TipHelper, LibDataBroker
 ## SavedVariables: InformantConfig, InformantLocalUpdates
 ##
-## Version: 8.2.6374 (SwimmingSeadragon)
-## Revision: $Id: Informant.toc 6374 2019-10-20 00:10:07Z none $
+## Version: 3.4.6850 (SwimmingSeadragon)
+## Revision: $Id: Informant.toc 6850 2022-10-27 00:00:09Z none $
 ## Author: Norganna's AddOns
 ## X-Part-Of: Auctioneer
 ## X-Category: Item Data
@@ -29,8 +29,8 @@ Data\InfQuests.lua
 Data\InfVendors.lua
 Data\InfData.lua
 
-InfCommand.lua
 InfSettings.lua
+InfCommand.lua
 InfTooltip.lua
 
 Informant.xml

@@ -1,7 +1,7 @@
 --[[
 	Auctioneer
-	Version: 8.2.6430 (SwimmingSeadragon)
-	Revision: $Id: CorePost.lua 6430 2019-10-20 00:10:07Z none $
+	Version: 3.4.6844 (SwimmingSeadragon)
+	Revision: $Id: CorePost.lua 6844 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -54,10 +54,15 @@ lib.Private = private
 
 local aucPrint = AucAdvanced.Print
 local Const = AucAdvanced.Const
+local Resources = AucAdvanced.Resources
 local debugPrint = AucAdvanced.Debug.DebugPrint
 local _TRANS = AucAdvanced.localizations
 local DecodeSig -- to be filled with AucAdvanced.API.DecodeSig when it has loaded
 local GetSigFromLink -- to be filled with AucAdvanced.API.GetSigFromLink when it has loaded
+
+-- We need to know which Expansion we are in, as deposit cost calculations changed
+local IsClassicEra = AucAdvanced.Classic == 1 -- Classic Era (vanilla)
+local IsBCClassic = AucAdvanced.Classic == 2 -- Burning Crusade Classic
 
 -- local versions of API globals
 local floor = floor
@@ -85,14 +90,10 @@ local POST_TIMEOUT = 8 -- seconds general timeout after starting an auction, bef
 local POST_ERROR_PAUSE = 5 -- seconds pause after an error before trying next request
 local POST_THROTTLE = 0 -- time before starting to post the next item in the queue
 local POST_TIMER_INTERVAL = 0.5 -- default interval of updates from the timer
-local MINIMUM_DEPOSIT = 100 -- 1 silver minimum deposit, used in deposit cost calculation
-local MAX_EXTRA_FEE = 10000000 -- cap the extra fee for stackable tradegoods, used in deposit cost calculation
+--local MINIMUM_DEPOSIT = 0 -- minimum deposit, used in deposit cost calculation, currently unused for Classic
 local PROMPT_HEIGHT = 140
 local PROMPT_MIN_WIDTH = 400
 
-if AucAdvanced.Classic then
-    MINIMUM_DEPOSIT = 0     -- no minimum in Classic
-end
 
 -- Used to check for bound items in bags - only checks for strings indicating item is already bound
 -- In particular we do not check for ITEM_BIND_ON_PICKUP, as for our tests,
@@ -124,7 +125,7 @@ local UIKnownErrors = {
 	[ERR_AUCTION_REPAIR_ITEM] = "ERR_AUCTION_REPAIR_ITEM",
 	[ERR_AUCTION_USED_CHARGES] = "ERR_AUCTION_USED_CHARGES",
 	[ERR_AUCTION_WRAPPED_ITEM] = "ERR_AUCTION_WRAPPED_ITEM",
-	[ERR_AUCTION_REPAIR_ITEM] = "ERR_AUCTION_REPAIR_ITEM",
+	[ERR_AUCTION_EQUIPPED_BAG] = "ERR_AUCTION_EQUIPPED_BAG",
 }
 -- If the UI error message one that is known to cause posting to fail
 function private.IsBlockingError(errorcode)
@@ -282,44 +283,49 @@ do
 	end
 end --of Post Request Queue section
 
-
-local AuctionDurationCode = {
-    1, --[1]
-    2, --[2]
-    3, --[3]
-    [12] = 1, -- hours
-    [24] = 2,
-    [48] = 3,
-    [720] = 1, -- minutes
-    [1440] = 2,
-    [2880] = 3,
-}
-
-local LookupDurationHours = {12, 24, 48} -- convert duration code to hours, for display
-
-if AucAdvanced.Classic then
-    AuctionDurationCode = {
-        [1] = 1,
--- 2 would cause issues here, but already exists as a value
-        [3] = 3,
-
-        [2] = 1, -- hours
-        [8] = 2,
-        [24] = 3,
-
-        [120] = 1, -- minutes
-        [480] = 2,
-        [1440] = 3,
-    }
-    LookupDurationHours = {2, 8, 24} -- convert duration code to hours, for display
-end
-
 do
-	function lib.ValidateAuctionDuration(duration)
-		return AuctionDurationCode[duration]
+	local ValidDuration = {1, 2, 3}
+	local HoursToDuration, DurationToHours
+
+	if IsClassicEra then
+		HoursToDuration = {
+			[2] = 1, -- hours
+			[8] = 2,
+			[24] = 3,
+			[120] = 1, -- minutes
+			[480] = 2,
+			[1440] = 3,
+		}
+		DurationToHours = {2, 8, 24} -- convert duration code to hours, for display
+	else
+		HoursToDuration = {
+			[12] = 1, -- hours
+			[24] = 2,
+			[48] = 3,
+			[720] = 1, -- minutes
+			[1440] = 2,
+			[2880] = 3,
+		}
+		DurationToHours = {12, 24, 48} -- convert duration code to hours, for display
 	end
+
+	-- ### todo:
+	-- In future we should only permit durations from ValidDuration
+	-- We will temporarily convert from hours if used
+	-- Note however there is a clash between duration 2 and hours 2 (which will not correctly be converted to duration 1)
+	function lib.ValidateAuctionDuration(duration)
+		return ValidDuration[duration] or HoursToDuration[duration]
+	end
+
+	-- This function only provides hours for valid duration codes
+	-- This is a change from previous functionality, where it would also accept hours or minutes
 	function lib.AuctionDurationHours(duration)
-		return LookupDurationHours[AuctionDurationCode[duration]]
+		return DurationToHours[duration]
+	end
+
+	-- Convert from hours (or minutes) to a valid duration code
+	function lib.GetDurationCode(hours)
+		return HoursToDuration[hours]
 	end
 end
 
@@ -359,87 +365,93 @@ local function AnalyzeItem(item)
 end
 
 local lastPostId = 0
-function private.GetRequest(item, size, bid, buyout, duration, multiple)
-	local sig, id, linkType, exactLink = AnalyzeItem(item)
-	if not (sig and id) then
-		return nil, "InvalidItem"
-	elseif C_WowTokenPublic.IsAuctionableWowToken(id) then
-		-- WoW tokens require special handling, which Auctioneer currently doesn't support
-		return nil, "Token"
-	elseif type(size) ~= "number" or size < 1 then
-		return nil, "InvalidSize"
-	elseif type(bid) ~= "number" or bid < 1 then
-		return nil, "InvalidBid"
-	elseif type(buyout) ~= "number" or (buyout < bid and buyout ~= 0) then
-		return nil, "InvalidBuyout"
+if AucAdvanced.ABORTLOAD then
+	function private.GetRequest()
+		return nil, "NotLoaded"
 	end
-	duration = lib.ValidateAuctionDuration(duration)
-	if not duration then
-		return nil, "InvalidDuration"
-	end
-
-	local _,_,_,_,_,_,_, maxSize = GetItemInfo(id)
-	if not maxSize then
-		return nil, "UnknownItem"
-	elseif size > maxSize then
-		return nil, "MaxSize"
-	end
-
-	multiple = tonumber(multiple) or 1
-	if multiple < 1 or multiple ~= floor(multiple) then
-		return nil, "InvalidMultiple"
-	end
-	local available, total, _, _, _, reason = lib.CountAvailableItems(sig)
-	if total == 0 then
-		return nil, "NotFound"
-	elseif available == 0 and reason then
-		return nil, reason
-	elseif available < size * multiple then
-		return nil, "NotEnough"
-	end
-
-	lastPostId = lastPostId + 1
-	local request = {
-		sig = sig,
-		count = size,
-		bid = bid,
-		buy = buyout,
-		duration = duration,
-		stacks = multiple,
-		id = lastPostId,
-		posted = 0,
-		linkType = linkType, -- for battlepet special handling
-		exactLink = exactLink, -- for future: will be used to post item with exact matching link
-	}
-
-	--[[ Temporary fix {ADV-665}
-		Multisell API is currently not working for battlepets
-		handle if the user requests to post multiple of the same pet, by generating multiple individual requests of size 1 each
-		patch intended to be easily removed assuming Blizzard fixes the API
-		also changes in PostAuction and PostAuctionClick, and a related fix in LoadAuctionSlot
-	--]]
-	local petextrarequests = nil
-	if linkType == "battlepet" and multiple > 1 then
-		request.stacks = 1 -- only post 1 pet in the primary request
-		petextrarequests = {}
-		for i = 1, multiple-1 do
-				lastPostId = lastPostId + 1
-				tinsert(petextrarequests, {
-				sig = sig,
-				count = size,
-				bid = bid,
-				buy = buyout,
-				duration = duration,
-				stacks = 1, -- 1 pet per extra request
-				id = lastPostId,
-				posted = 0,
-				linkType = linkType,
-				--exactLink = exactLink, -- planned implementation of exactLink will only be for single item
-			})
+else
+	function private.GetRequest(item, size, bid, buyout, duration, multiple)
+		local sig, id, linkType, exactLink = AnalyzeItem(item)
+		if not (sig and id) then
+			return nil, "InvalidItem"
+		elseif C_WowTokenPublic.IsAuctionableWowToken(id) then
+			-- WoW tokens require special handling, which Auctioneer currently doesn't support
+			return nil, "Token"
+		elseif type(size) ~= "number" or size < 1 then
+			return nil, "InvalidSize"
+		elseif type(bid) ~= "number" or bid < 1 then
+			return nil, "InvalidBid"
+		elseif type(buyout) ~= "number" or (buyout < bid and buyout ~= 0) then
+			return nil, "InvalidBuyout"
 		end
-	end
+		duration = lib.ValidateAuctionDuration(duration)
+		if not duration then
+			return nil, "InvalidDuration"
+		end
 
-	return request, nil, petextrarequests
+		local _,_,_,_,_,_,_, maxSize = GetItemInfo(id)
+		if not maxSize then
+			return nil, "UnknownItem"
+		elseif size > maxSize then
+			return nil, "MaxSize"
+		end
+
+		multiple = tonumber(multiple) or 1
+		if multiple < 1 or multiple ~= floor(multiple) then
+			return nil, "InvalidMultiple"
+		end
+		local available, total, _, _, _, reason = lib.CountAvailableItems(sig)
+		if total == 0 then
+			return nil, "NotFound"
+		elseif available == 0 and reason then
+			return nil, reason
+		elseif available < size * multiple then
+			return nil, "NotEnough"
+		end
+
+		lastPostId = lastPostId + 1
+		local request = {
+			sig = sig,
+			count = size,
+			bid = bid,
+			buy = buyout,
+			duration = duration,
+			stacks = multiple,
+			id = lastPostId,
+			posted = 0,
+			linkType = linkType, -- for battlepet special handling
+			exactLink = exactLink, -- for future: will be used to post item with exact matching link
+		}
+
+		--[[ Temporary fix {ADV-665}
+			Multisell API is currently not working for battlepets
+			handle if the user requests to post multiple of the same pet, by generating multiple individual requests of size 1 each
+			patch intended to be easily removed assuming Blizzard fixes the API
+			also changes in PostAuction and PostAuctionClick, and a related fix in LoadAuctionSlot
+		--]]
+		local petextrarequests = nil
+		if linkType == "battlepet" and multiple > 1 then
+			request.stacks = 1 -- only post 1 pet in the primary request
+			petextrarequests = {}
+			for i = 1, multiple-1 do
+					lastPostId = lastPostId + 1
+					tinsert(petextrarequests, {
+					sig = sig,
+					count = size,
+					bid = bid,
+					buy = buyout,
+					duration = duration,
+					stacks = 1, -- 1 pet per extra request
+					id = lastPostId,
+					posted = 0,
+					linkType = linkType,
+					--exactLink = exactLink, -- planned implementation of exactLink will only be for single item
+				})
+			end
+		end
+
+		return request, nil, petextrarequests
+	end
 end
 
 --[[
@@ -447,7 +459,7 @@ end
 
 	Places the request to post a stack of the "sig" item, "size" high
 	into the auction house for "bid" minimum bid, and "buy" buyout and
-	posted for "duration" minutes. The request will be posted
+	posted for "duration" time (requires valid duration code 1, 2 or 3). The request will be posted
 	"multiple" number of times.
 
 	This is the main entry point to the Post library for other AddOns, so has the strictest parameter checking
@@ -572,10 +584,24 @@ function lib.IsAuctionable(bag, slot)
 	local test = nil
 	for index = 2, 8 do
 		local line = ScanTipLeft[index]
-		if line then
-			test = BindTypes[line:GetText()]
+		if not line then
+			break
 		end
-		if test or not line then
+		local linetext = line:GetText()
+		if not linetext or linetext == "" or linetext:byte(1) == 10 then
+			-- Recipe items usually contain the text of the item the recipe creates
+			-- This item text is always inserted after the lines we are scanning for
+			-- Furthermore it may contain its own bind-type line that will give a false result if we include it in the scan
+			-- Therefore we want to stop scanning at this point
+			-- The start of this text is marked by a blank line, which is a '\n' (ASCII 10) character
+
+			-- Note: if the sub-item is not cached we may get "Retrieving item information" text instead
+			-- However this text would simply be ignored by our search, so we shall not do an explicit test for it
+			break
+		end
+
+		test = BindTypes[linetext]
+		if test then
 			break
 		end
 	end
@@ -634,67 +660,40 @@ end
 
 
 do --[[ Deposit Cost Calculator ]]--
-
-	local lookupExcludeSubclass, lookupExceptionID = {}, {}
-	function private.InitDepositCostData()
-		local Data = AucAdvanced.Data
-		InitDepositCostData = nil
-
-		-- lookup table for subclasses of tradeskill reagents that do NOT have increased deposit
-		-- these must be numbers, to match the subclassID return from GetItemInfo
-		-- Source table is in DataPostDeposit.lua, in List form - convert to lookup
-		for _, subclass in ipairs(Data.DepositExcludedSubclasses) do
-			lookupExcludeSubclass[subclass] = true
-		end
-		Data.DepositExcludedSubclasses = nil
-
-		-- lookup table for itemIDs in a subclass that usually has an increased deposit cost, but which actually have base deposit cost (exceptions)
-		-- these must be strings to match the itemID extracted from the itemLink
-		-- Source table is in DataPostDeposit.lua in List for, convert to lookup, and convert each entry to a string
-		for _, item in ipairs(Data.DepositItemIDExceptions) do
-			lookupExceptionID[tostring(item)] = true
-		end
-		Data.DepositItemIDExceptions = nil
-
-	end
-	AucAdvanced.Data.DepositCalcAlgorithmDebugVersion = 2 -- ### used by debugging tools, stored in an out-of-the-way place
-
 	--[[
-		lib.GetDepositCost(item, duration, bidprice, buyprice, stacksize, numstacks)
+		lib.GetDepositCost(item, duration, isNeutral, stacksize, numstacks)
 		item: itemID or "itemString" or "itemName" or "itemLink" [Required]
-		duration: 1, 2, 3 (Blizzard auction duration codes), 12, 24, 48 (hours), 720, 1440, 2880 (minutes) [defaults to 3]
-		Classic duration: 1, 2, 3 (Blizzard auction duration codes), 2, 8, 24 (hours), 120, 480, 1440 (minutes) [defaults to 3]
-		bidprice, buyprice: prices for the stack
+		duration: 1, 2, 3 (Blizzard auction duration codes) [defaults to 3]
+		isNeutral: boolean - whether to use Neutral AH deposit cost. [Defaults to false]. Alternatively accepts string: "Horde", "Alliance" or "Neutral"
 		stacksize: [defaults to 1]
 		numstacks: [defaults to 1]
 
 	]]
-	function lib.GetDepositCost(item, duration, bidprice, buyprice, stacksize, numstacks)
-		local vendor, classID, subclassID, itemID
-		--[[
-            Base Deposit = 0.15 * VendorPrice * StackSize * DurationMultiplier
-                DurationMultiplier = (1 for 12hrs, 2 for 24hrs, 4 for 48hrs)
+	function lib.GetDepositCost(item, duration, faction, stacksize, numstacks)
+		local vendor
 
-                or 0.0125 * VendorPrice * StackSize * DurationInHours
-
-            Extra Deposit = 0.2 * max(StackBidPrice, StackBuyPrice) / StackSize
-                Extra Deposit is added to some Trade goods
-
-            -- ### todo: figure out proper rounding algorithm
-		--]]
+		if faction and faction ~= true then
+			if faction == "Neutral" or faction == "neutral" then
+				faction = true
+			elseif type(faction) == "string" then -- Assume it's some other faction name
+				faction = false
+			else
+				-- ### debug: detect if we get an unexpected faction type, most likely a number, from a caller that has not been updated
+				GetErrorHandler()("GetDepositCost invalid faction")
+				return
+			end
+		end
 
 		local itype = type(item)
 		if itype == "number" then
-			itemID = tostring(item)
-			vendor, classID, subclassID = AucAdvanced.GetItemInfoCache(item, 11)
+			vendor = AucAdvanced.GetItemInfoCache(item, 11)
 		elseif itype == "string" then
 			local head, id, _ = strsplit(":", item, 3)
 			local ltype = head:sub(-4)
 			if ltype == "epet" then -- battlepet
 				vendor = 0
 			elseif ltype == "item" then
-				vendor, classID, subclassID = AucAdvanced.GetItemInfoCache(item, 11)
-				itemID = id
+				vendor = AucAdvanced.GetItemInfoCache(item, 11)
 			else
 				return
 			end
@@ -703,64 +702,54 @@ do --[[ Deposit Cost Calculator ]]--
 		end
 
 		if vendor then
-            --local start_duration = duration -- DEBUGGING
-			duration = AuctionDurationCode[duration] or 3       -- default to max time (most common case) if no duration given or invalid
+			--local start_duration = duration -- ### debug
+			duration = lib.ValidateAuctionDuration(duration) or 3       -- default to max time (most common case) if no duration given or invalid
 			if not stacksize or stacksize < 1 then stacksize = 1 end
-            local deposit = 0
-            local hours = LookupDurationHours[duration]
-            local vendstack = stacksize*vendor
-            local DepositMultiplier = 0.0125    --- multiplier in Current (48 hour max)
+			local deposit = 0
+			local hours = lib.AuctionDurationHours(duration)
+			local vendstack = stacksize * vendor
 
-            -- ccox - NOTE - the real game function may have more inflection points, but this matches items from 5c to 2g exactly
-            -- Current may use a similar function as the math is close to /20, need to test
-            if AucAdvanced.Classic then
-                if (vendstack < 80) then
-                    deposit = floor( (vendstack+12)/24 )
-                else
-                    deposit = floor(vendstack/20)
-                end
-                deposit = deposit * hours / 2
-            else
-                deposit = DepositMultiplier * vendstack * hours
-            end
-
-            --debugPrint("deposit: "..deposit.." stack: "..stacksize.." hours: "..hours.." start_duration: "..start_duration, "CorePost", "Debugging", "Warning")
-
-			if (not AucAdvanced.Classic) and (classID == LE_ITEM_CLASS_TRADEGOODS) then
-				-- additional deposit fee for certain tradegoods
-				if not (lookupExcludeSubclass[subclassID] or lookupExceptionID[itemID]) then
-					local extra = max(bidprice or 1, buyprice or 0)
-					extra = .2 * extra / stacksize -- extra fee is not affected by auction duration
-					if extra > MAX_EXTRA_FEE then
-						extra = MAX_EXTRA_FEE
-					end
-					deposit = deposit + extra
+			if IsClassicEra then
+				if faction then
+					vendstack = vendstack * 5 -- ### rough estimate for now ###
 				end
+				-- ccox - NOTE - the real game function may have more inflection points, but this matches items from 5c to 2g exactly
+				-- Calculation for Classic
+				if (vendstack < 80) then
+					deposit = floor( (vendstack+12)/24 )
+				else
+					deposit = floor(vendstack/20)
+				end
+				deposit = deposit * hours / 2
+			--[[ TBC section commented out as it is currently the same as the 'else' case, but retained in case we need it in future
+			elseif IsBCClassic then
+				-- Calculation for Burning Crusade Classic
+				-- There is no longer an inflection point at 80c, the calculation is 5% throughout (though much higher values are still untested)
+				-- Neutral AH calculation appears to be correct
+				if faction then
+					vendstack = vendstack * 5
+				end
+				deposit = floor(vendstack * 0.05) * hours / 4
+			--]]
+            else -- Later Classic expansions: TBC, Wrath...
+				if faction then
+					vendstack = vendstack * 5
+				end
+				deposit = floor(vendstack * 0.05) * hours / 4
 			end
+			--debugPrint("deposit: "..deposit.." stack: "..stacksize.." hours: "..hours.." start_duration: "..start_duration, "CorePost", "Debugging", "Warning") -- ### debug
 
-			deposit = floor(deposit) -- ### try rounding to coppers as last thing...
+			--deposit = floor(deposit) -- ### should not be needed here
 
-			if deposit < MINIMUM_DEPOSIT then
-				deposit = MINIMUM_DEPOSIT
-			end
+			-- if deposit < MINIMUM_DEPOSIT then
+				-- deposit = MINIMUM_DEPOSIT
+			-- end
 
 			return deposit * (numstacks or 1)
 		end
 	end
 
-	function GetDepositCost(item, duration, unused, count)
-		-- ### temporary wrapper until we convert all our calls
-		-- calls lib.GetDepositCost inserting default (i.e. fake) values for missing arguaments
-		return lib.GetDepositCost(item, duration, 10000 * count, 0, count, 1)
-	end
-
-	lib.DepositCostDebugVersion = 2 -- ### temp value for use by debugging tools for GetDepositCost
-end
-
-function GetDepositCost(item, duration, unused, count)
-	-- ### temporary wrapper until we convert all our calls
-	-- calls lib.GetDepositCost inserting default (i.e. fake) values for missing arguaments
-	return lib.GetDepositCost(item, duration, 10000 * count, 0, count, 1)
+	lib.DepositCostDebugVersion = 4 -- ### temp value for use by debugging tools for GetDepositCost
 end
 
 do
@@ -913,9 +902,14 @@ function private.TrackPostingMultisellFail()
 		local msg = ("Failed to post all requested auctions of %s (posted %d)"):format(private.RequestDisplayString(request, link), request.posted)
 		if private.lastUIError then
 			msg = msg.."\nAdditional info: "..private.lastUIError
+			debugPrint(msg, "CorePost", "Posting Failure", "Warning")
+			geterrorhandler()(msg)
+		else
+			-- This is becoming more common due to server load and/or throttling
+			-- ### for now just print message to chat, instead of throwing an error popup
+			-- ### todo: design system to retry unposted items
+			aucPrint(msg)
 		end
-		debugPrint(msg, "CorePost", "Posting Failure", "Warning")
-		geterrorhandler()(msg)
 	end
 end
 
@@ -1139,7 +1133,7 @@ function private.LoadAuctionSlot(request)
 	request.texture = texture -- displayed in the Prompt
 	request.depositB = depositBlizz
 
-	local depositCalc = lib.GetDepositCost(link, request.duration, request.bid, request.buy, request.count, request.stacks)
+	local depositCalc = lib.GetDepositCost(link, request.duration, Resources.IsNeutralZone, request.count, request.stacks)
 	if depositBlizz and depositBlizz > depositCalc * 1.05 then -- ### for now we test with a small leeway to allow for round - we don't know the rounding algorithm yet
 		return true, nil, -1 -- flag to prevent immediate posting (should popup the positng prompt instead, which will display deposit cost)
 	end
@@ -1321,7 +1315,6 @@ local function UpdateHandler(self, elapsed)
 		end
 	end
 end
-EventFrame:SetScript("OnUpdate", UpdateHandler)
 
 --[[
 	PRIVATE: Wait(delay)
@@ -1400,17 +1393,20 @@ local function EventHandler(self, event, arg1, arg2)
 		end
 	end
 end
-EventFrame:SetScript("OnEvent", EventHandler)
-EventFrame:RegisterEvent("CHAT_MSG_SYSTEM")
-EventFrame:RegisterEvent("UI_ERROR_MESSAGE")
-EventFrame:RegisterEvent("AUCTION_MULTISELL_START")
---EventFrame:RegisterEvent("AUCTION_MULTISELL_UPDATE")
-EventFrame:RegisterEvent("AUCTION_MULTISELL_FAILURE")
-EventFrame:RegisterEvent("ITEM_LOCK_CHANGED")
-EventFrame:RegisterEvent("BAG_UPDATE")
-EventFrame:RegisterEvent("AUCTION_HOUSE_SHOW")
-EventFrame:RegisterEvent("AUCTION_HOUSE_CLOSED")
-EventFrame:RegisterEvent("NEW_AUCTION_UPDATE")
+if not AucAdvanced.ABORTLOAD then
+	EventFrame:SetScript("OnUpdate", UpdateHandler)
+	EventFrame:SetScript("OnEvent", EventHandler)
+	EventFrame:RegisterEvent("CHAT_MSG_SYSTEM")
+	EventFrame:RegisterEvent("UI_ERROR_MESSAGE")
+	EventFrame:RegisterEvent("AUCTION_MULTISELL_START")
+	--EventFrame:RegisterEvent("AUCTION_MULTISELL_UPDATE")
+	EventFrame:RegisterEvent("AUCTION_MULTISELL_FAILURE")
+	EventFrame:RegisterEvent("ITEM_LOCK_CHANGED")
+	EventFrame:RegisterEvent("BAG_UPDATE")
+	EventFrame:RegisterEvent("AUCTION_HOUSE_SHOW")
+	EventFrame:RegisterEvent("AUCTION_HOUSE_CLOSED")
+	EventFrame:RegisterEvent("NEW_AUCTION_UPDATE")
+end
 
 function private.OnLoadRunOnce()
 	private.OnLoadRunOnce = nil
@@ -1431,11 +1427,11 @@ function coremodule.OnLoad(addon)
 	end
 end
 
-coremodule.Processors = {
-	gameactive = function()
-		private.InitDepositCostData()
-	end,
-}
+-- coremodule.Processors = {
+	-- gameactive = function()
+
+	-- end,
+-- }
 
 -- Other hooks
 private.hook_CancelSell = CancelSell
@@ -1468,7 +1464,7 @@ private.Prompt:SetMovable(true)
 private.Prompt:SetClampedToScreen(true)
 
 --The "graphic" frame and backdrop that we resize
-private.Prompt.Frame = CreateFrame("Frame", nil, private.Prompt)
+private.Prompt.Frame = CreateFrame("Frame", nil, private.Prompt, BackdropTemplateMixin and "BackdropTemplate")
 private.Prompt.Frame:SetPoint("CENTER", private.Prompt, "CENTER" )
 private.Prompt.Frame:SetFrameLevel(private.Prompt:GetFrameLevel() - 1) -- lower level than parent (backdrop)
 private.Prompt.Frame:SetHeight(PROMPT_HEIGHT)
@@ -1563,5 +1559,5 @@ private.Prompt.DragBottom:SetScript("OnMouseDown", DragStart)
 private.Prompt.DragBottom:SetScript("OnMouseUp", DragStop)
 
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CorePost.lua $", "$Rev: 6430 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CorePost.lua $", "$Rev: 6844 $")
 AucAdvanced.CoreFileCheckOut("CorePost")

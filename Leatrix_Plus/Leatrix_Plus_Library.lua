@@ -1,12 +1,20 @@
-----------------------------------------------------------------------
+﻿----------------------------------------------------------------------
 -- L00: Leatrix Plus Library
 ----------------------------------------------------------------------
 
-	-- LibDBIcon 9.0.0
-	-- 11: LibStub: (?s)-- LibStubStart\R?\K.*?(?=-- LibStubEnd)
-	-- 12: LibCallbackHandler: (?s)-- CallbackStart\R?\K.*?(?=-- CallbackEnd)
-	-- 13: LibDataBroker: (?s)-- DataBrokerStart\R?\K.*?(?=-- DataBrokerEnd)
-	-- 14: LibDBIcon: (?s)-- LibDBIconStart\R?\K.*?(?=-- LibDBIconEnd)
+-- LibDBIcon 10.0.1:
+-- 11: LibStub: (?s)-- LibStubStart\R?\K.*?(?=-- LibStubEnd)
+-- 12: LibCallbackHandler: (?s)-- CallbackStart\R?\K.*?(?=-- CallbackEnd)
+-- 13: LibDataBroker: (?s)-- DataBrokerStart\R?\K.*?(?=-- DataBrokerEnd)
+-- 14: LibDBIcon: (?s)-- LibDBIconStart\R?\K.*?(?=-- LibDBIconEnd)
+
+-- LibChatAnims 10.0.1:
+-- 15: LibChatAnims: (?s)-- LibChatAnimsStart\R?\K.*?(?=-- LibChatAnimsEnd)
+
+-- LibCandyBar 10.0.1:
+-- 16: LibCandyBar: (?s)-- LibCandyBarStart\R?\K.*?(?=-- LibCandyBarEnd)
+
+local void, Leatrix_Plus = ...
 
 ----------------------------------------------------------------------
 -- L11: LibDBIcon: LibStub
@@ -78,8 +86,8 @@ LeaLibStub()
 local function LeaCallbackHandler()
 
 -- CallbackStart
---[[ $Id: CallbackHandler-1.0.lua 1186 2018-07-21 14:19:18Z nevcairiel $ ]]
-local MAJOR, MINOR = "CallbackHandler-1.0", 7
+--[[ $Id: CallbackHandler-1.0.lua 26 2022-12-12 15:09:39Z nevcairiel $ ]]
+local MAJOR, MINOR = "CallbackHandler-1.0", 8
 local CallbackHandler = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not CallbackHandler then return end -- No upgrade needed
@@ -87,26 +95,16 @@ if not CallbackHandler then return end -- No upgrade needed
 local meta = {__index = function(tbl, key) tbl[key] = {} return tbl[key] end}
 
 -- Lua APIs
-local tconcat = table.concat
-local assert, error, loadstring = assert, error, loadstring
-local setmetatable, rawset, rawget = setmetatable, rawset, rawget
+local securecallfunction, error = securecallfunction, error
+local setmetatable, rawget = setmetatable, rawget
 local next, select, pairs, type, tostring = next, select, pairs, type, tostring
 
--- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
--- List them here for Mikk's FindGlobals script
--- GLOBALS: geterrorhandler
-
-local xpcall = xpcall
-
-local function errorhandler(err)
-	return geterrorhandler()(err)
-end
 
 local function Dispatch(handlers, ...)
 	local index, method = next(handlers)
 	if not method then return end
 	repeat
-		xpcall(method, errorhandler, ...)
+		securecallfunction(method, ...)
 		index, method = next(handlers, index)
 	until not method
 end
@@ -119,7 +117,7 @@ end
 --   UnregisterName    - name of the callback unregistration API, default "UnregisterCallback"
 --   UnregisterAllName - name of the API to unregister all callbacks, default "UnregisterAllCallbacks". false == don't publish this API.
 
-function CallbackHandler:New(target, RegisterName, UnregisterName, UnregisterAllName)
+function CallbackHandler.New(_self, target, RegisterName, UnregisterName, UnregisterAllName)
 
 	RegisterName = RegisterName or "RegisterCallback"
 	UnregisterName = UnregisterName or "UnregisterCallback"
@@ -147,13 +145,13 @@ function CallbackHandler:New(target, RegisterName, UnregisterName, UnregisterAll
 
 		if registry.insertQueue and oldrecurse==0 then
 			-- Something in one of our callbacks wanted to register more callbacks; they got queued
-			for eventname,callbacks in pairs(registry.insertQueue) do
-				local first = not rawget(events, eventname) or not next(events[eventname])	-- test for empty before. not test for one member after. that one member may have been overwritten.
-				for self,func in pairs(callbacks) do
-					events[eventname][self] = func
+			for event,callbacks in pairs(registry.insertQueue) do
+				local first = not rawget(events, event) or not next(events[event])	-- test for empty before. not test for one member after. that one member may have been overwritten.
+				for object,func in pairs(callbacks) do
+					events[event][object] = func
 					-- fire OnUsed callback?
 					if first and registry.OnUsed then
-						registry.OnUsed(registry, target, eventname)
+						registry.OnUsed(registry, target, event)
 						first = nil
 					end
 				end
@@ -404,7 +402,7 @@ LeaDataBroker()
 local function LeaLibDBIcon()
 
 -- LibDBIconStart
-
+--@curseforge-project-slug: libdbicon-1-0@
 -----------------------------------------------------------------------
 -- LibDBIcon-1.0
 --
@@ -412,7 +410,7 @@ local function LeaLibDBIcon()
 --
 
 local DBICON10 = "LibDBIcon-1.0"
-local DBICON10_MINOR = 44 -- Bump on changes
+local DBICON10_MINOR = 51 -- Bump on changes
 if not LibStub then error(DBICON10 .. " requires LibStub.") end
 local ldb = LibStub("LibDataBroker-1.1", true)
 if not ldb then error(DBICON10 .. " requires LibDataBroker-1.1.") end
@@ -422,9 +420,8 @@ if not lib then return end
 lib.objects = lib.objects or {}
 lib.callbackRegistered = lib.callbackRegistered or nil
 lib.callbacks = lib.callbacks or LibStub("CallbackHandler-1.0"):New(lib)
-lib.notCreated = lib.notCreated or {}
 lib.radius = lib.radius or 5
-local next, Minimap, CreateFrame = next, Minimap, CreateFrame
+local next, Minimap, CreateFrame, AddonCompartmentFrame = next, Minimap, CreateFrame, AddonCompartmentFrame
 lib.tooltip = lib.tooltip or CreateFrame("GameTooltip", "LibDBIconTooltip", UIParent, "GameTooltipTemplate")
 local isDraggingButton = false
 
@@ -498,6 +495,33 @@ local function onLeave(self)
 	local obj = self.dataObject
 	if obj.OnLeave then
 		obj.OnLeave(self)
+	end
+end
+
+local function onEnterCompartment(self)
+	local buttonName = self.value
+	local object = lib.objects[buttonName]
+	if object and object.dataObject then
+		if object.dataObject.OnTooltipShow then
+			lib.tooltip:SetOwner(self, "ANCHOR_NONE")
+			lib.tooltip:SetPoint(getAnchors(self))
+			object.dataObject.OnTooltipShow(lib.tooltip)
+			lib.tooltip:Show()
+		elseif object.dataObject.OnEnter then
+			object.dataObject.OnEnter(self)
+		end
+	end
+end
+
+local function onLeaveCompartment(self)
+	lib.tooltip:Hide()
+
+	local buttonName = self.value
+	local object = lib.objects[buttonName]
+	if object and object.dataObject then
+		if object.dataObject.OnLeave then
+			object.dataObject.OnLeave(self)
+		end
 	end
 end
 
@@ -619,42 +643,54 @@ local function updateCoord(self)
 	self:SetTexCoord(coords[1] + deltaX, coords[2] - deltaX, coords[3] + deltaY, coords[4] - deltaY)
 end
 
-local function createButton(name, object, db)
+local function createButton(name, object, db, customCompartmentIcon)
 	local button = CreateFrame("Button", "LibDBIcon10_"..name, Minimap)
 	button.dataObject = object
 	button.db = db
 	button:SetFrameStrata("MEDIUM")
-	if button.SetFixedFrameStrata then -- Classic support
-		button:SetFixedFrameStrata(true)
-	end
+	button:SetFixedFrameStrata(true)
 	button:SetFrameLevel(8)
-	if button.SetFixedFrameLevel then -- Classic support
-		button:SetFixedFrameLevel(true)
-	end
+	button:SetFixedFrameLevel(true)
 	button:SetSize(31, 31)
 	button:RegisterForClicks("anyUp")
 	button:RegisterForDrag("LeftButton")
 	button:SetHighlightTexture(136477) --"Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight"
-	local overlay = button:CreateTexture(nil, "OVERLAY")
-	overlay:SetSize(53, 53)
-	overlay:SetTexture(136430) --"Interface\\Minimap\\MiniMap-TrackingBorder"
-	overlay:SetPoint("TOPLEFT")
-	local background = button:CreateTexture(nil, "BACKGROUND")
-	background:SetSize(20, 20)
-	background:SetTexture(136467) --"Interface\\Minimap\\UI-Minimap-Background"
-	background:SetPoint("TOPLEFT", 7, -5)
-	local icon = button:CreateTexture(nil, "ARTWORK")
-	icon:SetSize(17, 17)
-	icon:SetTexture(object.icon)
-	icon:SetPoint("TOPLEFT", 7, -6)
-	button.icon = icon
+	if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then
+		local overlay = button:CreateTexture(nil, "OVERLAY")
+		overlay:SetSize(50, 50)
+		overlay:SetTexture(136430) --"Interface\\Minimap\\MiniMap-TrackingBorder"
+		overlay:SetPoint("TOPLEFT", button, "TOPLEFT", 0, 0)
+		local background = button:CreateTexture(nil, "BACKGROUND")
+		background:SetSize(24, 24)
+		background:SetTexture(136467) --"Interface\\Minimap\\UI-Minimap-Background"
+		background:SetPoint("CENTER", button, "CENTER", 0, 1)
+		local icon = button:CreateTexture(nil, "ARTWORK")
+		icon:SetSize(18, 18)
+		icon:SetTexture(object.icon)
+		icon:SetPoint("CENTER", button, "CENTER", 0, 1)
+		button.icon = icon
+	else
+		local overlay = button:CreateTexture(nil, "OVERLAY")
+		overlay:SetSize(53, 53)
+		overlay:SetTexture(136430) --"Interface\\Minimap\\MiniMap-TrackingBorder"
+		overlay:SetPoint("TOPLEFT")
+		local background = button:CreateTexture(nil, "BACKGROUND")
+		background:SetSize(20, 20)
+		background:SetTexture(136467) --"Interface\\Minimap\\UI-Minimap-Background"
+		background:SetPoint("TOPLEFT", 7, -5)
+		local icon = button:CreateTexture(nil, "ARTWORK")
+		icon:SetSize(17, 17)
+		icon:SetTexture(object.icon)
+		icon:SetPoint("TOPLEFT", 7, -6)
+		button.icon = icon
+	end
+
 	button.isMouseDown = false
+	local r, g, b = button.icon:GetVertexColor()
+	button.icon:SetVertexColor(object.iconR or r, object.iconG or g, object.iconB or b)
 
-	local r, g, b = icon:GetVertexColor()
-	icon:SetVertexColor(object.iconR or r, object.iconG or g, object.iconB or b)
-
-	icon.UpdateCoord = updateCoord
-	icon:UpdateCoord()
+	button.icon.UpdateCoord = updateCoord
+	button.icon:UpdateCoord()
 
 	button:SetScript("OnEnter", onEnter)
 	button:SetScript("OnLeave", onLeave)
@@ -685,23 +721,18 @@ local function createButton(name, object, db)
 			button:Hide()
 		end
 	end
-	lib.callbacks:Fire("LibDBIcon_IconCreated", button, name) -- Fire 'Icon Created' callback
-end
 
--- We could use a metatable.__index on lib.objects, but then we'd create
--- the icons when checking things like :IsRegistered, which is not necessary.
-local function check(name)
-	if lib.notCreated[name] then
-		createButton(name, lib.notCreated[name][1], lib.notCreated[name][2])
-		lib.notCreated[name] = nil
+	if db and db.showInCompartment then
+		lib:AddButtonToCompartment(name, customCompartmentIcon)
 	end
+	lib.callbacks:Fire("LibDBIcon_IconCreated", button, name) -- Fire 'Icon Created' callback
 end
 
 -- Wait a bit with the initial positioning to let any GetMinimapShape addons
 -- load up.
 if not lib.loggedIn then
-	local f = CreateFrame("Frame")
-	f:SetScript("OnEvent", function(f)
+	local frame = CreateFrame("Frame")
+	frame:SetScript("OnEvent", function(self)
 		for _, button in next, lib.objects do
 			updatePosition(button, button.db and button.db.minimapPos)
 			if not button.db or not button.db.hide then
@@ -711,90 +742,9 @@ if not lib.loggedIn then
 			end
 		end
 		lib.loggedIn = true
-		f:SetScript("OnEvent", nil)
+		self:SetScript("OnEvent", nil)
 	end)
-	f:RegisterEvent("PLAYER_LOGIN")
-end
-
-local function getDatabase(name)
-	return lib.notCreated[name] and lib.notCreated[name][2] or lib.objects[name].db
-end
-
-function lib:Register(name, object, db)
-	if not object.icon then error("Can't register LDB objects without icons set!") end
-	if lib.objects[name] or lib.notCreated[name] then error(DBICON10.. ": Object '".. name .."' is already registered.") end
-	if not db or not db.hide then
-		createButton(name, object, db)
-	else
-		lib.notCreated[name] = {object, db}
-	end
-end
-
-function lib:Lock(name)
-	if not lib:IsRegistered(name) then return end
-	if lib.objects[name] then
-		lib.objects[name]:SetScript("OnDragStart", nil)
-		lib.objects[name]:SetScript("OnDragStop", nil)
-	end
-	local db = getDatabase(name)
-	if db then
-		db.lock = true
-	end
-end
-
-function lib:Unlock(name)
-	if not lib:IsRegistered(name) then return end
-	if lib.objects[name] then
-		lib.objects[name]:SetScript("OnDragStart", onDragStart)
-		lib.objects[name]:SetScript("OnDragStop", onDragStop)
-	end
-	local db = getDatabase(name)
-	if db then
-		db.lock = nil
-	end
-end
-
-function lib:Hide(name)
-	if not lib.objects[name] then return end
-	lib.objects[name]:Hide()
-end
-
-function lib:Show(name)
-	check(name)
-	local button = lib.objects[name]
-	if button then
-		button:Show()
-		updatePosition(button, button.db and button.db.minimapPos or button.minimapPos)
-	end
-end
-
-function lib:IsRegistered(name)
-	return (lib.objects[name] or lib.notCreated[name]) and true or false
-end
-
-function lib:Refresh(name, db)
-	check(name)
-	local button = lib.objects[name]
-	if db then
-		button.db = db
-	end
-	updatePosition(button, button.db and button.db.minimapPos or button.minimapPos)
-	if not button.db or not button.db.hide then
-		button:Show()
-	else
-		button:Hide()
-	end
-	if not button.db or not button.db.lock then
-		button:SetScript("OnDragStart", onDragStart)
-		button:SetScript("OnDragStop", onDragStop)
-	else
-		button:SetScript("OnDragStart", nil)
-		button:SetScript("OnDragStop", nil)
-	end
-end
-
-function lib:GetMinimapButton(name)
-	return lib.objects[name]
+	frame:RegisterEvent("PLAYER_LOGIN")
 end
 
 do
@@ -817,21 +767,98 @@ do
 	end
 	Minimap:HookScript("OnEnter", OnMinimapEnter)
 	Minimap:HookScript("OnLeave", OnMinimapLeave)
+end
 
-	function lib:ShowOnEnter(name, value)
-		local button = lib.objects[name]
-		if button then
-			if value then
-				button.showOnMouseover = true
-				button.fadeOut:Stop()
-				button:SetAlpha(0)
-			else
-				button.showOnMouseover = false
-				button.fadeOut:Stop()
-				button:SetAlpha(1)
-			end
+--------------------------------------------------------------------------------
+-- Button API
+--
+
+function lib:Register(name, object, db, customCompartmentIcon)
+	if not object.icon then error("Can't register LDB objects without icons set!") end
+	if lib:GetMinimapButton(name) then error(DBICON10.. ": Object '".. name .."' is already registered.") end
+	createButton(name, object, db, customCompartmentIcon)
+end
+
+function lib:Lock(name)
+	local button = lib:GetMinimapButton(name)
+	if button then
+		button:SetScript("OnDragStart", nil)
+		button:SetScript("OnDragStop", nil)
+		if button.db then
+			button.db.lock = true
 		end
 	end
+end
+
+function lib:Unlock(name)
+	local button = lib:GetMinimapButton(name)
+	if button then
+		button:SetScript("OnDragStart", onDragStart)
+		button:SetScript("OnDragStop", onDragStop)
+		if button.db then
+			button.db.lock = nil
+		end
+	end
+end
+
+function lib:Hide(name)
+	local button = lib:GetMinimapButton(name)
+	if button then
+		button:Hide()
+	end
+end
+
+function lib:Show(name)
+	local button = lib:GetMinimapButton(name)
+	if button then
+		button:Show()
+		updatePosition(button, button.db and button.db.minimapPos or button.minimapPos)
+	end
+end
+
+function lib:IsRegistered(name)
+	return lib.objects[name] and true or false
+end
+
+function lib:Refresh(name, db)
+	local button = lib:GetMinimapButton(name)
+	if button then
+		if db then
+			button.db = db
+		end
+		updatePosition(button, button.db and button.db.minimapPos or button.minimapPos)
+		if not button.db or not button.db.hide then
+			button:Show()
+		else
+			button:Hide()
+		end
+		if not button.db or not button.db.lock then
+			button:SetScript("OnDragStart", onDragStart)
+			button:SetScript("OnDragStop", onDragStop)
+		else
+			button:SetScript("OnDragStart", nil)
+			button:SetScript("OnDragStop", nil)
+		end
+	end
+end
+
+function lib:ShowOnEnter(name, value)
+	local button = lib:GetMinimapButton(name)
+	if button then
+		if value then
+			button.showOnMouseover = true
+			button.fadeOut:Stop()
+			button:SetAlpha(0)
+		else
+			button.showOnMouseover = false
+			button.fadeOut:Stop()
+			button:SetAlpha(1)
+		end
+	end
+end
+
+function lib:GetMinimapButton(name)
+	return lib.objects[name]
 end
 
 function lib:GetButtonList()
@@ -855,9 +882,69 @@ function lib:SetButtonToPosition(button, position)
 	updatePosition(lib.objects[button] or button, position)
 end
 
--- Upgrade!
+--------------------------------------------------------------------------------
+-- Addon Compartment API
+--
+
+function lib:IsButtonCompartmentAvailable()
+	if AddonCompartmentFrame then
+		return true
+	end
+end
+
+function lib:IsButtonInCompartment(buttonName)
+	local object = lib.objects[buttonName]
+	if object and object.db and object.db.showInCompartment then
+		return true
+	end
+	return false
+end
+
+function lib:AddButtonToCompartment(buttonName, customIcon)
+	local object = lib.objects[buttonName]
+	if object and not object.compartmentData and AddonCompartmentFrame then
+		if object.db then
+			object.db.showInCompartment = true
+		end
+		object.compartmentData = {
+			text = buttonName,
+			icon = customIcon or object.dataObject.icon,
+			notCheckable = true,
+			registerForAnyClick = true,
+			func = function(frame, _, _, _, clickType)
+				object.dataObject.OnClick(frame, clickType)
+			end,
+			funcOnEnter = onEnterCompartment,
+			funcOnLeave = onLeaveCompartment,
+		}
+		AddonCompartmentFrame:RegisterAddon(object.compartmentData)
+	end
+end
+
+function lib:RemoveButtonFromCompartment(buttonName)
+	local object = lib.objects[buttonName]
+	if object and object.compartmentData then
+		for i = 1, #AddonCompartmentFrame.registeredAddons do
+			local entry = AddonCompartmentFrame.registeredAddons[i]
+			if entry == object.compartmentData then
+				object.compartmentData = nil
+				if object.db then
+					object.db.showInCompartment = nil
+				end
+				table.remove(AddonCompartmentFrame.registeredAddons, i)
+				AddonCompartmentFrame:UpdateDisplay()
+				return
+			end
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Upgrades
+--
+
 for name, button in next, lib.objects do
-	local db = getDatabase(name)
+	local db = button.db
 	if not db or not db.lock then
 		button:SetScript("OnDragStart", onDragStart)
 		button:SetScript("OnDragStop", onDragStop)
@@ -880,9 +967,795 @@ for name, button in next, lib.objects do
 	end
 end
 lib:SetButtonRadius(lib.radius) -- Upgrade to 40
+if lib.notCreated then -- Upgrade to 50
+	for name in next, lib.notCreated do
+		createButton(name, lib.notCreated[name][1], lib.notCreated[name][2])
+	end
+	lib.notCreated = nil
+end
 -- LibDBIconEnd
 
 end
 LeaLibDBIcon()
 
--- L15: End
+
+----------------------------------------------------------------------
+-- L15: LibChatAnims (load on demand)
+----------------------------------------------------------------------
+
+function Leatrix_Plus:LeaPlusLCA()
+
+-- LibChatAnimsStart
+--@curseforge-project-slug: libchatanims@
+local MAJOR, MINOR = "LibChatAnims", 4 -- Bump minor on changes
+local LCA = LibStub:NewLibrary(MAJOR, MINOR)
+if not LCA then return end -- No upgrade needed
+
+LCA.animations = LCA.animations or {} -- Animation storage
+LCA.alerting = LCA.alerting or {} -- Chat tab alerting storage
+local anims = LCA.animations
+local alerting = LCA.alerting
+
+function LCA:IsAlerting(tab)
+	if alerting[tab] then
+		return true
+	end
+end
+
+----------------------------------------------------
+-- Note, most of this code is simply replicated from
+-- Blizzard's FloatingChatFrame.lua file.
+-- The only real changes are the creation and use
+-- of animations vs the use of UIFrameFlash.
+--
+
+--FCFDockOverflowButton_UpdatePulseState = function(self)
+--	local dock = self:GetParent()
+--	local shouldPulse = false
+--	for _, chatFrame in pairs(FCFDock_GetChatFrames(dock)) do
+--		local chatTab = _G[chatFrame:GetName().."Tab"]
+--		if ( not chatFrame.isStaticDocked and chatTab.alerting) then
+--			-- Make sure the rects are valid. (Not always the case when resizing the WoW client
+--			if ( not chatTab:GetRight() or not dock.scrollFrame:GetRight() ) then
+--				return false
+--			end
+--			-- Check if it's off the screen.
+--			local DELTA = 3 -- Chosen through experimentation
+--			if ( chatTab:GetRight() < (dock.scrollFrame:GetLeft() + DELTA) or chatTab:GetLeft() > (dock.scrollFrame:GetRight() - DELTA) ) then
+--				shouldPulse = true
+--				break
+--			end
+--		end
+--	end
+--
+--	local tex = self:GetHighlightTexture()
+--	if shouldPulse then
+--		if not anims[tex] then
+--			anims[tex] = tex:CreateAnimationGroup()
+--
+--			local fade1 = anims[tex]:CreateAnimation("Alpha")
+--			fade1:SetDuration(1)
+--			fade1:SetFromAlpha(0)
+--			fade1:SetToAlpha(1)
+--			fade1:SetOrder(1)
+--
+--			local fade2 = anims[tex]:CreateAnimation("Alpha")
+--			fade2:SetDuration(1)
+--			fade2:SetFromAlpha(1)
+--			fade2:SetToAlpha(0)
+--			fade2:SetOrder(2)
+--		end
+--		tex:Show()
+--		tex:SetAlpha(0)
+--		anims[tex]:SetLooping("REPEAT")
+--		anims[tex]:Play()
+--
+--		self:LockHighlight()
+--		self.alerting = true
+--	else
+--		if anims[tex] then
+--			anims[tex]:Stop()
+--		end
+--		self:UnlockHighlight()
+--		tex:SetAlpha(1)
+--		tex:Show()
+--		self.alerting = false
+--	end
+--
+--	if self.list:IsShown() then
+--		FCFDockOverflowList_Update(self.list, dock)
+--	end
+--	return true
+--end
+
+--FCFDockOverflowListButton_SetValue = function(button, chatFrame)
+--	local chatTab = _G[chatFrame:GetName().."Tab"]
+--	button.chatFrame = chatFrame
+--	button:SetText(chatFrame.name)
+--
+--	local colorTable = chatTab.selectedColorTable or DEFAULT_TAB_SELECTED_COLOR_TABLE
+--
+--	if chatTab.selectedColorTable then
+--		button:GetFontString():SetTextColor(colorTable.r, colorTable.g, colorTable.b)
+--	else
+--		button:GetFontString():SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+--	end
+--
+--	button.glow:SetVertexColor(colorTable.r, colorTable.g, colorTable.b)
+--
+--	if chatTab.conversationIcon then
+--		button.conversationIcon:SetVertexColor(colorTable.r, colorTable.g, colorTable.b)
+--		button.conversationIcon:Show()
+--	else
+--		button.conversationIcon:Hide()
+--	end
+--
+--	if chatTab.alerting then
+--		button.alerting = true
+--		if not anims[button.glow] then
+--			anims[button.glow] = button.glow:CreateAnimationGroup()
+--
+--			local fade1 = anims[button.glow]:CreateAnimation("Alpha")
+--			fade1:SetDuration(1)
+--			fade1:SetFromAlpha(0)
+--			fade1:SetToAlpha(1)
+--			fade1:SetOrder(1)
+--
+--			local fade2 = anims[button.glow]:CreateAnimation("Alpha")
+--			fade2:SetDuration(1)
+--			fade2:SetFromAlpha(1)
+--			fade2:SetToAlpha(0)
+--			fade2:SetOrder(2)
+--		end
+--		button.glow:Show()
+--		button.glow:SetAlpha(0)
+--		anims[button.glow]:SetLooping("REPEAT")
+--		anims[button.glow]:Play()
+--	else
+--		button.alerting = false
+--		if anims[button.glow] then
+--			anims[button.glow]:Stop()
+--		end
+--		button.glow:Hide()
+--	end
+--	button:Show()
+--end
+
+FCF_StartAlertFlash = function(chatFrame)
+	local chatTab = _G[chatFrame:GetName().."Tab"]
+
+	if chatFrame.minFrame then
+		if not anims[chatFrame.minFrame] then
+			anims[chatFrame.minFrame] = chatFrame.minFrame.glow:CreateAnimationGroup()
+
+			local fade1 = anims[chatFrame.minFrame]:CreateAnimation("Alpha")
+			fade1:SetDuration(1)
+			fade1:SetFromAlpha(0)
+			fade1:SetToAlpha(1)
+			fade1:SetOrder(1)
+
+			local fade2 = anims[chatFrame.minFrame]:CreateAnimation("Alpha")
+			fade2:SetDuration(1)
+			fade2:SetFromAlpha(1)
+			fade2:SetToAlpha(0)
+			fade2:SetOrder(2)
+		end
+		chatFrame.minFrame.glow:Show()
+		chatFrame.minFrame.glow:SetAlpha(0)
+		anims[chatFrame.minFrame]:SetLooping("REPEAT")
+		anims[chatFrame.minFrame]:Play()
+		--chatFrame.minFrame.alerting = true
+		alerting[chatFrame.minFrame] = true
+	end
+
+	if not anims[chatTab.glow] then
+		anims[chatTab.glow] = chatTab.glow:CreateAnimationGroup()
+
+		local fade1 = anims[chatTab.glow]:CreateAnimation("Alpha")
+		fade1:SetDuration(1)
+		fade1:SetFromAlpha(0)
+		fade1:SetToAlpha(1)
+		fade1:SetOrder(1)
+
+		local fade2 = anims[chatTab.glow]:CreateAnimation("Alpha")
+		fade2:SetDuration(1)
+		fade2:SetFromAlpha(1)
+		fade2:SetToAlpha(0)
+		fade2:SetOrder(2)
+	end
+	chatTab.glow:Show()
+	chatTab.glow:SetAlpha(0)
+	anims[chatTab.glow]:SetLooping("REPEAT")
+	anims[chatTab.glow]:Play()
+	--chatTab.alerting = true
+	alerting[chatTab] = true
+
+
+	-- START function FCFTab_UpdateAlpha(chatFrame)
+	local mouseOverAlpha, noMouseAlpha = 0, 0
+	if not chatFrame.isDocked or chatFrame == FCFDock_GetSelectedWindow(GENERAL_CHAT_DOCK) then
+		mouseOverAlpha = 1.0 --CHAT_FRAME_TAB_SELECTED_MOUSEOVER_ALPHA
+		noMouseAlpha = 0.4 -- CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA
+	else
+		mouseOverAlpha = 1.0 -- CHAT_FRAME_TAB_ALERTING_MOUSEOVER_ALPHA
+		noMouseAlpha = 1.0 -- CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA
+	end
+	if chatFrame.hasBeenFaded then
+		chatTab:SetAlpha(mouseOverAlpha)
+	else
+		chatTab:SetAlpha(noMouseAlpha)
+	end
+	--END function FCFTab_UpdateAlpha(chatFrame)
+
+	--FCFDockOverflowButton_UpdatePulseState(GENERAL_CHAT_DOCK.overflowButton)
+end
+
+FCF_StopAlertFlash = function(chatFrame)
+	local chatTab = _G[chatFrame:GetName().."Tab"]
+
+	if chatFrame.minFrame then
+		if anims[chatFrame.minFrame] then
+			anims[chatFrame.minFrame]:Stop()
+		end
+		chatFrame.minFrame.glow:Hide()
+		--chatFrame.minFrame.alerting = false
+		alerting[chatFrame.minFrame] = nil
+	end
+
+	if anims[chatTab.glow] then
+		anims[chatTab.glow]:Stop()
+	end
+	chatTab.glow:Hide()
+	--chatTab.alerting = false
+	alerting[chatTab] = nil
+
+	-- START function FCFTab_UpdateAlpha(chatFrame)
+	local mouseOverAlpha, noMouseAlpha = 0, 0
+	if not chatFrame.isDocked or chatFrame == FCFDock_GetSelectedWindow(GENERAL_CHAT_DOCK) then
+		mouseOverAlpha = 1.0 --CHAT_FRAME_TAB_SELECTED_MOUSEOVER_ALPHA
+		noMouseAlpha = 0.4 -- CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA
+	else
+		mouseOverAlpha = 0.6 --CHAT_FRAME_TAB_NORMAL_MOUSEOVER_ALPHA
+		noMouseAlpha = 0.2 --CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA
+	end
+	if chatFrame.hasBeenFaded then
+		chatTab:SetAlpha(mouseOverAlpha)
+	else
+		chatTab:SetAlpha(noMouseAlpha)
+	end
+	--END function FCFTab_UpdateAlpha(chatFrame)
+
+	--FCFDockOverflowButton_UpdatePulseState(GENERAL_CHAT_DOCK.overflowButton)
+end
+
+-- LibChatAnimsEnd
+
+end
+
+----------------------------------------------------------------------
+-- L16: LibDBIcon: LibCandyBar
+----------------------------------------------------------------------
+
+function Leatrix_Plus:LeaPlusCandyBar()
+
+-- LibCandyBarStart
+--@curseforge-project-slug: libcandybar-3-0@
+--- **LibCandyBar-3.0** provides elegant timerbars with icons for use in addons.
+-- It is based of the original ideas of the CandyBar and CandyBar-2.0 library.
+-- In contrary to the earlier libraries LibCandyBar-3.0 provides you with a timerbar object with a simple API.
+--
+-- Creating a new timerbar using the ':New' function will return a new timerbar object. This timerbar object inherits all of the barPrototype functions listed here. \\
+--
+-- @usage
+-- local candy = LibStub("LibCandyBar-3.0")
+-- local texture = "Interface\\AddOns\\MyAddOn\\statusbar"
+-- local mybar = candy:New(texture, 100, 16)
+-- mybar:SetLabel("Yay!")
+-- mybar:SetDuration(60)
+-- mybar:Start()
+-- @class file
+-- @name LibCandyBar-3.0
+
+local GetTime, floor, next = GetTime, floor, next
+local CreateFrame, error, setmetatable, UIParent = CreateFrame, error, setmetatable, UIParent
+
+if not LibStub then error("LibCandyBar-3.0 requires LibStub.") end
+local cbh = LibStub:GetLibrary("CallbackHandler-1.0")
+if not cbh then error("LibCandyBar-3.0 requires CallbackHandler-1.0") end
+local lib = LibStub:NewLibrary("LibCandyBar-3.0", 100) -- Bump minor on changes
+if not lib then return end
+lib.callbacks = lib.callbacks or cbh:New(lib)
+local cb = lib.callbacks
+lib.dummyFrame = lib.dummyFrame or CreateFrame("Frame")
+lib.barFrameMT = lib.barFrameMT or {__index = lib.dummyFrame}
+lib.barPrototype = lib.barPrototype or setmetatable({}, lib.barFrameMT)
+lib.barPrototype_mt = lib.barPrototype_mt or {__index = lib.barPrototype}
+lib.barCache = lib.barCache or {}
+
+local barPrototype = lib.barPrototype
+local barPrototype_meta = lib.barPrototype_mt
+local barCache = lib.barCache
+
+local scripts = {
+	"OnUpdate", "OnDragStart", "OnDragStop",
+	"OnEnter", "OnLeave", "OnHide",
+	"OnShow", "OnMouseDown", "OnMouseUp",
+	"OnMouseWheel", "OnSizeChanged", "OnEvent"
+}
+local numScripts = #scripts
+local GameFontHighlightSmallOutline = GameFontHighlightSmallOutline
+local _fontName, _fontSize = GameFontHighlightSmallOutline:GetFont()
+local _fontShadowX, _fontShadowY = GameFontHighlightSmallOutline:GetShadowOffset()
+local _fontShadowR, _fontShadowG, _fontShadowB, _fontShadowA = GameFontHighlightSmallOutline:GetShadowColor()
+local SetWidth, SetHeight, SetSize = lib.dummyFrame.SetWidth, lib.dummyFrame.SetHeight, lib.dummyFrame.SetSize
+
+local function stopBar(bar)
+	bar.updater:Stop()
+	bar.data = nil
+	bar.funcs = nil
+	bar.running = nil
+	bar.paused = nil
+	bar:Hide()
+	bar:SetParent(UIParent)
+end
+
+local tformat1 = "%d:%02d:%02d"
+local tformat2 = "%d:%02d"
+local tformat3 = "%.1f"
+local tformat4 = "%.0f"
+local function barUpdate(updater)
+	local bar = updater.parent
+	local t = GetTime()
+	if t >= bar.exp then
+		bar:Stop()
+	else
+		local time = bar.exp - t
+		bar.remaining = time
+
+		bar.candyBarBar:SetValue(bar.fill and (t-bar.start)+bar.gap or time)
+
+		if time > 3599.9 then -- > 1 hour
+			local h = floor(time/3600)
+			local m = floor((time - (h*3600))/60)
+			local s = (time - (m*60)) - (h*3600)
+			bar.candyBarDuration:SetFormattedText(tformat1, h, m, s)
+		elseif time > 59.9 then -- 1 minute to 1 hour
+			local m = floor(time/60)
+			local s = time - (m*60)
+			bar.candyBarDuration:SetFormattedText(tformat2, m, s)
+		elseif time < 10 then -- 0 to 10 seconds
+			bar.candyBarDuration:SetFormattedText(tformat3, time)
+		else -- 10 seconds to one minute
+			bar.candyBarDuration:SetFormattedText(tformat4, time)
+		end
+
+		if bar.funcs then
+			for i = 1, #bar.funcs do
+				bar.funcs[i](bar)
+			end
+		end
+	end
+end
+
+local atformat1 = "~%d:%02d:%02d"
+local atformat2 = "~%d:%02d"
+local atformat3 = "~%.1f"
+local atformat4 = "~%.0f"
+local function barUpdateApprox(updater)
+	local bar = updater.parent
+	local t = GetTime()
+	if t >= bar.exp then
+		bar:Stop()
+	else
+		local time = bar.exp - t
+		bar.remaining = time
+
+		bar.candyBarBar:SetValue(bar.fill and (t-bar.start)+bar.gap or time)
+
+		if time > 3599.9 then -- > 1 hour
+			local h = floor(time/3600)
+			local m = floor((time - (h*3600))/60)
+			local s = (time - (m*60)) - (h*3600)
+			bar.candyBarDuration:SetFormattedText(atformat1, h, m, s)
+		elseif time > 59.9 then -- 1 minute to 1 hour
+			local m = floor(time/60)
+			local s = time - (m*60)
+			bar.candyBarDuration:SetFormattedText(atformat2, m, s)
+		elseif time < 10 then -- 0 to 10 seconds
+			bar.candyBarDuration:SetFormattedText(atformat3, time)
+		else -- 10 seconds to one minute
+			bar.candyBarDuration:SetFormattedText(atformat4, time)
+		end
+
+		if bar.funcs then
+			for i = 1, #bar.funcs do
+				bar.funcs[i](bar)
+			end
+		end
+	end
+end
+
+-- ------------------------------------------------------------------------------
+-- Bar functions
+--
+
+local function restyleBar(self)
+	if not self.running then return end
+	self.candyBarIconFrame:ClearAllPoints()
+	self.candyBarBar:ClearAllPoints()
+	-- In the past we used a :GetTexture check here, but as of WoW v5 it randomly returns nil, so use our own trustworthy variable.
+	if self.candyBarIconFrame.icon then
+		self.candyBarIconFrame:SetWidth(self.height)
+		if self.iconPosition == "RIGHT" then
+			self.candyBarIconFrame:SetPoint("TOPRIGHT", self)
+			self.candyBarIconFrame:SetPoint("BOTTOMRIGHT", self)
+			self.candyBarBar:SetPoint("TOPRIGHT", self.candyBarIconFrame, "TOPLEFT")
+			self.candyBarBar:SetPoint("BOTTOMRIGHT", self.candyBarIconFrame, "BOTTOMLEFT")
+			self.candyBarBar:SetPoint("TOPLEFT", self)
+			self.candyBarBar:SetPoint("BOTTOMLEFT", self)
+		else
+			self.candyBarIconFrame:SetPoint("TOPLEFT")
+			self.candyBarIconFrame:SetPoint("BOTTOMLEFT")
+			self.candyBarBar:SetPoint("TOPLEFT", self.candyBarIconFrame, "TOPRIGHT")
+			self.candyBarBar:SetPoint("BOTTOMLEFT", self.candyBarIconFrame, "BOTTOMRIGHT")
+			self.candyBarBar:SetPoint("TOPRIGHT", self)
+			self.candyBarBar:SetPoint("BOTTOMRIGHT", self)
+		end
+		self.candyBarIconFrame:Show()
+	else
+		self.candyBarBar:SetPoint("TOPLEFT", self)
+		self.candyBarBar:SetPoint("BOTTOMRIGHT", self)
+		self.candyBarIconFrame:Hide()
+	end
+	if self.showLabel and self.candyBarLabel.text then
+		self.candyBarLabel:Show()
+	else
+		self.candyBarLabel:Hide()
+	end
+	if self.showTime then
+		self.candyBarDuration:Show()
+	else
+		self.candyBarDuration:Hide()
+	end
+end
+
+--- Set whether the bar should drain (default) or fill up.
+-- @param fill Boolean true/false
+function barPrototype:SetFill(fill)
+	self.fill = fill
+end
+--- Adds a function to the timerbar. The function will run every update and will receive the bar as a parameter.
+-- @param func Function to run every update.
+-- @usage
+-- -- The example below will print the time remaining to the chatframe every update. Yes, that's a whole lot of spam
+-- mybar:AddUpdateFunction( function(bar) print(bar.remaining) end )
+function barPrototype:AddUpdateFunction(func) if not self.funcs then self.funcs = {} end; self.funcs[#self.funcs+1] = func end
+--- Sets user data in the timerbar object.
+-- @param key Key to use for the data storage.
+-- @param data Data to store.
+function barPrototype:Set(key, data) if not self.data then self.data = {} end; self.data[key] = data end
+--- Retrieves user data from the timerbar object.
+-- @param key Key to retrieve
+function barPrototype:Get(key) return self.data and self.data[key] end
+--- Sets the color of the bar.
+-- This is basically a wrapper to SetStatusBarColor.
+-- @paramsig r, g, b, a
+-- @param r Red component (0-1)
+-- @param g Green component (0-1)
+-- @param b Blue component (0-1)
+-- @param a Alpha (0-1)
+function barPrototype:SetColor(...) self.candyBarBar:SetStatusBarColor(...) end
+--- Sets the color of the bar label and bar duration text.
+-- @paramsig r, g, b, a
+-- @param r Red component (0-1)
+-- @param g Green component (0-1)
+-- @param b Blue component (0-1)
+-- @param a Alpha (0-1)
+function barPrototype:SetTextColor(...)
+	self.candyBarLabel:SetTextColor(...)
+	self.candyBarDuration:SetTextColor(...)
+end
+--- Sets the shadow color of the bar label and bar duration text.
+-- @paramsig r, g, b, a
+-- @param r Red component (0-1)
+-- @param g Green component (0-1)
+-- @param b Blue component (0-1)
+-- @param a Alpha (0-1)
+function barPrototype:SetShadowColor(...)
+	self.candyBarLabel:SetShadowColor(...)
+	self.candyBarDuration:SetShadowColor(...)
+end
+--- Sets the texture of the bar.
+-- This should only be needed on running bars that get changed on the fly.
+-- @param texture Path to the bar texture.
+function barPrototype:SetTexture(texture)
+	self.candyBarBar:SetStatusBarTexture(texture)
+	self.candyBarBackground:SetTexture(texture)
+end
+--- Sets the width of the bar.
+-- This should only be needed on running bars that get changed on the fly.
+-- @param width Width of the bar.
+function barPrototype:SetWidth(width)
+	self.width = width
+	SetWidth(self, width)
+end
+--- Sets the height of the bar.
+-- This should only be needed on running bars that get changed on the fly.
+-- @param height Height of the bar.
+function barPrototype:SetHeight(height)
+	self.height = height
+	SetHeight(self, height)
+	restyleBar(self)
+end
+--- Sets the size of the bar.
+-- This should only be needed on running bars that get changed on the fly.
+-- @param width Width of the bar.
+-- @param height Height of the bar.
+function barPrototype:SetSize(width, height)
+	self.width = width
+	self.height = height
+	SetSize(self, width, height)
+	restyleBar(self)
+end
+--- Returns the label (text) currently set on the bar.
+function barPrototype:GetLabel()
+	return self.candyBarLabel.text
+end
+--- Sets the label on the bar.
+-- @param text Label text.
+function barPrototype:SetLabel(text)
+	self.candyBarLabel.text = text
+	self.candyBarLabel:SetText(text)
+	if text then
+		self.candyBarLabel:Show()
+	else
+		self.candyBarLabel:Hide()
+	end
+end
+--- Returns the icon texture path currently set on the bar, if it has an icon set.
+function barPrototype:GetIcon()
+	return self.candyBarIconFrame.icon
+end
+--- Sets the icon next to the bar.
+-- @param icon Path to the icon texture or nil to not display an icon.
+-- @param ... Optional icon coordinates for texture trimming.
+function barPrototype:SetIcon(icon, ...)
+	self.candyBarIconFrame.icon = icon
+	self.candyBarIconFrame:SetTexture(icon)
+	if ... then
+		self.candyBarIconFrame:SetTexCoord(...)
+	else
+		self.candyBarIconFrame:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+	end
+	restyleBar(self)
+end
+--- Sets which side of the bar the icon should appear.
+-- @param position Position of the icon according to the bar, either "LEFT" or "RIGHT" as a string. Set to "LEFT" by default.
+function barPrototype:SetIconPosition(position)
+	self.iconPosition = position
+	restyleBar(self)
+end
+--- Sets wether or not the time indicator on the right of the bar should be shown.
+-- Time is shown by default.
+-- @param bool true to show the time, false/nil to hide the time.
+function barPrototype:SetTimeVisibility(bool)
+	self.showTime = bool
+	if bool then
+		self.candyBarDuration:Show()
+	else
+		self.candyBarDuration:Hide()
+	end
+end
+--- Sets wether or not the label on the left of the bar should be shown.
+-- label is shown by default.
+-- @param bool true to show the label, false/nil to hide the label.
+function barPrototype:SetLabelVisibility(bool)
+	self.showLabel = bool
+	if bool then
+		self.candyBarLabel:Show()
+	else
+		self.candyBarLabel:Hide()
+	end
+end
+--- Sets the duration of the bar.
+-- This can also be used while the bar is running to adjust the time remaining, within the bounds of the original duration.
+-- @param duration Duration of the bar in seconds.
+-- @param isApprox Boolean. True if you wish the time display to be an approximate "~5" instead of "5"
+function barPrototype:SetDuration(duration, isApprox) self.remaining = duration; self.isApproximate = isApprox end
+--- Shows the bar and starts it.
+-- @param maxValue Number. If you don't wish your bar to start full, you can set a max value. A maxValue of 10 on a bar with a duration of 5 would start it at 50%.
+function barPrototype:Start(maxValue)
+	self.running = true
+	local time = self.remaining
+	self.gap = maxValue and maxValue-time or 0
+	restyleBar(self)
+	self.start = GetTime()
+	self.exp = self.start + time
+
+	self.candyBarBar:SetMinMaxValues(0, maxValue or time)
+	self.candyBarBar:SetValue(self.fill and 0 or time)
+
+	if self.isApproximate then
+		if time > 3599.9 then -- > 1 hour
+			local h = floor(time/3600)
+			local m = floor((time - (h*3600))/60)
+			local s = (time - (m*60)) - (h*3600)
+			self.candyBarDuration:SetFormattedText(atformat1, h, m, s)
+		elseif time > 59.9 then -- 1 minute to 1 hour
+			local m = floor(time/60)
+			local s = time - (m*60)
+			self.candyBarDuration:SetFormattedText(atformat2, m, s)
+		elseif time < 10 then -- 0 to 10 seconds
+			self.candyBarDuration:SetFormattedText(atformat3, time)
+		else -- 10 seconds to one minute
+			self.candyBarDuration:SetFormattedText(atformat4, time)
+		end
+		self.updater:SetScript("OnLoop", barUpdateApprox)
+	else
+		if time > 3599.9 then -- > 1 hour
+			local h = floor(time/3600)
+			local m = floor((time - (h*3600))/60)
+			local s = (time - (m*60)) - (h*3600)
+			self.candyBarDuration:SetFormattedText(tformat1, h, m, s)
+		elseif time > 59.9 then -- 1 minute to 1 hour
+			local m = floor(time/60)
+			local s = time - (m*60)
+			self.candyBarDuration:SetFormattedText(tformat2, m, s)
+		elseif time < 10 then -- 0 to 10 seconds
+			self.candyBarDuration:SetFormattedText(tformat3, time)
+		else -- 10 seconds to one minute
+			self.candyBarDuration:SetFormattedText(tformat4, time)
+		end
+		self.updater:SetScript("OnLoop", barUpdate)
+	end
+	self.updater:Play()
+	self:Show()
+end
+--- Pauses a running bar
+function barPrototype:Pause()
+	if not self.paused then
+		self.updater:Pause()
+		self.paused = GetTime()
+	end
+end
+--- Resumes a paused bar
+function barPrototype:Resume()
+	if self.paused then
+		local t = GetTime()
+		self.exp = t + self.remaining
+		self.start = self.start + (t-self.paused)
+		self.updater:Play()
+		self.paused = nil
+	end
+end
+--- Stops the bar.
+-- This will stop the bar, fire the LibCandyBar_Stop callback, and recycle the bar into the candybar pool.
+-- Note: make sure you remove all references to the bar in your addon upon receiving the LibCandyBar_Stop callback.
+-- @usage
+-- -- The example below shows the use of the LibCandyBar_Stop callback by printing the contents of the label in the chatframe
+-- local function barstopped( callback, bar )
+--   print( bar:GetLabel(), "stopped")
+-- end
+-- LibStub("LibCandyBar-3.0"):RegisterCallback(myaddonobject, "LibCandyBar_Stop", barstopped)
+-- @param ... Optional args to pass across in the LibCandyBar_Stop callback.
+function barPrototype:Stop(...)
+	cb:Fire("LibCandyBar_Stop", self, ...)
+	stopBar(self)
+	barCache[self] = true
+end
+
+-- ------------------------------------------------------------------------------
+-- Library functions
+--
+
+--- Creates a new timerbar object and returns it. Don't forget to set the duration, label and :Start the timer bar after you get a hold of it!
+-- @paramsig texture, width, height
+-- @param texture Path to the texture used for the bar.
+-- @param width Width of the bar.
+-- @param height Height of the bar.
+-- @usage
+-- mybar = LibStub("LibCandyBar-3.0"):New("Interface\\AddOns\\MyAddOn\\media\\statusbar", 100, 16)
+function lib:New(texture, width, height)
+	local bar = next(barCache)
+	if not bar then
+		local frame = CreateFrame("Frame", nil, UIParent)
+		bar = setmetatable(frame, barPrototype_meta)
+
+		local icon = bar:CreateTexture()
+		icon:SetPoint("TOPLEFT")
+		icon:SetPoint("BOTTOMLEFT")
+		icon:Show()
+		bar.candyBarIconFrame = icon
+
+		local statusbar = CreateFrame("StatusBar", nil, bar)
+		statusbar:SetPoint("TOPRIGHT")
+		statusbar:SetPoint("BOTTOMRIGHT")
+		bar.candyBarBar = statusbar
+
+		local bg = statusbar:CreateTexture(nil, "BACKGROUND")
+		bg:SetAllPoints()
+		bar.candyBarBackground = bg
+
+		local backdrop = CreateFrame("Frame", nil, bar, "BackdropTemplate") -- Used by bar stylers for backdrops
+		backdrop:SetFrameLevel(0)
+		bar.candyBarBackdrop = backdrop
+
+		local iconBackdrop = CreateFrame("Frame", nil, bar, "BackdropTemplate") -- Used by bar stylers for backdrops
+		iconBackdrop:SetFrameLevel(0)
+		bar.candyBarIconFrameBackdrop = iconBackdrop
+
+		local duration = statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmallOutline")
+		duration:SetPoint("TOPLEFT", statusbar, "TOPLEFT", 2, 0)
+		duration:SetPoint("BOTTOMRIGHT", statusbar, "BOTTOMRIGHT", -2, 0)
+		bar.candyBarDuration = duration
+
+		local label = statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmallOutline")
+		label:SetPoint("TOPLEFT", statusbar, "TOPLEFT", 2, 0)
+		label:SetPoint("BOTTOMRIGHT", statusbar, "BOTTOMRIGHT", -2, 0)
+		bar.candyBarLabel = label
+
+		local updater = bar:CreateAnimationGroup()
+		updater:SetLooping("REPEAT")
+		updater.parent = bar
+		local anim = updater:CreateAnimation()
+		anim:SetDuration(0.04)
+		bar.updater = updater
+		bar.repeater = anim
+	else
+		barCache[bar] = nil
+	end
+
+	bar:SetFrameStrata("MEDIUM")
+	bar:SetFrameLevel(100) -- Lots of room to create above or below this level
+	bar.candyBarBar:SetStatusBarTexture(texture)
+	bar.candyBarBackground:SetTexture(texture)
+	bar.width = width
+	bar.height = height
+
+	-- RESET ALL THE THINGS!
+	bar.fill = nil
+	bar.showTime = true
+	bar.showLabel = true
+	bar.iconPosition = nil
+	for i = 1, numScripts do -- Update if scripts table is changed, faster than doing #scripts
+		bar:SetScript(scripts[i], nil)
+	end
+
+	bar.candyBarBackground:SetVertexColor(0.5, 0.5, 0.5, 0.3)
+	bar.candyBarBar:SetStatusBarColor(0.5, 0.5, 0.5, 1)
+	bar:ClearAllPoints()
+	SetWidth(bar, width)
+	SetHeight(bar, height)
+	bar:SetMovable(1)
+	bar:SetScale(1)
+	bar:SetAlpha(1)
+	bar:SetClampedToScreen(false)
+	bar:EnableMouse(false)
+
+	bar.candyBarLabel:SetTextColor(1,1,1,1)
+	bar.candyBarLabel:SetJustifyH("LEFT")
+	bar.candyBarLabel:SetJustifyV("MIDDLE")
+	bar.candyBarLabel:SetFont(_fontName, _fontSize)
+	bar.candyBarLabel:SetShadowOffset(_fontShadowX, _fontShadowY)
+	bar.candyBarLabel:SetShadowColor(_fontShadowR, _fontShadowG, _fontShadowB, _fontShadowA)
+
+	bar.candyBarDuration:SetTextColor(1,1,1,1)
+	bar.candyBarDuration:SetJustifyH("RIGHT")
+	bar.candyBarDuration:SetJustifyV("MIDDLE")
+	bar.candyBarDuration:SetFont(_fontName, _fontSize)
+	bar.candyBarDuration:SetShadowOffset(_fontShadowX, _fontShadowY)
+	bar.candyBarDuration:SetShadowColor(_fontShadowR, _fontShadowG, _fontShadowB, _fontShadowA)
+
+
+	bar:SetLabel()
+	bar:SetIcon()
+	bar:SetDuration()
+
+	return bar
+end
+
+-- LibCandyBarEnd
+
+end
+
+-- L17: End

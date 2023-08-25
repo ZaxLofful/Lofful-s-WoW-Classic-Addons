@@ -1,7 +1,7 @@
 --[[
     This file is part of Decursive.
 
-    Decursive (v 2.7.8.2) add-on for World of Warcraft UI
+    Decursive (v 2.7.9.3) add-on for World of Warcraft UI
     Copyright (C) 2006-2019 John Wellesz (Decursive AT 2072productions.com) ( http://www.2072productions.com/to/decursive.php )
 
     Decursive is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@
     Decursive is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY.
 
-    This file was last updated on 2021-05-20T08:17:48Z
+    This file was last updated on 2023-07-10T10:43:57Z
 --]]
 -------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ local GetTime           = _G.GetTime;
 local strjoin           = _G.strjoin;
 local GetCVarBool       = _G.GetCVarBool;
 local IsAddOnLoaded     = _G.IsAddOnLoaded;
-local GetAddOnMetadata  = _G.GetAddOnMetadata;
+local GetAddOnMetadata  = _G.C_AddOns and _G.C_AddOns.GetAddOnMetadata or _G.GetAddOnMetadata;
 local time              = _G.time;
 local pcall             = _G.pcall;
 local pairs             = _G.pairs;
@@ -110,7 +110,7 @@ local DebugTextTable    = T._DebugTextTable;
 local Reported          = {};
 
 local UNPACKAGED = "@pro" .. "ject-version@";
-local VERSION = "2.7.8.2";
+local VERSION = "2.7.9.3";
 
 T._LoadedFiles = {};
 T._LoadedFiles["Dcr_DIAG.lua"] = false; -- here for consistency but useless in this particular file
@@ -321,7 +321,7 @@ do
         _Debug(unpack(TIandBI));
 
 
-        DebugHeader = ("%s\n2.7.8.2  %s(%s)  CT: %0.4f D: %s %s %s BDTHFAd: %s nDrE: %d Embeded: %s W: %d (LA: %d TAMU: %d) TA: %d NDRTA: %d BUIE: %d TI: [dc:%d, lc:%d, y:%d, LEBY:%d, LB:%d, TTE:%u] (%s, %s, %s, %s)"):format(instructionsHeader, -- "%s\n
+        DebugHeader = ("%s\n2.7.9.3  %s(%s)  CT: %0.4f D: %s %s %s BDTHFAd: %s nDrE: %d Embeded: %s W: %d (LA: %d TAMU: %d) TA: %d NDRTA: %d BUIE: %d TI: [dc:%d, lc:%d, y:%d, LEBY:%d, LB:%d, TTE:%u] (%s, %s, %s, %s)"):format(instructionsHeader, -- "%s\n
         tostring(DC.MyClass), tostring(UnitLevel("player") or "??"), NiceTime(), date(), GetLocale(), -- %s(%s)  CT: %0.4f D: %s %s
         BugGrabber and "BG" .. (T.BugGrabber and "e" or "") or "NBG", -- %s
         tostring(T._BDT_HotFix1_applyed), -- BDTHFAd: %s
@@ -412,7 +412,7 @@ local function PlaySoundFile_RanTooLongheck(message)
 end
 
 local function CheckHHTD_Error(errorm, errorml)
-    if (errorml:find("hhtd") and not errorml:find("\\libs\\"))
+    if (errorml:find("hhtd") and not errorml:find("[\\/]libs[\\/]"))
         or
         (errorml:find("\\libnameplateregistry") and not errorml:find("couldn't open") and not errorml:find("error loading")) then
         _Debug("CheckHHTD_Error()", true);
@@ -508,7 +508,7 @@ function T._onError(event, errorObject)
         and ( T._CatchAllErrors or (
         errorml:find("decursive") and -- first, make a general test to see if it's worth looking further
         (
-           ( not errorml:find("\\libs\\") ) -- errors happpening in something located below Decursive's path but not inside \Libs
+           ( not errorml:find("[\\/]libs[\\/]") ) -- errors happpening in something located below Decursive's path but not inside \Libs
         or ( errorm:find("[\"']Decursive[\"']") ) -- events involving Decursive
         or ( errorm:find("Decursive:") ) -- libraries error involving Decursive (AceLocal)
         or ( errorml:find("decursive%.")) -- for Aceconfig
@@ -604,6 +604,8 @@ T._CatchAllErrors = false;
 T._tocversion = tocversion;
 
 DC.WOWC = WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
+DC.WOTLK =  WOW_PROJECT_WRATH_CLASSIC ~= nil and WOW_PROJECT_ID >= WOW_PROJECT_WRATH_CLASSIC -- https://wowpedia.fandom.com/wiki/WOW_PROJECT_ID
+
 
 
 function T._DecursiveErrorHandler(err, ...)
@@ -620,7 +622,7 @@ function T._DecursiveErrorHandler(err, ...)
     end
 
     local mine = false;
-    if not IsReporting and (T._CatchAllErrors or errl:find("decursive") and not errl:find("\\libs\\")) then
+    if not IsReporting and (T._CatchAllErrors or errl:find("decursive") and not errl:find("[\\/]libs[\\/]")) then
 
         if not continueErrorReporting(errl) then
             return;
@@ -699,7 +701,7 @@ function T._TooManyErrors()
             if not WarningDisplayed and T.Dcr and T.Dcr.L and not (#DebugTextTable > 0 or T._TaintingAccusations > 10) then -- if we can and should display the alert
                 _Print(T.Dcr:ColorText((T.Dcr.L["TOO_MANY_ERRORS_ALERT"]):format(T._NonDecursiveErrors), "FFFF0000"));
                 _Print(T.Dcr:ColorText(T.Dcr.L["DONT_SHOOT_THE_MESSENGER"], "FFFF9955"));
-                _Print('|cFF47C2A1Last UI error:|r', LastErrorMessage);
+                _Print('|cFF47C2A1Here is the last non-Decursive UI error:|r', LastErrorMessage);
                 WarningDisplayed = true;
             end
         else
@@ -912,23 +914,23 @@ do
             ["AceAddon-3.0"] = 13,
             ["AceComm-3.0"] = 12,
             ["AceConsole-3.0"] = 7,
-            ["AceDB-3.0"] = 27,
+            ["AceDB-3.0"] = 28,
             ["AceDBOptions-3.0"] = 15,
             ["AceEvent-3.0"] = 4,
-            ["AceHook-3.0"] = 8,
+            ["AceHook-3.0"] = 9,
             ["AceLocale-3.0"] = 6,
             ["AceTimer-3.0"] = 17,
 
             ["AceGUI-3.0"] = 41,
             ["AceConfig-3.0"] = 3,
             ["AceConfigCmd-3.0"] = 14,
-            ["AceConfigDialog-3.0"] = 79,
+            ["AceConfigDialog-3.0"] = 85,
             ["AceConfigRegistry-3.0"] = 20,
 
             ["LibDataBroker-1.1"] = 4,
-            ["LibDBIcon-1.0"] = 43,
-            ["LibQTip-1.0"] = 48,
-            ["CallbackHandler-1.0"] = 7,
+            ["LibDBIcon-1.0"] = 44,
+            ["LibQTip-1.0"] = 49,
+            ["CallbackHandler-1.0"] = 8,
         };
 
         local GenericErrorMessage1 = "Decursive could not initialize properly because one or several of the required shared libraries (at least |cFF00FF00LibStub|r) could not be found.\n";
@@ -1125,4 +1127,4 @@ do
     end
 end
 
-T._LoadedFiles["Dcr_DIAG.lua"] = "2.7.8.2";
+T._LoadedFiles["Dcr_DIAG.lua"] = "2.7.9.3";

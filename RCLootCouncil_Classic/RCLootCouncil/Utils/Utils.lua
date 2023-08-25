@@ -110,7 +110,7 @@ end
 function Utils:GetNumFreeBagSlots()
    local result = 0
    for i = 1, _G.NUM_BAG_SLOTS do
-      result = result + (GetContainerNumFreeSlots(i))
+      result = result + (addon.C_Container.GetContainerNumFreeSlots(i))
    end
    return result
 end
@@ -135,15 +135,15 @@ end
 
 
 --- Checks if the item is in our blacklist
--- COMBAK Should be moved to it's own class in the future
--- @param item Any valid input for `GetItemInfoInstant`
--- @return boolean True if the item is blacklisted
+--- @param item string Any valid input for `GetItemInfoInstant`
+--- @return boolean @True if the item is blacklisted
 function Utils:IsItemBlacklisted(item)
    if not item then return false end
-   local _,_,_,_,_,itemClassID, itemsubClassID = GetItemInfoInstant(item)
+   local itemId,_,_,_,_,itemClassID, itemsubClassID = GetItemInfoInstant(item)
    if not (itemClassID and itemsubClassID) then return false end
    if addon.blacklistedItemClasses[itemClassID] then
       if addon.blacklistedItemClasses[itemClassID].all or addon.blacklistedItemClasses[itemClassID][itemsubClassID] then
+         if addon.blackListOverride[itemId] then return false end
          return true
       end
    end
@@ -157,8 +157,11 @@ function Utils:CheckOutdatedVersion (baseVersion, newVersion, basetVersion, newt
 
    if strfind(newVersion, "%a+") then return self:Debug("Someone's tampering with version?", newVersion) end
 
-   if addon:VersionCompare(baseVersion,newVersion) and (not (basetVersion or newtVersion)) then
-		return addon.VER_CHECK_CODES[2] -- Outdated
+   if newtVersion and not basetVersion then
+      return addon.VER_CHECK_CODES[1] -- Don't treat test versions as the latest
+
+   elseif addon:VersionCompare(baseVersion, newVersion) then
+      return addon.VER_CHECK_CODES[2] -- Outdated
 
 	elseif basetVersion and newtVersion and basetVersion < newtVersion then
 		return addon.VER_CHECK_CODES[3] -- tVersion outdated

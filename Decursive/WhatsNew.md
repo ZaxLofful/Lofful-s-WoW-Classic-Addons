@@ -1,5 +1,142 @@
-Decursive 2.7.8.2
+Decursive 2.7.9.3
 =================
+
+
+Decursive 2.7.9.3 (2023-07-16)
+------------------------------
+
+- Fix Improved Purify Spirit talent detection for resto shamans.
+
+- Remove new DF shaman spells from Classic versions
+
+- TOC updates
+
+
+
+**New Way to support Decursive:** If you are an [ADA/Cardano](https://cardano.org) holder you can
+delegate your stake to my pool: [anfra.io](https://anfra.io)
+
+
+
+Decursive 2.7.9.2 (2023-05-30)
+------------------------------
+
+- TOC update for WoW 10.1 with icon support
+
+- Shamans (Dragonflight):
+   - Add cleansing totem support.
+   - Fix Purify Spirit to only cure curses when Improved Purify Spirit talent is not detected.
+
+
+Decursive 2.7.9.1 (2023-04-02)
+------------------------------
+
+- TOC Updates
+
+- WotLK:Fix GetItemCooldown() Lua error
+
+- WoW 10.1.0 (PTR): Fix GetAddOnMetadata Lua error
+
+
+Decursive 2.7.9 (2023-02-25)
+----------------------------
+
+- Add support for by-specialization-profiles thanks to libDualSpec-1.0.
+
+- Keep specific curing order for each class specialization (instead of just for each class).
+
+- Add an option to hide Decursive's MUFs in raids.
+
+- Decursive text anchor can be moved again.
+
+- Do not report errors thrown in libraries embedded by Decursive on systems using '/' as directory separator.
+
+
+Decursive 2.7.8.13 (2022-12-13)
+-------------------------------
+
+- Cauterizing Flame is no longer considered better than Expunge.
+
+- Update CallBackHandler library to revision 8
+
+
+Decursive 2.7.8.12 (2022-11-28)
+-------------------------------
+
+- Add support for the Evoker class and their Expunge (Poison) and Cauterizing
+  Flame (Poison, Disease, Curse) as well as the Naturalize enhancement of the
+  Expunge spell (Poison, Magic).
+
+- WotLK: Added "Mutating Injection" to the "harmful debuff" list instead of the ignore list.
+  You'll hear a sound and a warning will be displayed whenever your mouse cursor
+  enters within a MUF with the Mutating Injection debuff.
+
+
+Decursive 2.7.8.11 (2022-10-27)
+-------------------------------
+
+- Fix LUA error with LDB's tooltip creation.
+
+
+Decursive 2.7.8.10 (2022-10-26)
+-------------------------------
+
+- TOC update for Dragonflight + fix XML error.
+
+- WOTLK: Fix Body and Soul talent handling.
+
+
+Decursive 2.7.8.9 (2022-09-22)
+------------------------------
+
+- WOTLK:
+    - Fix Shaman's "Cleanse Spirit", Fellhunter's "Devour Magic" detection, Priests' "Body and Soul" talent detection.
+    - Fix crash when adding custom pet spell by name in custom spell.
+
+
+Decursive 2.7.8.8 (2022-09-10)
+------------------------------
+
+- WotLK: add missing spells for
+    - Hunters: tranquilizing shot.
+    - Shamans: Hex, Cleanse Spirit.
+    - Priests: Dispell Magic (rank 1 is not detected once rank 2 is learned apparently...), Body and Soul talent detection (to cure poison on oneself).
+
+
+Decursive 2.7.8.7 (2022-09-04)
+------------------------------
+
+- TOC updates
+
+- Compatible with WotLK (if you find any issue, please create a [ticket](ticket).
+
+
+Decursive 2.7.8.6 (2022-06-12)
+------------------------------
+
+- TOC updates
+
+
+Decursive 2.7.8.5 (2022-02-27)
+------------------------------
+
+- TOC updates
+
+
+Decursive 2.7.8.4 (2021-11-12)
+------------------------------
+
+- TOC + library update
+
+- Add more information when the version of BugGrabber is wrong (very old
+  version) to help people to fix the issue by themselves.
+
+
+Decursive 2.7.8.3 (2021-07-04)
+------------------------------
+
+- Retail TOC Update
+
 
 Decursive 2.7.8.2 (2021-05-20)
 ------------------------------
@@ -15,10 +152,6 @@ Decursive 2.7.8.1 (2021-04-21)
 - Fix for rare `Dcr_DebuffsFrame.lua:1469: attempt to index field '?' (a nil value)` Lua error.
 
 - Remove old unknown rank text when a spell cast fails.
-
-
-**New Way to support Decursive:** If you are an [ADA/Cardano](https://cardano.org) holder you can
-delegate your stake to my pool: [anfra.io](https://anfra.io)
 
 
 Decursive 2.7.8 (2020-11-21)

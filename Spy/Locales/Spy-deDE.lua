@@ -12,29 +12,32 @@ L["Profiles"] = "Profile"
 L["About"] = "Info"
 L["SpyDescription1"] = [[
 Spy ist ein Addon, das Sie über das Vorhandensein von, in der Nähe befindlichen, feindlichen Spielern benachrichtigt. Dies sind einige der Hauptmerkmale
+
 ]]
+
 L["SpyDescription2"] = [[
-|cffffd000In der Nähe-Liste|cffffffff
+|cffffd000 In der Nähe-Liste |cffffffff
 Die "In der Nähe"-Liste zeigt alle feindlichen Spieler, die in der Nähe entdeckt wurden.  Spieler, die für eine gewisse Zeit nicht erkannt wurden, werden aus der Liste entfernt.
 
-|cffffd000Letzte Stunde-Liste|cffffffff
+|cffffd000 Letzte Stunde-Liste |cffffffff
 Zeigt alle Feinde, die in der letzten Stunde erkannt wurden.
 
-|cffffd000Ignorierliste|cffffffff
+|cffffd000 Ignorierliste |cffffffff
 Spieler, die der Ignorierliste hinzugefügt werden, werden nicht vom Spy gemeldet. Mithilfe des Dropdown-Menüs der Schaltfläche oder Halten der STRG-Taste beim Klicken auf die Schaltfläche können Sie Spieler zu der Liste hinzufügen oder entfernen.
 
-|cffffd000Bei Sichtkontakt zu Töten-Liste|cffffffff
-Wird ein Spieler der "Bei Sichtkontakt zu Töten"-Liste erkannt, erklingt ein Alarm. Mithilfe des Dropdown-Menüs der Schaltfläche oder Halten der STRG-Taste beim Klicken auf die Schaltfläche können Sie Spieler zu der Liste hinzufügen oder entfernen.
+|cffffd000 Bei Sichtkontakt zu Töten-Liste |cffffffff
+Wird ein Spieler der "Bei Sichtkontakt zu Töten"-Liste erkannt, erklingt ein Alarm. Mithilfe des Dropdown-Menüs der Schaltfläche oder Halten der STRG-Taste beim Klicken auf die Schaltfläche können Sie Spieler zu der Liste hinzufügen oder entfernen. Ausserdem können Sie mithilfe des Dropdown-Menüs die Gründe hinterlegen, warum Sie jemanden zu der "Bei Sichtkontakt zu Töten"-Liste hinzugefügt haben. Möchten Sie einen nicht in der Liste hinterlegten Grund eingeben, verwenden Sie "Geben Sie Ihren eigenen Grund..." in der anderen Liste.
 
-Ausserdem können Sie mithilfe des Dropdown-Menüs die Gründe hinterlegen, warum Sie jemanden zu der "Bei Sichtkontakt zu Töten"-Liste hinzugefügt haben. Möchten Sie einen nicht in der Liste hinterlegten Grund eingeben, verwenden Sie "Geben Sie Ihren eigenen Grund..." in der anderen Liste.
+]]
 
-|cffffd000Statistics Window|cffffffff
+L["SpyDescription3"] = [[
+|cffffd000 Statistics Window |cffffffff
 The Statistics Window contains a list of all enemy encounters which can be sorted by name, level, guild, wins, losses and the last time an enemy was detected. It also provides the ability to search for a specific enemy by name or guild and has filters to show only enemies that are marked as Kill on Sight, with a Win/Loss or entered Reasons.
 
-|cffffd000Kill On Sight Button|cffffffff
+|cffffd000 Kill On Sight Button |cffffffff
 If enabled, this button will be located on the enemy players target frame. Clicking on this button will add/remove the enemy target to/from the Kill On Sight list. Right clicking on the button will allow you to enter Kill on Sight reasons.
 
-|cffffd000Autor: Slipjack|cffffffff
+|cffffd000 Autor:|cffffffff Slipjack
 ]]
 
 -- General Settings
@@ -72,6 +75,9 @@ L["Silithus"] = "Silithus"
 L["Chamber of Heart"] = "Die Herzkammer"
 L["Hall of Ancient Paths"] = "Halle der Uralten Pfade"
 L["Sanctum of the Sages"] = "Das Sanktum der Weisen"
+L["Rustbolt"] = "Rostbolzen"
+L["Oribos"] = "Oribos"
+L["Valdrakken"] = "Valdrakken"
 
 -- Display
 L["DisplayOptions"] = "Anzeigen"
@@ -120,6 +126,7 @@ L["TooltipDisplayLastSeenDescription"] = "Wählen Sie diese Einstellung, um die 
 L["DisplayListData"] = "Wählen Sie die anzuzeigenden feindlichen Daten aus"
 L["Name"] = "Name"
 L["Class"] = "Klasse"
+L["Rank"] = "Rang"
 L["SelectFont"] = "Wählen Sie eine Schriftart"
 L["SelectFontDescription"] = "Wählen Sie eine Schriftart für das Spy-Fenster."
 L["RowHeight"] = "Wählen Sie die Zeilenhöhe aus"
@@ -224,6 +231,7 @@ L["LimitSameContinentDescription"] = "Zeigt nur die entdeckten Feinde auf der Ka
 -- Data Management
 L["DataOptions"] = "Datenmanagement"
 L["DataOptionsDescription"] = [[
+
 Optionen, wie Spy Daten verwaltet und sammelt.
 ]]
 L["PurgeData"] = "Eliminiert unentdeckte feindliche Spieler-Daten nach:"
@@ -286,14 +294,15 @@ L["Time"] = "Zeit"
 L["List"] = "Liste"	
 L["Filter"] = "Filter"
 L["Show Only"] = "Zeige nur"
+L["Realm"] = "Realm"
 L["Won/Lost"] = "Gewonnen/Verloren"
 L["KOS"] = "KOS"
 L["Reason"] = "Grund"	
 L["HonorKills"] = "Ehrenvolle Siege"
-L["PvPDeatchs"] = "PvP Tode"
+L["PvPDeaths"] = "PvP Tode"
 
 --Ausgabemeldungen
-L["VersionCheck"] = "|cffc41e3aWarnung! Die falsche Version von Spy ist installiert. Entfernen Sie diese Version und installieren Sie Spy Classic."
+L["VersionCheck"] = "|cffc41e3aWarnung! Die falsche Version von Spy ist installiert. Diese Version ist für World of Warcraft Classic."
 L["SpyEnabled"] = "|cff9933ffSpy-Addon aktiviert."
 L["SpyDisabled"] = "|cff9933ffSpy-Addon deaktiviert. Tippen Sie |cffffffff/spy show|cff9933ff um es zu aktivieren."
 L["UpgradeAvailable"] = "|cff9933ffEine neue Version von Spy ist verfügbar. Es kann von: \n| cffffffffhttps://www.curseforge.com/wow/addons/spy-classic heruntergeladen werden."
@@ -464,6 +473,7 @@ L["WARRIOR"] = "Krieger"
 L["DEATHKNIGHT"] = "Todesritter"
 L["MONK"] = "Mönch"
 L["DEMONHUNTER"] = "Dämonenjäger"
+L["EVOKER"] = "Rufer"
  
 -- Race descriptions
 L["Human"] = "Mensch"
@@ -489,6 +499,7 @@ L["Kul Tiran"] = "Kul Tiran"
 L["Zandalari Troll"] = "Zandalaritroll"
 L["Mechagnome"] = "Mechagnom"
 L["Vulpera"] = "Vulpera"
+L["Dracthyr"] = "Dracthyr"
  
 -- Stealth Fähigkeiten
 L["Stealth"] = "Verstohlenheit"
@@ -509,6 +520,7 @@ L["MinimapClassTextWARRIOR"] = "|cffc69b6d"
 L["MinimapClassTextDEATHKNIGHT"] = "|cffc41e3a"
 L["MinimapClassTextMONK"] = "|cff00ff96"
 L["MinimapClassTextDEMONHUNTER"] = "|cffa330c9"
+L["MinimapClassTextEVOKER"] = "|cff33937f"
  
 Spy_AbilityList = {
  -----------------------------------------------------------

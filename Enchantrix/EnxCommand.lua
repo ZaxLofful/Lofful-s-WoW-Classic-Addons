@@ -1,7 +1,7 @@
 --[[
 	Enchantrix Addon for World of Warcraft(tm).
-	Version: 8.2.6428 (SwimmingSeadragon)
-	Revision: $Id: EnxCommand.lua 6428 2019-10-20 00:10:07Z none $
+	Version: 3.4.6849 (SwimmingSeadragon)
+	Revision: $Id: EnxCommand.lua 6849 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	Slash command and GUI functions.
@@ -28,7 +28,7 @@
 		since that is its designated purpose as per:
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 ]]
-Enchantrix_RegisterRevision("$URL: Enchantrix/EnxCommand.lua $", "$Rev: 6428 $")
+Enchantrix_RegisterRevision("$URL: Enchantrix/EnxCommand.lua $", "$Rev: 6849 $")
 
 -- Global functions
 local addonLoaded				-- Enchantrix.Command.AddonLoaded()
@@ -53,19 +53,13 @@ end
 
 function auctioneerLoaded()
 
-	-- Make sure we have a usable version of Auctioneer loaded (3.4 or higher)
+	-- Make sure we have a usable version of Auctioneer loaded
 
-	if AucAdvanced and AucAdvanced.Version then
-		local major,minor,patch,revision = strsplit('.', AucAdvanced.Version, 4)
-		local major = tonumber(major) or 0
-		local minor = tonumber(minor) or 0
-		if patch == "DEV" then
-			minor = minor + 1
-			patch = 0
-			revision = 0
-		end
-
-		if major >= 5 then
+	-- Any recent version of AucAdvanced will work with Enchantrix as long as it loads properly
+	if AucAdvanced and AucAdvanced.ValidateInstall then
+		local active, loaderror = AucAdvanced.ValidateInstall()
+		-- Note: do not rely on 'active' as it set to 'true' very late in the load order
+		if not loaderror then
 			Enchantrix.State.Auctioneer_Loaded = true
 			Enchantrix.State.Auctioneer_Five = true
 		end
@@ -82,9 +76,9 @@ function auctioneerLoaded()
 
 		if major >= 5 then
 			Enchantrix.State.Auctioneer_Loaded = true
-			Enchantrix.State.Auctioneer_Five = true
-		elseif major > 3 or (major == 3 and minor >= 4) then
-			Enchantrix.State.Auctioneer_Loaded = true
+            if major < 8 then
+                Enchantrix.State.Auctioneer_Five = true
+            end
 		end
 	end
 
@@ -343,7 +337,7 @@ end
 
 
 Enchantrix.Command = {
-	Revision				= "$Rev: 6428 $",
+	Revision				= "$Rev: 6849 $",
 
 	AddonLoaded				= addonLoaded,
 	AuctioneerLoaded		= auctioneerLoaded,

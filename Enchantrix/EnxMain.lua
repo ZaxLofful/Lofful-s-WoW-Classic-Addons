@@ -1,7 +1,7 @@
 ﻿--[[
 	Enchantrix Addon for World of Warcraft(tm).
-	Version: 8.2.6428 (SwimmingSeadragon)
-	Revision: $Id: EnxMain.lua 6428 2019-10-20 00:10:07Z none $
+	Version: 3.4.6849 (SwimmingSeadragon)
+	Revision: $Id: EnxMain.lua 6849 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	This is an addon for World of Warcraft that add a list of what an item
@@ -30,7 +30,7 @@
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 
 ]]
-Enchantrix_RegisterRevision("$URL: Enchantrix/EnxMain.lua $", "$Rev: 6428 $")
+Enchantrix_RegisterRevision("$URL: Enchantrix/EnxMain.lua $", "$Rev: 6849 $")
 
 -- Local functions
 local addonLoaded
@@ -50,7 +50,7 @@ local idProspecting = 31252
 
 
 
-Enchantrix.Version = "8.2.6428"
+Enchantrix.Version = "3.4.6849"
 if (Enchantrix.Version == "<".."%version%>") then
 	Enchantrix.Version = "4.0.DEV"
 end
@@ -96,7 +96,7 @@ function addonLoaded(hookArgs, event, addOnName)
 	Enchantrix.AutoDisenchant.AddonLoaded()
 	Enchantrix.MiniIcon.Reposition()
 
-	Enchantrix.Revision = Enchantrix.Util.GetRevision("$Rev: 6428 $")
+	Enchantrix.Revision = Enchantrix.Util.GetRevision("$Rev: 6849 $")
 	for name, obj in pairs(Enchantrix) do
 		if type(obj) == "table" then
 			Enchantrix.Revision = math.max(Enchantrix.Revision, Enchantrix.Util.GetRevision(obj.Revision))

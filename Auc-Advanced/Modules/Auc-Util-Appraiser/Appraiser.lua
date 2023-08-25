@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Appraisals and Auction Posting
-	Version: 8.2.6417 (SwimmingSeadragon)
-	Revision: $Id: Appraiser.lua 6417 2019-10-20 00:10:07Z none $
+	Version: 3.4.6787 (SwimmingSeadragon)
+	Revision: $Id: Appraiser.lua 6787 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds an appraisals tab to the AH for
@@ -48,6 +48,7 @@ local GetAlgorithmValue = AucAdvanced.API.GetAlgorithmValue
 local GetBestMatch = AucAdvanced.API.GetBestMatch
 local GetSigFromLink = AucAdvanced.API.GetSigFromLink
 local GetDepositCost = AucAdvanced.Post.GetDepositCost
+local IsNeutralServerKey = AucAdvanced.IsNeutralServerKey
 local GetItemInfoCache = AucAdvanced.GetItemInfoCache
 
 local pricecache -- cache for GetPrice; only used in certain circumstances
@@ -265,7 +266,7 @@ function lib.OnLoad()
 	-- Configure our defaults
 
     local maxDuration = 2880;
-    if AucAdvanced.Classic then maxDuration = 1440 end
+    if AucAdvanced.Classic == 1 then maxDuration = 1440 end
 
 	default("util.appraiser.enable", false)
 	default("util.appraiser.bidtooltip", true)
@@ -408,7 +409,7 @@ function private.GetPriceCore(sig, link, serverKey, match)
 			local subtract = get("util.appraiser.bid.subtract") or 0
 			local deposit = 0
 			if get("util.appraiser.bid.deposit") then
-				local dep = GetDepositCost(link, duration, 1, newBuy * stack, stack)
+				local dep = GetDepositCost(link, duration, IsNeutralServerKey(serverKey), stack)
 				if dep then
 					deposit = dep / stack
 				end
@@ -483,4 +484,4 @@ Stubby.RegisterEventHook("AUCTION_OWNED_LIST_UPDATE", "Auc-Util-Appraiser", lib.
 lib.Private_AprFrame = private
 lib.Private_AprSettings = private
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-Appraiser/Appraiser.lua $", "$Rev: 6417 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-Appraiser/Appraiser.lua $", "$Rev: 6787 $")

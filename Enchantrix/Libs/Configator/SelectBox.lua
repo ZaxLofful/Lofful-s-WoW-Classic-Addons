@@ -1,7 +1,7 @@
 --[[
 	SelectBox
-	Version: 8.2.6341 (SwimmingSeadragon)
-	Revision: $Id: SelectBox.lua 6341 2019-10-20 00:10:07Z none $
+	Version: 3.4.6848 (SwimmingSeadragon)
+	Revision: $Id: SelectBox.lua 6848 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/dl/
 
 	License:
@@ -30,7 +30,7 @@ local LIBRARY_VERSION_MINOR = 6
 local lib = LibStub:NewLibrary(LIBRARY_VERSION_MAJOR, LIBRARY_VERSION_MINOR)
 if not lib then return end
 
-LibStub("LibRevision"):Set("$URL: Auc-Advanced/Libs/Configator/SelectBox.lua $","$Rev: 6341 $","5.1.DEV.", 'auctioneer', 'libs')
+LibStub("LibRevision"):Set("$URL: Auc-Advanced/Libs/Configator/SelectBox.lua $","$Rev: 6848 $","5.1.DEV.", 'auctioneer', 'libs')
 
 local NUM_MENU_ITEMS = 15
 local SCROLLTIME = 0.2
@@ -299,7 +299,7 @@ if not lib.menu then
 	menu:SetScript("OnMouseDown", lib.DoHide)
 	menu:SetScript("OnUpdate", lib.OnUpdate)
 
-	menu.back = CreateFrame("Frame", "", lib.menu)
+	menu.back = CreateFrame("Frame", "", lib.menu, BackdropTemplateMixin and "BackdropTemplate")
 	menu.back:SetPoint("TOPLEFT", lib.menu, "TOPLEFT", 15, -20)
 	menu.back:SetPoint("BOTTOMRIGHT", lib.menu, "BOTTOMRIGHT", -15, 10)
 	menu.back:SetBackdrop({

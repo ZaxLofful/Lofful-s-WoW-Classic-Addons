@@ -3,8 +3,8 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
 <!--
 	Enchantrix:Barker Addon for World of Warcraft(tm).
-	Version: 8.2.6469 (SwimmingSeadragon)
-	Revision: $Id: EnchantrixBarker.xml 6469 2019-10-20 00:10:07Z none $
+	Version: 3.4.6813 (SwimmingSeadragon)
+	Revision: $Id: EnchantrixBarker.xml 6813 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	License:
@@ -30,7 +30,7 @@ xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 -->
 	<Script>
-		EnchantrixBarker_RegisterRevision("$URL: Enchantrix-Barker/EnchantrixBarker.xml $", "$Rev: 6469 $")
+		EnchantrixBarker_RegisterRevision("$URL: Enchantrix-Barker/EnchantrixBarker.xml $", "$Rev: 6813 $")
 	</Script>
 
 	<Button name="Enchantrix_BarkerDisplayButton" inherits="UIPanelButtonTemplate" hidden="true" text="Trade Barker">

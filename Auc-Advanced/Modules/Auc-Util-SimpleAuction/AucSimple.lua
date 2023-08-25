@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Basic Auction Posting
-	Version: 8.2.6409 (SwimmingSeadragon)
-	Revision: $Id: AucSimple.lua 6409 2019-10-20 00:10:07Z none $
+	Version: 3.4.6788 (SwimmingSeadragon)
+	Revision: $Id: AucSimple.lua 6788 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds a simple dialog for
@@ -35,6 +35,7 @@ local libType, libName = "Util", "SimpleAuction"
 local lib,parent,private = AucAdvanced.NewModule(libType, libName)
 if not lib then return end
 local aucPrint,decode,_,_,replicate,empty,get,set,default,debugPrint,fill = AucAdvanced.GetModuleLocals()
+local Const = AucAdvanced.Const
 local Resources = AucAdvanced.Resources
 local GetSigFromLink = AucAdvanced.API.GetSigFromLink
 local GetMarketValue = AucAdvanced.API.GetMarketValue
@@ -84,10 +85,10 @@ local function GetSettingStr(id)
 	local settingstr = get("util.simpleauc."..Resources.ServerKey.."."..id)
 	if settingstr then return settingstr end
 	-- see if it's stored under old-style serverKey
-	settingstr = get("util.simpleauc."..Resources.ServerKeyCurrent.."."..id)
+	settingstr = get("util.simpleauc."..Const.CompactRealm.."."..id)
 	if settingstr then
 		set("util.simpleauc."..Resources.ServerKey.."."..id, settingstr, true) -- silent (3rd param 'true' inhibits "configchanged" messages)
-		set("util.simpleauc."..Resources.ServerKeyCurrent.."."..id, nil, true)
+		set("util.simpleauc."..Const.CompactRealm.."."..id, nil, true)
 		return settingstr
 	end
 end
@@ -95,7 +96,7 @@ private.GetSettingStr = GetSettingStr -- SimpFrame.lua needs this function too
 
 function lib.ProcessTooltip(tooltip, link, serverKey, quantity, decoded, additional, order)
 	if not get("util.simpleauc.tooltip") then return end
-	if serverKey ~= Resources.ServerKeyCurrent and serverKey ~= Resources.ServerKey then return end
+	if serverKey ~= Resources.ServerKey then return end -- SimpleAuction can only handle pricing for current ServerKey
 	local id = GetSigFromLink(link)
 	local settingstr = GetSettingStr(id)
 	local market, seen, fixbuy, fixbid, stack
@@ -196,7 +197,11 @@ function lib.OnLoad()
 	default("util.simpleauc.scanbutton", true)
 	default("util.simpleauc.tooltip", true)
 	default("util.simpleauc.tooltip.undercut", true)
-	default("util.simpleauc.auto.duration", 48)
+	if AucAdvanced.Classic == 1 then
+		default("util.simpleauc.auto.duration", 24)
+	else
+		default("util.simpleauc.auto.duration", 48)
+	end
 	default("util.simpleauc.auto.match", true)
 	default("util.simpleauc.auto.undercut", true)
 	default("util.simpleauc.undercut", "percent")
@@ -228,7 +233,7 @@ end
 
 local timeLeftList = { {12, "12 hour"}, {24, "24 hour"}, {48, "48 hour"} }
 
-if AucAdvanced.Classic then
+if AucAdvanced.Classic == 1 then
     timeLeftList = { {2, "2 hour"}, {8, "8 hour"}, {24, "24 hour"} }
 end
 
@@ -286,4 +291,4 @@ function private.SetupConfigGui(gui)
 	gui:AddTip(id, "Displays the old-style \"Scan\" button at the bottom of the browse window.")
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SimpleAuction/AucSimple.lua $", "$Rev: 6409 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SimpleAuction/AucSimple.lua $", "$Rev: 6788 $")

@@ -1,10 +1,10 @@
 ## Title: Auc:Util:ItemSuggest
-## Interface: 80200
+## Interface: 30400
 ## OptionalDependencies:
 ## Dependencies: Auc-Advanced
 ##
-## Version: 8.2.6418 (SwimmingSeadragon)
-## Revision: $Id: Auc-Util-ItemSuggest.toc 6418 2019-10-20 00:10:07Z none $
+## Version: 3.4.6791 (SwimmingSeadragon)
+## Revision: $Id: Auc-Util-ItemSuggest.toc 6791 2022-10-27 00:00:09Z none $
 ## Author: Norganna's AddOns
 ## X-Part-Of: Auctioneer
 ## X-Category: Auction House

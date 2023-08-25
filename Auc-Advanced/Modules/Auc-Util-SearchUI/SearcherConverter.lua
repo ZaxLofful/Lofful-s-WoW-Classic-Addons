@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Search UI - Searcher Converter
-	Version: 8.2.6464 (SwimmingSeadragon)
-	Revision: $Id: SearcherConverter.lua 6464 2019-10-20 00:10:07Z none $
+	Version: 3.4.6829 (SwimmingSeadragon)
+	Revision: $Id: SearcherConverter.lua 6829 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is a plugin module for the SearchUI that assists in searching by refined paramaters
@@ -189,7 +189,7 @@ default("converter.profit.min", 1)
 default("converter.profit.pct", 50)
 default("converter.adjust.brokerage", true)
 default("converter.adjust.deposit", true)
-default("converter.adjust.deplength", 48)
+default("converter.adjust.deplength", resources.defaultAuctionLength)
 default("converter.adjust.listings", 3)
 default("converter.allow.bid", true)
 default("converter.allow.buy", true)
@@ -302,10 +302,8 @@ function lib.Search (item)
 	end
 	if get("converter.adjust.deposit") then
 		-- note: GetDepositCost can handle numerical itemIDs instead of links
-		local amount = AucAdvanced.Post.GetDepositCost(newID, get("converter.adjust.deplength"), market, 0, count)
-		if amount then
-			market = market - amount * get("converter.adjust.listings")
-		end
+		local amount = resources.GetDepositCost(newID, get("converter.adjust.deplength"), resources.Faction, 1) or 0
+        market = market - amount * get("converter.adjust.listings") * count
 	end
 
 	local value = min (market*(100-get("converter.profit.pct"))/100, market-get("converter.profit.min"))
@@ -317,4 +315,4 @@ function lib.Search (item)
 	return false, "Not enough profit"
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearcherConverter.lua $", "$Rev: 6464 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearcherConverter.lua $", "$Rev: 6829 $")

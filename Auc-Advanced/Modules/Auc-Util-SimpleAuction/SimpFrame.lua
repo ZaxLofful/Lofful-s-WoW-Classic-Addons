@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Simplified Auction Posting
-	Version: 8.2.6409 (SwimmingSeadragon)
-	Revision: $Id: SimpFrame.lua 6409 2019-10-20 00:10:07Z none $
+	Version: 3.4.6788 (SwimmingSeadragon)
+	Revision: $Id: SimpFrame.lua 6788 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds a simple dialog for
@@ -46,6 +46,7 @@ local GetAuctionItem = AucAdvanced.Scan.GetAuctionItem
 local QueryImage = AucAdvanced.API.QueryImage
 local CountAvailableItems = AucAdvanced.Post.CountAvailableItems
 local GetDepositCost = AucAdvanced.Post.GetDepositCost
+local GetDurationCode = AucAdvanced.Post.GetDurationCode
 local QueueBuy = AucAdvanced.Buy.QueueBuy
 local StartScan = AucAdvanced.Scan.StartScan
 local StartPushedScan = AucAdvanced.Scan.StartPushedScan
@@ -72,11 +73,13 @@ function private.clearcache()
 	wipe(pricecache)
 end
 
-function private.postPickupContainerItemHook(_,_,bag, slot)
+function private.postPickupContainerItemHook(bag, slot)
 	if (CursorHasItem()) then
-		frame.CursorItem = {bag = bag, slot = slot}
+		frame.CursorItemBag = bag
+		frame.CursorItemSlot = slot
 	else
-		frame.CursorItem = nil
+		frame.CursorItemBag = nil
+		frame.CursorItemSlot = nil
 	end
 end
 
@@ -342,7 +345,8 @@ function private.UpdateDisplay()
 	end
 	frame.info:SetText(text)
 
-	local deposit = GetDepositCost(oLink, duration, cBid, cBuy, cStack, 1)
+	duration = GetDurationCode(duration)
+	local deposit = GetDepositCost(oLink, duration, Resources.IsNeutralZone, cStack, 1)
 	if not deposit then
 		frame.fees:SetText("Unknown deposit cost")
 	elseif cNum > 1 then
@@ -366,14 +370,16 @@ local timeLeftStrings = {
                 [3] = "12h",
                 [4] = "48h",
 }
+local auctionTimeMax = 24
 
-if AucAdvanced.Classic then
-    local timeLeftStrings = {
+if AucAdvanced.Classic == 1 then
+    timeLeftStrings = {
                     [1] = "30m",
                     [2] = "2h",
                     [3] = "8h",
                     [4] = "24h",
     }
+    auctionTimeMax = 48
 end
 
 function private.UpdateCompetition(image)
@@ -660,10 +666,11 @@ end
 function private.IconClicked()
 	local objType, _, itemLink = GetCursorInfo()
 	local size
-	if CursorHasItem() and frame.CursorItem then
-		_, size = GetContainerItemInfo(frame.CursorItem.bag, frame.CursorItem.slot)
+	if CursorHasItem() and frame.CursorItemBag and frame.CursorItemSlot then
+		_, size = GetContainerItemInfo(frame.CursorItemBag, frame.CursorItemSlot)
 	end
-	frame.CursorItem = nil
+	frame.CursorItemBag = nil
+	frame.CursorItemSlot = nil
 	ClearCursor()
 	if objType ~= "item" then itemLink = nil end
 	private.LoadItemLink(itemLink, size)
@@ -868,7 +875,7 @@ function private.ClearSetting()
 	frame.options.remember:SetChecked(false)
 	frame.CurItem.remember = false
 
-if AucAdvanced.Classic then
+if AucAdvanced.Classic == 1 then
     if dur > 24 then dur = 24 end
 	frame.duration.time[1]:SetChecked(dur == 2)
 	frame.duration.time[2]:SetChecked(dur == 8)
@@ -894,8 +901,9 @@ function private.PostAuction()
 	local stack = frame.CurItem.stack
 	local bid = frame.CurItem.bid
 	local buy = frame.CurItem.buy
-	local duration = frame.CurItem.duration or 48
-	local success, reason = PostAuctionClick(sig, stack, bid, buy, duration, number)
+	local duration = frame.CurItem.duration
+	local durationcode = GetDurationCode(duration) or 3
+	local success, reason = PostAuctionClick(sig, stack, bid, buy, durationcode, number)
 	if success then
 		aucPrint("Posting "..number.." stacks of "..stack.."x "..link.." at Bid:"..coins(bid)..", BO:"..coins(buy).." for "..duration.."h")
 	else
@@ -948,7 +956,7 @@ function private.CreateFrames()
 	frame.cache = {}
 	frame.CurItem = {match = false, undercut = false, remember = false}
 	frame.detail = {0,0,0,"",""}
-	Stubby.RegisterFunctionHook("PickupContainerItem", 200, private.postPickupContainerItemHook)
+	hooksecurefunc("PickupContainerItem", private.postPickupContainerItemHook)
 
 	frame:SetParent(AuctionFrame)
 	frame:SetPoint("TOPLEFT", AuctionFrame, "TOPLEFT")
@@ -1035,7 +1043,7 @@ function private.CreateFrames()
 
 	frame.duration.time = {
         intervals = {12, 24, 48},
-        selected = 48,
+        selected = auctionTimeMax,
 		OnClick = function (obj, ...)
 			frame.CurItem.valuechanged = true
 			local self = frame.duration.time
@@ -1050,9 +1058,8 @@ function private.CreateFrames()
 		end,
 	}
 
-    if AucAdvanced.Classic then
+    if AucAdvanced.Classic == 1 then
         frame.duration.time.intervals = {2, 8, 24}
-        frame.duration.time.selected = 24
     end
 
 	local t = frame.duration.time
@@ -1222,7 +1229,7 @@ function private.CreateFrames()
 		end
 	end
 
-	frame.imageview = CreateFrame("Frame", nil, frame)
+	frame.imageview = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 	frame.imageview:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -1386,4 +1393,4 @@ function private.CreateFrames()
 	frame:RegisterEvent("BAG_UPDATE")
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SimpleAuction/SimpFrame.lua $", "$Rev: 6409 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SimpleAuction/SimpFrame.lua $", "$Rev: 6788 $")

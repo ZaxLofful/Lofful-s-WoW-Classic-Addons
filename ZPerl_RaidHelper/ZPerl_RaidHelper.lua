@@ -2,7 +2,7 @@
 -- Author: Resike
 -- License: GNU GPL v3, 29 June 2007 (see LICENSE.txt)
 
-XPerl_SetModuleRevision("$Revision: 00a3cadfbbc8615840794db77581992f54190a2b $")
+XPerl_SetModuleRevision("$Revision: 50e769c4305c42360c08e4eba003ac2f06dc3d9a $")
 
 ZPerl_MainTanks = {}
 local MainTankCount, blizzMTanks, ctraTanks = 0, 0, 0
@@ -17,6 +17,8 @@ local pendingTankListChange -- If in combat when tank list changes, then we'll d
 local conf
 
 local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
+local IsVanillaClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+local IsWrathClassic = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
 
 local GetNumGroupMembers = GetNumGroupMembers
 
@@ -129,7 +131,7 @@ local function UpdateUnit(self,forcedUpdate)
 			percBar = 0 -- So just automatically set percent to 0 and avoid division of 0/0 all together in this situation.
 		elseif health > 0 and healthMax == 0 then -- We have current ho but max hp failed.
 			healthMax = health -- Make max hp at least equal to current health
-			percBar = 100 -- And percent 100% cause a number divided by itself is 1, duh.
+			percBar = 1 -- And percent 100% cause a number divided by itself is 1, duh.
 		else
 			percBar = health / healthMax--Everything is dandy, so just do it right way.
 		end
@@ -275,8 +277,13 @@ function XPerl_MTListUnit_OnEnter(self)
 				if (parentID) then
 					XPerl_BottomTip:SetOwner(GameTooltip, a2, 0, 10)
 					XPerl_BottomTip:SetUnit(parentID)
-					XPerl_BottomTip:OnBackdropLoaded()
-					XPerl_BottomTip:SetBackdropColor(0.1, 0.4, 0.1, 0.75)
+
+					if IsWrathClassic then
+						XPerl_BottomTip:OnBackdropLoaded()
+						XPerl_BottomTip:SetBackdropColor(0.1, 0.4, 0.1, 0.75)
+					else
+						XPerl_BottomTip.NineSlice:SetCenterColor(0.1, 0.4, 0.1, 0.75)
+					end
 				end
 			end
 		else
@@ -290,8 +297,13 @@ function XPerl_MTListUnit_OnEnter(self)
 
 				GameTooltip:SetOwner(self, a1)
 				GameTooltip:SetUnit(partyid)
-				GameTooltip:OnBackdropLoaded()
-				GameTooltip:SetBackdropColor(0.1, 0.4, 0.1, 0.75)
+
+				if IsWrathClassic then
+					GameTooltip:OnBackdropLoaded()
+					GameTooltip:SetBackdropColor(0.1, 0.4, 0.1, 0.75)
+				else
+					GameTooltip.NineSlice:SetCenterColor(0.1, 0.4, 0.1, 0.75)
+				end
 			end
 		end
 	end
@@ -421,7 +433,7 @@ function XPerl_MTRosterChanged()
 		-- Scan roster, adding any new ones, and removing found ones from old tanks list
 		for i = 1, GetNumGroupMembers() do
 			local unitid = "raid"..i
-			if ((not IsClassic and UnitGroupRolesAssigned(unitid) == "TANK") or GetPartyAssignment("maintank", unitid)) then
+			if ((not IsVanillaClassic and UnitGroupRolesAssigned(unitid) == "TANK") or GetPartyAssignment("maintank", unitid)) then
 				local name = GetUnitName(unitid, true)
 				local name2, realm = UnitName(unitid)
 				if (name ~= name2) then

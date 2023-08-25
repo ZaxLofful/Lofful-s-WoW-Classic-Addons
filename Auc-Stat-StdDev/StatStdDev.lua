@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Standard Deviation Statistics module
-	Version: 8.2.6369 (SwimmingSeadragon)
-	Revision: $Id: StatStdDev.lua 6369 2019-10-20 00:10:07Z none $
+	Version: 3.4.6808 (SwimmingSeadragon)
+	Revision: $Id: StatStdDev.lua 6808 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -478,35 +478,15 @@ function private.UpgradeDB()
 	private.UpgradeDB = nil
 
 	local saved = AucAdvancedStatStdDevData
-
-	if saved and saved.Version == DATABASE_VERSION then return end
+	if type(saved) == "table" and type(saved.RealmData) == "table" and saved.Version == DATABASE_VERSION then
+		saved.OldRealmData = nil -- delete any obsolete date - this line can be removed after some time
+		return
+	end
 
 	AucAdvancedStatStdDevData = {
 		Version = DATABASE_VERSION,
 		RealmData = {},
 	}
-
-	if saved and not saved.Version then
-		-- original version: should be a table with simple format [serverKey] = {<data>}
-		-- used old-style serverKeys; we want to upgrade to new-style
-		-- internal format of {<data>} is unchanged
-
-		for serverKey, data in pairs(saved) do
-			if type(data) ~= "table" or not next(data) then -- don't keep invalid entries or empty tables
-				saved[serverKey] = nil
-			else
-				local realm, faction = AucAdvanced.SplitServerKey(serverKey)
-				if not realm or faction == "Neutral" then -- don't keep invalid or neutral (old style) serverKeys
-					saved[serverKey] = nil
-				end
-			end
-		end
-
-		if next(saved) then
-			AucAdvancedStatStdDevData.OldRealmData = saved
-			saved.expires = time() + 1209600 -- 60 * 60 * 24 * 14 = 14 days
-		end
-	end
 end
 
 function private.LookForOldData()
@@ -578,10 +558,6 @@ function private.InitData()
 	if private.UpgradeDB then private.UpgradeDB() end
 
 	SSDRealmData = AucAdvancedStatStdDevData.RealmData
-	if not SSDRealmData then
-		SSDRealmData = {} -- dummy value to avoid more errors - will not get saved
-		error("Error loading or creating Stat-StdDev database")
-	end
 
 	-- Do any regular database maintenance here
 end
@@ -605,4 +581,4 @@ function lib.ChangeServerKey(oldKey, newKey)
 	end
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Stat-StdDev/StatStdDev.lua $", "$Rev: 6369 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Stat-StdDev/StatStdDev.lua $", "$Rev: 6808 $")

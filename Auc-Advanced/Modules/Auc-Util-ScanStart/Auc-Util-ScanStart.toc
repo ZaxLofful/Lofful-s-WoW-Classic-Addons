@@ -1,9 +1,9 @@
 ## Title: Auc:Util:Scan Start
-## Interface: 80200
+## Interface: 30400
 ## Dependancies: Auc-Advanced
 ##
-## Version: 8.2.6363 (SwimmingSeadragon)
-## Revision: $Id: Auc-Util-ScanStart.toc 6363 2019-10-20 00:10:07Z none $
+## Version: 3.4.6802 (SwimmingSeadragon)
+## Revision: $Id: Auc-Util-ScanStart.toc 6802 2022-10-27 00:00:09Z none $
 ## Author: Norganna's AddOns
 ## X-Part-Of: Auctioneer
 ## X-Category: Auction House

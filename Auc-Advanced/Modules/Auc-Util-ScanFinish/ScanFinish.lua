@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Scan Finish module
-	Version: 8.2.6456 (SwimmingSeadragon)
-	Revision: $Id: ScanFinish.lua 6456 2019-10-20 00:10:07Z none $
+	Version: 3.4.6784 (SwimmingSeadragon)
+	Revision: $Id: ScanFinish.lua 6784 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an Auctioneer module that adds a few event functionalities
@@ -244,4 +244,4 @@ function private.ConfigChanged(fullsetting, value, setting, module, base)
 	end
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-ScanFinish/ScanFinish.lua $", "$Rev: 6456 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-ScanFinish/ScanFinish.lua $", "$Rev: 6784 $")

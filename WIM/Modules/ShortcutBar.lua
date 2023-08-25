@@ -303,7 +303,7 @@ end
 -- Register default buttons.
 RegisterShortcut("location", L["Player Location"], {
 		OnClick = function(self, button)
-			_G.CloseDropDownMenus();
+			libs.DropDownMenu.CloseDropDownMenus();
 			if(button == "LeftButton") then
 				self.parentWindow:SendWho();
 			else
@@ -354,7 +354,7 @@ RegisterShortcut("invite", L["Invite to Party"], {
 					_G.FriendsFrame_BattlenetInvite(nil, win.bn.id)
 				end
 			else
-				if isShadowlands then
+				if isModernApi then
 					_G.C_PartyInfo.InviteUnit(win.theUser)
 				else
 					_G.InviteUnit(win.theUser)

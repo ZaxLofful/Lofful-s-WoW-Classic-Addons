@@ -90,7 +90,7 @@ function _QuestieJourney:DrawQuestDetailsFrame(container, quest)
         
         local continent = QuestieJourneyUtils:GetZoneName(startindex)
 
-        startNPCZoneLabel:SetText(continent)
+        startNPCZoneLabel:SetText(l10n(continent))
         startNPCZoneLabel:SetFullWidth(true)
         startNPCGroup:AddChild(startNPCZoneLabel)
 
@@ -123,7 +123,7 @@ function _QuestieJourney:DrawQuestDetailsFrame(container, quest)
             local startQuests = {}
             local counter = 1
             for _, v in pairs(startNpc.questStarts) do
-                if (not v == quest.Id) then
+                if v ~= quest.Id then
                     startQuests[counter] = {}
                     local startQuest = QuestieDB:GetQuest(v)
                     local label = _QuestieJourney:GetInteractiveQuestLabel(startQuest)
@@ -207,7 +207,7 @@ function _QuestieJourney:DrawQuestDetailsFrame(container, quest)
                 local startQuests = {}
                 local counter = 1
                 for _, v in pairs(startObj.questStarts) do
-                    if not (v == quest.Id) then
+                    if v ~= quest.Id then
                         startQuests[counter] = {}
                         local startQuest = QuestieDB:GetQuest(v)
                         local label = _QuestieJourney:GetInteractiveQuestLabel(startQuest)
@@ -260,7 +260,7 @@ function _QuestieJourney:DrawQuestDetailsFrame(container, quest)
 
         local continent = QuestieJourneyUtils:GetZoneName(endindex)
         
-        endNPCZoneLabel:SetText(continent)
+        endNPCZoneLabel:SetText(l10n(continent))
         endNPCZoneLabel:SetFullWidth(true)
         endNPCGroup:AddChild(endNPCZoneLabel)
 
@@ -294,7 +294,7 @@ function _QuestieJourney:DrawQuestDetailsFrame(container, quest)
             local endQuests = {}
             local counter = 1
             for _, v in ipairs(endNPC.endQuests) do
-                if not (v == quest.Id) then
+                if v ~= quest.Id then
                     endQuests[counter] = {}
                     local endQuest = QuestieDB:GetQuest(v)
                     local label = _QuestieJourney:GetInteractiveQuestLabel(endQuest)
@@ -380,7 +380,7 @@ function _QuestieJourney:CreatePreQuestGroup(quest)
 
     if (quest.preQuestSingle and next(quest.preQuestSingle)) then
         for _, v in pairs(quest.preQuestSingle) do
-            if not (v == quest.Id) then
+            if v ~= quest.Id then
                 local preQuest = QuestieDB:GetQuest(v)
                 local label = _QuestieJourney:GetInteractiveQuestLabel(preQuest)
                 preQuestInlineGroup:AddChild(label)
@@ -391,7 +391,7 @@ function _QuestieJourney:CreatePreQuestGroup(quest)
 
     if (quest.preQuestGroup and next(quest.preQuestGroup)) then
         for _, v in pairs(quest.preQuestGroup) do
-            if not (v == quest.Id) then
+            if v ~= quest.Id then
                 local preQuest = QuestieDB:GetQuest(v)
                 local label = _QuestieJourney:GetInteractiveQuestLabel(preQuest)
                 preQuestInlineGroup:AddChild(label)
@@ -403,16 +403,19 @@ function _QuestieJourney:CreatePreQuestGroup(quest)
     return preQuestCounter, preQuestInlineGroup
 end
 
----@param preQuest Quest
+---@param quest Quest
 ---@return AceInteractiveLabel
-function _QuestieJourney:GetInteractiveQuestLabel(preQuest)
+function _QuestieJourney:GetInteractiveQuestLabel(quest)
     ---@class AceInteractiveLabel
     local label = AceGUI:Create("InteractiveLabel")
+    local questId = quest.Id
 
-    label:SetText(QuestieLib:GetColoredQuestName(preQuest.Id, Questie.db.global.enableTooltipsQuestLevel, false, true))
-    label:SetUserData('id', preQuest.Id)
-    label:SetUserData('name', preQuest.name)
-    label:SetCallback("OnClick", _QuestieJourney.JumpToQuest)
+    label:SetText(QuestieLib:GetColoredQuestName(questId, Questie.db.global.enableTooltipsQuestLevel, false, true))
+    label:SetUserData('id', questId)
+    label:SetUserData('name', quest.name)
+    label:SetCallback("OnClick", function()
+        ItemRefTooltip:SetHyperlink("%|Hquestie:" .. questId .. ":.*%|h", "%[%[" .. quest.level .. "%] " .. quest.name .. " %(" .. questId .. "%)%]")
+    end)
     label:SetCallback("OnEnter", _QuestieJourney.ShowJourneyTooltip)
     label:SetCallback("OnLeave", _QuestieJourney.HideJourneyTooltip)
 

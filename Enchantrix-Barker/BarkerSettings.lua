@@ -1,7 +1,7 @@
 --[[
 	Enchantrix:Barker Addon for World of Warcraft(tm).
-	Version: 8.2.6469 (SwimmingSeadragon)
-	Revision: $Id: BarkerSettings.lua 6469 2019-10-20 00:10:07Z none $
+	Version: 3.4.6813 (SwimmingSeadragon)
+	Revision: $Id: BarkerSettings.lua 6813 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	Settings GUI
@@ -62,7 +62,7 @@ Usage:
 	Barker.Settings.SetSetting('counts', true );
 
 ]]
-EnchantrixBarker_RegisterRevision("$URL: Enchantrix-Barker/BarkerSettings.lua $", "$Rev: 6469 $")
+EnchantrixBarker_RegisterRevision("$URL: Enchantrix-Barker/BarkerSettings.lua $", "$Rev: 6813 $")
 
 local lib = {}
 Barker.Settings = lib

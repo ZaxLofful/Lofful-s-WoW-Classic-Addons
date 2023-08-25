@@ -1,7 +1,7 @@
 --[[
 	Auctioneer Addon for World of Warcraft(tm).
-	Version: 8.2.6434 (SwimmingSeadragon)
-	Revision: $Id: BeanCounterFrames.lua 6434 2019-10-20 00:10:07Z none $
+	Version: 3.4.6811 (SwimmingSeadragon)
+	Revision: $Id: BeanCounterFrames.lua 6811 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	BeanCounterFrames - AuctionHouse UI for Beancounter
@@ -28,7 +28,7 @@
 		since that is it's designated purpose as per:
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 ]]
-LibStub("LibRevision"):Set("$URL: BeanCounter/BeanCounterFrames.lua $","$Rev: 6434 $","5.1.DEV.", 'auctioneer', 'libs')
+LibStub("LibRevision"):Set("$URL: BeanCounter/BeanCounterFrames.lua $","$Rev: 6811 $","5.1.DEV.", 'auctioneer', 'libs')
 
 local lib = BeanCounter
 local private, print, get, set, _BC = lib.getLocals()
@@ -155,7 +155,7 @@ end
 function private.CreateFrames()
 
 	--Create the base frame for external GUI
-	local base = CreateFrame("Frame", "BeanCounterBaseFrame", UIParent)
+	local base = CreateFrame("Frame", "BeanCounterBaseFrame", UIParent, BackdropTemplateMixin and "BackdropTemplate")
 	base:SetFrameStrata("HIGH")
 	base:SetBackdrop({
 		bgFile = "Interface/Tooltips/ChatBubble-Background",
@@ -527,7 +527,7 @@ function private.CreateFrames()
 
 
 	--Create the results window
-	frame.resultlist = CreateFrame("Frame", nil, frame)
+	frame.resultlist = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 	frame.resultlist:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -707,7 +707,7 @@ end
 
 function private.createDeleteItemPrompt()
 	--Create the base frame for external GUI
-	local frame = CreateFrame("Frame", nil, UIParent)
+	local frame = CreateFrame("Frame", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate")
 	frame:SetFrameStrata("DIALOG")
 	frame:SetBackdrop({
 		bgFile = "Interface/Tooltips/ChatBubble-Background",
@@ -749,7 +749,7 @@ end
 --ONLOAD Error frame, used to show missmatched DB versus client errors that stop BC load NEEDS LOCALIZATION
 function private.CreateErrorFrames(error, expectedVersion, playerVersion)
 	frame = private.scriptframe
-	frame.loadError = CreateFrame("Frame", nil, UIParent)
+	frame.loadError = CreateFrame("Frame", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate")
 	frame.loadError:SetFrameStrata("HIGH")
 	frame.loadError:SetBackdrop({
 		bgFile = "Interface/Tooltips/ChatBubble-Background",

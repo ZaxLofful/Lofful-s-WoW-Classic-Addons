@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - ScanData
-	Version: 8.2.6365 (SwimmingSeadragon)
-	Revision: $Id: ScanData.lua 6365 2019-10-20 00:10:07Z none $
+	Version: 3.4.6804 (SwimmingSeadragon)
+	Revision: $Id: ScanData.lua 6804 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -389,7 +389,7 @@ function lib.GetScanData(serverKey)
 	local cache = private.dataCache[serverKey]
 	if cache then return cache end
 
-	local livedata = serverKey == Resources.ServerKey -- 'live' data can be changed by scanning
+	local livedata = serverKey == Resources.ServerKeyHome or serverKey == Resources.ServerKeyNeutral -- 'live' data can be changed by scanning
 	local scandata = AucScanData.scans[serverKey]
 	if scandata then
 		if not livedata then
@@ -463,7 +463,7 @@ function lib.ClearScanData(command)
 	end
 
 	wipe(private.dataCache)
-	lib.GetScanData() -- force create home serverKey (if needed) and put back in cache
+	lib.GetScanData(Resources.ServerKeyHome) -- force create home serverKey (if needed) and put back in cache
 	if report then
 		aucPrint("Auctioneer: ScanData cleared for {{"..report.."}}.")
 		local clearstats = {
@@ -515,37 +515,12 @@ function private.Unpack(scandata)
 	scandata.ropes = nil
 end
 
-local function LookForOldData()
-	if not AucScanData.old then
-		LookForOldData = nil
-		return
-	end
-
-	local serverKey, realm, faction = Resources.ServerKey, Const.PlayerRealm, Resources.PlayerFaction
-	if not serverKey or faction == "Neutral" then return end -- wait for later event
-
-	LookForOldData = nil
-
-	local realmdata = AucScanData.old[realm]
-	if not realmdata then return end
-
-	if not AucScanData.scans[serverKey] then
-		local scandata = realmdata[faction] or realmdata[Resources.OpposingFaction] -- prefer home faction, but use opposing if no home data
-		if scandata then
-			AucScanData.scans[serverKey] = scandata
-		end
-	end
-
-	AucScanData.old[realm] = nil
-end
-
 local function OnLoadRunOnce()
 	OnLoadRunOnce = nil
 	aucPrint("Auctioneer: {{ScanData}} loaded.")
 	private.UpgradeDB()
-	if LookForOldData then LookForOldData() end
 	private.isLoaded = private.isLoaded or Resources.Active
-	lib.GetScanData() -- force unpack of home data
+	lib.GetScanData(Resources.ServerKeyHome) -- force unpack of home data
 end
 function lib.OnLoad()
 	if OnLoadRunOnce then OnLoadRunOnce() end
@@ -553,13 +528,8 @@ end
 -- backup in case Auc-ScanData got loaded early (normally it would be loaded after this event)
 lib.Processors.gameactive = function()
 	wipe(private.dataCache)
-	if LookForOldData then LookForOldData() end
 	private.isLoaded = true
-	lib.GetScanData() -- force unpack of home data
-end
--- Special handling for when a Neutral player character chooses a faction
-if Resources.PlayerFaction == "Neutral" then
-	lib.Processors.factionselect = lib.Processors.gameactive
+	lib.GetScanData(Resources.ServerKeyHome) -- force unpack of home data
 end
 
 function private.UpgradeDB()
@@ -568,31 +538,11 @@ function private.UpgradeDB()
 	local savedScanData = AucScanData
 	if savedScanData and savedScanData.Version == DATABASE_VERSION then
 		if type(savedScanData.scans) ~= "table" then savedScanData.scans = {} end
-		if savedScanData.old then
-			if not savedScanData.old.expires or time() > savedScanData.old.expires then
-				savedScanData.old = nil
-			end
-		end
+		savedScanData.old = nil -- remove any obsolete data - this line can be removed after some time
 		return
 	end
 
-	-- Reset AucScanData; if we want to keep anything from before, we will copy it from savedScanData in the block below
 	AucScanData = {Version = DATABASE_VERSION, scans = {}}
-
-	if savedScanData then
-		if savedScanData.Version == 1.3 then
-			-- 1.4 uses a different structure and new style combined serverKeys
-			-- conversion from old to new is handled by LookForOldData on login to each server
-			aucPrint("Auc-ScanData is upgrading database version 1.3 to 1.4")
-			local oldscans = savedScanData.scans
-			if type(oldscans) == "table" and next(oldscans) then
-				oldscans.expires = time() + 604800 -- keep old data for 1 week
-				AucScanData.old = oldscans
-			end
-		else -- Unknown version
-			aucPrint("Auc-ScanData database error: unknown version, resetting database")
-		end
-	end
 end
 
 function lib.OnUnload()
@@ -602,7 +552,7 @@ function lib.OnUnload()
 	local maxLen = 2^20
 
 	local now = time()
-	local maxTime = 2592000 -- 60 * 60 * 24 * 30 -- 30 days
+	local maxTime = 1209600 -- 60 * 60 * 24 * 14 -- 14 days
 
 	if not (AucScanData and AucScanData.scans) then return end
 
@@ -683,4 +633,4 @@ function ChangeServerKey(oldKey, newKey)
 	end
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-ScanData/ScanData.lua $", "$Rev: 6365 $")
+AucAdvanced.RegisterRevision("$URL: Auc-ScanData/ScanData.lua $", "$Rev: 6804 $")

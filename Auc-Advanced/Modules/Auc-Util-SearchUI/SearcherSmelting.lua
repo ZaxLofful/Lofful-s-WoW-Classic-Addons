@@ -210,8 +210,8 @@ do
 	findSmeltable[COPPERBAR] = {BRONZEBAR, 1, "smelting.enableMulti"}
 	findSmeltable[TINBAR] = {BRONZEBAR, 1, "smelting.enableMulti"}
 	findSmeltable[IRONBAR] = {STEELBAR, .95, "smelting.enableMulti"} -- using 95% to make up for Coal costs
-	findSmeltable[THORIUMBAR] = {ETHORIUMBAR, .5, "smelting.enableMulti"}
-	findSmeltable[DREAMDUST] = {ETHORIUMBAR, 1/6, "smelting.enableMulti"}
+	--findSmeltable[THORIUMBAR] = {ETHORIUMBAR, .5, "smelting.enableMulti"}
+	--findSmeltable[DREAMDUST] = {ETHORIUMBAR, 1/6, "smelting.enableMulti"}
 	findSmeltable[FELIRONBAR] = {FELSTEELBAR, 1/6, "smelting.enableMulti"}
 	findSmeltable[ETERNIUMBAR] = {FELSTEELBAR, .25, "smelting.enableMulti"}
 	findSmeltable[ADAMANTITEBAR] = {HADAMANTITEBAR, .1, "smelting.enableMulti"}
@@ -242,7 +242,7 @@ default("smelting.level.min", 0)
 default("smelting.level.max", Const.MAXSKILLLEVEL)
 default("smelting.adjust.brokerage", true)
 default("smelting.adjust.deposit", true)
-default("smelting.adjust.deplength", 48)
+default("smelting.adjust.deplength", resources.defaultAuctionLength)
 default("smelting.adjust.listings", 3)
 default("smelting.allow.bid", true)
 default("smelting.allow.buy", true)
@@ -377,10 +377,8 @@ function lib.Search (item)
 	end
 	if get("smelting.adjust.deposit") then
 		-- note: GetDepositCost can handle numerical itemIDs instead of links
-		local amount = AucAdvanced.Post.GetDepositCost(newID, get("smelting.adjust.deplength"), market, 0, count)
-		if amount then
-			market = market - amount * get("smelting.adjust.listings")
-		end
+		local amount = resources.GetDepositCost(newID, get("smelting.adjust.deplength"), resources.Faction, 1) or 0
+		market = market - amount * get("smelting.adjust.listings") * count
 	end
 
 	local value = min (market*(100-get("smelting.profit.pct"))/100, market-get("smelting.profit.min"))

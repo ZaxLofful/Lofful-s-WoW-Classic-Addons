@@ -179,7 +179,7 @@ function RCSessionFrame:GetFrame()
 	if self.frame then return self.frame end
 
 	local f = addon:CreateFrame("DefaultRCSessionSetupFrame", "sessionframe", L["RCLootCouncil Session Setup"], 260)
-
+	addon.UI:RegisterForEscapeClose(f, function() if self:IsEnabled() then self:Disable() end end)
 	local tgl = CreateFrame("CheckButton", f:GetName().."Toggle", f.content, "ChatConfigCheckButtonTemplate")
 	getglobal(tgl:GetName().."Text"):SetText(L["Award later?"])
 	tgl:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 10, 40)
@@ -208,7 +208,8 @@ function RCSessionFrame:GetFrame()
 					sessionAwardDoneCount = sessionAwardDoneCount + 1
 					if sessionAwardDoneCount >= #ml.lootTable then
 						waitingToEndSessions = false
-						ml:EndSession()
+						-- Run next frame so lootTable data is still available in current execution
+						ml:ScheduleTimer("EndSession", 0)
 					end
 				end)
 			end
@@ -250,7 +251,8 @@ function RCSessionFrame:GetFrame()
 	f.lootStatus.text:SetJustifyH("LEFT")
 
 	local st = ST:CreateST(self.scrollCols, 5, ROW_HEIGHT, nil, f.content)
-	st.frame:SetPoint("TOPLEFT",f,"TOPLEFT",10,-ROW_HEIGHT - 10)
+	st.head:SetHeight(0)
+	st.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -20)
 	st:RegisterEvents({
 		["OnClick"] = function(_, _, _, _, row, realrow)
 			if not (row or realrow) then
@@ -259,7 +261,7 @@ function RCSessionFrame:GetFrame()
 		end
 	})
 	f:SetWidth(st.frame:GetWidth()+20)
-	f:SetHeight(325)
+	f:SetHeight(305)
 	f.rows = {} -- the row data
 	f.st = st
 	return f

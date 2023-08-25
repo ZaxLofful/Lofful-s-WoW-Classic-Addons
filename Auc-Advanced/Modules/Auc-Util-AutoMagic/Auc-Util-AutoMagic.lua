@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - AutoMagic Utility module
-	Version: 8.2.6424 (SwimmingSeadragon)
-	Revision: $Id: Auc-Util-AutoMagic.lua 6424 2019-10-20 00:10:07Z none $
+	Version: 3.4.6799 (SwimmingSeadragon)
+	Revision: $Id: Auc-Util-AutoMagic.lua 6799 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	AutoMagic is an Auctioneer module which automates mundane tasks for you.
@@ -41,7 +41,7 @@ local amBTMRule, itemName, itemID, _
 function lib.GetName()
 	return libName
 end
-local autosellframe = CreateFrame("Frame", "autosellframe", UIParent); autosellframe:Hide()
+local autosellframe = CreateFrame("Frame", "autosellframe", UIParent, BackdropTemplateMixin and "BackdropTemplate"); autosellframe:Hide()
 local autoselldata = {}
 local autosell = {}
 local GetPrice = function() return 0,0 end --fake getPrice when Appraiser is not available
@@ -605,7 +605,7 @@ function lib.makeautosellgui()
 	autosellframe.removeitem.help:SetWidth(90)
 
 	--Create the autosell list results frame
-	autosellframe.resultlist = CreateFrame("Frame", nil, autosellframe)
+	autosellframe.resultlist = CreateFrame("Frame", nil, autosellframe, BackdropTemplateMixin and "BackdropTemplate")
 	autosellframe.resultlist:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -626,7 +626,7 @@ function lib.makeautosellgui()
 	--use our custom sort method not scrollsheets
 	autosellframe.resultlist.sheet.CustomSort = lib.CustomSort
 	--Create the bag contents frame
-	autosellframe.baglist = CreateFrame("Frame", nil, autosellframe)
+	autosellframe.baglist = CreateFrame("Frame", nil, autosellframe, BackdropTemplateMixin and "BackdropTemplate")
 	autosellframe.baglist:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -706,4 +706,4 @@ function lib.ClientItemCacheRefresh(link)
 end
 
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-AutoMagic/Auc-Util-AutoMagic.lua $", "$Rev: 6424 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-AutoMagic/Auc-Util-AutoMagic.lua $", "$Rev: 6799 $")

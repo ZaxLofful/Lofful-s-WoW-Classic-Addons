@@ -1,7 +1,7 @@
 --[[
 	Configator - A library to help you create a gui config
-	Version: 8.2.6341 (SwimmingSeadragon)
-	Revision: $Id: Configator.lua 6341 2019-10-20 00:10:07Z none $
+	Version: 3.4.6848 (SwimmingSeadragon)
+	Revision: $Id: Configator.lua 6848 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/dl/
 
 	License:
@@ -54,11 +54,11 @@ USAGE:
 ]]
 
 local LIBRARY_VERSION_MAJOR = "Configator"
-local LIBRARY_VERSION_MINOR = 33
+local LIBRARY_VERSION_MINOR = 37
 local lib = LibStub:NewLibrary(LIBRARY_VERSION_MAJOR, LIBRARY_VERSION_MINOR)
 if not lib then return end
 
-LibStub("LibRevision"):Set("$URL: Auc-Advanced/Libs/Configator/Configator.lua $","$Rev: 6341 $","5.1.DEV.", 'auctioneer', 'libs')
+LibStub("LibRevision"):Set("$URL: Auc-Advanced/Libs/Configator/Configator.lua $","$Rev: 6848 $","5.1.DEV.", 'auctioneer', 'libs')
 
 local kit = {}
 
@@ -179,7 +179,7 @@ function lib:Create(setter, getter, dialogWidth, dialogHeight, gapWidth, gapHeig
 	gui:SetHeight(dialogHeight)
 	gui:EnableMouse(true)
 
-	gui.Backdrop = CreateFrame("Frame", name.."Backdrop", gui)
+	gui.Backdrop = CreateFrame("Frame", name.."Backdrop", gui, BackdropTemplateMixin and "BackdropTemplate")
 	gui.Backdrop:SetAllPoints(gui)
 	gui.Backdrop:SetBackdrop({
 		bgFile = "Interface/Tooltips/ChatBubble-Background",
@@ -196,7 +196,8 @@ function lib:Create(setter, getter, dialogWidth, dialogHeight, gapWidth, gapHeig
 	gui.Proxy.Hide = proxyHide
 	gui.Proxy.IsShown = proxyIsShown
 
-	gui.Done = CreateFrame("Button", nil, gui.Backdrop, "OptionsButtonTemplate")
+	gui.Done = CreateFrame("Button", nil, gui.Backdrop, "UIPanelButtonTemplate")
+	gui.Done:SetSize(90, 21)
 	gui.Done:SetPoint("BOTTOMRIGHT", gui, "BOTTOMRIGHT", -10, 10)
 	gui.Done:SetScript("OnClick", function() gui:Hide() end)
 	gui.Done:SetText(DONE)
@@ -295,7 +296,6 @@ if not lib.tooltip then
 		end
 		lib.tooltip:Show()
 		lib.tooltip:SetAlpha(0)
-		lib.tooltip:SetBackdropColor(0,0,0, 1)
 		lib.tooltip:SetPoint("TOP", frame, "BOTTOM", 10, -5)
 		lib.tooltip.schedule = GetTime() + 1
 	end
@@ -307,19 +307,25 @@ if not lib.tooltip then
 			lib.tooltip.schedule = nil
 		end
 	end)
-	lib.tooltip:SetBackdrop({
-		bgFile = "Interface/Tooltips/ChatBubble-Background",
-		edgeFile = "Interface/Tooltips/ChatBubble-BackDrop",
-		tile = true, tileSize = 32, edgeSize = 32,
-		insets = { left = 32, right = 32, top = 32, bottom = 32 }
-	})
-	lib.tooltip:SetBackdropColor(0,0,0.3, 1)
+	if lib.tooltip.NineSlice then
+		local layout = NineSliceUtil.GetLayout("ChatBubble")
+		if layout then
+			NineSliceUtil.ApplyLayout(lib.tooltip.NineSlice, layout)
+		end
+	elseif lib.tooltip.SetBackdrop then
+		lib.tooltip:SetBackdrop({
+			bgFile = "Interface/Tooltips/ChatBubble-Background",
+			edgeFile = "Interface/Tooltips/ChatBubble-BackDrop",
+			tile = true, tileSize = 32, edgeSize = 32,
+			insets = { left = 32, right = 32, top = 32, bottom = 32 }
+		})
+	end
 	lib.tooltip:SetClampedToScreen(true)
 end
 
 -- Create our help window
 if not lib.help then
-	lib.help = CreateFrame("Frame", "ConfigatorHelpFrame", UIParent)
+	lib.help = CreateFrame("Frame", "ConfigatorHelpFrame", UIParent, BackdropTemplateMixin and "BackdropTemplate")
 	lib.help:SetBackdrop({
 		bgFile = "Interface/Stationery/StationeryTest1",
 		edgeFile = "Interface/TUTORIALFRAME/TUTORIALFRAMEBORDER",
@@ -455,7 +461,7 @@ if not lib.help then
 	lib.help.scroll = PanelScroller:Create(lib.CreateAnonName(), lib.help)
 	lib.help.scroll:SetPoint("TOPLEFT", lib.help, "TOPLEFT", 10,-25)
 	lib.help.scroll:SetPoint("BOTTOMRIGHT", lib.help, "BOTTOMRIGHT", -25,5)
-	lib.help.scroll:SetScrollChild(lib.help.content:GetName())
+	lib.help.scroll:SetScrollChild(lib.help.content)
 	lib.help.scroll:SetScrollBarVisible("HORIZONTAL", "NO")
 end
 
@@ -652,7 +658,7 @@ function kit:ZeroFrame()
 	local frame, content
 
 	local myName = lib.CreateAnonName()
-	frame = CreateFrame("Frame", myName.."Frame", self)
+	frame = CreateFrame("Frame", myName.."Frame", self, BackdropTemplateMixin and "BackdropTemplate")
 	content = CreateFrame("Frame", myName.."Content", frame)
 
 	frame.id = id
@@ -805,7 +811,7 @@ function kit:AddTab(tabName, catId, gapWidth, gapHeight, topOffset, leftOffset)
 	self.config.isZero = false
 
 	local myName = lib.CreateAnonName()
-	frame = CreateFrame("Frame", myName.."Frame", self)
+	frame = CreateFrame("Frame", myName.."Frame", self, BackdropTemplateMixin and "BackdropTemplate")
 	content = CreateFrame("Frame", myName.."Content", frame)
 
 	if not gapWidth then gapWidth = self.gapWidth or 0 end
@@ -1032,11 +1038,10 @@ function kit:MakeScrollable(id)
 	local scroll = PanelScroller:Create(lib.CreateAnonName(), frame)
 	scroll:SetPoint("TOPLEFT", frame, "TOPLEFT", 5,-7)
 	scroll:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -25,9)
-	scroll:SetScrollChild(content:GetName())
-	scroll:UpdateScrollChildRect()
+	scroll:SetScrollChild(content)
+	scroll:UpdateScrollChildRect() -- ### todo: according to wiki, may no longer be needed?
 	self.tabs[id].scroll = scroll
 	self.tabs[id][4] = scroll
--- 	GSC = scroll --what was this ment to be? There is nowhere that refrences this so removing the global polution
 end
 
 -- this is a helper function for the tooltip addition
@@ -1346,13 +1351,14 @@ function kit:AddControl(id, cType, column, ...)
 		local level, setting, text = ...
 		local indent = 10 * (level or 1)
 		-- Button
-		el = CreateFrame("Button", nil, content, "OptionsButtonTemplate")
+		el = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
 		kpos = kpos+1 kids[kpos] = el
 		anchorPoint(content, el, last, 10 + column + indent, colwidth or 80, 22, 4)
 		el.setting = setting
 		el.stype = "Button";
 		el:SetScript("OnClick", function(...) self:ChangeSetting(...) end)
 		el:SetText(text)
+		el:SetHeight(21)
 		el:SetWidth(math.max(el:GetWidth(), el:GetFontString():GetStringWidth() + 16))
 		control = el
 		last = el
@@ -1363,13 +1369,26 @@ function kit:AddControl(id, cType, column, ...)
 		end
 		local indent = 10 * (level or 1)
 		-- CheckButton
-		el = CreateFrame("CheckButton", nil, content, "OptionsCheckButtonTemplate")
+		el = CreateFrame("CheckButton", nil, content) -- OptionsBaseCheckButtonTemplate is deprecated, build layout in Lua
+		el:SetSize(26, 26)
+		el:SetNormalTexture("Interface\\Buttons\\UI-CheckBox-Up")
+		el:SetPushedTexture("Interface\\Buttons\\UI-CheckBox-Down")
+		el:SetHighlightTexture("Interface\\Buttons\\UI-CheckBox-Highlight", "ADD")
+		el:SetCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check")
+		el:SetDisabledTexture("Interface\Buttons\UI-CheckBox-Check-Disabled")
 		kpos = kpos+1 kids[kpos] = el
 		anchorPoint(content, el, last, 10 + column + indent, 22, 22, 4)
 		el.setting = setting
 		el.stype = "CheckButton"
 		self:GetSetting(el)
-		el:SetScript("OnClick", function(...) self:ChangeSetting(...) end)
+		el:SetScript("OnClick", function(element, ...)
+				if element:GetChecked() then
+					PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+				else
+					PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+				end
+				self:ChangeSetting(element, ...)
+			end)
 		self.elements[setting] = el
 		control = el
 		-- FontString
@@ -1406,7 +1425,12 @@ function kit:AddControl(id, cType, column, ...)
 		local textElement = el
 		-- Slider
 		local tmpName = lib.CreateAnonName()
-		el = CreateFrame("Slider", tmpName, content, "OptionsSliderTemplate")
+		if DoesTemplateExist("OptionsSliderTemplate") then
+			el = CreateFrame("Slider", tmpName, content, "OptionsSliderTemplate") -- Deprecated in 10.0.0: expect to be removed; Valid in 3.4.0 & 1.14.3
+		else
+			el = CreateFrame("Slider", tmpName, content, "UISliderTemplateWithLabels") -- New in 10.0.0; Does not exist in 3.4.0 & 1.14.3
+			el:SetSize(144, 17)
+		end
 		kpos = kpos+1 kids[kpos] = el
 		anchorPoint(content, el, last, 13 + column + indent, swidth, 20, 4)
 		_G[tmpName.."Low"]:SetText("")

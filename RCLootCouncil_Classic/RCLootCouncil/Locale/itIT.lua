@@ -4,8 +4,7 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("RCLootCouncil", "itIT")
 if not L then return end
 
---[[Translation missing --]]
-L[" is not active in this raid."] = " is not active in this raid."
+L[" is not active in this raid."] = "non è attivo in questa incursione."
 --[[Translation missing --]]
 L[" you are now the Master Looter and RCLootCouncil is now handling looting."] = " you are now the Master Looter and RCLootCouncil is now handling looting."
 --[[Translation missing --]]
@@ -24,8 +23,7 @@ L["Accept Whispers"] = "Accept Whispers"
 L["accept_whispers_desc"] = "Enables players to whisper their current item(s) to you to get added to the voting frame."
 --[[Translation missing --]]
 L["Accepted imports: 'Player Export' and 'CSV'"] = "Accepted imports: 'Player Export' and 'CSV'"
---[[Translation missing --]]
-L["Active"] = "Active"
+L["Active"] = "Attivo"
 --[[Translation missing --]]
 L["active_desc"] = "Uncheck to disable RCLootCouncil. Useful if you're in a raid group, but not actually participating. Note: This resets on every logout."
 --[[Translation missing --]]
@@ -54,10 +52,8 @@ Click the 'Current Council' tab to see your selection.]=]
 L["add_rolls_desc"] = "Automatically add random 1 - 100 rolls to all sessions."
 --[[Translation missing --]]
 L["Additional Buttons"] = "Additional Buttons"
---[[Translation missing --]]
-L["All items"] = "All items"
---[[Translation missing --]]
-L["All items have been awarded and the loot session concluded"] = "All items have been awarded and the loot session concluded"
+L["All items"] = "Tutti gli oggetti"
+L["All items have been awarded and the loot session concluded"] = "Tutti gli oggetti sono stati assegnati e la sessione è stata conclusa."
 --[[Translation missing --]]
 L["All items usable by the candidate"] = "All items usable by the candidate"
 --[[Translation missing --]]
@@ -147,6 +143,10 @@ L["Auto Pass"] = "Auto Pass"
 --[[Translation missing --]]
 L["Auto pass BoE"] = "Auto pass BoE"
 --[[Translation missing --]]
+L["Auto Pass Transmog"] = "Auto Pass Transmog"
+--[[Translation missing --]]
+L["Auto Pass Transmog Source"] = "Auto Pass Transmog Source"
+--[[Translation missing --]]
 L["Auto Pass Trinkets"] = "Auto Pass Trinkets"
 --[[Translation missing --]]
 L["Auto Trade"] = "Auto Trade"
@@ -165,7 +165,13 @@ L["auto_pass_boe_desc"] = "Uncheck to never autopass Bind on Equip items."
 --[[Translation missing --]]
 L["auto_pass_desc"] = "Check to enable autopassing of items your class cannot use."
 --[[Translation missing --]]
+L["auto_pass_transmog_desc"] = "Check to enable autopassing of items your class can only use for transmog."
+--[[Translation missing --]]
+L["auto_pass_transmog_source_desc"] = "Check to enable autopassing of items your class can only use for transmog and the appearance is already known from another item."
+--[[Translation missing --]]
 L["auto_pass_trinket_desc"] = "Check to autopass trinkets that's not listed in the Dungeon Journal for your class."
+--[[Translation missing --]]
+L["autoGroupLoot_warning"] = "Note: Group Leader's settings will cause RCLootCouncil to automatically control group loot."
 --[[Translation missing --]]
 L["autoloot_others_item_combat"] = "%s has looted %s. This item will be added to the session frame once combat ends."
 --[[Translation missing --]]
@@ -255,6 +261,8 @@ L["Chat print"] = "Chat print"
 L["chat tVersion string"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500 %s - %s"
 --[[Translation missing --]]
 L["chat version String"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500 %s"
+--[[Translation missing --]]
+L["chat_cmd_add_found_items"] = "Found %d items with trade timers in your bags."
 --[[Translation missing --]]
 L["chat_cmd_add_invalid_owner"] = "The player %s was either invalid or not a candidate."
 --[[Translation missing --]]
@@ -634,6 +642,14 @@ L["opt_autoAddPets_name"] = "Add Pets"
 --[[Translation missing --]]
 L["opt_autoAwardPrioList_desc"] = "Items are awarded to the first candidate found in your group according to this priority list."
 --[[Translation missing --]]
+L["opt_autoGroupLoot_desc"] = "When enabled, RCLootCouncil will automatically click the pass and greed buttons so that all items lands in your inventory."
+--[[Translation missing --]]
+L["opt_autoGroupLoot_name"] = "Auto Group Loot"
+--[[Translation missing --]]
+L["opt_autoGroupLootGuildGroupOnly_desc"] = "When enabled, RCLootCouncil will only do group loot auto pass when you're in a guild group."
+--[[Translation missing --]]
+L["opt_autoGroupLootGuildGroupOnly_name"] = "Guild Groups Only"
+--[[Translation missing --]]
 L["opt_autoTrade_desc"] = "Check to automatically add awarded items to the trade window when trading with the winner. If disabled, you'll see a popup before items are added."
 --[[Translation missing --]]
 L["opt_award_later_desc"] = "Check to automatically check the 'Award Later' option in the Session Frame."
@@ -644,6 +660,10 @@ See above for a detailed explanation.]=]
 L["opt_chatFrameName_desc"] = "Select which chat frame you want RCLootCouncil to output information to."
 --[[Translation missing --]]
 L["opt_chatFrameName_name"] = "Chat Frame"
+--[[Translation missing --]]
+L["opt_closeWithEscape_desc"] = "When enabled, all non-critical RCLootCouncil frames can be closed by pressing 'Escape'. (Requires reload to take effect on already created frames)"
+--[[Translation missing --]]
+L["opt_closeWithEscape_name"] = "Escape Close"
 --[[Translation missing --]]
 L["opt_deleteDate_confirm"] = [=[Are you sure you want to delete everything older than the selected?
 This cannot be undone.]=]
@@ -678,6 +698,14 @@ L["opt_rejectTrade_Name"] = "Allow Keeping"
 L["opt_skipSessionFrame_desc"] = "Skips the Session Frame. NOTE: This causes the addon to start a session with all eligble items without you having a chance to edit the list!"
 --[[Translation missing --]]
 L["opt_skipSessionFrame_name"] = "Skip Session Frame"
+--[[Translation missing --]]
+L["opt_usage_AskGroupLoot"] = "Ask me every time Group Loot is enabled"
+--[[Translation missing --]]
+L["opt_usage_GroupLoot"] = "Always use RCLootCouncil with Group Loot"
+--[[Translation missing --]]
+L["opt_useSlashRC_desc"] = "Disable this if you want to restore '/rc' to ready check. RCLootCouncil commands are still available with '/rclc'. A '/reload' is required for this to take effect."
+--[[Translation missing --]]
+L["opt_useSlashRC_name"] = "Use /rc"
 --[[Translation missing --]]
 L["options_autoAwardBoE_desc"] = "Enable to automatically award all epic BoE (Bind on Equip) items to a specific person for the selected reason."
 --[[Translation missing --]]
@@ -1043,28 +1071,20 @@ L["x days"] = "%d days"
 L["x out of x have voted"] = "%d out of %d have voted"
 --[[Translation missing --]]
 L["You are not allowed to see the Voting Frame right now."] = "You are not allowed to see the Voting Frame right now."
---[[Translation missing --]]
-L["You are not in an instance"] = "You are not in an instance"
+L["You are not in an instance"] = "Non sei in una istanza."
 --[[Translation missing --]]
 L["You can only auto award items with a quality lower than 'quality' to yourself due to Blizaard restrictions"] = "You can only auto award items with a quality lower than %s to yourself due to Blizzard restrictions"
---[[Translation missing --]]
-L["You cannot start an empty session."] = "You cannot start an empty session."
+L["You cannot start an empty session."] = "Non puoi avviare una sessione senza oggetti."
 --[[Translation missing --]]
 L["You cannot use the menu when the session has ended."] = "You cannot use the menu when the session has ended."
---[[Translation missing --]]
-L["You cannot use this command without being the Master Looter"] = "You cannot use this command without being the Master Looter"
---[[Translation missing --]]
-L["You can't start a loot session while in combat."] = "You can't start a loot session while in combat."
---[[Translation missing --]]
-L["You can't start a session before all items are loaded!"] = "You can't start a session before all items are loaded!"
+L["You cannot use this command without being the Master Looter"] = "Non puoi usare questo comando senza essere il Master Looter."
+L["You can't start a loot session while in combat."] = "Non puoi iniziare una sessione mentre sei in combattimento."
+L["You can't start a session before all items are loaded!"] = "Non puoi iniziare una sessione prima che tutti gli oggetti siano stati caricati."
 --[[Translation missing --]]
 L["You haven't selected an award reason to use for disenchanting!"] = "You haven't selected an award reason to use for disenchanting!"
---[[Translation missing --]]
-L["You haven't set a council! You can edit your council by typing '/rc council'"] = "You haven't set a council! You can edit your council by typing '/rc council'"
+L["You haven't set a council! You can edit your council by typing '/rc council'"] = "Non hai impostato un concilio! Puoi modificare il tuo concilio digitando '/rc council'"
 --[[Translation missing --]]
 L["You must select a target"] = "You must select a target"
---[[Translation missing --]]
-L["Your note:"] = "Your note:"
---[[Translation missing --]]
-L["You're already running a session."] = "You're already running a session."
+L["Your note:"] = "La tua nota:"
+L["You're already running a session."] = "La sessione è già avviata."
 

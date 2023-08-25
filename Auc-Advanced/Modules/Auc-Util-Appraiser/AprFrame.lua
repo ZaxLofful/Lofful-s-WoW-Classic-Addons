@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Appraisals and Auction Posting
-	Version: 8.2.6417 (SwimmingSeadragon)
-	Revision: $Id: AprFrame.lua 6417 2019-10-20 00:10:07Z none $
+	Version: 3.4.6787 (SwimmingSeadragon)
+	Revision: $Id: AprFrame.lua 6787 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds an appraisals tab to the AH for
@@ -427,7 +427,7 @@ function private.CreateFrames()
 		"|cff000004|cffe5e5e548h"  --48h
 	}
 
-    if AucAdvanced.Classic then
+    if AucAdvanced.Classic == 1 then
         tleftlookup = {
             "|cff000001|cffe5e5e530m", --30m
             "|cff000002|cffe5e5e52h",  --2h
@@ -574,7 +574,7 @@ function private.CreateFrames()
 		frame.valuecache = {}
 
         local maxDuration = 2880;
-        if AucAdvanced.Classic then maxDuration = 1440 end
+        if AucAdvanced.Classic == 1 then maxDuration = 1440 end
 
 		local curDuration = get('util.appraiser.item.'..frame.salebox.sig..".duration") or
 			get('util.appraiser.duration') or maxDuration
@@ -1051,7 +1051,7 @@ function private.CreateFrames()
 		if frame.selectedPostable then
 			local curNumber = frame.salebox.number:GetAdjustedValue()
 			-- used in GetDepositCost calls:
-			local depositHours = curDurationMins / 60
+			local depositCode = AucAdvanced.Post.GetDurationCode(curDurationMins)
 
 			if frame.salebox.stacksize > 1 then
 				local count = frame.salebox.count
@@ -1084,7 +1084,7 @@ function private.CreateFrames()
 						frame.manifest.lines:Clear()
 						frame.manifest.lines:Add(_TRANS('APPR_Interface_LotsOfStacks'):format(maxStax, curSize))--%d lots of %dx stacks:
 						buyVal, bidVal = lib.RoundBuyBid(curBuy * curSize, curBid * curSize)
-						depositVal = AucAdvanced.Post.GetDepositCost(frame.salebox.link, depositHours, bidVal, buyVal, curSize, 1)
+						depositVal = AucAdvanced.Post.GetDepositCost(frame.salebox.link, depositCode, AucAdvanced.Resources.IsNeutralZone, curSize, 1)
 
 						r,g,b=nil,nil,nil
 						if colored then
@@ -1105,7 +1105,7 @@ function private.CreateFrames()
 					end
 					if curNumber == -1 and remain > 0 then
 						buyVal, bidVal = lib.RoundBuyBid(curBuy * remain, curBid * remain)
-						depositVal = AucAdvanced.Post.GetDepositCost(frame.salebox.link, depositHours, bidVal, buyVal, remain, 1)
+						depositVal = AucAdvanced.Post.GetDepositCost(frame.salebox.link, depositCode, AucAdvanced.Resources.IsNeutralZone, remain, 1)
 
 						frame.manifest.lines:Add(_TRANS('APPR_Interface_LotsOfStacks') :format(1, remain))--%d lots of %dx stacks:
 						r,g,b=nil,nil,nil
@@ -1130,7 +1130,7 @@ function private.CreateFrames()
 					frame.manifest.lines:Clear()
 					frame.manifest.lines:Add(_TRANS('APPR_Interface_LotsOfStacks'):format(curNumber, curSize))--%d lots of %dx stacks:
 					buyVal, bidVal = lib.RoundBuyBid(curBuy * curSize, curBid * curSize)
-					depositVal = AucAdvanced.Post.GetDepositCost(frame.salebox.link, depositHours, bidVal, buyVal, curSize, 1)
+					depositVal = AucAdvanced.Post.GetDepositCost(frame.salebox.link, depositCode, AucAdvanced.Resources.IsNeutralZone, curSize, 1)
 
 					r,g,b=nil,nil,nil
 					if colored then
@@ -1167,7 +1167,7 @@ function private.CreateFrames()
 					frame.manifest.lines:Clear()
 					frame.manifest.lines:Add(_TRANS('APPR_Interface_Items'):format(curNumber))--%d items
 					buyVal, bidVal = lib.RoundBuyBid(curBuy, curBid)
-					depositVal = AucAdvanced.Post.GetDepositCost(frame.salebox.link, depositHours, curBid, curBuy, 1, 1)
+					depositVal = AucAdvanced.Post.GetDepositCost(frame.salebox.link, depositCode, AucAdvanced.Resources.IsNeutralZone, 1, 1)
 
 					r,g,b=nil,nil,nil
 					if colored then
@@ -1534,14 +1534,6 @@ function private.CreateFrames()
 		end
 	end
 
-    local function isValidDuration(duration)
-        if AucAdvanced.Classic then
-            return (duration == 120 or duration == 480 or duration == 1440)
-        else
-            return (duration == 720 or duration == 1440 or duration == 2880)
-        end
-    end
-
 	function frame.PostBySig(sig, dryRun, singleclick)
 		local link, itemName = AucAdvanced.Modules.Util.Appraiser.GetLinkFromSig(sig)
 		local total, _, unpostable = AucAdvanced.Post.CountAvailableItems(sig)
@@ -1550,8 +1542,9 @@ function private.CreateFrames()
 			aucPrint(_TRANS('APPR_Help_CannotPostAuctions'), "Invalid item sig")--Cannot post auctions:
 			return
 		end
-		local itemBuy, itemBid, _, _, _, _, stack, number, duration = AucAdvanced.Modules.Util.Appraiser.GetPrice(link, nil, true)
+		local itemBuy, itemBid, _, _, _, _, stack, number, rawduration = AucAdvanced.Modules.Util.Appraiser.GetPrice(link, nil, true)
 		local numberOnly = get('util.appraiser.item.'..sig..".numberonly")
+		local duration = AucAdvanced.Post.GetDurationCode(rawduration) -- convert Appraiser's minutes to auction duration code (1-3) (or nil if invalid minutes)
 
 
 		-- Just a quick bit of sanity checking first
@@ -1568,8 +1561,8 @@ function private.CreateFrames()
 		elseif not (itemBuy and (itemBuy == 0 or itemBuy >= itemBid)) then
 			aucPrint(_TRANS('APPR_Help_SkippingInvalidBuyoutValue'):format(link) )--Skipping %s: invalid buyout value
 			return
-		elseif not (duration and isValidDuration(duration) ) then
-			aucPrint(_TRANS('APPR_Help_SkippingInvalidDuration'):format(link).." "..tostring(duration) )--Skipping %s: invalid duration:
+		elseif not (duration) then
+			aucPrint(_TRANS('APPR_Help_SkippingInvalidDuration'):format(link).." "..tostring(rawduration) )--Skipping %s: invalid duration:
 			return
 		elseif total == 0 then
 			if unpostable > 0 then
@@ -1774,7 +1767,7 @@ function private.CreateFrames()
 				hex = "|c"..hex
 				local stackX = "x "
 				if curAuction then
-					stackX = ""
+					stackX = "# "
 				end
 
 				if curIgnore then
@@ -1793,9 +1786,9 @@ function private.CreateFrames()
 				button.size:SetText(stackX..item[6])
 
 				if curAuction then
-					button.size:SetAlpha(0.7)
+					button.size:SetTextColor(0, 0.8, 1, 0.7)
 				else
-					button.size:SetAlpha(1)
+					button.size:SetTextColor(1, 0.82, 0, 1)
 				end
 
 				local distinfo
@@ -1818,7 +1811,8 @@ function private.CreateFrames()
 				local alpha = 0.2
 
 				if curAuction then
-					background:SetVertexColor(0.9,0.3,0) -- very dark red
+					background:SetVertexColor(1, 0.7, 0.6) -- mid red
+					alpha = 0.3
 				else
 					background:SetVertexColor(1,1,1)
 				end
@@ -1920,7 +1914,7 @@ function private.CreateFrames()
 		private.gui:ActivateTab(private.guiId)
 	end)
 
-	frame.itembox = CreateFrame("Frame", nil, frame)
+	frame.itembox = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 	frame.itembox:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -2088,7 +2082,7 @@ function private.CreateFrames()
 
 		item:SetHighlightTexture("Interface\\FriendsFrame\\UI-FriendsFrame-HighlightBar")
 	end
-	local scroller = CreateFrame("Slider", "AucAppraiserItemScroll", frame.itembox)
+	local scroller = CreateFrame("Slider", "AucAppraiserItemScroll", frame.itembox, BackdropTemplateMixin and "BackdropTemplate")
 	scroller:SetPoint("TOPRIGHT", frame.itembox, "TOPRIGHT", -1,-3)
 	scroller:SetPoint("BOTTOM", frame.itembox, "BOTTOM", 0,3)
 	scroller:SetWidth(20)
@@ -2110,7 +2104,7 @@ function private.CreateFrames()
 	frame.itembox:EnableMouseWheel(true)
 	frame.itembox:SetScript("OnMouseWheel", function(obj, dir) scroller:SetValue(scroller:GetValue() - dir) frame.SetScroll() end)
 
-	frame.salebox = CreateFrame("Frame", nil, frame)
+	frame.salebox = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 	frame.salebox:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -2422,6 +2416,11 @@ function private.CreateFrames()
 	MoneyInputFrame_SetOnValueChangedFunc(frame.salebox.bid, function() frame.SyncMoneyFrameStackBid() frame.updated = true end)
 	frame.salebox.bid.element = "bid"
 	frame.salebox.bid:Hide()
+	if BackdropTemplateMixin then
+		Mixin(AppraiserSaleboxBidGold, BackdropTemplateMixin)
+		Mixin(AppraiserSaleboxBidSilver, BackdropTemplateMixin)
+		Mixin(AppraiserSaleboxBidCopper, BackdropTemplateMixin)
+	end
 	AppraiserSaleboxBidGold:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		tile = true, tileSize = 32,
@@ -2449,6 +2448,11 @@ function private.CreateFrames()
 	MoneyInputFrame_SetOnValueChangedFunc(frame.salebox.bid.stack, function() frame.SyncMoneyFrameSingleBid() frame.updated = true end)
 	frame.salebox.bid.stack.element = "bidStack"
 	frame.salebox.bid.stack:Hide()
+	if BackdropTemplateMixin then
+		Mixin(AppraiserSaleboxBidStackGold, BackdropTemplateMixin)
+		Mixin(AppraiserSaleboxBidStackSilver, BackdropTemplateMixin)
+		Mixin(AppraiserSaleboxBidStackCopper, BackdropTemplateMixin)
+	end
 	AppraiserSaleboxBidStackGold:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		tile = true, tileSize = 32,
@@ -2476,6 +2480,11 @@ function private.CreateFrames()
 	MoneyInputFrame_SetOnValueChangedFunc(frame.salebox.buy, function() frame.SyncMoneyFrameStackBuy() frame.updated = true end)
 	frame.salebox.buy.element = "buy"
 	frame.salebox.buy:Hide()
+	if BackdropTemplateMixin then
+		Mixin(AppraiserSaleboxBuyGold, BackdropTemplateMixin)
+		Mixin(AppraiserSaleboxBuySilver, BackdropTemplateMixin)
+		Mixin(AppraiserSaleboxBuyCopper, BackdropTemplateMixin)
+	end
 	AppraiserSaleboxBuyGold:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		tile = true, tileSize = 32,
@@ -2507,6 +2516,11 @@ function private.CreateFrames()
 	MoneyInputFrame_SetOnValueChangedFunc(frame.salebox.buy.stack, function() frame.SyncMoneyFrameSingleBuy() frame.updated = true end)
 	frame.salebox.buy.stack.element = "buyStack"
 	frame.salebox.buy.stack:Hide()
+	if BackdropTemplateMixin then
+		Mixin(AppraiserSaleboxBuyStackGold, BackdropTemplateMixin)
+		Mixin(AppraiserSaleboxBuyStackSilver, BackdropTemplateMixin)
+		Mixin(AppraiserSaleboxBuyStackCopper, BackdropTemplateMixin)
+	end
 	AppraiserSaleboxBuyStackGold:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		tile = true, tileSize = 32,
@@ -2648,7 +2662,7 @@ function private.CreateFrames()
 		end
 	end
 
-	frame.manifest = CreateFrame("Frame", nil, frame)
+	frame.manifest = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 	frame.manifest:SetBackdrop({
 		bgFile = "Interface\\Tooltips\\ChatBubble-Background",
 		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -2752,7 +2766,7 @@ function private.CreateFrames()
 	end
 	frame.manifest.lines = lines
 
-	frame.imageview = CreateFrame("Frame", nil, frame)
+	frame.imageview = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 	frame.imageview:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -2864,7 +2878,7 @@ function private.CreateFrames()
 
 	frame.imageview.sheet:EnableSelect(true)
 
-	frame.imageview.purchase = CreateFrame("Frame", nil, frame.imageview)
+	frame.imageview.purchase = CreateFrame("Frame", nil, frame.imageview, BackdropTemplateMixin and "BackdropTemplate")
 	frame.imageview.purchase:SetPoint("TOPLEFT", frame.imageview, "BOTTOMLEFT", 0, 4)
 	frame.imageview.purchase:SetPoint("BOTTOMRIGHT", frame.imageview, "BOTTOMRIGHT", 0, -16)
 	frame.imageview.purchase:SetBackdrop({
@@ -3002,4 +3016,4 @@ function private.CreateFrames()
 
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-Appraiser/AprFrame.lua $", "$Rev: 6417 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-Appraiser/AprFrame.lua $", "$Rev: 6787 $")

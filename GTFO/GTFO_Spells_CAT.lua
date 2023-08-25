@@ -5,7 +5,7 @@
 GTFO Spell List - Cataclysm (New areas)
 ]]--
 
-if (not (GTFO.ClassicMode or GTFO.BurningCrusadeMode)) then
+if (not (GTFO.ClassicMode)) then
 
 GTFO.SpellID["76628"] = {
 	--desc = "Lava Drool (Blackrock Caverns)";
@@ -218,6 +218,11 @@ GTFO.SpellID["88171"] = {
 GTFO.SpellID["92773"] = {
 	--desc = "Hurricane (Turbulent Squall, Vortex Pinnacle Heroic)";
 	sound = 2;
+};
+
+GTFO.SpellID["88963"] = {
+  --desc = "Lightning Lash (Minister of Air, Vortex Pinnacle)";
+  sound = 1;
 };
 
 GTFO.SpellID["87660"] = {
@@ -1864,11 +1869,17 @@ GTFO.SpellID["96711"] = {
 GTFO.SpellID["43114"] = {
 	--desc = "Fire Wall (Jan'alai, ZA)";
 	sound = 1;
+	applicationOnly = true;
 };
 
 GTFO.SpellID["97645"] = {
 	--desc = "Feather Cyclone (Daakara, ZG)";
 	sound = 1;
+};
+
+GTFO.SpellID["43217"] = {
+  --desc = "Burn (Daakara, ZA)";
+  sound = 1;
 };
 
 GTFO.SpellID["97644"] = {

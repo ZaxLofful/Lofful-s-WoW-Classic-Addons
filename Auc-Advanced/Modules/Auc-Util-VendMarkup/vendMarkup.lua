@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - VendMarkup
-	Version: 8.2.6347 (SwimmingSeadragon)
-	Revision: $Id: vendMarkup.lua 6347 2019-10-20 00:10:07Z none $
+	Version: 3.4.6786 (SwimmingSeadragon)
+	Revision: $Id: vendMarkup.lua 6786 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that provides a vendor mark-up
@@ -97,4 +97,4 @@ function private.SetupConfigGui(gui)
 
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-VendMarkup/vendMarkup.lua $", "$Rev: 6347 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-VendMarkup/vendMarkup.lua $", "$Rev: 6786 $")

@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Search UI - Searcher Disenchant
-	Version: 8.2.6464 (SwimmingSeadragon)
-	Revision: $Id: SearcherDisenchant.lua 6464 2019-10-20 00:10:07Z none $
+	Version: 3.4.6829 (SwimmingSeadragon)
+	Revision: $Id: SearcherDisenchant.lua 6829 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is a plugin module for the SearchUI that assists in searching by refined paramaters
@@ -107,8 +107,8 @@ function lib:MakeGuiConfig(gui)
 
 	gui:AddControl(id, "Subhead",           0.42,    "Fees Adjustment")
 	gui:AddControl(id, "Checkbox",          0.42, 1, "disenchant.adjust.brokerage", "Subtract auction fees")
-	gui:AddControl(id, "Checkbox",          0.42, 1, "disenchant.adjust.deposit", "Subtract deposit")
-	gui:AddControl(id, "Slider",            0.42, 1, "disenchant.adjust.listings", 1, 10, .1, "Ave relistings: %0.1fx")
+	-- gui:AddControl(id, "Checkbox",          0.42, 1, "disenchant.adjust.deposit", "Subtract deposit")
+	-- gui:AddControl(id, "Slider",            0.42, 1, "disenchant.adjust.listings", 1, 10, .1, "Ave relistings: %0.1fx")
 end
 
 function lib.Search(item)
@@ -175,14 +175,11 @@ function lib.Search(item)
 	if get("disenchant.adjust.brokerage") then
 		market = market * resources.CutAdjust
 	end
-	--adjust for deposit costs
-	-- ### todo : to rework this better we really need to know what size stacks the results will be posted in,
-	-- ### we know that deposit will be 20% of cost of 1 item in the stack,
-	-- ### so for a stack of 10 the deposit will be stackprice * 0.1 * 0.2
-	-- ### in future we should use the AucAdvanced.Post.GetDepositCost call
+	--[[ Deposit cost adjustment disabled for Classic
 	if get("disenchant.adjust.deposit") then
 		market = market - (market * 0.02 * get("disenchant.adjust.listings"))
 	end
+	--]]
 
 	-- check amount of profit
 	local value = min (market*(100-get("disenchant.profit.pct"))/100, market-get("disenchant.profit.min"))
@@ -194,4 +191,4 @@ function lib.Search(item)
 	return false, "Not enough profit"
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearcherDisenchant.lua $", "$Rev: 6464 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearcherDisenchant.lua $", "$Rev: 6829 $")

@@ -110,6 +110,10 @@ L["Auto Open"] = "Abrir Automaticamente"
 L["Auto Pass"] = "Passar Automaticamente"
 L["Auto pass BoE"] = "Passar Automaticamente Itens Vinculados ao Equipar"
 --[[Translation missing --]]
+L["Auto Pass Transmog"] = "Auto Pass Transmog"
+--[[Translation missing --]]
+L["Auto Pass Transmog Source"] = "Auto Pass Transmog Source"
+--[[Translation missing --]]
 L["Auto Pass Trinkets"] = "Auto Pass Trinkets"
 --[[Translation missing --]]
 L["Auto Trade"] = "Auto Trade"
@@ -128,7 +132,13 @@ L["auto_pass_boe_desc"] = "Uncheck to never autopass Bind on Equip items."
 --[[Translation missing --]]
 L["auto_pass_desc"] = "Check to enable autopassing of items your class cannot use."
 --[[Translation missing --]]
+L["auto_pass_transmog_desc"] = "Check to enable autopassing of items your class can only use for transmog."
+--[[Translation missing --]]
+L["auto_pass_transmog_source_desc"] = "Check to enable autopassing of items your class can only use for transmog and the appearance is already known from another item."
+--[[Translation missing --]]
 L["auto_pass_trinket_desc"] = "Check to autopass trinkets that's not listed in the Dungeon Journal for your class."
+--[[Translation missing --]]
+L["autoGroupLoot_warning"] = "Note: Group Leader's settings will cause RCLootCouncil to automatically control group loot."
 --[[Translation missing --]]
 L["autoloot_others_item_combat"] = "%s has looted %s. This item will be added to the session frame once combat ends."
 --[[Translation missing --]]
@@ -218,6 +228,8 @@ L["Chat print"] = "Chat print"
 L["chat tVersion string"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500 %s - %s"
 --[[Translation missing --]]
 L["chat version String"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFversion |cFFFFA500 %s"
+--[[Translation missing --]]
+L["chat_cmd_add_found_items"] = "Found %d items with trade timers in your bags."
 --[[Translation missing --]]
 L["chat_cmd_add_invalid_owner"] = "The player %s was either invalid or not a candidate."
 --[[Translation missing --]]
@@ -599,6 +611,14 @@ L["opt_autoAddPets_name"] = "Add Pets"
 --[[Translation missing --]]
 L["opt_autoAwardPrioList_desc"] = "Items are awarded to the first candidate found in your group according to this priority list."
 --[[Translation missing --]]
+L["opt_autoGroupLoot_desc"] = "When enabled, RCLootCouncil will automatically click the pass and greed buttons so that all items lands in your inventory."
+--[[Translation missing --]]
+L["opt_autoGroupLoot_name"] = "Auto Group Loot"
+--[[Translation missing --]]
+L["opt_autoGroupLootGuildGroupOnly_desc"] = "When enabled, RCLootCouncil will only do group loot auto pass when you're in a guild group."
+--[[Translation missing --]]
+L["opt_autoGroupLootGuildGroupOnly_name"] = "Guild Groups Only"
+--[[Translation missing --]]
 L["opt_autoTrade_desc"] = "Check to automatically add awarded items to the trade window when trading with the winner. If disabled, you'll see a popup before items are added."
 --[[Translation missing --]]
 L["opt_award_later_desc"] = "Check to automatically check the 'Award Later' option in the Session Frame."
@@ -609,6 +629,10 @@ See above for a detailed explanation.]=]
 L["opt_chatFrameName_desc"] = "Select which chat frame you want RCLootCouncil to output information to."
 --[[Translation missing --]]
 L["opt_chatFrameName_name"] = "Chat Frame"
+--[[Translation missing --]]
+L["opt_closeWithEscape_desc"] = "When enabled, all non-critical RCLootCouncil frames can be closed by pressing 'Escape'. (Requires reload to take effect on already created frames)"
+--[[Translation missing --]]
+L["opt_closeWithEscape_name"] = "Escape Close"
 --[[Translation missing --]]
 L["opt_deleteDate_confirm"] = [=[Are you sure you want to delete everything older than the selected?
 This cannot be undone.]=]
@@ -643,6 +667,14 @@ L["opt_rejectTrade_Name"] = "Allow Keeping"
 L["opt_skipSessionFrame_desc"] = "Skips the Session Frame. NOTE: This causes the addon to start a session with all eligble items without you having a chance to edit the list!"
 --[[Translation missing --]]
 L["opt_skipSessionFrame_name"] = "Skip Session Frame"
+--[[Translation missing --]]
+L["opt_usage_AskGroupLoot"] = "Ask me every time Group Loot is enabled"
+--[[Translation missing --]]
+L["opt_usage_GroupLoot"] = "Always use RCLootCouncil with Group Loot"
+--[[Translation missing --]]
+L["opt_useSlashRC_desc"] = "Disable this if you want to restore '/rc' to ready check. RCLootCouncil commands are still available with '/rclc'. A '/reload' is required for this to take effect."
+--[[Translation missing --]]
+L["opt_useSlashRC_name"] = "Use /rc"
 --[[Translation missing --]]
 L["options_autoAwardBoE_desc"] = "Enable to automatically award all epic BoE (Bind on Equip) items to a specific person for the selected reason."
 --[[Translation missing --]]

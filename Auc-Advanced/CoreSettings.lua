@@ -1,7 +1,7 @@
 ﻿--[[
 	Auctioneer
-	Version: 8.2.6430 (SwimmingSeadragon)
-	Revision: $Id: CoreSettings.lua 6430 2019-10-20 00:10:07Z none $
+	Version: 3.4.6844 (SwimmingSeadragon)
+	Revision: $Id: CoreSettings.lua 6844 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	Settings GUI
@@ -139,6 +139,7 @@ local settingDefaults = {
 	['printwindow'] = 1,
 	["core.marketvalue.tolerance"] = .08,
 	["ShowPurchaseDebug"] = true,
+	["core.buy.waitpending"] = true,
 	["SelectedLocale"] = GetLocale(),
 	["ModTTShow"] = "always",
 	["post.clearonclose"] = true,
@@ -156,9 +157,11 @@ local settingDefaults = {
 	["core.tooltip.enableincombat"] = false,
 	["core.tooltip.depositcost"] = true,
 	["core.tooltip.depositduration"] = 48,
+	["core.tooltip.alwayshomefaction"] = true,
+	["core.tooltip.showfactionhome"] = false,
 }
 
-if AucAdvanced.Classic then
+if AucAdvanced.Classic == 1 then
     settingDefaults["core.tooltip.depositduration"] = 24
 end
 
@@ -547,6 +550,8 @@ function private._MakeGuiConfig() -- Name mangled to block gui creation at first
 	gui:AddControl(id, "Subhead",     0,     _TRANS('ADV_Interface_PurchasingOptions')) --"Purchasing Options"
 	gui:AddControl(id, "Checkbox",    0, 1,  "ShowPurchaseDebug", _TRANS('ADV_Interface_ShowPurchaseDebug')) --"Show purchase queue info"
 	gui:AddTip(id, _TRANS('ADV_HelpTooltip_ShowPurchaseDebug')) --"Shows what is added to the purchase queue, and what is being purchased"
+	gui:AddControl(id, "Checkbox",    0, 1,  "core.buy.waitpending", "Wait for bids to be accepted before scanning for next item")
+	gui:AddTip(id, "This is a Debug option\nSlows down the bidding process to reduce the chance of Internal Auction Errors")
 
 	gui:AddControl(id, "Subhead",     0,     _TRANS('ADV_Interface_PostingOptions')) --"Posting Options"
 	gui:AddControl(id, "Checkbox",    0, 1,  "post.clearonclose", _TRANS('ADV_Interface_PostClearOnClose')) --"Clear the posting queue when the Auctionhouse is closed"
@@ -678,6 +683,12 @@ function private._MakeGuiConfig() -- Name mangled to block gui creation at first
 	gui:AddTip(id, _TRANS('ADV_HelpTooltip_ScanDataModifier')) --"Makes the scan data only display exact matches unless the shift key is held down"
 	gui:AddControl(id, "Note",       0, 1, nil, nil, " ")
 
+	gui:AddControl(id, "Checkbox",   0, 1, "core.tooltip.alwayshomefaction", "Show Home faction data in tooltip when in a Neutral area")
+	gui:AddTip(id, "This option will display Home faction data while travelling in a zone containing a Neutral AuctionHouse.\nIf it is disabled Neutral faction data will be displayed when in a Neutral zone.\n\nTooltips will always show Neutral faction data when the Neutral AuctionHouse is open.")
+	gui:AddControl(id, "Checkbox",   0, 1, "core.tooltip.showfactionhome", "Show Home faction title in tooltip")
+	gui:AddTip(id, "Add a line to the tooltip to indicate that Auctioneer is using Home faction data; normally Auctioneer will only add this line for factions other than your Home faction")
+	gui:AddControl(id, "Note",       0, 1, nil, nil, " ")
+
 	gui:AddControl(id, "Header",     0,    _TRANS('ADV_Interface_MktPriceOptions')) --"Market Price Options"
 	gui:AddControl(id, "Checkbox",   0, 1, "tooltip.marketprice.show", _TRANS('ADV_Interface_MktPriceShow')) --"Display Market Price in the tooltip"
 	gui:AddTip(id, _TRANS('ADV_HelpTooltip_MktPrice')) --"Enables the display of Marketprice in the tooltip.  Holding down Shift will also show the prices that went into marketprice"
@@ -807,5 +818,5 @@ function private.CheckObsolete()
 	end
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreSettings.lua $", "$Rev: 6430 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreSettings.lua $", "$Rev: 6844 $")
 AucAdvanced.CoreFileCheckOut("CoreSettings")

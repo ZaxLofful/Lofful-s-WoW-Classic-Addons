@@ -9,6 +9,8 @@ local table = table;
 local pairs = pairs;
 local tonumber = tonumber;
 
+local DDM = WIM.libs.DropDownMenu;
+
 --set namespace
 setfenv(1, WIM);
 
@@ -126,7 +128,7 @@ end
 
 local function CreateSlider(parent, title, minText, maxText, min, max, step, dbTree, varName, valChanged)
 	-- Changes to Patch 9.0.1 - Shadowlands, retail and classic
-	local s = CreateFrame("Slider", parent:GetName()..statObject("Slider"), parent, isTBC and "BackdropTemplate");
+	local s = CreateFrame("Slider", parent:GetName()..statObject("Slider"), parent, "BackdropTemplate");
 
     -- set backdrop -changes to Patch 9.0.1 - Shadowlands, retail and classic
     s.backdropInfo = {bgFile = "Interface\\Buttons\\UI-SliderBar-Background",
@@ -134,11 +136,7 @@ local function CreateSlider(parent, title, minText, maxText, min, max, step, dbT
         tile = true, tileSize = 8, edgeSize = 8,
         insets = { left = 3, right = 3, top = 6, bottom = 6 }};
 
-	if not isTBC then
-		s:SetBackdrop(s.backdropInfo);
-	else
-		s:ApplyBackdrop();
-	end
+	s:ApplyBackdrop();
 
     s:SetHeight(17);
     s:SetPoint("LEFT");
@@ -184,10 +182,11 @@ end
 
 
 local function CreateDropDownMenu(parent, dbTree, varName, itemList, width)
-    local menu = CreateFrame("Frame", parent:GetName()..statObject("DropDownMenu"), parent, "UIDropDownMenuTemplate");
-    menu:EnableMouse(true);
+    local menu = DDM.Create_DropDownMenu(parent:GetName()..statObject("DropDownMenu"), parent);
+	menu:SetParent(parent);
+	menu:EnableMouse(true);
     if(width) then
-        _G.UIDropDownMenu_SetWidth(menu, width);
+        DDM.UIDropDownMenu_SetWidth(menu, width);
     end
     menu.itemList = itemList or {};
     menu.init = function()
@@ -197,24 +196,24 @@ local function CreateDropDownMenu(parent, dbTree, varName, itemList, width)
                     menu.itemList[i].func = function(self, arg1, arg2)
                         self = self or _G.this; -- wotlk/tbc hack
                         dbTree[varName] = self.value;
-                        _G.UIDropDownMenu_SetSelectedValue(menu, self.value);
+                        DDM.UIDropDownMenu_SetSelectedValue(menu, self.value);
                         func(self, arg1, arg2);
                     end
                     menu.itemList[i].hooked = true;
                 end
-                local info = _G.UIDropDownMenu_CreateInfo();
+                local info = {};
                 for k,v in pairs(menu.itemList[i]) do
                     info[k] = v;
                 end
-                _G.UIDropDownMenu_AddButton(info, _G.UIDROPDOWNMENU_MENU_LEVEL);
+                DDM.UIDropDownMenu_AddButton(info, DDM.UIDropDownMenu_MENU_LEVEL);
             end
         end
     menu:SetScript("OnShow", function(self)
-            _G.UIDropDownMenu_Initialize(self, self.init);
-            _G.UIDropDownMenu_SetSelectedValue(self, dbTree[varName]);
+            DDM.UIDropDownMenu_Initialize(self, self.init);
+            DDM.UIDropDownMenu_SetSelectedValue(self, dbTree[varName]);
         end);
     menu.SetValue = function(self, value)
-            _G.UIDropDownMenu_SetSelectedValue(self, value);
+            DDM.UIDropDownMenu_SetSelectedValue(self, value);
         end;
     SetNextAnchor(menu);
     menu:Hide(); menu:Show();
@@ -582,7 +581,7 @@ function options.createDropDownFrame()
         return dropDownFrame;
     end
 	-- Changes to Patch 9.0.1 - Shadowlands, retail and classic
-	local f = CreateFrame("Button", "WIM_DropDownFrame", _G.UIParent, isTBC and "BackdropTemplate");
+	local f = CreateFrame("Button", "WIM_DropDownFrame", _G.UIParent, "BackdropTemplate");
 
 	f:Hide();
     f:SetFrameStrata("TOOLTIP");
@@ -597,11 +596,7 @@ function options.createDropDownFrame()
         insets = { left = 5, right = 5, top = 5, bottom = 5 }
     };
 
-	if not isTBC then
-		f:SetBackdrop(f.backdropInfo);
-	else
-		f:ApplyBackdrop();
-	end
+	f:ApplyBackdrop();
 
     f:SetBackdropBorderColor(_G.TOOLTIP_DEFAULT_COLOR.r, _G.TOOLTIP_DEFAULT_COLOR.g, _G.TOOLTIP_DEFAULT_COLOR.b);
     f:SetBackdropColor(_G.TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, _G.TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, _G.TOOLTIP_DEFAULT_BACKGROUND_COLOR.b);
@@ -625,8 +620,8 @@ function options.createDropDownFrame()
     f.scroll:SetMinMaxValues(0, 10);
     f.scroll:SetValue(5);
     f.scroll:EnableMouseWheel(1);
-    f.scroll:SetScript("OnEnter", function(self) _G.UIDropDownMenu_StopCounting(self:GetParent()) end);
-    f.scroll:SetScript("OnLeave", function(self) _G.UIDropDownMenu_StartCounting(self:GetParent()) end);
+    f.scroll:SetScript("OnEnter", function(self) DDM.UIDropDownMenu_StopCounting(self:GetParent()) end);
+    f.scroll:SetScript("OnLeave", function(self) DDM.UIDropDownMenu_StartCounting(self:GetParent()) end);
     f.scroll:SetScript("OnMouseWheel", DropDown_OnMouseWheel);
     f.scroll:SetScript("OnValueChanged", function(self)
         self:GetParent():Refresh();
@@ -732,11 +727,11 @@ function options.createDropDownFrame()
     end
 
     f:SetScript("OnClick", function(self) self:Hide(); end);
-    f:SetScript("OnEnter", _G.UIDropDownMenu_StopCounting);
-    f:SetScript("OnLeave", _G.UIDropDownMenu_StartCounting);
-    f:SetScript("OnUpdate", _G.UIDropDownMenu_OnUpdate);
+    f:SetScript("OnEnter", DDM.UIDropDownMenu_StopCounting);
+    f:SetScript("OnLeave", DDM.UIDropDownMenu_StartCounting);
+    f:SetScript("OnUpdate", DDM.UIDropDownMenu_OnUpdate);
     f:SetScript("OnHide", function(self)
-        _G.UIDropDownMenu_OnHide(self);
+        DDM.UIDropDownMenu_OnHide(self);
         self.prevParent = nil;
     end);
     f:SetScript("OnMouseWheel", DropDown_OnMouseWheel);

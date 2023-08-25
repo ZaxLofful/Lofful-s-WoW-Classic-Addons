@@ -1,9 +1,9 @@
 ## Title: Auc:Util:Appraiser
-## Interface: 80200
+## Interface: 30400
 ## Dependencies: Stubby, Auc-Advanced
 ##
-## Version: 8.2.6417 (SwimmingSeadragon)
-## Revision: $Id: Auc-Util-Appraiser.toc 6417 2019-10-20 00:10:07Z none $
+## Version: 3.4.6787 (SwimmingSeadragon)
+## Revision: $Id: Auc-Util-Appraiser.toc 6787 2022-10-27 00:00:09Z none $
 ## Author: Norganna's AddOns
 ## X-Part-Of: Auctioneer
 ## X-Category: Auction House

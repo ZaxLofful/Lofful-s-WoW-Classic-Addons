@@ -2,36 +2,26 @@
 -- Author: Resike
 -- License: GNU GPL v3, 29 June 2007 (see LICENSE.txt)
 
-XPerl_SetModuleRevision("$Revision: 60939e7684457a8c1cafb041c6be7812d55442fc $")
+XPerl_SetModuleRevision("$Revision: 622ab1f8aebd021111f667b2de0adca45dd07d93 $")
 
+local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+local IsWrathClassic = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
+local IsVanillaClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
 
-local localGroups = LOCALIZED_CLASS_NAMES_MALE
-local WoWclassCount = 0
-for k, v in pairs(localGroups) do
-	WoWclassCount = WoWclassCount + 1
+local LOCALIZED_CLASS_NAMES_MALE = LOCALIZED_CLASS_NAMES_MALE
+local CLASS_COUNT = 0
+for k, v in pairs(LOCALIZED_CLASS_NAMES_MALE) do
+	if k ~= "Adventurer" then
+		CLASS_COUNT = CLASS_COUNT + 1
+	end
 end
 
 local protected = { }
 
 -- DefaultRaidClasses
 local function DefaultRaidClasses()
-	if IsClassic then
-		return {
-			{enable = true, name = "WARRIOR"},
-			--{enable = true, name = "DEATHKNIGHT"},
-			{enable = true, name = "ROGUE"},
-			{enable = true, name = "HUNTER"},
-			{enable = true, name = "MAGE"},
-			{enable = true, name = "WARLOCK"},
-			{enable = true, name = "PRIEST"},
-			{enable = true, name = "DRUID"},
-			{enable = true, name = "SHAMAN"},
-			{enable = true, name = "PALADIN"},
-			--{enable = true, name = "MONK"},
-			--{enable = true, name = "DEMONHUNTER"},
-		}
-	else
+	if IsRetail then
 		return {
 			{enable = true, name = "WARRIOR"},
 			{enable = true, name = "DEATHKNIGHT"},
@@ -45,6 +35,32 @@ local function DefaultRaidClasses()
 			{enable = true, name = "PALADIN"},
 			{enable = true, name = "MONK"},
 			{enable = true, name = "DEMONHUNTER"},
+			{enable = true, name = "EVOKER"}
+		}
+	elseif IsWrathClassic then
+		return {
+			{enable = true, name = "WARRIOR"},
+			{enable = true, name = "DEATHKNIGHT"},
+			{enable = true, name = "ROGUE"},
+			{enable = true, name = "HUNTER"},
+			{enable = true, name = "MAGE"},
+			{enable = true, name = "WARLOCK"},
+			{enable = true, name = "PRIEST"},
+			{enable = true, name = "DRUID"},
+			{enable = true, name = "SHAMAN"},
+			{enable = true, name = "PALADIN"},
+		}
+	else
+		return {
+			{enable = true, name = "WARRIOR"},
+			{enable = true, name = "ROGUE"},
+			{enable = true, name = "HUNTER"},
+			{enable = true, name = "MAGE"},
+			{enable = true, name = "WARLOCK"},
+			{enable = true, name = "PRIEST"},
+			{enable = true, name = "DRUID"},
+			{enable = true, name = "SHAMAN"},
+			{enable = true, name = "PALADIN"},
 		}
 	end
 end
@@ -57,10 +73,12 @@ local function ValidateClassNames(part)
 	-- This should never happen, but I'm sure someone will find a way to break it
 
 	local list
-	if IsClassic then
-		list = {WARRIOR = false, MAGE = false, ROGUE = false, DRUID = false, HUNTER = false, SHAMAN = false, PRIEST = false, WARLOCK = false, PALADIN = false}
+	if IsRetail then
+		list = {WARRIOR = false, MAGE = false, ROGUE = false, DRUID = false, HUNTER = false, SHAMAN = false, PRIEST = false, WARLOCK = false, PALADIN = false, DEATHKNIGHT = false, MONK = false, DEMONHUNTER = false, EVOKER = false}
+	elseif IsWrathClassic then
+		list = {WARRIOR = false, MAGE = false, ROGUE = false, DRUID = false, HUNTER = false, SHAMAN = false, PRIEST = false, WARLOCK = false, PALADIN = false, DEATHKNIGHT = false}
 	else
-		list = {WARRIOR = false, MAGE = false, ROGUE = false, DRUID = false, HUNTER = false, SHAMAN = false, PRIEST = false, WARLOCK = false, PALADIN = false, DEATHKNIGHT = false, MONK = false, DEMONHUNTER = false}
+		list = {WARRIOR = false, MAGE = false, ROGUE = false, DRUID = false, HUNTER = false, SHAMAN = false, PRIEST = false, WARLOCK = false, PALADIN = false}
 	end
 	local valid
 	if (part.class) then
@@ -70,12 +88,12 @@ local function ValidateClassNames(part)
 				classCount = classCount + 1
 			end
 		end
-		if (classCount == WoWclassCount) then
+		if (classCount == CLASS_COUNT) then
 			valid = true
 		end
 
 		if (valid) then
-			for i = 1, WoWclassCount do
+			for i = 1, CLASS_COUNT do
 				if (part.class[i]) then
 					list[part.class[i].name] = true
 				end
@@ -431,8 +449,6 @@ end
 
 -- XPerl_SliderSetup(self)
 function XPerl_SliderSetup(self, percent)
-	self:OnBackdropLoaded()
-
 	self.xperlSliderEnabled = true
 
 	self.IsEnabled = function(self)
@@ -1079,7 +1095,7 @@ local function SetClassNames(self)
 	ValidateClassNames(XPerlDB.raid)
 
 	local prefix = self:GetParent():GetParent():GetName().."_"
-	for i = 1, WoWclassCount do
+	for i = 1, CLASS_COUNT do
 		local f = _G[prefix.."ClassSel"..i.."_EnableText"]
 		if (f) then
 			local class = XPerlDB.raid.class[i].name
@@ -1119,7 +1135,7 @@ function XPerl_Options_RaidSelectAll(self, enable)
 	local val
 	local prefix = self:GetParent():GetName().."_"
 
-	for i = 1, WoWclassCount do
+	for i = 1, CLASS_COUNT do
 		local f = _G[prefix.."Grp"..i]
 		if (f) then
 			f:SetChecked(enable)
@@ -1335,15 +1351,15 @@ local function InterestingFrames()
 	local ret = { }
 
 	if (interest == "all") then
-		for i = 1, WoWclassCount do
+		for i = 1, CLASS_COUNT do
 			tinsert(ret, _G["XPerl_Raid_Title"..i])
 		end
 	elseif (interest == "odd") then
-		for i = 1, WoWclassCount, 2 do
+		for i = 1, CLASS_COUNT, 2 do
 			tinsert(ret, _G["XPerl_Raid_Title"..i])
 		end
 	elseif (interest == "even") then
-		for i = 2, WoWclassCount, 2 do
+		for i = 2, CLASS_COUNT, 2 do
 			tinsert(ret, _G["XPerl_Raid_Title"..i])
 		end
 	elseif (interest == "first4") then
@@ -1351,7 +1367,7 @@ local function InterestingFrames()
 			tinsert(ret, _G["XPerl_Raid_Title"..i])
 		end
 	elseif (interest == "last4") then
-		for i = 5, WoWclassCount do
+		for i = 5, CLASS_COUNT do
 			tinsert(ret, _G["XPerl_Raid_Title"..i])
 		end
 	end
@@ -1654,6 +1670,7 @@ function XPerl_Options_ImportOldConfig(old)
 				healthFull	= old.ColourHealthFull		or {r = 0, g = 1, b = 0},
 				absorb		= {r = 0.14, g = 0.33, b = 0.7, a = 0.7},
 				healprediction = {r = 0, g = 1, b = 1, a = 1},
+				hot			= {r = 1, g = 0.72, b = 0.1, a = 0.7},
 				mana		= old.ColourMana		or {r = 0, g = 0, b = 1},
 				energy		= old.ColourEnergy		or {r = 1, g = 1, b = 0},
 				rage		= old.ColourRage		or {r = 1, g = 0, b = 0},
@@ -1674,6 +1691,7 @@ function XPerl_Options_ImportOldConfig(old)
 		minimap = {
 			enable		= Convert(old.MinimapButtonShown),
 			pos		= old.MinimapButtonPosition	or 186,
+			radius = IsRetail and 101 or 78,
 		},
 		combatFlash		= Convert(old.PerlCombatFlash),
 		highlightDebuffs = {
@@ -1775,7 +1793,7 @@ function XPerl_Options_ImportOldConfig(old)
 			portrait3D		= Convert(old.ShowPlayerPetPortrait3D),
 			hitIndicator		= Convert(old.PetCombatHitIndicator),
 			happiness = {
-				enabled		= Convert(old.PetHappiness),
+				enable		= Convert(old.PetHappiness),
 				onlyWhenSad	= Convert(old.PetHappinessSad),
 				flashWhenSad	= Convert(old.PetFlashWhenSad),
 			},
@@ -2093,6 +2111,7 @@ function XPerl_Options_ImportOldConfig(old)
 				{enable = true, name = "DEATHKNIGHT"},
 				{enable = true, name = "MONK"},
 				{enable = true, name = "DEMONHUNTER"},
+				{enable = true, name = "EVOKER"},
 			},
 			titles			= Convert(old.ShowRaidTitles),
 			percent			= Convert(old.ShowRaidPercents),
@@ -2178,6 +2197,7 @@ local function XPerl_Global_ConfigDefault(default)
 
 	default.minimap = {
 		pos		= 186,
+		radius = IsRetail and 101 or 78,
 		enable		= 1,
 	}
 
@@ -2266,6 +2286,7 @@ local function XPerl_Target_ConfigDefault(default, section)
 		mobType			= 1,
 		level			= 1,
 		healprediction	= 1,
+		hotPrediction	= 1,
 		absorbs			= 1,
 		elite			= 1,
 --		eliteGfx		= nil,
@@ -2337,6 +2358,7 @@ local function XPerl_Party_ConfigDefault(default)
 		level			= 1,
 		healprediction	= 1,
 		absorbs			= 1,
+		hotPrediction	= 1,
 		name			= 1,
 		values			= 1,
 		percent			= 1,
@@ -2410,6 +2432,7 @@ local function XPerl_Player_ConfigDefault(default)
 		level			= 1,
 		healprediction	= 1,
 		absorbs			= 1,
+		hotPrediction	= 1,
 		classIcon		= 1,
 --		xpBar			= nil,
 --		repBar			= nil,
@@ -2465,15 +2488,16 @@ local function XPerl_Pet_ConfigDefault(default)
 		portrait3D = 1,
 		hitIndicator= 1,
 		happiness = {
-			enabled		= 1,
+			enable = 1,
 			onlyWhenSad	= 1,
-			flashWhenSad	= 1,
+			flashWhenSad = 1,
 		},
 		threat = 1,
 		threatMode = "portraitFrame",
 		level = 1,
 		healprediction = 1,
 		absorbs = 1,
+		hotPrediction = 1,
 		scale = 0.7,
 		name = 1,
 		buffs = {
@@ -2525,6 +2549,7 @@ local function XPerl_TargetTarget_ConfigDefault(default, section)
 --		level			= nil,
 		healprediction	= 1,
 		absorbs			= 1,
+		hotPrediction	= 1,
 		mana			= 1,
 		size = {
 			width		= 0,
@@ -2540,6 +2565,7 @@ end
 local function XPerl_Raid_ConfigDefault(default)
 	default.raid = {
 		enable			= 1,
+		disableDefault	= nil,
 --		sortByClass		= nil,
 		sortByRole 		= nil,
 --		sortAlpha		= nil,
@@ -2557,12 +2583,15 @@ local function XPerl_Raid_ConfigDefault(default)
 			{enable = 1, name = "DEATHKNIGHT"},
 			{enable = 1, name = "MONK"},
 			{enable = 1, name = "DEMONHUNTER"},
+			{enable = 1, name = "EVOKER"},
 		},
+		role			= nil,
 		titles			= 1,
 		percent			= 1,
 		precisionPercent = 1,
 		healprediction	= 1,
 		absorbs			= 1,
+		hotPrediction	= 1,
 		mana			= 1,
 		manaPercent		= 1,
 		precisionManaPercent = 1,
@@ -2643,6 +2672,7 @@ function XPerl_DefaultBarColours()
 		healthFull	= {r = 0, g = 1, b = 0},
 		absorb		= {r = 0.14, g = 0.33, b = 0.7, a = 0.7},
 		healprediction = {r = 0, g = 1, b = 1, a = 1},
+		hot			= {r = 1, g = 0.72, b = 0.1, a = 0.7},
 		mana		= {r = 0, g = 0, b = 1},
 		energy		= {r = 1, g = 1, b = 0},
 		rage		= {r = 1, g = 0, b = 0},
@@ -3122,7 +3152,7 @@ end
 ----------------------------------------------
 
 if (XPerl_UpgradeSettings) then
-	local flist = {"player", "pet", "target", "targettarget", "pettarget", "focus", "focustarget", "targettargettarget", "party", "partypet"}
+	local frameList = {"player", "pet", "target", "targettarget", "pettarget", "focus", "focustarget", "targettargettarget", "party", "partypet"}
 	-- UpgradeSettings
 	-- For future upgrade of settings from old versions
 	local function UpgradeSettings(old, oldVersion)
@@ -3136,7 +3166,7 @@ if (XPerl_UpgradeSettings) then
 		local _, playerClass = UnitClass("player")
 
 		if (type(oldVersion) == "string") then
-			for k, v in pairs(flist) do
+			for k, v in pairs(frameList) do
 				if (old[v]) then
 					if (not old[v].buffs) then
 						old[v].buffs = {enable = 1, size = 20, bigpet = 1, wrap = 1}
@@ -3157,6 +3187,10 @@ if (XPerl_UpgradeSettings) then
 
 			if (not old.colour.bar.healprediction or old.colour.bar.healprediction[1]) then
 				old.colour.bar.healprediction = {r = 0, g = 1, b = 1, a = 1}
+			end
+
+			if (not old.colour.bar.hot or old.colour.bar.hot[1]) then
+				old.colour.bar.hot = {r = 1, g = 0.72, b = 0.1, a = 0.7}
 			end
 
 			if (not old.colour.bar.runic_power or old.colour.bar.runic_power[1]) then
@@ -3411,7 +3445,7 @@ if (XPerl_UpgradeSettings) then
 			end
 
 			if (oldVersion < "5.0.6") then
-				for i = 1, WoWclassCount do
+				for i = 1, CLASS_COUNT do
 					if not old.raid.group[i] then
 						old.raid.group[i] = 1
 					end
@@ -3441,7 +3475,7 @@ if (XPerl_UpgradeSettings) then
 
 			if (oldVersion < "5.8.2") then
 				old.pet.happiness = { }
-				old.pet.happiness.enabled = 1
+				old.pet.happiness.enable = 1
 				old.pet.happiness.onlyWhenSad = 1
 				old.pet.happiness.flashWhenSad = 1
 			end
@@ -3454,6 +3488,46 @@ if (XPerl_UpgradeSettings) then
 						end
 					end
 				end
+			end
+
+			if (oldVersion < "6.2.9") then
+				if not old.pet.happiness then
+					old.pet.happiness = { }
+				end
+				if not old.pet.happiness.enable and old.pet.happiness.enabled then
+					old.pet.happiness.enable = old.pet.happiness.enabled
+					old.pet.happiness.enabled = nil
+				end
+			end
+
+			if (oldVersion < "7.0.0") then
+				if IsRetail then
+					old.minimap.radius = 101
+				else
+					old.minimap.radius = 78
+				end
+			end
+
+			if (oldVersion < "7.0.3") then
+				old.colour.bar.hot = { }
+				old.colour.bar.hot.r = 1
+				old.colour.bar.hot.g = 0.72
+				old.colour.bar.hot.b = 0.1
+				old.colour.bar.hot.a = 0.7
+				old.player.hotPrediction = 1
+				old.pet.hotPrediction = 1
+				old.target.hotPrediction = 1
+				old.targettarget.hotPrediction = 1
+				old.focus.hotPrediction = 1
+				old.focustarget.hotPrediction = 1
+				old.party.hotPrediction = 1
+				old.raid.hotPrediction = 1
+				old.raid.disableDefault = 1
+				old.raid.role = nil
+			end
+			if (oldVersion < "7.0.7") then
+				old.raid.role = nil
+				old.raid.disableDefault = nil
 			end
 		end
 	end
@@ -3507,6 +3581,6 @@ if (XPerl_UpgradeSettings) then
 
 		UpgradeSettings = nil
 		XPerl_Options_UpgradeSettings = nil
-		flist = nil
+		frameList = nil
 	end
 end

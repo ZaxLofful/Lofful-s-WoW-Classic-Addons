@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - AutoMagic Utility module
-	Version: 8.2.6424 (SwimmingSeadragon)
-	Revision: $Id: Core.lua 6424 2019-10-20 00:10:07Z none $
+	Version: 3.4.6799 (SwimmingSeadragon)
+	Revision: $Id: Core.lua 6799 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	AutoMagic is an Auctioneer module which automates mundane tasks for you.
@@ -376,8 +376,10 @@ local InventoryTypes = {
 	[INVTYPE_WEAPONOFFHAND] = INVTYPE_WEAPONOFFHAND,
 	[INVTYPE_WRIST] = INVTYPE_WRIST,
 }
-if not AucAdvanced.Classic then
+if INVTYPE_RANGEDRIGHT then
 	InventoryTypes[INVTYPE_RANGEDRIGHT] = INVTYPE_RANGEDRIGHT
+end
+if INVTYPE_THROWN then
 	InventoryTypes[INVTYPE_THROWN] = INVTYPE_THROWN
 end
 
@@ -679,4 +681,4 @@ end
 
 
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-AutoMagic/Core.lua $", "$Rev: 6424 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-AutoMagic/Core.lua $", "$Rev: 6799 $")

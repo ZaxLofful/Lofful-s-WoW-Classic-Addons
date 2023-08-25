@@ -1,7 +1,7 @@
 --[[
 	Enchantrix Addon for World of Warcraft(tm).
-	Version: 8.2.6428 (SwimmingSeadragon)
-	Revision: $Id: EnxConstantsInscription.lua 6428 2019-10-20 00:10:07Z none $
+	Version: 3.4.6849 (SwimmingSeadragon)
+	Revision: $Id: EnxConstantsInscription.lua 6849 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	Enchantrix Constants for Inscription / Milling
@@ -28,7 +28,7 @@
 		since that is its designated purpose as per:
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 ]]
-Enchantrix_RegisterRevision("$URL: Enchantrix/EnxConstantsInscription.lua $", "$Rev: 6428 $")
+Enchantrix_RegisterRevision("$URL: Enchantrix/EnxConstantsInscription.lua $", "$Rev: 6849 $")
 
 local const = Enchantrix.Constants
 
@@ -61,6 +61,10 @@ local ULTRAMARINE_PIGMENT = 153635
 local CRIMSON_PIGMENT = 153636
 local VIRIDESCENT_PIGMENT = 153669
 local MAROON_PIGMENT = 168662
+
+local LUMINOUS_PIGMENT = 173057
+local UMBRAL_PIGMENT = 173056
+local TRANQUIL_PIGMENT = 175788
 
 
 local HERB_NIGHTMARE_POD = 136926
@@ -143,7 +147,6 @@ local HERB_GORGONDFLYTRAP = 109126
 local HERB_STARFLOWER = 109127
 local HERB_NAGRANDARROWBLOOM = 109128
 local HERB_TALADORORCHID = 109129
---local HERB_CHAMELEONLOTUS = 109130 -- removed in beta
 
 -- Legion herbs
 local HERB_AETHRIL = 124101
@@ -164,6 +167,14 @@ local HERB_SIRESPOLLEN = 152509
 local HERB_ANCHORWEED = 152510
 local HERB_SEASTALK = 152511
 local HERB_ZIRANTHID = 168487
+
+-- Shadowlands herbs
+local HERB_WIDOWBLOOM = 168583
+local HERB_RISINGGLORY = 168586
+local HERB_MARRROWROOT = 168589
+local HERB_DEATHBLOSSOM = 169701
+local HERB_VIGILSTORCH = 170554
+local HERB_NIGHTSHADE = 171315
 
 
 -- only currently used for autoloot in EnxAutoDisenchant.lua
@@ -204,6 +215,10 @@ const.ReversePigmentList = {
 	[VIRIDESCENT_PIGMENT] = 1,
     [MAROON_PIGMENT] = 1,
 
+    [LUMINOUS_PIGMENT] = 1,
+    [UMBRAL_PIGMENT] = 1,
+    [TRANQUIL_PIGMENT] = 1,
+
 }
 
 -- map groups to a string for now
@@ -236,7 +251,7 @@ local	ROSEATE_PIGMENT_HIGH = "ROSEATE_PIGMENT_HIGH"
 local	ROSEATE_PIGMENT_FEL = "ROSEATE_PIGMENT_FEL"
 local	ROSEATE_PIGMENT_MEDFOX = "ROSEATE_PIGMENT_MEDFOX"
 local	ROSEATE_PIGMENT_MEDDREAM = "ROSEATE_PIGMENT_MEDDREAM"
-
+local   LUMINOUS_PIGMENT_MED = "LUMINOUS_PIGMENT_MED"
 
 
 -- skill required, by bracket/result
@@ -281,6 +296,8 @@ const.MillingSkillRequired = {
 	[HERB_ANCHORWEED] = 1,
 	[HERB_SEASTALK] = 1,
     [HERB_ZIRANTHID] = 1,
+
+    [LUMINOUS_PIGMENT_MED] = 1,
 }
 
 const.MillableItems = {
@@ -367,7 +384,6 @@ const.MillableItems = {
 	[HERB_STARFLOWER] = CERULEAN_PEGMENT_HIGH,
 	[HERB_NAGRANDARROWBLOOM] = CERULEAN_PEGMENT_HIGH,
 	[HERB_TALADORORCHID] = CERULEAN_PEGMENT_HIGH,
---	[HERB_CHAMELEONLOTUS] = CERULEAN_PEGMENT_LOW,	-- removed in beta
 
 	[HERB_YSERALINESEEDS] = ROSEATE_PIGMENT_LOW,
 	[HERB_AETHRIL] = ROSEATE_PIGMENT_MEDIUM,
@@ -386,6 +402,13 @@ const.MillableItems = {
 	[HERB_ANCHORWEED] = HERB_ANCHORWEED,
 	[HERB_SEASTALK] = HERB_SEASTALK,
     [HERB_ZIRANTHID] = HERB_ZIRANTHID,
+
+    [HERB_DEATHBLOSSOM] = LUMINOUS_PIGMENT_MED,
+    [HERB_WIDOWBLOOM] = LUMINOUS_PIGMENT_MED,
+    [HERB_VIGILSTORCH] = LUMINOUS_PIGMENT_MED,
+    [HERB_MARRROWROOT] = LUMINOUS_PIGMENT_MED,
+    [HERB_RISINGGLORY] = LUMINOUS_PIGMENT_MED,
+    [HERB_NIGHTSHADE] = LUMINOUS_PIGMENT_MED,
 }
 
 
@@ -585,6 +608,14 @@ const.MillGroupYields = {
         [MAROON_PIGMENT] = 3.1,
     },
 
+
+-- TODO - ccox - need a lot more herbs to get actual yields
+    [LUMINOUS_PIGMENT_MED] = {
+        [LUMINOUS_PIGMENT] = 1.5,
+        [UMBRAL_PIGMENT] = 1.5,
+        [TRANQUIL_PIGMENT] = 0.05,
+    },
+
 }
 
 
@@ -615,6 +646,10 @@ local ULTRAMARINE_INK = 158187
 local VIRIDESCENT_INK = 158189
 local MAROON_INK = 168663
 
+local LUMINOUS_INK = 173059
+local UMBRAL_INK = 173058
+local TRANQUIL_INK = 175970
+
 -- Legion uses pigments directly instead of making inks
 
 const.ReverseInkList = {
@@ -640,8 +675,15 @@ const.ReverseInkList = {
 	[ SNOWFALL_INK ] = { ICY_PIGMENT },
 	[ INFERNO_INK ] = { BURNING_EMBERS },
 	[ STARLIGHT_INK ] = { MISTY_PIGMENT },
+
 	[ CRIMSON_INK ] = { CRIMSON_PIGMENT },
 	[ ULTRAMARINE_INK ] = { ULTRAMARINE_PIGMENT },
 	[ VIRIDESCENT_INK ] = { VIRIDESCENT_PIGMENT },
     [ MAROON_INK ] = { MAROON_PIGMENT },
+
+    [ LUMINOUS_INK ] = { LUMINOUS_PIGMENT },
+    [ UMBRAL_INK ] = { UMBRAL_PIGMENT },
+    [ TRANQUIL_INK ] = { TRANQUIL_PIGMENT },
+
 }
+

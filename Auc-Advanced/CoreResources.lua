@@ -1,7 +1,7 @@
 --[[
 	Auctioneer
-	Version: 8.2.6430 (SwimmingSeadragon)
-	Revision: $Id: CoreResources.lua 6430 2019-10-20 00:10:07Z none $
+	Version: 3.4.6844 (SwimmingSeadragon)
+	Revision: $Id: CoreResources.lua 6844 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -50,13 +50,14 @@
 local AucAdvanced = AucAdvanced
 if not AucAdvanced then return end
 AucAdvanced.CoreFileCheckIn("CoreResources")
-local coremodule, internalResources = AucAdvanced.GetCoreModule("CoreResources", "Resources")
-if not (coremodule and internalResources) then return end
+local coremodule, internalResources, _, internal = AucAdvanced.GetCoreModule("CoreResources", "Resources", nil, nil, "CoreResources")
+if not (coremodule and internalResources and internal) then return end
 local Const = AucAdvanced.Const
 
 -- internal constants
-local PLAYER_REALM = Const.PlayerRealm
+--local PLAYER_REALM = Const.PlayerRealm
 local CUT_HOME = 0.05
+local CUT_NEUTRAL = 0.15
 
 -- internal variables
 local EventFrame
@@ -64,50 +65,97 @@ local EventFrame
 
 --[[ Setup AucAdvanced.Resources table ]]--
 local lib = AucAdvanced.Resources
-lib.Active = false
 lib.AuctionHouseOpen = false
 lib.MailboxOpen = false
+lib.IsNeutralZone = false
+lib.ZoneMapID = 0
+lib.ZoneMapName = "Unknown"
 
 --[[ Faction handlers ]]--
 
-local function SetFaction()
-	local playerFaction = UnitFactionGroup("player")
+local function InitFaction()
+	InitFaction = nil
+	local playerFaction = UnitFactionGroup("player") -- returns reliable results from PLAYER_ENTERING_WORLD event onward
 	local opposingFaction
 	if playerFaction == "Alliance" then
 		opposingFaction = "Horde"
 	elseif playerFaction == "Horde" then
 		opposingFaction = "Alliance"
 	else
-		playerFaction = "Neutral" -- just in case it was nil
-		opposingFaction = "Neutral"
+		-- Should not be possible
+		local msg = "CoreResources faction initialization failed: faction was "..tostring(playerFaction)
+		error(msg)
 	end
 
 	lib.PlayerFaction = playerFaction
-	lib.ServerKeyHome = PLAYER_REALM.."-"..playerFaction -- Deprecated: old-style serverKey
 	lib.OpposingFaction = opposingFaction
-	lib.ServerKeyOpposing = PLAYER_REALM.."-"..opposingFaction -- Deprecated: old-style serverKey
 
-	lib.CurrentFaction = lib.PlayerFaction
-	lib.ServerKeyCurrent = lib.ServerKeyHome -- Deprecated: old-style serverKey
-
-	if playerFaction == "Alliance" or playerFaction == "Horde" then
-		SetFaction = nil
-	end
 end
-SetFaction()
--- really constants, but included in Resources along with other serverKey values:
-lib.ServerKeyNeutral = PLAYER_REALM.."-Neutral" -- Deprecated: old-style serverKey
-lib.AHCutRate = CUT_HOME
-lib.AHCutAdjust = 1 - CUT_HOME
 
--- special handling for Pandaren characters, for the moment they choose their faction
-local function OnFactionSelect()
-	OnFactionSelect = nil
-	EventFrame:UnregisterEvent("NEUTRAL_FACTION_SELECT_RESULT")
-	if SetFaction then
-		SetFaction()
+-- Map zone helper function
+local function FindMapZone()
+	local mapID = C_Map.GetBestMapForUnit("player")
+	if not mapID then return nil, "No MapID" end
+	-- mapID is now the "best" map for the current player location, but we want the Zone mapID
+	repeat
+		local info = C_Map.GetMapInfo(mapID)
+		if not (info and info.mapType) then return nil, "No map info" end
+		if info.mapType <= 3 then
+			-- for the Zone map we want info.mapType == 3
+			-- if info.mapType < 3 there is no Zone map, so use current map as a fallback
+			return mapID, info.name or "Unknown"
+		else
+			local parent = info.parentMapID -- provides the mapID one level up from the current map
+			if not parent or parent == 0 or mapID == parent then
+				return nil, "No Parent"
+			else
+				mapID = parent
+			end
+		end
+	until false
+end
+
+-- Reference https://wow.gamepedia.com/UiMapID/Classic
+local lookupNeutralZones = {
+	[1434] = true, -- Stranglethorn Vale
+	[1452] = true, -- Winterspring
+	[1446] = true, -- Tanaris
+}
+local prevMapID, prevServerKey, prevServerKeyDisplay -- store these values so we can detect when they change
+local function UpdateZoneFaction(forceUpdate)
+	local mapID, mapName = FindMapZone()
+	if not mapID then
+		-- This can occur when entering an instance. We shall assign a value of "Unknown". The code below will treat this as "Home"
+		mapID, mapName = 0, "Unknown"
 	end
-	AucAdvanced.SendProcessorMessage("factionselect", lib.PlayerFaction)
+	if mapID ~= prevMapID or forceUpdate then
+		prevMapID = mapID
+		lib.ZoneMapID, lib.ZoneMapName = mapID, mapName
+
+		if lookupNeutralZones[mapID] then -- In a Neutral AuctionHouse zone
+			lib.IsNeutralZone = true
+			lib.CurrentFaction = "Neutral"
+			lib.AHCutRate = CUT_NEUTRAL
+			lib.AHCutAdjust = 1 - CUT_NEUTRAL
+			if AucAdvanced.Settings.GetSetting("core.tooltip.alwayshomefaction") and not lib.AuctionHouseOpen then
+				lib.DisplayFaction = lib.PlayerFaction -- display home faction in neutral areas, but not when AH is open
+			else
+				lib.DisplayFaction = "Neutral"
+			end
+		else
+			lib.IsNeutralZone = false
+			lib.CurrentFaction = lib.PlayerFaction
+			lib.AHCutRate = CUT_HOME
+			lib.AHCutAdjust = 1 - CUT_HOME
+			lib.DisplayFaction = lib.PlayerFaction
+		end
+		internal.Servers.UpdateCurrentServerKey() -- set ServerKey and ServerKeyDisplay
+		if lib.ServerKey ~= prevServerKey or lib.ServerKeyDisplay ~= prevServerKeyDisplay then
+			prevServerKey, prevServerKeyDisplay = lib.ServerKey, lib.ServerKeyDisplay
+			AucAdvanced.SendProcessorMessage("serverkey", prevServerKey, prevServerKeyDisplay)
+			-- AucAdvanced.Print("Auctioneer is using serverKey "..lib.ServerKey.." ("..lib.ServerKeyDisplay.." in tooltips)") -- ### debug
+		end
+	end
 end
 
 --[[ Event handlers and other entry points ]]--
@@ -115,11 +163,13 @@ local function OnEvent(self, event, ...)
 	if event == "AUCTION_HOUSE_SHOW" then
 		lib.AuctionHouseOpen = true
 		AucAdvanced.Scan.LoadScanData()
+		UpdateZoneFaction(true) -- may change ServerKeyDisplay
 		AucAdvanced.SendProcessorMessage("auctionopen")
 	elseif event == "AUCTION_HOUSE_CLOSED" then
 		-- AUCTION_HOUSE_CLOSED usually fires twice; only send message for the first one
 		if lib.AuctionHouseOpen then
 			lib.AuctionHouseOpen = false
+			UpdateZoneFaction(true) -- may change ServerKeyDisplay
 			AucAdvanced.SendProcessorMessage("auctionclose")
 		end
 	elseif event == "MAIL_SHOW" then
@@ -131,11 +181,19 @@ local function OnEvent(self, event, ...)
 			lib.MailboxOpen = false
 			AucAdvanced.SendProcessorMessage("mailclose")
 		end
-	elseif event == "NEUTRAL_FACTION_SELECT_RESULT" then
-		-- triggered when a neutral Pandaren character chooses a Faction
-		OnFactionSelect()
+	elseif event == "ZONE_CHANGED" or event == "ZONE_CHANGED_INDOORS" or event =="ZONE_CHANGED_NEW_AREA" then
+		-- do we really need all three events?
+		UpdateZoneFaction()
 	end
 end
+
+coremodule.Processors = {
+	configchanged = function(callbackType, fullsetting, value, subsetting, modulename, base)
+		if fullsetting == "core.tooltip.alwayshomefaction" or base == "profile" then
+			UpdateZoneFaction(true) -- may change ServerKeyDisplay
+		end
+	end,
+}
 
 -- Activate: called by CoreMain near the end of the load process
 -- (expected to be during PLAYER_ENTERING_WORLD or later)
@@ -150,25 +208,26 @@ internalResources.Activate = function()
 	EventFrame:RegisterEvent("AUCTION_HOUSE_CLOSED")
 	EventFrame:RegisterEvent("MAIL_SHOW")
 	EventFrame:RegisterEvent("MAIL_CLOSED")
+	EventFrame:RegisterEvent("ZONE_CHANGED")
+	EventFrame:RegisterEvent("ZONE_CHANGED_INDOORS")
+	EventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 
-	-- Set faction info
-	if SetFaction then
-		SetFaction()
-	end
-	if SetFaction then
-		-- player is Neutral faction; register to detect when they choose a faction
-		EventFrame:RegisterEvent("NEUTRAL_FACTION_SELECT_RESULT")
-	else
-		OnFactionSelect = nil
-	end
+	-- Faction resources are handled by both CoreResources and CoreServers
+	-- Must be initialized in the correct order
+	InitFaction() -- set PlayerFaction, OpposingFaction
+	internal.Servers.InitFaction() -- set serverKeys ServerKeyHome, ServerKeyOpposing, ServerKeyNeutral
+	internal.Servers.InitServers()
+	UpdateZoneFaction() -- set map zone info and flag according to Neutral AH zones;
+					-- also calls UpdateCurrentServerKey to update ServerKey and ServerKeyDisplay
+					-- sends initial "serverkey" processor message
 end
 
 -- SetResource: permits other Core files to set a resource
 -- Other Cores/Modules must never modify AucAdvanced.Resources directly (or I may make it a read-only table in future!)
--- CoreServers will set ServerKey and ConnectedRealms resources
+-- CoreServers will set ServerKey resources
 internalResources.SetResource = function(key, value)
 	lib[key] = value
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreResources.lua $", "$Rev: 6430 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreResources.lua $", "$Rev: 6844 $")
 AucAdvanced.CoreFileCheckOut("CoreResources")

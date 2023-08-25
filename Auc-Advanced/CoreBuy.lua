@@ -1,7 +1,7 @@
 --[[
 	Auctioneer
-	Version: 8.2.6430 (SwimmingSeadragon)
-	Revision: $Id: CoreBuy.lua 6430 2019-10-20 00:10:07Z none $
+	Version: 3.4.6844 (SwimmingSeadragon)
+	Revision: $Id: CoreBuy.lua 6844 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -51,6 +51,20 @@ local highlight = "|cffff7f3f"
 
 local ITEMRETRYDELAY = 0.25
 local ITEMRETRYMAX = 10 / ITEMRETRYDELAY
+local PENDING_BID_TIMEOUT_SHORT = 1.5
+local PENDING_BID_TIMEOUT_LONG = 5
+
+local UIKnownErrors = {
+	[ERR_ITEM_NOT_FOUND] = "ERR_ITEM_NOT_FOUND",
+	[ERR_NOT_ENOUGH_MONEY] = "ERR_NOT_ENOUGH_MONEY",
+	[ERR_AUCTION_BID_OWN] = "ERR_AUCTION_BID_OWN",
+	[ERR_AUCTION_HIGHER_BID] = "ERR_AUCTION_HIGHER_BID",
+	[ERR_AUCTION_BID_INCREMENT] = "ERR_AUCTION_BID_INCREMENT",
+	[ERR_AUCTION_MIN_BID] = "ERR_AUCTION_MIN_BID",
+	[ERR_AUCTION_ALREADY_BID] = "ERR_AUCTION_ALREADY_BID",
+	[ERR_ITEM_MAX_COUNT] = "ERR_ITEM_MAX_COUNT",
+}
+
 
 local ErrorText = {
 	NoPrice = "No price provided",
@@ -336,6 +350,25 @@ end
 
 function private.PushSearch()
 	if AucAdvanced.Scan.IsPaused() then return end
+	-- Workaround for Server issues in Classic Wrath 3.4.0 causing Internal Auction Errors
+	-- (Unable to test if this is required for Vanilla Classic; will assume it is needed for now)
+	-- Wait for all bids to resolve before starting next scan
+	if #private.PendingBids > 0 and get("core.buy.waitpending") then
+		local now = GetTime()
+		if private.lastAccepted and now - private.lastAccepted < PENDING_BID_TIMEOUT_SHORT then
+			-- Not enough time since last successful Bid Accepted
+			return
+		end
+		if now - private.PendingBids[1].placebidtime < PENDING_BID_TIMEOUT_SHORT then
+			-- Not enough time since earliest bid placed
+			return
+		end
+		-- Pending Bid #1 has timed out, remove it from PendingBids and wait for next update
+		aucPrint("Auctioneer: Bid timed out")
+		private.removePendingBid()
+		return
+	end
+
 	local request = private.BuyRequests[1]
 	if not request.itemname then -- itemname should have been stored for every request that reaches this point
 		if request.nosearch then -- this request should have been removed earlier, extra check just in case
@@ -354,8 +387,8 @@ function private.PushSearch()
 			end
 			return
 		end
-		if not request.itemname then -- ### extra check, just in case
-			geterrorhandler()("CoreBuy: PushSearch unexpectedly found request with no itemname") -- ### debug
+		if not request.itemname then -- extra check, just in case
+			geterrorhandler()("CoreBuy: PushSearch unexpectedly found request with no itemname")
 			private.QueueRemove(1)
 			return
 		end
@@ -537,7 +570,7 @@ function private.PerformPurchase()
 		aucPrint(highlight.."Cancelling bid: Bid below minimum bid: "..AucAdvanced.Coins(price))
 		private.HidePrompt()
 		return
-	elseif (curBid and curBid > 0 and price < curBid + minIncrement and price < buyout) then -- ### todo: check and fix logic, looks worng here...
+	elseif (curBid and curBid > 0 and price < curBid + minIncrement and price < buyout) then
 		aucPrint(highlight.."Cancelling bid: Already higher bidder")
 		private.HidePrompt()
 		return
@@ -565,6 +598,7 @@ function private.PerformPurchase()
 		-- otherwise BeanCounter will get out of sync and fail to record the reason
 		private.updateFrame:RegisterEvent("CHAT_MSG_SYSTEM")
 	end
+	private.CurRequest.placebidtime = GetTime()
 
 	--get ready for next bid action
 	private.HidePrompt()
@@ -574,20 +608,32 @@ function private.PerformPurchase()
 	lib.ScanPage(index-1)--check the page for any more auctions
 end
 
-function private.removePendingBid()
-	if (#private.PendingBids > 0) then
-		tremove(private.PendingBids, 1)
+-- private.removePendingBid(index)
+-- Remove entry at position 'index' from private.PendingBids table
+-- Default is to remove index 1
+-- Using index -1 will remove the last entry
+function private.removePendingBid(index)
+	local count = #private.PendingBids
+	if count > 0 then
+		if not index then
+			index = 1
+		elseif index < 0 then
+			index = index + count + 1
+		end
+		tremove(private.PendingBids, index)
 
 		--Unregister events if no more bids pending
 		if (#private.PendingBids == 0) then
 			private.updateFrame:UnregisterEvent("CHAT_MSG_SYSTEM")
 			private.updateFrame:UnregisterEvent("UI_ERROR_MESSAGE")
+			private.lastAccepted = nil
 		end
 	end
 end
 
 function private.onBidAccepted()
 	--CallBackString has format "itemlink;seller;count;buyout;price;reason"
+	private.lastAccepted = GetTime()
 	local bid = private.PendingBids[1]
 	local CallBackString = strjoin(";", tostringall(bid.link, bid.sellername, bid.count, bid.buyout, bid.price, bid.reason))
 	AucAdvanced.SendProcessorMessage("bidplaced", CallBackString)
@@ -599,8 +645,60 @@ end
 --purpose is to output to chat the reason for the failure, and then pass the Bid on to private.removePendingBid()
 --The output may duplicate some client output.  If so, those lines need to be removed.
 function private.onBidFailed(message)
-	aucPrint(highlight.."Bid Failed: "..message)
-	private.removePendingBid()
+	aucPrint("Auctioneer: "..highlight.."Bid Failed: "..message)
+	-- We assume any error will occur (almost) immediately, so we remove the most recent Pending Bid
+	private.removePendingBid(-1)
+end
+
+-- CleanupPending functions are used to time-out and remove Pending Bids while the AH is closed
+-- Allows for recovery of the Pending Bid system in case of Pending Bids not being properly removed from the queue
+-- This might occur where we do not receive a recognised response from the server to remove the Pending Bid normally
+function private.onTimerCleanupPending()
+	local continue = false
+	local removedbids = 0
+
+	if not private.stopCleanupPending and #private.PendingBids > 0 then
+		local now = GetTime()
+		if private.lastAccepted and now - private.lastAccepted < PENDING_BID_TIMEOUT_LONG then
+			-- Not enough time since last successful Bid Accepted
+			continue = true
+		else
+			repeat
+				local bid = private.PendingBids[1]
+				if now - bid.placebidtime < PENDING_BID_TIMEOUT_LONG then
+					-- Not enough time since earliest bid placed
+					continue = true
+				else
+					removedbids = removedbids + 1
+					private.removePendingBid()
+				end
+			until continue or not private.PendingBids[1]
+		end
+	end
+
+	if removedbids > 0 then
+		aucPrint(format("Auctioneer: %d |4bid:bids; timed out, %d |4bid:bids; unresolved, %d |4bid:bids; queued", removedbids, #private.PendingBids, #private.BuyRequests))
+	end
+
+	if continue then
+		private.isCleanupPending = true
+		C_Timer.After(1, private.onTimerCleanupPending)
+	else
+		private.isCleanupPending = nil
+		private.stopCleanupPending = nil
+	end
+end
+function private.onCloseCleanupPending()
+	private.stopCleanupPending = nil
+	if #private.PendingBids > 0 and not private.isCleanupPending then
+		private.isCleanupPending = true -- Flag to indicate Timer is running; prevent multiple instances of Timer
+		C_Timer.After(1, private.onTimerCleanupPending)
+	end
+end
+function private.onOpenCleanupPending()
+	if private.isCleanupPending then -- Timer is running
+		private.stopCleanupPending = true -- Stop Timer next time it runs
+	end
 end
 
 --[[ Timer, Event Handler and Message Processor ]]--
@@ -670,13 +768,7 @@ local function OnEvent(frame, event, message, message2)
 		 	private.onBidAccepted()
 		end
 	elseif event == "UI_ERROR_MESSAGE" then
-		if (message2 == ERR_ITEM_NOT_FOUND or
-			message2 == ERR_NOT_ENOUGH_MONEY or
-			message2 == ERR_AUCTION_BID_OWN or
-			message2 == ERR_AUCTION_HIGHER_BID or
-			message2 == ERR_AUCTION_BID_INCREMENT or
-			message2 == ERR_AUCTION_MIN_BID or
-			message2 == ERR_ITEM_MAX_COUNT) then
+		if UIKnownErrors[message2] then
 			private.onBidFailed(message2)
 		end
 	end
@@ -694,6 +786,7 @@ coremodule.Processors = {
 
 	auctionopen = function()
 		private.ActivateEvents()
+		private.onOpenCleanupPending()
 	end,
 
 	auctionclose = function()
@@ -703,6 +796,7 @@ coremodule.Processors = {
 			private.QueueInsert(request, 1)
 		end
 		private.DeactivateEvents()
+		private.onCloseCleanupPending()
 	end,
 }
 
@@ -719,7 +813,7 @@ private.Prompt:SetMovable(true)
 private.Prompt:SetClampedToScreen(true)
 
 --The "graphic" frame and backdrop that we resize. Only thing anchored to it is the item Box
-private.Prompt.Frame = CreateFrame("frame", nil, private.Prompt)
+private.Prompt.Frame = CreateFrame("frame", nil, private.Prompt, BackdropTemplateMixin and "BackdropTemplate")
 private.Prompt.Frame:SetPoint("CENTER",private.Prompt, "CENTER" )
 private.Prompt.Frame:SetFrameLevel(private.Prompt:GetFrameLevel() - 1) -- lower level than parent (backdrop)
 private.Prompt.Frame:SetHeight(120)
@@ -826,5 +920,5 @@ private.Prompt.DragBottom:SetHighlightTexture("Interface\\FriendsFrame\\UI-Frien
 private.Prompt.DragBottom:SetScript("OnMouseDown", DragStart)
 private.Prompt.DragBottom:SetScript("OnMouseUp", DragStop)
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreBuy.lua $", "$Rev: 6430 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreBuy.lua $", "$Rev: 6844 $")
 AucAdvanced.CoreFileCheckOut("CoreBuy")

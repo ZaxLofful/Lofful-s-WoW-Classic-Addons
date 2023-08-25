@@ -1,7 +1,7 @@
 --[[
 	Enchantrix Addon for World of Warcraft(tm).
-	Version: 8.2.6428 (SwimmingSeadragon)
-	Revision: $Id: EnxSettings.lua 6428 2019-10-20 00:10:07Z none $
+	Version: 3.4.6849 (SwimmingSeadragon)
+	Revision: $Id: EnxSettings.lua 6849 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	Settings GUI
@@ -63,7 +63,7 @@ Usage:
 
 ]]
 
-Enchantrix_RegisterRevision("$URL: Enchantrix/EnxSettings.lua $", "$Rev: 6428 $")
+Enchantrix_RegisterRevision("$URL: Enchantrix/EnxSettings.lua $", "$Rev: 6849 $")
 
 local lib = {}
 Enchantrix.Settings = lib
@@ -587,7 +587,7 @@ function lib.MakeGuiConfig()
 	gui:AddControl(id, "Button",     0, 1, "autode.reset", "reset all items")
 
 
-if (not constants.Classic) then
+if (not constants.Classic or constants.Classic >= 2) then          -- added in BC
 	id = gui:AddTab(_ENCH("GuiTabProspecting"))
 	gui:AddControl(id, "Header",     0,    _ENCH("GuiProspectingOptions"))
 	gui:AddControl(id, "Checkbox",   0, 1, "TooltipShowProspecting", _ENCH("GuiShowProspecting") )
@@ -606,7 +606,9 @@ if (not constants.Classic) then
 		end
 	end
 	gui:AddControl(id, "Checkbox",   0, 2, "TooltipProspectShowBaselineValue", _ENCH("GuiValueShowBaseline"))
+end
 
+if (not constants.Classic or constants.Classic >= 3) then          -- added in LK
 	id = gui:AddTab(_ENCH("GuiTabMilling"))
 	gui:AddControl(id, "Header",     0,    _ENCH("GuiMillingOptions"))
 	gui:AddControl(id, "Checkbox",   0, 1, "TooltipShowMilling", _ENCH("GuiShowMilling") )

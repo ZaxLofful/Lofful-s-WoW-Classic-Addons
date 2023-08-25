@@ -5,7 +5,7 @@
 
 local L = LibStub("AceLocale-3.0"):GetLocale("NovaInstanceTracker");
 local maxRecordsKept = 300;
-local maxTradesKept = 3000;
+local maxTradesKept = 1000;
 NIT.maxRecordsShown = 300;
 
 NIT.options = {
@@ -21,20 +21,77 @@ NIT.options = {
 		},
 		authorText = {
 			type = "description",
-			name = "|TInterface\\AddOns\\NovaInstanceTracker\\Media\\nitLogo32:32:32:0:20|t |cFF9CD6DEby Novaspark-Arugal",
+			name = "|TInterface\\AddOns\\NovaInstanceTracker\\Media\\nitLogo32:32:32:0:20|t |cFF9CD6DEby Novaspark-Arugal|r  |cFF00C800-|r  |cFFFFFF00For help or suggestions discord.gg/RTKMfTmkdj|r",
 			fontSize = "medium",
 			order = 2,
+		},
+		resetAllInstances = {
+			type = "execute",
+			name = L["resetAllInstancesTitle"];
+			desc = L["resetAllInstancesDesc"],
+			func = function()
+				NIT:resetAllInstances();
+			end,
+			order = 3,
+			confirm = function()
+				return "|cFFFFFF00" .. L["resetAllInstancesConfirm"];
+			end,
+		},
+		autoDialogue = {
+			type = "header",
+			name = L["autoDialogueDesc"],
+			order = 4,
+		},
+		autoSlavePens = {
+			type = "toggle",
+			name = L["autoSlavePensTitle"],
+			desc = L["autoSlavePensDesc"],
+			order = 5,
+			get = "getAutoSlavePens",
+			set = "setAutoSlavePens",
+		},
+		autoCavernsFlight = {
+			type = "toggle",
+			name = L["autoCavernsFlightTitle"],
+			desc = L["autoCavernsFlightDesc"],
+			order = 6,
+			get = "getAutoCavernsFlight",
+			set = "setAutoCavernsFlight",
+		},
+		autoCavernsArthas = {
+			type = "toggle",
+			name = L["autoCavernsArthasTitle"],
+			desc = L["autoCavernsArthasDesc"],
+			order = 7,
+			get = "getAutoCavernsArthas",
+			set = "setAutoCavernsArthas",
+		},
+		autoBlackMorass = {
+			type = "toggle",
+			name = L["autoBlackMorassTitle"],
+			desc = L["autoBlackMorassDesc"],
+			order = 8,
+			get = "getAutoBlackMorass",
+			set = "setAutoBlackMorass",
+		},
+		autoSfkDoor = {
+			type = "toggle",
+			name = L["autoSfkDoorTitle"],
+			desc = L["autoSfkDoorDesc"],
+			order = 9,
+			get = "getAutoSfkDoor",
+			set = "setAutoSfkDoor",
 		},
 		colorsHeader = {
 			type = "header",
 			name = L["colorsHeaderDesc"],
-			order = 4,
+			order = 10,
 		},
 		chatColor = {
 			type = "color",
 			name = L["chatColorTitle"],
 			desc = L["chatColorDesc"],
-			order = 5,
+			order = 11,
 			get = "getChatColor",
 			set = "setChatColor",
 			hasAlpha = false,
@@ -43,7 +100,7 @@ NIT.options = {
 			type = "color",
 			name = L["mergeColorTitle"],
 			desc = L["mergeColorDesc"],
-			order = 6,
+			order = 15,
 			get = "getMergeColor",
 			--get = function()
 			--	return 0, 255, 0;
@@ -56,26 +113,50 @@ NIT.options = {
 			name = L["resetColorsTitle"],
 			desc = L["resetColorsDesc"],
 			func = "resetColors",
-			order = 7,
+			order = 16,
 		},
 		generalHeader = {
 			type = "header",
 			name = L["generalHeaderDesc"],
-			order = 10,
+			order = 17,
 		},
 		enteredMsg = {
 			type = "toggle",
 			name = L["enteredMsgTitle"],
 			desc = L["enteredMsgDesc"],
-			order = 11,
+			order = 18,
 			get = "getEnteredMsg",
 			set = "setEnteredMsg",
+		},
+		raidEnteredMsg = {
+			type = "toggle",
+			name = L["raidEnteredMsgTitle"],
+			desc = L["raidEnteredMsgDesc"],
+			order = 19,
+			get = "getRaidEnteredMsg",
+			set = "setRaidEnteredMsg",
+		},
+		pvpEnteredMsg = {
+			type = "toggle",
+			name = L["pvpEnteredMsgTitle"],
+			desc = L["pvpEnteredMsgDesc"],
+			order = 20,
+			get = "getPvpEnteredMsg",
+			set = "setPvpEnteredMsg",
+		},
+		noRaidInstanceMergeMsg = {
+			type = "toggle",
+			name = L["noRaidInstanceMergeMsgTitle"],
+			desc = L["noRaidInstanceMergeMsgDesc"],
+			order = 21,
+			get = "getNoRaidInstanceMergeMsg",
+			set = "setNoRaidInstanceMergeMsg",
 		},
 		instanceResetMsg = {
 			type = "toggle",
 			name = L["instanceResetMsgTitle"],
 			desc = L["instanceResetMsgDesc"],
-			order = 12,
+			order = 22,
 			get = "getInstanceResetMsg",
 			set = "setInstanceResetMsg",
 		},
@@ -83,7 +164,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["minimapButtonTitle"],
 			desc = L["minimapButtonDesc"],
-			order = 13,
+			order = 23,
 			get = "getMinimapButton",
 			set = "setMinimapButton",
 		},
@@ -91,7 +172,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["ignore40ManTitle"],
 			desc = L["ignore40ManDesc"],
-			order = 22,
+			order = 18,
 			get = "getIgnore40Man",
 			set = "setIgnore40Man",
 		},]]
@@ -99,7 +180,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["showMoneyTradedChatTitle"],
 			desc = L["showMoneyTradedChatDesc"],
-			order = 23,
+			order = 24,
 			get = "getShowMoneyTradedChat",
 			set = "setShowMoneyTradedChat",
 		},
@@ -115,7 +196,7 @@ NIT.options = {
 				[1] = 12,
 				[2] = 24,
 			},
-			order = 24,
+			order = 25,
 			get = "getTimeStampFormat",
 			set = "setTimeStampFormat",
 		},
@@ -131,7 +212,7 @@ NIT.options = {
 				[1] = "local",
 				[2] = "server",
 			},
-			order = 25,
+			order = 26,
 			get = "getTimeStampZone",
 			set = "setTimeStampZone",
 		},
@@ -139,7 +220,7 @@ NIT.options = {
 			type = "range",
 			name = L["instanceWindowWidthTitle"],
 			desc = L["instanceWindowWidthDesc"],
-			order = 26,
+			order = 27,
 			get = "getInstanceWindowWidth",
 			set = "setInstanceWindowWidth",
 			min = 575,
@@ -153,7 +234,7 @@ NIT.options = {
 			type = "range",
 			name = L["instanceWindowHeightTitle"],
 			desc = L["instanceWindowHeightDesc"],
-			order = 27,
+			order = 28,
 			get = "getInstanceWindowHeight",
 			set = "setInstanceWindowHeight",
 			min = 150,
@@ -167,7 +248,7 @@ NIT.options = {
 			type = "range",
 			name = L["charsWindowWidthTitle"],
 			desc = L["charsWindowWidthDesc"],
-			order = 28,
+			order = 29,
 			get = "getCharsWindowWidth",
 			set = "setCharsWindowWidth",
 			min = 350,
@@ -181,7 +262,7 @@ NIT.options = {
 			type = "range",
 			name = L["charsWindowHeightTitle"],
 			desc = L["charsWindowHeightDesc"],
-			order = 29,
+			order = 30,
 			get = "getCharsWindowHeight",
 			set = "setCharsWindowHeight",
 			min = 150,
@@ -195,7 +276,7 @@ NIT.options = {
 			type = "range",
 			name = L["tradeWindowWidthTitle"],
 			desc = L["tradeWindowWidthDesc"],
-			order = 30,
+			order = 31,
 			get = "getTradeWindowWidth",
 			set = "setTradeWindowWidth",
 			min = 350,
@@ -209,7 +290,7 @@ NIT.options = {
 			type = "range",
 			name = L["tradeWindowHeightTitle"],
 			desc = L["tradeWindowHeightDesc"],
-			order = 31,
+			order = 32,
 			get = "getTradeWindowHeight",
 			set = "setTradeWindowHeight",
 			min = 150,
@@ -224,13 +305,13 @@ NIT.options = {
 			name = L["resetFramesTitle"],
 			desc = L["resetFramesDesc"],
 			func = "resetFrames",
-			order = 32,
+			order = 33,
 		},
 		detectSameInstance = {
 			type = "toggle",
 			name = L["detectSameInstanceTitle"],
 			desc = L["detectSameInstanceDesc"],
-			order = 33,
+			order = 34,
 			get = "getDetectSameInstance",
 			set = "setDetectSameInstance",
 		},
@@ -361,11 +442,19 @@ NIT.options = {
 			get = "getInstanceStatsOutputXP",
 			set = "setInstanceStatsOutputXP",
 		},
+		instanceStatsOutputXpPerHour = {
+			type = "toggle",
+			name = L["instanceStatsOutputXpPerHourTitle"],
+			desc = L["instanceStatsOutputXpPerHourDesc"],
+			order = 77,
+			get = "getInstanceStatsOutputXpPerHour",
+			set = "setInstanceStatsOutputXpPerHour",
+		},
 		instanceStatsOutputAverageXP = {
 			type = "toggle",
 			name = L["instanceStatsOutputAverageXPTitle"],
 			desc = L["instanceStatsOutputAverageXPDesc"],
-			order = 77,
+			order = 78,
 			get = "getInstanceStatsOutputAverageXP",
 			set = "setInstanceStatsOutputAverageXP",
 		},
@@ -373,7 +462,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputTimeTitle"],
 			desc = L["instanceStatsOutputTimeDesc"],
-			order = 78,
+			order = 79,
 			get = "getInstanceStatsOutputTime",
 			set = "setInstanceStatsOutputTime",
 		},
@@ -381,7 +470,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputGoldTitle"],
 			desc = L["instanceStatsOutputGoldDesc"],
-			order = 79,
+			order = 80,
 			get = "getInstanceStatsOutputGold",
 			set = "setInstanceStatsOutputGold",
 		},
@@ -389,7 +478,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputAverageGroupLevelTitle"],
 			desc = L["instanceStatsOutputAverageGroupLevelDesc"],
-			order = 80,
+			order = 81,
 			get = "getInstanceStatsOutputAverageGroupLevel",
 			set = "setInstanceStatsOutputAverageGroupLevel",
 		},
@@ -397,7 +486,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["showStatsInRaidTitle"],
 			desc = L["showStatsInRaidDesc"],
-			order = 81,
+			order = 82,
 			get = "getShowStatsInRaid",
 			set = "setShowStatsInRaid",
 		},
@@ -405,7 +494,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["printRaidInsteadTitle"],
 			desc = L["printRaidInsteadDesc"],
-			order = 82,
+			order = 83,
 			get = "getPrintRaidInstead",
 			set = "setPrintRaidInstead",
 		},
@@ -413,7 +502,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["statsOnlyWhenActivityTitle"],
 			desc = L["statsOnlyWhenActivityDesc"],
-			order = 83,
+			order = 84,
 			get = "getStatsOnlyWhenActivity",
 			set = "setStatsOnlyWhenActivity",
 		},
@@ -421,7 +510,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputRunsPerLevelTitle"],
 			desc = L["instanceStatsOutputRunsPerLevelDesc"],
-			order = 84,
+			order = 85,
 			get = "getInstanceStatsOutputRunsPerLevel",
 			set = "setInstanceStatsOutputRunsPerLevel",
 		},
@@ -429,7 +518,7 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputRunsNextLevelTitle"],
 			desc = L["instanceStatsOutputRunsNextLevelDesc"],
-			order = 85,
+			order = 86,
 			get = "getInstanceStatsOutputRunsNextLevel",
 			set = "setInstanceStatsOutputRunsNextLevel",
 		},
@@ -437,9 +526,17 @@ NIT.options = {
 			type = "toggle",
 			name = L["instanceStatsOutputRepTitle"],
 			desc = L["instanceStatsOutputRepDesc"],
-			order = 86,
+			order = 87,
 			get = "getInstanceStatsOutputRep",
 			set = "setInstanceStatsOutputRep",
+		},
+		instanceStatsOutputHK = {
+			type = "toggle",
+			name = L["instanceStatsOutputHKTitle"],
+			desc = L["instanceStatsOutputHKDesc"],
+			order = 88,
+			get = "getInstanceStatsOutputHK",
+			set = "setInstanceStatsOutputHK",
 		},
 		trimDataHeader = {
 			type = "header",
@@ -541,8 +638,10 @@ NIT.optionDefaults = {
 		showLockoutTime = true,
 		maxRecordsKept = maxRecordsKept,
 		maxTradesKept = maxTradesKept,
-		instanceResetMsg = true;
-		enteredMsg = true;
+		instanceResetMsg = true,
+		enteredMsg = true,
+		raidEnteredMsg = false,
+		pvpEnteredMsg = true,
 		timeStampFormat = 12,
 		timeStampZone = "local",
 		ignore40Man = false,
@@ -554,6 +653,8 @@ NIT.optionDefaults = {
 		instanceStatsOutputGold = true,
 		instanceStatsOutputAverageGroupLevel = false,
 		instanceStatsOutputRep = true,
+		instanceStatsOutputHK = true,
+		instanceStatsOutputXpPerHour = true,
 		lastVersionMsg = 0,
 		moneyString = "textures",
 		instanceStatsOutput = true,
@@ -566,8 +667,6 @@ NIT.optionDefaults = {
 		printRaidInstead = true,
 		statsOnlyWhenActivity = false,
 		show24HourOnly = false,
-		autoSfkDoor = true,
-		autoSlavePens = true,
 		trimDataBelowLevel = 1,
 		instanceStatsOutputRunsPerLevel = true,
 		instanceStatsOutputRunsNextLevel = false,
@@ -581,9 +680,22 @@ NIT.optionDefaults = {
 		copyTradeZone = true,
 		copyTradeTimeAgo = true,
 		copyTradeRecords = 100;
+		charsMinLevel = 1,
+		autoSfkDoor = true,
+		autoSlavePens = true,
+		autoBlackMorass = true,
+		autoCavernsFlight = true,
+		autoCavernsArthas = true,
+		showPvpLog = true,
+		showPveLog = true,
+		noRaidInstanceMergeMsg = true,
 		resetCharData = true, --Reset one time to delete data before alt UI stuff was added.
 	},
 };
+
+if (NIT.isRetail) then
+	NIT.optionDefaults.global.instanceWindowWidth = 650;
+end
 
 --5 per hour and 30 per day lockouts are character specific.
 function NIT:buildDatabase()
@@ -673,6 +785,30 @@ end
 
 function NIT:getEnteredMsg(info)
 	return self.db.global.enteredMsg;
+end
+
+function NIT:setRaidEnteredMsg(info, value)
+	self.db.global.raidEnteredMsg = value;
+end
+
+function NIT:getRaidEnteredMsg(info)
+	return self.db.global.raidEnteredMsg;
+end
+
+function NIT:setPvpEnteredMsg(info, value)
+	self.db.global.pvpEnteredMsg = value;
+end
+
+function NIT:getPvpEnteredMsg(info)
+	return self.db.global.pvpEnteredMsg;
+end
+
+function NIT:setNoRaidInstanceMergeMsg(info, value)
+	self.db.global.noRaidInstanceMergeMsg = value;
+end
+
+function NIT:getNoRaidInstanceMergeMsg(info)
+	return self.db.global.noRaidInstanceMergeMsg;
 end
 
 --Chat color.
@@ -804,6 +940,15 @@ function NIT:getInstanceStatsOutputXP(info)
 	return self.db.global.instanceStatsOutputXP;
 end
 
+--XP per hour stats output when exiting dungeon.
+function NIT:setInstanceStatsOutputXpPerHour(info, value)
+	self.db.global.instanceStatsOutputXpPerHour = value;
+end
+
+function NIT:getInstanceStatsOutputXpPerHour(info)
+	return self.db.global.instanceStatsOutputXpPerHour;
+end
+
 --Average XP stats output when exiting dungeon.
 function NIT:setInstanceStatsOutputAverageXP(info, value)
 	self.db.global.instanceStatsOutputAverageXP = value;
@@ -912,6 +1057,15 @@ function NIT:getInstanceStatsOutputRep(info)
 	return self.db.global.instanceStatsOutputRep;
 end
 
+--Honor kills stats output when exiting bg.
+function NIT:setInstanceStatsOutputHK(info, value)
+	self.db.global.instanceStatsOutputHK = value;
+end
+
+function NIT:getInstanceStatsOutputHK(info)
+	return self.db.global.instanceStatsOutputHK;
+end
+
 --Instance window dimensions.
 function NIT:setInstanceWindowWidth(info, value)
 	self.db.global.instanceWindowWidth = value;
@@ -1001,4 +1155,49 @@ function NIT:resetFrames()
 	_G["NITTradeCopyFrame"]:ClearAllPoints();
 	_G["NITTradeCopyFrame"]:SetPoint("CENTER", UIParent, -70, 150);
 	NIT:print(L["resetFramesMsg"]);
+end
+
+--Auto dialogue slave pens.
+function NIT:setAutoSlavePens(info, value)
+	self.db.global.autoSlavePens = value;
+end
+
+function NIT:getAutoSlavePens(info)
+	return self.db.global.autoSlavePens;
+end
+
+--Auto dialogue caverns flight.
+function NIT:setAutoCavernsFlight(info, value)
+	self.db.global.autoCavernsFlight = value;
+end
+
+function NIT:getAutoCavernsFlight(info)
+	return self.db.global.autoCavernsFlight;
+end
+
+--Auto dialogue caverns arthas.
+function NIT:setAutoCavernsArthas(info, value)
+	self.db.global.autoCavernsArthas = value;
+end
+
+function NIT:getAutoCavernsArthas(info)
+	return self.db.global.autoCavernsArthas;
+end
+
+--Auto dialogue black morass.
+function NIT:setAutoBlackMorass(info, value)
+	self.db.global.autoBlackMorass = value;
+end
+
+function NIT:getAutoBlackMorass(info)
+	return self.db.global.autoBlackMorass;
+end
+
+--Auto dialogue sfk door.
+function NIT:setAutoSfkDoor(info, value)
+	self.db.global.autoSfkDoor = value;
+end
+
+function NIT:getAutoSfkDoor(info)
+	return self.db.global.autoSfkDoor;
 end

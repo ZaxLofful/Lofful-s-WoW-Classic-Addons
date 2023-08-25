@@ -4,8 +4,8 @@
 	http://localizer.norganna.org/
 
 	AddOn: Auctioneer
-	Revision: $Id: CoreStrings.lua 6430 2019-10-20 00:10:07Z none $
-	Version: 8.2.6430 (SwimmingSeadragon)
+	Revision: $Id: CoreStrings.lua 6844 2022-10-27 00:00:09Z none $
+	Version: 3.4.6844 (SwimmingSeadragon)
 
 	License:
 		This program is free software; you can redistribute it and/or

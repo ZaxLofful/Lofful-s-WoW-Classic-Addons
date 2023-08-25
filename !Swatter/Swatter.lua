@@ -1,7 +1,7 @@
 --[[
 	Swatter - An AddOn debugging aid for World of Warcraft.
-	Version: 8.2.6377 (SwimmingSeadragon)
-	Revision: $Id: Swatter.lua 6377 2019-10-20 00:10:07Z none $
+	Version: 3.4.6837 (SwimmingSeadragon)
+	Revision: $Id: Swatter.lua 6837 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/dl/Swatter/
 	Copyright (C) 2006 Norganna
 
@@ -45,9 +45,9 @@ Swatter = {
 	HISTORY_SIZE = 100,
 }
 
-Swatter.Version="8.2.6377"
+Swatter.Version="3.4.6837"
 if (Swatter.Version == "<%".."version%>") then
-	Swatter.Version = "6.0.DEV"
+	Swatter.Version = "10.0.DEV"
 end
 SWATTER_VERSION = Swatter.Version
 
@@ -79,7 +79,7 @@ hooksecurefunc("SetAddOnDetail", addOnDetail)
 
 -- End SetAddOnDetail function hook.
 
-LibStub("LibRevision"):Set("$URL: !Swatter/Swatter.lua $","$Rev: 6377 $","6.0.DEV.", 'auctioneer', 'libs')
+LibStub("LibRevision"):Set("$URL: !Swatter/Swatter.lua $","$Rev: 6837 $","6.0.DEV.", 'auctioneer', 'libs')
 
 local function toggle()
 	if Swatter.Error:IsVisible() then
@@ -503,6 +503,8 @@ function Swatter.ErrorDisplay(id)
 	local context = err.context or "Anonymous"
 	local trace = err.stack or "Unavailable"
 	local locals = err.locals or "None"
+	-- Double-escape any pipe characters in locals, otherwise EditBox:SetText will treat them as escape codes
+	locals = locals:gsub('|', '||')
 
 	local message = err.message:gsub("(.-):(%d+): ", "%1 line %2:\n   "):gsub("Interface(\\%w+\\)", "..%1"):gsub(": in function `(.-)`", ": %1"):gsub("|", "||"):gsub("{{{", "|cffff8855"):gsub("}}}", "|r")
 	--Hide users account name if it is a saved variable related error
@@ -566,7 +568,7 @@ function Swatter.ErrorClicked()
 end
 
 -- Create our error message frame
-Swatter.Error = CreateFrame("Frame", "SwatterErrorFrame", UIParent)
+Swatter.Error = CreateFrame("Frame", "SwatterErrorFrame", UIParent, BackdropTemplateMixin and "BackdropTemplate")
 Swatter.Error:Hide()
 Swatter.Error:SetPoint("CENTER", "UIParent", "CENTER")
 Swatter.Error:SetFrameStrata("TOOLTIP")
@@ -633,19 +635,25 @@ Swatter.Drag:SetHighlightTexture("Interface\\FriendsFrame\\UI-FriendsFrame-Highl
 Swatter.Drag:SetScript("OnMouseDown", function() Swatter.Error:StartMoving() end)
 Swatter.Drag:SetScript("OnMouseUp", function() Swatter.Error:StopMovingOrSizing() end)
 
-Swatter.Error.Done = CreateFrame("Button", "", Swatter.Error, "OptionsButtonTemplate")
+Swatter.Error.Done = CreateFrame("Button", "", Swatter.Error, "UIPanelButtonTemplate")
+Swatter.Error.Done:SetWidth(90)
+Swatter.Error.Done:SetHeight(21)
 Swatter.Error.Done:SetText("Close")
 Swatter.Error.Done:SetPoint("BOTTOMRIGHT", Swatter.Error, "BOTTOMRIGHT", -10, 10)
 Swatter.Error.Done:SetScript("OnClick", Swatter.ErrorDone)
 Swatter.Error.Done:SetFrameLevel(5)
 
-Swatter.Error.Next = CreateFrame("Button", "", Swatter.Error, "OptionsButtonTemplate")
+Swatter.Error.Next = CreateFrame("Button", "", Swatter.Error, "UIPanelButtonTemplate")
+Swatter.Error.Next:SetWidth(90)
+Swatter.Error.Next:SetHeight(21)
 Swatter.Error.Next:SetText("Next >")
 Swatter.Error.Next:SetPoint("BOTTOMRIGHT", Swatter.Error.Done, "BOTTOMLEFT", -5, 0)
 Swatter.Error.Next:SetScript("OnClick", Swatter.ErrorNext)
 Swatter.Error.Next:SetFrameLevel(5)
 
-Swatter.Error.Prev = CreateFrame("Button", "", Swatter.Error, "OptionsButtonTemplate")
+Swatter.Error.Prev = CreateFrame("Button", "", Swatter.Error, "UIPanelButtonTemplate")
+Swatter.Error.Prev:SetWidth(90)
+Swatter.Error.Prev:SetHeight(21)
 Swatter.Error.Prev:SetText("< Prev")
 Swatter.Error.Prev:SetPoint("BOTTOMRIGHT", Swatter.Error.Next, "BOTTOMLEFT", -5, 0)
 Swatter.Error.Prev:SetScript("OnClick", Swatter.ErrorPrev)

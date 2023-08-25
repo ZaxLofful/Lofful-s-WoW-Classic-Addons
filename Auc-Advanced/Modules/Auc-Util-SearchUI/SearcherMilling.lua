@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Search UI - Searcher Milling
-	Version: 8.2.6464 (SwimmingSeadragon)
-	Revision: $Id: SearcherMilling.lua 6464 2019-10-20 00:10:07Z none $
+	Version: 3.4.6829 (SwimmingSeadragon)
+	Revision: $Id: SearcherMilling.lua 6829 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is a plugin module for the SearchUI that assists in searching by refined paramaters
@@ -35,15 +35,7 @@ if not AucSearchUI then return end
 
 
 -- need to know early if we're using Classic or Modern version
-local MINIMUM_CLASSIC = 11300
-local MAXIMUM_CLASSIC = 19999
--- version, build, date, tocversion = GetBuildInfo()
-local _,_,_,tocVersion = GetBuildInfo()
-local isClassic = (tocVersion > MINIMUM_CLASSIC and tocVersion < MAXIMUM_CLASSIC)
-
--- milling does not exist in Classic, but AucAdvanced.Const.Classic isn't initialized yet
-if isClassic then return end
-
+if AucAdvanced.Classic and AucAdvanced.Classic < 3 then return end
 
 -- Create a new instance of our lib with our parent
 local lib, parent, private = AucSearchUI.NewSearcher("Milling")
@@ -60,7 +52,7 @@ default("milling.level.min", 0)
 default("milling.level.max", Const.MAXSKILLLEVEL)
 default("milling.adjust.brokerage", true)
 default("milling.adjust.deposit", true)
-default("milling.adjust.deplength", 48)
+default("milling.adjust.deplength", resources.defaultAuctionLength)
 default("milling.adjust.listings", 3)
 default("milling.allow.bid", true)
 default("milling.allow.buy", true)
@@ -189,8 +181,8 @@ function lib.Search(item)
 
 		-- calculate deposit for each result
 		if includeDeposit then
-			local aadvdepcost = AucAdvanced.Post.GetDepositCost(result, depositAucLength, stackprice, 0, yield) or 0
-			deposit = deposit + aadvdepcost * depositRelistTimes
+			local aadvdepcost = resources.GetDepositCost(result, depositAucLength, resources.Faction, 1) or 0
+			deposit = deposit + aadvdepcost * depositRelistTimes * yield
 		end
 	end
 
@@ -211,4 +203,4 @@ function lib.Search(item)
 	return false, "Not enough profit"
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearcherMilling.lua $", "$Rev: 6464 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearcherMilling.lua $", "$Rev: 6829 $")

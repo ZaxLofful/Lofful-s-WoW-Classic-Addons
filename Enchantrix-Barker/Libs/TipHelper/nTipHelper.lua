@@ -1,7 +1,7 @@
 --[[
 	Norganna's Tooltip Helper class
 	Version: 1,4
-	Revision: $Id: nTipHelper.lua 6386 2019-10-20 00:10:07Z none $
+	Revision: $Id: nTipHelper.lua 6782 2022-10-27 00:00:09Z none $
 	URL: http://norganna.org/tthelp
 
 	This is a slide-in helper class for the Norganna's AddOns family of AddOns
@@ -48,7 +48,7 @@ local LIBSTRING = MAJOR..":"..MINOR
 
 -- REVISION cannot be a SVN Revison in case this library is used in multiple repositories
 -- Should be updated manually with each (non-trivial) change
-local REVISION = 9
+local REVISION = 10
 
 local lib = LibStub:NewLibrary(LIBSTRING,REVISION)
 if not lib then return end
@@ -85,8 +85,8 @@ do -- tooltip class definition
 	local SILVER="e6e6e6"
 	local COPPER="c8602c"
 
-	local GSC_3 = "|cff%s%d|cff000000.|cff%s%02d|cff000000.|cff%s%02d|r"
-	local GSC_2 = "|cff%s%d|cff000000.|cff%s%02d|r"
+	local GSC_3 = "|cff%s%d|r|cff8f8f8f.|r|cff%s%02d|r|cff8f8f8f.|r|cff%s%02d|r"
+	local GSC_2 = "|cff%s%d|r|cff8f8f8f.|r|cff%s%02d|r"
 	local GSC_1 = "|cff%s%d|r"
 
 	local iconpath = "Interface\\MoneyFrame\\UI-"
@@ -528,4 +528,4 @@ do -- tooltip class definition
 
 end -- tooltip class definition
 
-LibStub("LibRevision"):Set("$URL: Auc-Advanced/Libs/TipHelper/nTipHelper.lua $","$Rev: 6386 $","5.12.DEV.", 'auctioneer', 'libs')
+LibStub("LibRevision"):Set("$URL: Auc-Advanced/Libs/TipHelper/nTipHelper.lua $","$Rev: 6782 $","5.12.DEV.", 'auctioneer', 'libs')

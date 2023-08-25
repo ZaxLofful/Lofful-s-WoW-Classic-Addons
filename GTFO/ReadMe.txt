@@ -17,6 +17,7 @@ Special thanks:
 		Andyca, and BNSSNB (Traditional Chinese Translations)
 		Phalk and Omukeka (Brazilian Portuguese Translations)
 		Asixandur (Italian Translations)
+		LantisNT (Controller vibration support)
 
 Change Log:
 
@@ -1621,3 +1622,315 @@ Change Log:
 * Updated ToC for WoW Classic 1.13.7
 * Added support and updated ToC for WoW TBC 2.5.1
 * Added SL spells for Sanctum of Domination
+
+4.63.1
+* Updated for patch 9.1
+* Added Shadowlands spells (world)
+* Added SL spells for Sanctum of Domination
+* Added SL spells for Tazavesh, the Veiled Market
+
+4.63.2
+* Added Shadowlands spells (world)
+* Added SL spells for Sanctum of Domination
+
+4.63.3
+* Added Shadowlands spells (world)
+* Added SL spells for Sanctum of Domination
+
+4.63.4
+* Added Shadowlands spells (world)
+* Added SL spells for Sanctum of Domination
+* Added Burning Crusade spells for Hellfire Ramparts
+* Added Burning Crusade spells for Arcatraz
+
+4.63.5
+* Added SL spells for Tazavesh, the Veiled Market
+
+4.63.6
+* Fixed SL spells for Tazavesh, the Veiled Market
+* Added SL spells for Tazavesh, the Veiled Market
+
+4.63.7
+* Added Shadowlands spells (world)
+* Added SL spells for Torghast
+* Added SL spells for Sanctum of Domination
+
+4.64
+* Don't alert when the player is mind-controlled
+* Fixed SL spells for Sanctum of Domination
+* Added Shadowlands spells (world)
+* Added SL spells for Sanctum of Domination
+* Added SL spells for Torghast
+
+4.64.1
+* Updated ToCs for all versions
+* Added SL spells for Sanctum of Domination
+
+4.64.2
+* Added Generic spells
+
+4.64.3
+* Added Shadowlands spells (world)
+* Added SL spells for Mists of Tirna Scithe
+* Added SL spells for Theater of Pain
+* Added SL spells for Torghast
+* Added SL spells for Sanctum of Domination
+* Added BC spells for Magtheridon's Lair
+* Added BC spells for The Eye
+* Added BC spells for Serpentshrine Cavern
+
+4.65
+* Updated for patch 9.1.5
+* Fixed BC spells for Magtheridon's Lair
+* Added BC spells for The Eye
+* Added BC spells for Serpentshrine Cavern
+* Added BC spells for Sunwell Plateau
+* Added Vanilla spells for Maraudon
+
+4.65.1
+* Updated ToCs using the new naming system
+* Added BC spells for Sunwell Plateau
+
+4.65.2
+* Fixed BC spells for Serpentshrine Cavern
+
+4.65.3
+* Updated ToCs to latest for Vanilla & BC
+* Fixed BC spells for Serpentshrine Cavern
+* Added Shadowlands spells (world)
+* Added SL spells for Sepulcher of the First Ones
+* Added BC spells for Black Temple
+
+4.65.4
+* Updated for patch 9.2
+* Added SL spells for Sepulcher of the First Ones
+* Added BC spells for Black Temple
+
+4.66
+* Added controller vibration support - Thanks LantisNT
+* Added support for custom sounds by Blizzard Sound ID #
+* Added Shadowlands spells (world)
+* Added BC spells for Black Temple
+
+4.66.1
+* Added Shadowlands spells (world)
+* Added SL spells for Sepulcher of the First Ones
+
+4.66.2
+* Added Shadowlands spells (world)
+* Added SL spells for Sepulcher of the First Ones
+
+4.66.3
+* Added Shadowlands spells (world)
+* Added SL spells for Sepulcher of the First Ones
+
+4.66.4
+* Added Shadowlands spells (world)
+* Added SL spells for Sepulcher of the First Ones
+* Fixed BC spells for Black Temple
+
+4.66.5
+* Added Shadowlands spells (world)
+* Added SL spells for Sepulcher of the First Ones
+* Added SL spells for Torghast
+* Added Cataclysm spells for Zul'Aman
+
+4.66.6
+* Fixed BC ToC
+
+4.67
+* Updated for patch 9.2.5
+* Added support for targeting specific Mythic+ key thresholds
+* Added Shadowlands spells (world)
+* Added SL spells for De Other Side
+
+4.67.1
+* Added Shadowlands spells (world)
+* Added SL spells for Torghast
+* Added Legion spells for Return to Karazhan
+* Added WoD spells for Draenor (world)
+
+4.67.2
+* Added SL spells for Sepulcher of the First Ones
+* Added SL spells for Torghast
+* Added WoD spells for Iron Docks
+* Added WoD spells for Grimrail Depot
+
+4.68
+* Wrath Classic support
+* Dragonflight support (initial)
+
+4.69
+* Dragonflight support (Interface)
+* Added Dragonflight spells (world)
+* Added Wrath spells for Old Kingdom
+* Added Legion spells for Return to Karazhan
+
+4.69.1
+* Updated for patch 10.0
+* Added SL spells for Torghast
+* Added DF spells for Neltharus
+
+4.69.2
+* Updated for patch 10.0.2
+* Added DF spells for Uldaman: Legacy of Tyr
+
+4.69.3
+* Added Dragonflight spells (world)
+
+4.69.4
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Ruby Life Pools
+* Added Dragonflight spells for The Nokhud Offensive
+* Added Dragonflight spells for Halls of Infusion
+* Added Dragonflight spells for Brackenhide Hollow
+
+4.70
+* Fixed an issue that could cause tank detection to fail on some classes after reloading UI
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Ruby Life Pools
+* Added Dragonflight spells for The Nokhud Offensive
+* Added Dragonflight spells for Halls of Infusion
+* Added Dragonflight spells for Algeth'ar Academy
+* Added Dragonflight spells for The Azure Vault
+
+4.70.1
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Neltharus
+* Added Dragonflight spells for Algeth'ar Academy
+* Added Dragonflight spells for Halls of Infusion
+* Added Dragonflight spells for Uldaman: Legacy of Tyr
+* Added Dragonflight spells for Brackenhide Hollow
+* Added Dragonflight spells for The Azure Vault
+
+4.70.2
+* Fixed Dragonflight spells for Uldaman: Legacy of Tyr
+* Fixed Dragonflight spells for Algeth'ar Academy
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Vault of the Incarnates
+* Added Dragonflight spells for Uldaman: Legacy of Tyr
+* Added Dragonflight spells for The Azure Vault
+
+4.70.3
+* Fixed Dragonflight spells for Algeth'ar Academy
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Vault of the Incarnates
+* Added Dragonflight spells for The Nokhud Offensive
+* Added Mists of Pandaria spells for Temple of the Jade Serpent
+
+4.70.4
+* Fixed Dragonflight spells for Vault of the Incarnates
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Vault of the Incarnates
+* Added Mists of Pandaria spells for Temple of the Jade Serpent
+
+4.70.5
+* Fixed Dragonflight spells for Vault of the Incarnates
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Vault of the Incarnates
+
+5.0
+* Native support for custom sounds
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Vault of the Incarnates
+
+5.0.1
+* Added an ignore option for lava pools and campfires
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Vault of the Incarnates
+* Added Dragonflight spells for The Azure Vault
+
+5.0.2
+* Added Dragonflight spells (world)
+* Fixed Dragonflight spells for Vault of the Incarnates
+
+5.0.3
+* Added an option to ignore Icy Ground from Sennarth in Vault of the Incarnates
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Vault of the Incarnates
+* Added WoD spells for Grimrail Depot
+* Added WoD spells for the Everbloom
+* Added Legion spells for Court of Stars
+
+5.0.4
+* Updated Wrath Classic TOC to 3.4.1
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Vault of the Incarnates
+
+5.0.5
+* Updated for patch 10.0.5
+* Added Dragonflight spells (world)
+* Added Wrath spells for Ulduar (thanks Furento)
+* Added Wrath spells (Heroic+) (thanks wazerFPS)
+
+5.0.6
+* Updated for patch 10.0.7
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Vault of the Incarnates
+
+5.1
+* Fixed heroic difficulty check in raids
+* Fixed Dragonflight spells for Vault of the Incarnates
+* Added Dragonflight spells (world)
+
+5.1.1
+* Added Dragonflight spells for Vault of the Incarnates
+* Added Dragonflight spells for Aberrus, the Shadowed Crucible
+
+5.1.2
+* Updated for patch 10.1.0
+* Added WoD spells for Grimrail Depot
+* Added Dragonflight spells for Aberrus, the Shadowed Crucible
+
+5.1.3
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Aberrus, the Shadowed Crucible
+* Added Dragonflight spells for Halls of Infusion (thanks aisenfaire)
+* Fixed Cataclysm spells for Vortex Pinnacle (Dragonflight Mythic+)
+
+5.1.4
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Aberrus, the Shadowed Crucible
+
+5.2
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Aberrus, the Shadowed Crucible
+* Fixed Dragonflight spells for Aberrus, the Shadowed Crucible (thanks astrocamptv)
+* Fixed Dragonflight spells for Brackenhide Hollow
+* Added Dragonflight spells for Vortex Pinnacle
+* Fixed BFA spells for Freehold (thanks aisenfaire)
+* Added BFA spells for The Underrot
+* Added Legion spells for Neltharion's Lair
+
+5.3
+* Added support for custom ignoring spells
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Aberrus, the Shadowed Crucible
+
+5.3.1
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Aberrus, the Shadowed Crucible
+* Added Dragonflight spells for Vortex Pinnacle
+* Added Dragonflight spells for Brackenhide Hollow
+* Fixed BFA spells for The Underrot
+* Added BFA spells for The Underrot
+* Fixed BFA spells for Freehold
+
+5.3.2
+* Added Dragonflight spells (world)
+* Added Dragonflight spells for Aberrus, the Shadowed Crucible
+* Added Dragonflight spells for Vortex Pinnacle
+* Added Dragonflight spells for Halls of Infusion
+* Fixed BFA spells for The Underrot
+* Added Legion spells for Neltharion's Lair
+
+5.3.3
+* Added Dragonflight spells (world)
+* Fixed Wrath spells for Trial of the Grand Crusader (thanks jorvanus)
+
+5.4
+* Fixed UI Settings for Wrath Classic (thanks prokn4h)
+* Fixed UI Settings for Hardcore Classic PTR
+* Added Dragonflight spells for Dawn of the Infinite
+
+

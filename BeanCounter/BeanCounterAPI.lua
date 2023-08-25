@@ -1,7 +1,7 @@
 --[[
 	Auctioneer Addon for World of Warcraft(tm).
-	Version: 8.2.6434 (SwimmingSeadragon)
-	Revision: $Id: BeanCounterAPI.lua 6434 2019-10-20 00:10:07Z none $
+	Version: 3.4.6811 (SwimmingSeadragon)
+	Revision: $Id: BeanCounterAPI.lua 6811 2022-10-27 00:00:09Z none $
 
 	BeanCounterAPI - Functions for other addons to get BeanCounter Data
 	URL: http://auctioneeraddon.com/
@@ -28,7 +28,7 @@
 		since that is it's designated purpose as per:
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 ]]
-LibStub("LibRevision"):Set("$URL: BeanCounter/BeanCounterAPI.lua $","$Rev: 6434 $","5.1.DEV.", 'auctioneer', 'libs')
+LibStub("LibRevision"):Set("$URL: BeanCounter/BeanCounterAPI.lua $","$Rev: 6811 $","5.1.DEV.", 'auctioneer', 'libs')
 
 local lib = BeanCounter
 lib.API = {}

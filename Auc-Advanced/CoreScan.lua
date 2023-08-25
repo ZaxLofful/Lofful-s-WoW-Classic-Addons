@@ -1,7 +1,7 @@
 --[[
 	Auctioneer
-	Version: 8.2.6430 (SwimmingSeadragon)
-	Revision: $Id: CoreScan.lua 6430 2019-10-20 00:10:07Z none $
+	Version: 3.4.6844 (SwimmingSeadragon)
+	Revision: $Id: CoreScan.lua 6844 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -363,11 +363,13 @@ function lib.PushScan()
 		private.curPages = nil
 		private.sentQuery = nil
 		private.isScanning = false
+		private.scanNext = nil
+		private.scanNextPage = nil
 		private.UpdateScanProgress(false, nil, nil, nil, nil, nil, oldquery)
 	end
 end
 
-function lib.PopScan()
+function lib.PopScan(delay)
 	if private.scanStack and #private.scanStack > 0 then
 		local now, pauseTime = GetTime()
 		private.scanStartTime,
@@ -400,7 +402,7 @@ function lib.PopScan()
 		--aucPrint(("Resuming paused scan at page {{%d}}..."):format(private.curQuery.qryinfo.page+1))
 		private.isScanning = true
 		private.sentQuery = false
-		private.ScanPage(private.curQuery.qryinfo.page+1)
+		private.ScanPage(private.curQuery.qryinfo.page+1, delay)
 		private.UpdateScanProgress(true, nil, nil, nil, nil, nil, private.curQuery)
 	end
 end
@@ -420,7 +422,7 @@ function lib.StartScan(name, minUseLevel, maxUseLevel, isUsable, qualityIndex, G
 			message("Scan is currently in progress")
 			return
 		end
-		local CanQuery, CanQueryAll = CanSendAuctionQuery()
+		local CanQuery, CanQueryAll = private.CanSendAuctionQuery()
 		if GetAll then
 			local now = time()
 			if not CanQueryAll then
@@ -867,7 +869,7 @@ function lib.QueryImage(query, serverKey, reserved, ...)
 	end
 	local saneQueryLink
 	if query.link then
-		saneQueryLink = SanitizeLink(query.link)
+		saneQueryLink = AucAdvanced.SanitizeLink(query.link)
 		if not itemId then
 			-- it should be more efficient to extract itemId from the link
 			-- so we can use SubImageCache
@@ -1069,7 +1071,7 @@ local Commitfunction = function()
 	end
 
 	do --[[ *** Stage 1 : pre-process the new scan ]]--
-		lib.ProgressBars("CommitProgressBar", 100*progresscounter/progresstotal, true, "Auctioneer: Processing Stage 1")
+		lib.ProgressBars("CommitProgressBar", 100*progresscounter/progresstotal, true, "Auctioneer: Processing Stage 1 - Initial")
 		coroutine.yield() -- yield here to allow the bar to display, and help the frame rate a little
 		local breakinterval, timeadjust
 		local itemcachedelay -- ### Legion item cache patch
@@ -1103,7 +1105,7 @@ local Commitfunction = function()
 				end
 			end
 			if doYield or debugprofilestop() > nextPause then
-				lib.ProgressBars("CommitProgressBar", 100*progresscounter/progresstotal, true, "Auctioneer: Processing Stage 1")
+				lib.ProgressBars("CommitProgressBar", 100*progresscounter/progresstotal, true, "Auctioneer: Processing Stage 1 - Initial")
 				coroutine.yield()
 				nextPause = debugprofilestop() + processingTime * timeadjust
 				doYield = false
@@ -1150,7 +1152,7 @@ local Commitfunction = function()
 					end
 				end
 				if doYield or debugprofilestop() > nextPause then
-					lib.ProgressBars("CommitProgressBar", 100*progresscounter/progresstotal, true, "Auctioneer: Processing Stage 1."..retrypass)
+					lib.ProgressBars("CommitProgressBar", 100*progresscounter/progresstotal, true, "Auctioneer: Processing Stage 1 - Retry "..retrypass)
 					coroutine.yield()
 					nextPause = debugprofilestop() + processingTime * timeadjust
 					doYield = false
@@ -1180,7 +1182,7 @@ local Commitfunction = function()
 				end
 			end
 			if doYield or debugprofilestop() > nextPause then
-				lib.ProgressBars("CommitProgressBar", 100*progresscounter/progresstotal, true, "Auctioneer: Processing Stage 1")
+				lib.ProgressBars("CommitProgressBar", 100*progresscounter/progresstotal, true, "Auctioneer: Processing Stage 1 - Final")
 				coroutine.yield()
 				nextPause = debugprofilestop() + processingTime * timeadjust
 				doYield = false
@@ -1773,6 +1775,8 @@ function private.Commit(wasEarlyTerm, wasEndPagesOnly, wasGetAll)
 	private.curQuery = nil
 	private.curScan = nil
 	private.isScanning = false
+	private.scanNext = nil
+	private.scanNextPage = nil
 	if not (curQuery and curScan) then return end
 
 	tinsert(private.CommitQueue, {
@@ -1819,26 +1823,36 @@ function private.FinishedPage(nextPage)
 	return true
 end
 
-function private.ScanPage(nextPage, really)
-	if (private.isScanning) then
-		local CanQuery, CanQueryAll = CanSendAuctionQuery()
-		if not (CanQuery and private.FinishedPage(nextPage) and really) then
-			private.scanNext = GetTime()
+function private.ScanPage(nextPage, delay) -- Set up to scan page after configurable delay
+	if private.isScanning then
+			private.scanNext = GetTime() + (delay or 0.05)
 			private.scanNextPage = nextPage
-			return
-		end
-		private.sentQuery = true
-		private.queryStarted = GetTime()
-		private.auctionItemListUpdated = false
-		SortAuctionClearSort("list")
-		private.Hook.QueryAuctionItems(private.curQuery.name, private.curQuery.minUseLevel, private.curQuery.maxUseLevel,
+	end
+end
+
+function private.DoScanPage() -- Only called from Update handler
+	local scantime, nextPage = private.scanNext, private.scanNextPage
+	local now = GetTime()
+	if now < scantime then return end
+
+	local CanQuery = private.CanSendAuctionQuery()
+	if not (CanQuery and private.FinishedPage(nextPage)) then
+		private.scanNext = now + 0.05 -- short delay before retrying
+		return
+	end
+	private.scanNext = nil
+	private.scanNextPage = nil
+	private.sentQuery = true
+	private.queryStarted = GetTime()
+	private.auctionItemListUpdated = false
+	SortAuctionClearSort("list")
+	private.Hook.QueryAuctionItems(private.curQuery.name, private.curQuery.minUseLevel, private.curQuery.maxUseLevel,
 		nextPage, private.curQuery.isUsable, private.curQuery.quality,
 		nil, private.curQuery.exactMatch, private.curQuery.filterData)
 
-		AuctionFrameBrowse.page = nextPage
+	AuctionFrameBrowse.page = nextPage
 
-		private.verifyStart = nil
-	end
+	private.verifyStart = nil
 end
 
 -- Mechanism to limit repeated calls to GetItemInfo and C_PetJournal.GetPetInfoBySpeciesID during processing
@@ -2251,6 +2265,14 @@ local StorePageFunction = function()
 
 	local storecount = 0
 	local sellerOnly = true
+	local doMoreSellerNames = get("core.scan.sellernamedelay") -- whether to rescan auctions that are only missing seller name
+	if isGetAll or private.isGetAll then -- these could technically be different
+		-- During a GetAll scan, do not rescan entries where we have all the info *except* seller name
+		-- Generally this causes extra load on the server, and may prevent other auctions from being retrieved at all
+		-- Specifically on TBC-Classic server we know that NO seller names will be provided by a GetAll scan anyway
+		-- Reconsider if the situation improves
+		doMoreSellerNames = false
+	end
 
 	local missedCounts, remissedCounts, switchCounts, mc = {}, {}, nil, nil
 	for i = 1, Const.LASTENTRY do
@@ -2264,7 +2286,7 @@ local StorePageFunction = function()
 
 	if not private.breakStorePage and (page > qryinfo.page) then
 		-- First pass
-		local retries = { }
+		local retries = {}
 		private.InitItemInfoCache()
 		for i = 1, numBatchAuctions do
 			if isGetAll then -- only yield for GetAll scans
@@ -2280,9 +2302,9 @@ local StorePageFunction = function()
 
 			local itemData = private.GetAuctionItem("list", page, i)
 
-			if (itemData) then
+			if itemData then
 				local isComplete, completeMinusSeller = private.isComplete(itemData)
-				if (isComplete) then
+				if isComplete or (completeMinusSeller and not doMoreSellerNames) then
 					if fillduringscan then
 						private.GetAuctionItemFillIn(itemData, true)
 					end
@@ -2312,12 +2334,13 @@ local StorePageFunction = function()
 
 		-- Second and subsequent passes
 		local newRetries = { }
-		local readCount = 1
 		local needsRetries = #retries > 0
-		while (needsRetries and tryCount < maxTries and ((not sellerOnly) or get("core.scan.sellernamedelay")) and not private.breakStorePage) do
+		local countRetryPasses = 0
+		while (needsRetries and tryCount < maxTries and ((not sellerOnly) or doMoreSellerNames) and not private.breakStorePage) do
 			needsRetries = false
 			sellerOnly = true
 			tryCount = tryCount + 1
+			countRetryPasses = countRetryPasses + 1
 			private.InitItemInfoCache()
 			-- must use GetTime to time this pause, as debugprofilestop is unsafe across yields
 			local nextWait = GetTime() + 1
@@ -2331,20 +2354,18 @@ local StorePageFunction = function()
 			for pos, i in ipairs(retries) do
 				if isGetAll then
 					if debugprofilestop() > nextPause or pos % breakcount == 0 then
-						lib.ProgressBars("GetAllProgressBar", 100*storecount/numBatchAuctions, true, "Auctioneer: Scanning Retries")
+						lib.ProgressBars("GetAllProgressBar", 100*storecount/numBatchAuctions, true, "Auctioneer: Scanning Retries: " .. countRetryPasses)
 						coroutine.yield()
 						if private.breakStorePage then break end
 						nextPause = debugprofilestop() + processingTime
 					end
 				end
 
-				readCount = readCount + 1
-
 				local itemData = private.GetAuctionItem("list", page, i[1], i[2])
 
 				if (itemData) then
 					local isComplete, completeMinusSeller = private.isComplete(itemData)
-					if (isComplete) then
+					if isComplete or (completeMinusSeller and not doMoreSellerNames) then
 						if fillduringscan then
 							private.GetAuctionItemFillIn(itemData, true)
 						end
@@ -2390,7 +2411,7 @@ local StorePageFunction = function()
 					_G.nLog.AddMessage("Auctioneer", "Scan", _G.N_INFO,
 						("StorePage Retry Successful Page %d"):format(page),
 						("Page: %d\nRetry Count: %d\nRecords Returned: %d\nRecords Left: %d\nPage Elapsed Time: %.2fs\nResolved:\n %s\nRemaining Unresolved:\n %s\nSeller Only Remaining: %s,   Wait on Only Seller: %s"):format(page, tryCount,
-							#retries - #newRetries, #newRetries, GetTime() - retrievalStarted, resolvedMap, missingMap, sellerOnly and "True" or "False", get("core.scan.sellernamedelay") and "True" or "False"))
+							#retries - #newRetries, #newRetries, GetTime() - retrievalStarted, resolvedMap, missingMap, sellerOnly and "True" or "False", doMoreSellerNames and "True" or "False"))
 				end
 				-- Found at least one.  Reset retry delay.
 				tryCount = 0
@@ -2415,7 +2436,6 @@ local StorePageFunction = function()
 					nextPause = debugprofilestop() + processingTime
 				end
 			end
-			readCount = readCount + 1
 			-- Put it to scan and let the commit routine deal with it.
 			if (not i[2][Const.SELLER] and not i[2][Const.LINK]) then
 				i[2][Const.SELLER] = ""
@@ -2779,7 +2799,7 @@ local isSecure, taint = issecurevariable("CanSendAuctionQuery")
 if not isSecure then
 	private.warnTaint = taint
 end
-private.CanSend = CanSendAuctionQuery
+private.CanSendAuctionQuery = CanSendAuctionQuery
 
 function QueryAuctionItems(name, minLevel, maxLevel, page, isUsable, qualityIndex, GetAll, exactMatch, filterData, ...) -- ### Legion check
 	if not private.isAuctioneerQuery then
@@ -2810,7 +2830,7 @@ function QueryAuctionItems(name, minLevel, maxLevel, page, isUsable, qualityInde
 		aucPrint("\nAuctioneer:\n  WARNING, The CanSendAuctionQuery() function was tainted by the addon: {{"..private.warnTaint.."}}.\n  This may cause minor inconsistencies with scanning.\n  If possible, adjust the load order to get me to load first.\n ")
 		private.warnTaint = nil
 	end
-	if not private.CanSend() then
+	if not private.CanSendAuctionQuery() then
 		aucPrint("Can't send query just at the moment")
 		return
 	end
@@ -2935,7 +2955,7 @@ function ProcessInbox(index)
     if strfind(subject, SuccessLocale) then
         local invoiceType, itemName, playerName, bid, buyout, deposit, consignment, _, _, _, count, _ = GetInboxInvoiceInfo(index)
         if not invoiceType == 'seller' or not money or money == 0 then return end
-        
+
         for engineLib=1, #modules do
             local aucsold = modules[engineLib].ScanProcessors.aucsold
             if aucsold then
@@ -3087,7 +3107,7 @@ function lib.SetPaused(pause)
 		lib.PushScan()
 		private.isPaused = true
 	elseif private.isPaused then
-		lib.PopScan()
+		lib.PopScan(0.3)
 		private.isPaused = false
 	end
 end
@@ -3115,7 +3135,7 @@ function private.OnUpdate(me, dur)
 	local isVisibleAucFrame = auctionFrame:IsVisible()
 
 	if private.queueScan then
-		if isVisibleAucFrame and CanSendAuctionQuery() then
+		if isVisibleAucFrame and private.CanSendAuctionQuery() then
 			local queued = private.queueScan
 			private.queueScan = nil
 			lib.StartScan(unpack(queued, 1, private.queueScanParams)) -- explicit start and end points as some entries may be nil
@@ -3127,10 +3147,8 @@ function private.OnUpdate(me, dur)
 		CoroutineResume(CoStore)
 	end
 	if private.scanNext then
-		if isVisibleAucFrame and CanSendAuctionQuery() then
-			local nextPage = private.scanNextPage
-			private.scanNext = nil
-			private.ScanPage(nextPage, true)
+		if isVisibleAucFrame then
+			private.DoScanPage()
 		end
 		return
 	end
@@ -3138,13 +3156,13 @@ function private.OnUpdate(me, dur)
 	if isVisibleAucFrame then
 		if private.unexpectedClose then
 			private.unexpectedClose = false
-			lib.PopScan()
+			lib.PopScan(0.3)
 			return
 		end
 
 		if private.sentQuery then
 			local itemlistUpdated = private.auctionItemListUpdated
-			local canSend = CanSendAuctionQuery()
+			local canSend = private.CanSendAuctionQuery()
 			if itemlistUpdated and canSend then
 				timeoutSentQuery = 0
 				lib.StorePage()
@@ -3154,11 +3172,11 @@ function private.OnUpdate(me, dur)
 				lib.StorePage()
 			elseif canSend and timeoutSentQuery > 75 then
 				-- Fix for AUCTION_ITEM_LIST_UPDATE sometimes not being sent by server after Legion
-				-- In this case Serve has updated CanSendAuctionQuery, it may have sent info, so we'll try to store page
+				-- In this case Server has updated CanSendAuctionQuery, it may have sent info, so we'll try to store page
 				-- Note longer timeout: AUCTION_ITEM_LIST_UPDATE is the important event, CanSendAuctionQuery is a backup
 				timeoutSentQuery = 0
 				lib.StorePage()
-			elseif timeoutSentQuery > 180 then
+			elseif timeoutSentQuery > 600 then
 				-- Neither CanSendAuctionQuery nor AUCTION_ITEM_LIST_UPDATE have occurred and we have waited a long time
 				timeoutSentQuery = 0
 				private.ResetAll()
@@ -3227,6 +3245,8 @@ function private.ResetAll()
 	private.isPaused = nil
 	private.sentQuery = nil
 	private.isScanning = false
+	private.scanNext = nil
+	private.scanNextPage = nil
 	private.unexpectedClose = false
 
 	private.UpdateScanProgress(false, nil, nil, nil, nil, nil, oldquery)
@@ -3475,5 +3495,5 @@ function internalScan.NotifyOwnedListUpdated()
 --	end
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreScan.lua $", "$Rev: 6430 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreScan.lua $", "$Rev: 6844 $")
 AucAdvanced.CoreFileCheckOut("CoreScan")

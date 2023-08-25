@@ -1,7 +1,7 @@
 --[[
 	Enchantrix Addon for World of Warcraft(tm).
-	Version: 8.2.6428 (SwimmingSeadragon)
-	Revision: $Id: EnxConstantsJewelcrafting.lua 6428 2019-10-20 00:10:07Z none $
+	Version: 3.4.6849 (SwimmingSeadragon)
+	Revision: $Id: EnxConstantsJewelcrafting.lua 6849 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	Enchantrix Constants for Jewelcrafting / Prospecting
@@ -28,7 +28,7 @@
 		since that is its designated purpose as per:
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 ]]
-Enchantrix_RegisterRevision("$URL: Enchantrix/EnxConstantsJewelcrafting.lua $", "$Rev: 6428 $")
+Enchantrix_RegisterRevision("$URL: Enchantrix/EnxConstantsJewelcrafting.lua $", "$Rev: 6849 $")
 
 local const = Enchantrix.Constants
 
@@ -61,6 +61,10 @@ local BLACK_TRILLIUM_ORE = 72094
 local LAYSTONE_ORE = 123918
 local FELSLATE_ORE = 123919
 local EMPYRIUM_ORE = 151564
+
+
+
+
 
 -- misc results
 local COPPERPOWDER = 24186
@@ -217,41 +221,97 @@ local GEM_SEACURRANT = 168191
 local GEM_SANDSPINEL = 168192
 local GEM_AZSHARINE = 168193
 
+-- new for Shadowlands
+local LAESTRITE_ORE = 171828
+local SOLENIUM_ORE = 171829
+local OXXEIN_ORE = 171830
+local PHARDRUM_ORE = 171831
+local SINVYR_ORE = 171832
+local ELETHIUM_ORE = 171833
+
+local GEM_ANGERSEYE = 173109
+local GEM_UMBRYL = 173110
+local GEM_ORIBLASE = 173108
+local GEM_ESREBIRTH = 173170
+local GEM_ESTORMENT = 173171
+local GEM_ESSERVITUDE = 173172
+local GEM_ESVALOR = 173173
+
+
+
 
 --[[
 	Prospectable ores and skill to prospect them
 ]]
+if not const.Classic then
+	const.ProspectMinLevels = {
+		[COPPER_ORE] = 1,
+		[TIN_ORE] = 1,
+		[IRON_ORE] = 1,
+		[MITHRIL_ORE] = 1,
+		[THORIUM_ORE] = 1,
+		[FEL_IRON_ORE] = 1,
+		[ADAMANTITE_ORE] = 1,
+		[COBALT_ORE] = 1,
+		[SARONITE_ORE] = 1,
+		[TITANIUM_ORE] = 1,
+		[OBSIDIUM_ORE] = 1,
+		[ELEMENTIUM_ORE] = 1,
+		[PYRITE_ORE] = 1,
+		[GHOST_IRON_ORE] = 1,
+		[KYPARITE_ORE] = 1,
+		[WHITE_TRILLIUM_ORE] = 1,
+		[BLACK_TRILLIUM_ORE] = 1,
+	--	[BLACKROCK] = 600,			-- not prospectable
+	--	[TRUEIRON] = 600,			-- not prospectable
 
-const.ProspectMinLevels = {
-	[COPPER_ORE] = 1,
-	[TIN_ORE] = 1,
-	[IRON_ORE] = 1,
-	[MITHRIL_ORE] = 1,
-	[THORIUM_ORE] = 1,
-	[FEL_IRON_ORE] = 1,
-	[ADAMANTITE_ORE] = 1,
-	[COBALT_ORE] = 1,
-	[SARONITE_ORE] = 1,
-	[TITANIUM_ORE] = 1,
-	[OBSIDIUM_ORE] = 1,
-	[ELEMENTIUM_ORE] = 1,
-	[PYRITE_ORE] = 1,
-	[GHOST_IRON_ORE] = 1,
-	[KYPARITE_ORE] = 1,
-	[WHITE_TRILLIUM_ORE] = 1,
-	[BLACK_TRILLIUM_ORE] = 1,
---	[BLACKROCK] = 600,			-- not prospectable
---	[TRUEIRON] = 600,			-- not prospectable
+		[LAYSTONE_ORE] = 1,
+		[FELSLATE_ORE] = 1,
+		[EMPYRIUM_ORE] = 1,
 
-	[LAYSTONE_ORE] = 1,
-	[FELSLATE_ORE] = 1,
-	[EMPYRIUM_ORE] = 1,
+		[MONELITE_ORE] = 1,
+		[STORMSILVER_ORE] = 1,
+		[PLATINUM_ORE] = 1,
+		[OSMENITE_ORE] = 1,
 
-	[MONELITE_ORE] = 1,
-	[STORMSILVER_ORE] = 1,
-	[PLATINUM_ORE] = 1,
-    [OSMENITE_ORE] = 1,
-}
+		[LAESTRITE_ORE] = 1,
+		[SOLENIUM_ORE] = 1,
+		[OXXEIN_ORE] = 1,
+		[PHARDRUM_ORE] = 1,
+		[SINVYR_ORE] = 1,
+		[ELETHIUM_ORE] = 1,
+	}
+
+elseif const.Classic >= 2 then
+    -- Classic through Pandaria skills
+    const.ProspectMinLevels = {
+        [COPPER_ORE] = 20,
+        [TIN_ORE] = 50,
+        [IRON_ORE] = 125,
+        [MITHRIL_ORE] = 175,
+        [THORIUM_ORE] = 250,
+        [FEL_IRON_ORE] = 275,
+        [ADAMANTITE_ORE] = 325,
+-- LK
+        [COBALT_ORE] = 350,
+        [SARONITE_ORE] = 400,
+        [TITANIUM_ORE] = 450,
+--[[
+        [OBSIDIUM_ORE] = 425,
+        [ELEMENTIUM_ORE] = 475,
+        [PYRITE_ORE] = 500,
+
+        [GHOST_IRON_ORE] = 500,
+        [KYPARITE_ORE] = 550,
+        [WHITE_TRILLIUM_ORE] = 600,
+        [BLACK_TRILLIUM_ORE] = 600,
+]]--
+
+    }
+
+else
+	const.ProspectMinLevels = {} -- Classic era
+end
 
 
 -- data is a combination of wowhead, wowwiki, forums, and personal results
@@ -629,6 +689,65 @@ const.ProspectableItems = {
 			[GEM_AZSHARINE] = 0.2,
 	},
 
+
+-- need a lot more ore to get real yields
+    [LAESTRITE_ORE] = {
+        [GEM_ANGERSEYE] = 0.3,
+        [GEM_UMBRYL] = 0.3,
+        [GEM_ORIBLASE] = 0.3,
+        [GEM_ESREBIRTH] = 0.02,
+        [GEM_ESTORMENT] = 0.02,
+        [GEM_ESSERVITUDE] = 0.02,
+        [GEM_ESVALOR] = 0.02,
+    },
+
+    [SOLENIUM_ORE] = {
+        [GEM_ANGERSEYE] = 0.3,
+        [GEM_UMBRYL] = 0.3,
+        [GEM_ORIBLASE] = 0.3,
+        [GEM_ESREBIRTH] = 0.02,
+        [GEM_ESTORMENT] = 0.02,
+        [GEM_ESSERVITUDE] = 0.02,
+        [GEM_ESVALOR] = 0.02,
+    },
+    [OXXEIN_ORE] = {
+        [GEM_ANGERSEYE] = 0.3,
+        [GEM_UMBRYL] = 0.3,
+        [GEM_ORIBLASE] = 0.3,
+        [GEM_ESREBIRTH] = 0.02,
+        [GEM_ESTORMENT] = 0.02,
+        [GEM_ESSERVITUDE] = 0.02,
+        [GEM_ESVALOR] = 0.02,
+    },
+    [PHARDRUM_ORE] ={
+        [GEM_ANGERSEYE] = 0.3,
+        [GEM_UMBRYL] = 0.3,
+        [GEM_ORIBLASE] = 0.3,
+        [GEM_ESREBIRTH] = 0.02,
+        [GEM_ESTORMENT] = 0.02,
+        [GEM_ESSERVITUDE] = 0.02,
+        [GEM_ESVALOR] = 0.02,
+    },
+    [SINVYR_ORE] = {
+        [GEM_ANGERSEYE] = 0.3,
+        [GEM_UMBRYL] = 0.3,
+        [GEM_ORIBLASE] = 0.3,
+        [GEM_ESREBIRTH] = 0.02,
+        [GEM_ESTORMENT] = 0.02,
+        [GEM_ESSERVITUDE] = 0.02,
+        [GEM_ESVALOR] = 0.02,
+    },
+
+    [ELETHIUM_ORE] = {
+        [GEM_ANGERSEYE] = 0.3,
+        [GEM_UMBRYL] = 0.3,
+        [GEM_ORIBLASE] = 0.3,
+        [GEM_ESREBIRTH] = 0.02,
+        [GEM_ESTORMENT] = 0.02,
+        [GEM_ESSERVITUDE] = 0.02,
+        [GEM_ESVALOR] = 0.02,
+    },
+
 }
 
 
@@ -774,6 +893,16 @@ const.ReverseProspectingSources = {
 	[GEM_SANDSPINEL] = { OSMENITE_ORE },
 	[GEM_AZSHARINE] = { OSMENITE_ORE },
 	[GEM_LEVIATHANSEYE] = { OSMENITE_ORE },
+
+--- WAG, not enough samples
+    [GEM_ANGERSEYE] = { LAESTRITE_ORE, SOLENIUM_ORE, OXXEIN_ORE, PHARDRUM_ORE, SINVYR_ORE, ELETHIUM_ORE },
+    [GEM_UMBRYL] = { LAESTRITE_ORE, SOLENIUM_ORE, OXXEIN_ORE, PHARDRUM_ORE, SINVYR_ORE, ELETHIUM_ORE },
+    [GEM_ORIBLASE] = { LAESTRITE_ORE, SOLENIUM_ORE, OXXEIN_ORE, PHARDRUM_ORE, SINVYR_ORE, ELETHIUM_ORE },
+    [GEM_ESREBIRTH] = { LAESTRITE_ORE, SOLENIUM_ORE, OXXEIN_ORE, PHARDRUM_ORE, SINVYR_ORE, ELETHIUM_ORE },
+    [GEM_ESTORMENT] = { LAESTRITE_ORE, SOLENIUM_ORE, OXXEIN_ORE, PHARDRUM_ORE, SINVYR_ORE, ELETHIUM_ORE },
+    [GEM_ESSERVITUDE] = { LAESTRITE_ORE, SOLENIUM_ORE, OXXEIN_ORE, PHARDRUM_ORE, SINVYR_ORE, ELETHIUM_ORE },
+    [GEM_ESVALOR] = { LAESTRITE_ORE, SOLENIUM_ORE, OXXEIN_ORE, PHARDRUM_ORE, SINVYR_ORE, ELETHIUM_ORE },
+
 
 }
 

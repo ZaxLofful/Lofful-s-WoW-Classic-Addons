@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Search UI
-	Version: 8.2.6464 (SwimmingSeadragon)
-	Revision: $Id: SearchMain.lua 6464 2019-10-20 00:10:07Z none $
+	Version: 3.4.6829 (SwimmingSeadragon)
+	Revision: $Id: SearchMain.lua 6829 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This Addon provides a Search tab on the AH interface, which allows
@@ -51,6 +51,7 @@ AucSearchUI = lib
 
 local Const = AucAdvanced.Const
 local coreResources = AucAdvanced.Resources -- the resources table inherited from AucAdvanced core
+local ClassicExpansion = AucAdvanced.Classic
 local gui
 private.data = {}
 private.sheetData = {}
@@ -63,26 +64,35 @@ local hasUnsaved = nil
 
 local TAB_NAME = "Search"
 
-private.tleft = {
-	"|cff000001|cffe5e5e530m", -- 30m
-	"|cff000002|cffe5e5e52h",  --2h
-	"|cff000003|cffe5e5e512h", --12h
-	"|cff000004|cffe5e5e548h"  --48h
-}
 
-if AucAdvanced.Classic then
+if ClassicExpansion == 1 then
     private.tleft = {
         "|cff000001|cffe5e5e530m", --30m
         "|cff000002|cffe5e5e52h",  --2h
         "|cff000003|cffe5e5e58h",  --8h
         "|cff000004|cffe5e5e524h"  --24h
     }
+else
+	private.tleft = {
+		"|cff000001|cffe5e5e530m", -- 30m
+		"|cff000002|cffe5e5e52h",  --2h
+		"|cff000003|cffe5e5e512h", --12h
+		"|cff000004|cffe5e5e548h"  --48h
+	}
 end
 
 lib.CleanTable = wipe -- for compatibility
 
-local resources = {} -- the resources table passed on to the Searcher & Filter submodules
+-- Create Resources table, which contains:
+-- a subset of values from the coreResources table
+-- pricing model functions
+-- selector functions for creating dropdown lists
+-- frequently-used Core functions
+local resources = {}
 lib.Resources = resources
+resources.GetDepositCost = AucAdvanced.Post.GetDepositCost
+resources.Classic = ClassicExpansion
+
 local flagScanFinished = false
 local flagRescan
 
@@ -93,7 +103,7 @@ local flagRescan
 resources.Realm = Const.PlayerRealm -- will not change during session
 function private.UpdateFactionResources()
 	resources.Faction = coreResources.CurrentFaction
-	resources.faction = resources.Faction:lower() -- lowercase (deprecated - no longer needed by GetDepositCost)
+	resources.faction = resources.Faction:lower() -- lowercase
 	resources.serverKey = coreResources.ServerKey
 	resources.CutAdjust = coreResources.AHCutAdjust -- multiply price by .CutAdjust to subtract the AH brokerage fees
 	lib.NotifyCallbacks("resources", "faction", resources.serverKey)
@@ -104,13 +114,14 @@ end
 gui:AddControl(id, "Selectbox", column, indent, resources.selectorPriceModels, "searcher.model")
 gui:AddControl(id, "Selectbox", column, indent, resources.selectorPriceModelsEnx, "searcher.model")
 gui:AddControl(id, "Selectbox", column, indent, resources.selectorAuctionLength, "searcher.deplength")
+default("searcher.deplength", resources.defaultAuctionLength)
 local price, seen, curModel = resources.lookupPriceModel[model](model, link || itemID [, serverKey]) ~ price, seen or curModel may be nil
 local price, seen, curModel = resources.GetPrice(model, link || itemID [, serverKey]) ~ simplified wrapper function for lookupPriceModel
 if not resources.isValidPriceModel(get("searcher.model")) then <code to report warning...>
 --]]
 do -- limit scope of locals
 	resources.selectorAuctionLength = AucAdvanced.selectorAuctionLength
-	lib.AucLengthSelector = AucAdvanced.selectorAuctionLength -- for compatibility
+	resources.defaultAuctionLength = AucAdvanced.defaultAuctionLength
 	resources.selectorPriceModels = AucAdvanced.selectorPriceModels
 
 	local pricemodelsenx
@@ -291,7 +302,7 @@ function lib.Processors.iteminfoupdate(callbackType, ...)
 end
 
 lib.Processors.gameactive = private.UpdateFactionResources
-lib.Processors.factionselect = private.UpdateFactionResources
+lib.Processors.serverkey = private.UpdateFactionResources
 
 function lib.Processors.auctionui(callbackType, ...)
 	if lib.Searchers.RealTime then
@@ -1104,7 +1115,7 @@ function private.CreateAuctionFrames()
 	frame.money:SetWidth(256)
 	frame.money:SetHeight(32)
 
-	frame.backing = CreateFrame("Frame", nil, frame)
+	frame.backing = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 	frame.backing:SetPoint("TOPLEFT", frame, "TOPLEFT", 17, -70)
 	frame.backing:SetPoint("BOTTOMRIGHT", frame.money, "TOPLEFT", 145, 50)
 	frame.backing:SetBackdrop({ bgFile="Interface\\AddOns\\Auc-Advanced\\Textures\\BlackBack", edgeFile="Interface\\AddOns\\Auc-Advanced\\Textures\\WhiteCornerBorder", tile=1, tileSize=8, edgeSize=8, insets={left=3, right=3, top=3, bottom=3} })
@@ -1149,7 +1160,6 @@ function private.MakeGuiConfig()
 	local selected
 
 	gui = Configator:Create(setter,getter, 900, 500, 5, 350, 20, 5)
-	gui:SetBackdropColor(0,0,0,1)
 
 	gui.expandGap = 25
 	gui.expandOnActivate = true
@@ -1193,7 +1203,7 @@ function private.MakeGuiConfig()
 		GameTooltip:Hide()
 	end
 
-	gui.frame = CreateFrame("Frame", nil, gui)
+	gui.frame = CreateFrame("Frame", nil, gui, BackdropTemplateMixin and "BackdropTemplate")
 	gui.frame:SetPoint("TOP", gui, "TOP", 0, -115)
 	gui.frame:SetPoint("BOTTOMRIGHT", gui.Done, "TOPRIGHT", 0,25)
 	gui.frame:SetPoint("LEFT", gui:GetButton(1), "RIGHT", 5,0)
@@ -1786,7 +1796,7 @@ function private.MakeGuiConfig()
 		MoneyInputFrame_SetOnValueChangedFunc(bidbox, bidbutton.UpdateEnable)
 	end -- of bid button/box cluster
 
-	gui.frame.progressbar = CreateFrame("STATUSBAR", nil, gui.frame, "TextStatusBar")
+	gui.frame.progressbar = CreateFrame("STATUSBAR", nil, gui.frame, BackdropTemplateMixin and "TextStatusBar,BackdropTemplate" or "TextStatusBar")
 	gui.frame.progressbar:SetWidth(400)
 	gui.frame.progressbar:SetHeight(30)
 	gui.frame.progressbar:SetPoint("BOTTOM", gui.frame, "BOTTOM", 0, 100)
@@ -2257,4 +2267,4 @@ end
 private.updater = CreateFrame("Frame", nil, UIParent)
 private.updater:SetScript("OnUpdate", OnUpdate)
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearchMain.lua $", "$Rev: 6464 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearchMain.lua $", "$Rev: 6829 $")

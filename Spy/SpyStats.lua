@@ -14,6 +14,7 @@ local PAGE_SIZE = 34
 local TAB_PLAYER = 1
 local VIEW_PLAYER_HISTORY = 1
 local COLOR_NORMAL = {1, 1, 1}
+local COLOR_SAME_FACTION = {0, 1, 0}
 local COLOR_KOS = {1, 0, 0}
 
 GUI.ListFrameLines = {
@@ -26,9 +27,10 @@ GUI.ListFrameFields = {
 local SORT = {
     ["SpyStatsPlayersNameSort"] = "name",
     ["SpyStatsPlayersLevelSort"] = "level",
+    ["SpyStatsPlayersRankSort"] = "rank",
     ["SpyStatsPlayersClassSort"] = "class",
     ["SpyStatsPlayersGuildSort"] = "guild",
-    ["SpyStatsPlayersWinsSort"] = "wins",	
+    ["SpyStatsPlayersWinsSort"] = "wins",
     ["SpyStatsPlayersLosesSort"] = "loses",	
     ["SpyStatsTimeSort"] = "time",	
 }
@@ -71,8 +73,9 @@ function SpyStats:OnInitialize()
 
     -- localization
     SpyStatsKosCheckboxText:SetText(L["KOS"])
-    SpyStatsWinsLosesCheckboxText:SetText(L["Won/Lost"])	
-    SpyStatsReasonCheckboxText:SetText(L["Reason"])		
+    SpyStatsRealmCheckboxText:SetText(L["Realm"])
+    SpyStatsWinsLosesCheckboxText:SetText(L["Won/Lost"])
+    SpyStatsReasonCheckboxText:SetText(L["Reason"])
     
     table.insert(UISpecialFrames, "SpyStatsFrame")
 end
@@ -84,10 +87,13 @@ end
 function SpyStats:Show()
     SpyStatsFilterBox:SetText("")
     SpyStatsKosCheckbox:SetChecked(false)
-    SpyStatsWinsLosesCheckbox:SetChecked(false)		
+    SpyStatsRealmCheckbox:SetChecked(false)
+    SpyStatsWinsLosesCheckbox:SetChecked(false)
     SpyStatsReasonCheckbox:SetChecked(false)
+	local HonorKills, _, HighestRank = GetPVPLifetimeStats("player")
+	SpyStatsHonorKillsText:SetText(L["HonorKills"]..":  "..HonorKills)
 --	SpyStatsHonorKillsText:SetText(L["HonorKills"]..":  "..GetStatistic(588))
---	SpyStatsPvPDeathsText:SetText(L["PvPDeaths"]..":  "..GetStatistic(1501))		
+--	SpyStatsPvPDeathsText:SetText(L["PvPDeaths"]..":  "..GetStatistic(1501))
     SpyStatsFrame:Show()
     self:Recalulate()
     self:ScheduleRepeatingTimer("Refresh", 1)
@@ -118,10 +124,10 @@ function SpyStats:UpdateView()
 		self.view = VIEW_PLAYER_HISTORY
 
         SpyStatsWinsLosesCheckbox:ClearAllPoints()	
-        SpyStatsWinsLosesCheckbox:SetPoint("LEFT", SpyStatsKosCheckboxText, "RIGHT", 12, -1)		
+        SpyStatsWinsLosesCheckbox:SetPoint("LEFT", SpyStatsKosCheckboxText, "RIGHT", 12, -1)
 
-        if (self.sortBy == "name") or (self.sortBy == "level") or (self.sortBy == "class") then
-            self.sortBy = "time"			
+        if (self.sortBy == "name") or (self.sortBy == "level") or (self.sortBy == "rank") or (self.sortBy == "class") then
+            self.sortBy = "time"
         end 
     end 
     self:Refresh()
@@ -174,14 +180,15 @@ function SpyStats:Filter()
 
     local filter = SpyStatsFilterBox:GetText() or ""
     local filterkos = SpyStatsKosCheckbox:GetChecked()
+    local filterrealm = SpyStatsRealmCheckbox:GetChecked()
     local filterpvp = SpyStatsWinsLosesCheckbox:GetChecked()
     local filterreason = SpyStatsReasonCheckbox:GetChecked()
 	
     local i = 1
     for _, unit in ipairs(units.recent) do
-        local session = SpyData:GetUnitSession(unit)		
+        local session = SpyData:GetUnitSession(unit)
 
-        if (filter == "" or (unit.name and unit.name:sub(1, string.len(filter)):lower() == filter:lower()) or (unit.guild and unit.guild:sub(1, string.len(filter)):lower() == filter:lower())) and (not filterkos or unit.kos) and (not filterpvp or ((unit.wins and unit.wins > 0) or (unit.loses and unit.loses > 0))) and (not filterreason or unit.reason) then
+        if (filter == "" or (unit.name and unit.name:sub(1, string.len(filter)):lower() == filter:lower()) or (unit.guild and unit.guild:sub(1, string.len(filter)):lower() == filter:lower())) and (not filterkos or unit.kos) and (not filterrealm or unit.name and not unit.name:find "-") and (not filterpvp or ((unit.wins and unit.wins > 0) or (unit.loses and unit.loses > 0))) and (not filterreason or unit.reason) then
 			units.display[i] = unit
 			i = i + 1
         end
@@ -220,16 +227,18 @@ function SpyStats:Refresh()
 
         if i <= #units.display then
             local unit = units.display[i]
-            local session = SpyData:GetUnitSession(unit)			
+            local session = SpyData:GetUnitSession(unit)
 
             line.unit = unit
 
-            local age = now - unit.time			
+            local age = now - unit.time
 
             local r, g, b
-            if unit.kos and (age < 60) then			
+            if unit.kos and (age < 60) then
                 r, g, b = unpack(COLOR_KOS)
-            else
+            elseif unit.faction and unit.faction == Spy.FactionName then
+                r, g, b = unpack(COLOR_SAME_FACTION)
+			else
                 r, g, b = unpack(COLOR_NORMAL)
             end
 
@@ -239,8 +248,12 @@ function SpyStats:Refresh()
                 name:SetTextColor(r, g, b)
 
                 local level = GUI.ListFrameFields[view][row]["Level"]
-                level:SetText(unit.level)				
+                level:SetText(unit.level)
                 level:SetTextColor(r, g, b)
+
+                local rank = GUI.ListFrameFields[view][row]["Rank"]
+                rank:SetText(unit.rank)
+                rank:SetTextColor(r, g, b)
 
                 local class = GUI.ListFrameFields[view][row]["Class"]
 				local classtext = unit.class
@@ -249,7 +262,7 @@ function SpyStats:Refresh()
 				else
 					classtext = "?"
 				end	
-                class:SetText(classtext)						
+                class:SetText(classtext)
                 class:SetTextColor(r, g, b)
 
                 local guild = GUI.ListFrameFields[view][row]["Guild"]
@@ -258,7 +271,7 @@ function SpyStats:Refresh()
 
                 local wins = GUI.ListFrameFields[view][row]["Wins"]
                 wins:SetText(unit.wins or 0)
-                wins:SetTextColor(r, g, b)					
+                wins:SetTextColor(r, g, b)
 
                 local loses = GUI.ListFrameFields[view][row]["Loses"]
                 loses:SetText(unit.loses or 0)
@@ -286,16 +299,16 @@ function SpyStats:Refresh()
 					if location and unit.subZone and unit.subZone ~= "" and unit.subZone ~= location then
 						location = unit.subZone..", "..location
 					end
-				zone:SetText(location or "?")	  
+				zone:SetText(location or "?")
                 zone:SetTextColor(r, g, b)
 
 				local time = GUI.ListFrameFields[view][row]["Time"]
                 time:SetText((unit.time and unit.time > 0) and Spy:FormatTime(unit.time) or "?")				
                 time:SetTextColor(r, g, b)
 
-                local tList = GUI.ListFrameFields[view][row]["List"]				
+                local tList = GUI.ListFrameFields[view][row]["List"]
                 local f = ""
-				for key, value in pairs(SpyPerCharDB.KOSData) do	
+				for key, value in pairs(SpyPerCharDB.KOSData) do
 					-- find units that match
 					local KoSname = key
 					if unit.name == KoSname then
@@ -303,7 +316,7 @@ function SpyStats:Refresh()
 					end
 				end		
                 tList:SetText(f)
-                tList:SetTextColor(r, g, b)				
+                tList:SetTextColor(r, g, b)
             end
             line:Show()
         else
@@ -359,8 +372,8 @@ function CreateStatsDropdown(node)
     if UIDROPDOWNMENU_MENU_LEVEL == 1 then
         info = UIDropDownMenu_CreateInfo()
         info.isTitle = true
-        info.text = unit.name	
-		info.notCheckable = true		
+        info.text = unit.name
+		info.notCheckable = true
         UIDropDownMenu_AddButton(info, UIDROPDOWNMENU_MENU_LEVEL)
 
 		if not unit.kos then
@@ -381,7 +394,7 @@ function CreateStatsDropdown(node)
 			info.disabled = nil
 			info.text = L["RemoveFromStatsList"]
 			info.func = function() 
-				Spy:RemovePlayerData(unit.name)
+				Spy:RemovePlayerDataFromStats(unit.name)
 				SpyStats:Recalulate()
 			end 
 			info.value = nil
@@ -389,11 +402,11 @@ function CreateStatsDropdown(node)
 		else
 			info = UIDropDownMenu_CreateInfo()
 			info.notCheckable = true
-			info.text = L["KOSReasonDropDownMenu"]		
+			info.text = L["KOSReasonDropDownMenu"]
 			info.value = unit
 			info.func = function()
 				Spy:SetKOSReason(unit.name, L["KOSReasonOther"], other)
-			end 			
+			end
 			info.checked = false
 			UIDropDownMenu_AddButton(info, UIDROPDOWNMENU_MENU_LEVEL)
 			

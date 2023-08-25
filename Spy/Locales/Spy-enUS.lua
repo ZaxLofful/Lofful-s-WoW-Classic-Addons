@@ -12,29 +12,32 @@ L["Profiles"] = "Profiles"
 L["About"] = "About"
 L["SpyDescription1"] = [[
 Spy is an addon that will alert you to the presence of nearby enemy players. These are some of the main features.
+
 ]]
+
 L["SpyDescription2"] = [[
-|cffffd000Nearby List|cffffffff
+|cffffd000 Nearby List |cffffffff
 Displays enemy players that have been detected nearby. Players are removed from the list if they have not been detected after a period of time.
 
-|cffffd000Last Hour List|cffffffff
+|cffffd000 Last Hour List |cffffffff
 Displays all enemies that have been detected in the last hour.
 
-|cffffd000Ignore List|cffffffff
+|cffffd000 Ignore List |cffffffff
 Players that are added to the Ignore list will not be reported by Spy. You can add and remove players to/from this list by using the button's drop down menu or by holding the Control key while clicking the button.
 
-|cffffd000Kill On Sight List|cffffffff
-Players on your Kill On Sight list cause an alarm to sound when detected. You can add and remove players to/from this list by using the button's drop down menu or by holding the Shift key while clicking the button.
+|cffffd000 Kill On Sight List |cffffffff
+Players on your Kill On Sight list cause an alarm to sound when detected. You can add and remove players to/from this list by using the button's drop down menu or by holding the Shift key while clicking the button. The drop down menu can also be used to set the reasons why you have added someone to the Kill On Sight list. If you want to enter a specific reason that is not in the list, then use the "Enter your own reason..." in the Other list.
 
-The drop down menu can also be used to set the reasons why you have added someone to the Kill On Sight list. If you want to enter a specific reason that is not in the list, then use the "Enter your own reason..." in the Other list.
+]]
 
-|cffffd000Statistics Window|cffffffff
+L["SpyDescription3"] = [[
+|cffffd000 Statistics Window |cffffffff
 The Statistics Window contains a list of all enemy encounters which can be sorted by name, level, guild, wins, losses and the last time an enemy was detected. It also provides the ability to search for a specific enemy by name or guild and has filters to show only enemies that are marked as Kill on Sight, with a Win/Loss or entered Reasons.
 
-|cffffd000Kill On Sight Button|cffffffff
+|cffffd000 Kill On Sight Button |cffffffff
 If enabled, this button will be located on the enemy players target frame. Clicking on this button will add/remove the enemy target to/from the Kill On Sight list. Right clicking on the button will allow you to enter Kill on Sight reasons.
 
-|cffffd000Author: Slipjack|cffffffff
+|cffffd000 Author:|cffffffff Slipjack
 ]]
 
 -- General Settings
@@ -72,6 +75,9 @@ L["Silithus"] = "Silithus"
 L["Chamber of Heart"] = "Chamber of Heart"
 L["Hall of Ancient Paths"] = "Hall of Ancient Paths"
 L["Sanctum of the Sages"] = "Sanctum of the Sages"
+L["Rustbolt"] = "Rustbolt"
+L["Oribos"] = "Oribos"
+L["Valdrakken"] = "Valdrakken"
 
 -- Display
 L["DisplayOptions"] = "Display"
@@ -120,6 +126,7 @@ L["TooltipDisplayLastSeenDescription"] = "Set this to display the last known tim
 L["DisplayListData"] = "Select enemy data to display"
 L["Name"] = "Name"
 L["Class"] = "Class"
+L["Rank"] = "Rank"
 L["SelectFont"] = "Select a Font"
 L["SelectFontDescription"] = "Select a Font for the Spy Window."
 L["RowHeight"] = "Select the Row Height"
@@ -287,6 +294,7 @@ L["Time"] = "Time"
 L["List"] = "List"
 L["Filter"] = "Filter"
 L["Show Only"] = "Show Only"
+L["Realm"] = "Realm"
 L["KOS"] = "KOS"
 L["Won/Lost"] = "Won/Lost"
 L["Reason"] = "Reason"	 
@@ -294,7 +302,7 @@ L["HonorKills"] = "Honor Kills"
 L["PvPDeaths"] = "PvP Deaths"
 
 -- Output Messages
-L["VersionCheck"] = "|cffc41e3aWarning! The wrong version of Spy is installed. Remove this version and install Spy Classic."
+L["VersionCheck"] = "|cffc41e3aWarning! The wrong version of Spy is installed. This version is for World of Warcraft Classic."
 L["SpyEnabled"] = "|cff9933ffSpy addon enabled."
 L["SpyDisabled"] = "|cff9933ffSpy addon disabled. Type |cffffffff/spy show|cff9933ff to enable."
 L["UpgradeAvailable"] = "|cff9933ffA new version of Spy is available. It can be downloaded from:\n|cffffffffhttps://www.curseforge.com/wow/addons/spy-classic"
@@ -465,6 +473,7 @@ L["WARRIOR"] = "Warrior"
 L["DEATHKNIGHT"] = "Death Knight"
 L["MONK"] = "Monk"
 L["DEMONHUNTER"] = "Demon Hunter"
+L["EVOKER"] = "Evoker"
 
 -- Race descriptions
 L["Human"] = "Human"
@@ -490,6 +499,7 @@ L["Kul Tiran"] = "Kul Tiran"
 L["Zandalari Troll"] = "Zandalari Troll"
 L["Mechagnome"] = "Mechagnome"
 L["Vulpera"] = "Vulpera"
+L["Dracthyr"] = "Dracthyr"
 
 -- Stealth abilities
 L["Stealth"] = "Stealth"
@@ -510,6 +520,7 @@ L["MinimapClassTextWARRIOR"] = "|cffc69b6d"
 L["MinimapClassTextDEATHKNIGHT"] = "|cffc41e3a"
 L["MinimapClassTextMONK"] = "|cff00ff96"
 L["MinimapClassTextDEMONHUNTER"] = "|cffa330c9"
+L["MinimapClassTextEVOKER"] = "|cff33937f"
 
 Spy_AbilityList = {
 -----------------------------------------------------------
@@ -527,6 +538,7 @@ Spy_AbilityList = {
 	["Sword Specialization"]={ race = "Human", level = 1, },
 	["Escape Artist"]={ race = "Gnome", level = 1, },
 	["The Human Spirit"]={ race = "Human", level = 1, },
+	["Expansive Mind"]={ race = "Gnome", level = 1, },
 	["Regeneration"]={ race = "Troll", level = 1, },
 	["Perception"]={ race = "Human", level = 1, },
 	["Endurance"]={ race = "Tauren", level = 1, },
@@ -545,12 +557,10 @@ Spy_AbilityList = {
 	["Gun Specialization"]={ race = "Dwarf", level = 1, },
 	["Underwater Breathing"]={ race = "Undead", level = 1, },
 	["Command"]={ race = "Orc", level = 1, },
-	["Nature Resistance"]={ race = "Night Elf", level = 1, },
 	["Frost Resistance"]={ race = "Dwarf", level = 1, },
 	["Shadow Resistance"]={ race = "Undead", level = 1, },
 	["Arcane Resistance"]={ race = "Gnome", level = 1, },
 	["Wisp Spirit"]={ race = "Night Elf", level = 1, },
-
 --++ Druid Abilities ++	
 	["Healing Touch"]={ class = "DRUID", level = 1, },
    	["Wrath"]={ class = "DRUID", level = 1, },
@@ -562,7 +572,6 @@ Spy_AbilityList = {
 	["Maul"]={ class = "DRUID", level = 10, },
 	["Teleport: Moonglade"]={ class = "DRUID", level = 10, },
 	["Enrage"]={ class = "DRUID", level = 12, },
-	["Regrowth"]={ class = "DRUID", level = 12, },
 	["Bash"]={ class = "DRUID", level = 14, },
 	["Aquatic Form"]={ class = "DRUID", level = 16, },
 	["Swipe"]={ class = "DRUID", level = 16, },
@@ -587,14 +596,18 @@ Spy_AbilityList = {
 	["Ferocious Bite"]={ class = "DRUID", level = 32, },
 	["Ravage"]={ class = "DRUID", level = 32, },
 	["Frenzied Regeneration"]={ class = "DRUID", level = 36, },
-	["Pounce"]={ class = "DRUID", level = 36, },
 	["Dire Bear Form"]={ class = "DRUID", level = 40, },
+	["Barkskin Effect (DND)"]={ class = "DRUID", level = 44, },
 --++ Druid Talents ++	
+	["Furor"]={ class = "DRUID", level = 10, },
 	["Nature's Grasp"]={ class = "DRUID", level = 10, },
 	["Feral Charge"]={ class = "DRUID", level = 20, },
 	["Insect Swarm"]={ class = "DRUID", level = 20, },
 	["Omen of Clarity"]={ class = "DRUID", level = 20, },
 	["Faerie Fire (Feral)"]={ class = "DRUID", level = 30, },
+	["Nature's Grace"]={ class = "DRUID", level = 30, },
+	["Moonkin Form"]={ class = "DRUID", level = 40, },
+	["Swiftmend"]={ class = "DRUID", level = 40, },
 --++ Hunter Abilities ++	
 	["Readiness"]={ class = "HUNTER", level = 1, },
 	["Auto Shot"]={ class = "HUNTER", level = 1, },
@@ -642,7 +655,9 @@ Spy_AbilityList = {
 	["Aspect of the Wild"]={ class = "HUNTER", level = 46, },
 	["Track Dragonkin"]={ class = "HUNTER", level = 50, },
 	["Tranquilizing Shot"]={ class = "HUNTER", level = 60, },
+	["Devilsaur Fury"]={ class = "HUNTER", level = 50, },
 --++ Hunter Talents ++	
+	["Quick Shots"]={ class = "HUNTER ", level = 10, },
 	["Aimed Shot"]={ class = "HUNTER", level = 20, },
 	["Deterrence"]={ class = "HUNTER", level = 20, },
 	["Counterattack"]={ class = "HUNTER", level = 30, },
@@ -690,17 +705,19 @@ Spy_AbilityList = {
 	["Conjure Mana Citrine"]={ class = "MAGE", level = 48, },
 	["Portal: Darnassus"]={ class = "MAGE", level = 50, },
 	["Portal: Thunder Bluff"]={ class = "MAGE", level = 50, },
-	["Arcane Brilliance"]={ class = "MAGE", level = 56, },
 	["Conjure Mana Ruby"]={ class = "MAGE", level = 58, },
 	["Polymorph: Cow"]={ class = "MAGE", level = 60, },
 	["Polymorph: Pig"]={ class = "MAGE", level = 60, },
 	["Polymorph: Turtle"]={ class = "MAGE", level = 60, },
 --++ Mage Talents ++	
+	["Magic  Absorption"]={ class = "Mage", level = 15, },
 	["Cold Snap"]={ class = "MAGE", level = 20, },
 	["Pyroblast"]={ class = "MAGE", level = 20, },
+	["Master of Elements"]={ class = "Mage", level = 25, },
 	["Blast Wave"]={ class = "MAGE", level = 30, },
 	["Ice Block"]={ class = "MAGE", level = 30, },
 	["Presence of Mind"]={ class = "MAGE", level = 30, },
+	["Winter's Chill"]={ class = "MAGE", level = 35, },
 	["Arcane Power"]={ class = "MAGE", level = 40, },
 	["Combustion"]={ class = "MAGE", level = 40, },
 	["Ice Barrier"]={ class = "MAGE", level = 40, },
@@ -712,7 +729,6 @@ Spy_AbilityList = {
 	["Seal of the Crusader"]={ class = "PALADIN", level = 6, },
 	["Hammer of Justice"]={ class = "PALADIN", level = 8, },
 	["Purify"]={ class = "PALADIN", level = 8, },
-	["Lay on Hands"]={ class = "PALADIN", level = 10, },
 	["Redemption"]={ class = "PALADIN", level = 12, },
 	["Righteous Fury"]={ class = "PALADIN", level = 16, },
 	["Exorcism"]={ class = "PALADIN", level = 20, },
@@ -725,13 +741,14 @@ Spy_AbilityList = {
 	["Seal of Light"]={ class = "PALADIN", level = 30, },
 	["Divine Shield"]={ class = "PALADIN", level = 34, },
 	["Seal of Wisdom"]={ class = "PALADIN", level = 38, },
+	["Judgement of Wisdom"]={ class = "PALADIN", level = 38, },
 	["Blessing of Light"]={ class = "PALADIN", level = 40, },
 	["Summon Warhorse"]={ class = "PALADIN", level = 40, },
-	["Cleanse"]={ class = "PALADIN", level = 42, },
 	["Hammer of Wrath"]={ class = "PALADIN", level = 44, },
 	["Holy Wrath"]={ class = "PALADIN", level = 50, },
 	["Summon Charger"]={ class = "PALADIN", level = 60, },
 --++ Paladin Talents ++	
+	["Redoubt"]={ class = "PALADIN", level = 10, },
 	["Consecration"]={ class = "PALADIN", level = 20, },
 	["Seal of Command"]={ class = "PALADIN", level = 20, },
 	["Divine Favor"]={ class = "PALADIN", level = 30, },
@@ -768,10 +785,13 @@ Spy_AbilityList = {
 	["Abolish Disease"]={ class = "PRIEST", level = 32, },
 	["Levitate"]={ class = "PRIEST", level = 34, },
 	["Greater Heal"]={ class = "PRIEST", level = 40, },
+	["Aegis Heal"]={ class = "Priest", level = 60, },
 --++ Priest Talents ++	
+	["Blessed Recovery"]={ class = "PRIEST", level = 20, },
 	["Holy Nova"]={ class = "PRIEST", level = 20, },
 	["Inner Focus"]={ class = "PRIEST", level = 20, },
 	["Mind Flay"]={ class = "PRIEST", level = 20, },
+	["Spirit Tap"]={ class = "PRIEST", level = 20, },
 	["Silence"]={ class = "PRIEST", level = 30, },
 	["Lightwell"]={ class = "PRIEST", level = 40, },
 	["Shadowform"]={ class = "PRIEST", level = 40, },
@@ -779,6 +799,7 @@ Spy_AbilityList = {
 	["Eviscerate"]={ class = "ROGUE", level = 1, },
 	["Pick Lock"]={ class = "ROGUE", level = 1, },
 	["Sinister Strike"]={ class = "ROGUE", level = 1, },
+	["Remorseless"]={ class = "ROGUE", level = 1, },
 	["Stealth"]={ class = "ROGUE", level = 1, },
 	["Backstab"]={ class = "ROGUE", level = 4, },
 	["Pick Pocket"]={ class = "ROGUE", level = 4, },
@@ -801,15 +822,35 @@ Spy_AbilityList = {
 	["Detect Traps"]={ class = "ROGUE", level = 24, },
 	["Mind-numbing Poison"]={ class = "ROGUE", level = 24, },
 	["Cheap Shot"]={ class = "ROGUE", level = 26, },
+	["Instant Poison II"]={ class = "ROGUE", level = 28, },
 	["Disarm Trap"]={ class = "ROGUE", level = 30, },
 	["Kidney Shot"]={ class = "ROGUE", level = 30, },
 	["Deadly Poison"]={ class = "ROGUE", level = 30, },
 	["Wound Poison"]={ class = "ROGUE", level = 32, },
 	["Blind"]={ class = "ROGUE", level = 34, },
 	["Blinding Powder"]={ class = "ROGUE", level = 34, },
+	["Instant Poison III"]={ class = "ROGUE", level = 36, },
+	["Deadly Poison II"]={ class = "ROGUE", level = 38, },
+	["Mind-numbing Poison II"]={ class = "ROGUE", level = 38, },
 	["Safe Fall"]={ class = "ROGUE", level = 40, },
+	["Wound Poison II"]={ class = "ROGUE", level = 40, },
+	["Instant Poison IV"]={ class = "ROGUE", level = 44, },
+	["Deadly Poison III"]={ class = "ROGUE", level = 46, },
+	["Wound Poison III"]={ class = "ROGUE", level = 48, },
+	["Crippling Poison II"]={ class = "ROGUE", level = 50, },
+	["Instant Poison V"]={ class = "ROGUE", level = 52, },
+	["Mind-numbing Poison III"]={ class = "ROGUE", level = 52, },
+	["Deadly Poison IV"]={ class = "ROGUE", level = 54, },
+	["Wound Poison IV"]={ class = "ROGUE", level = 56, },
+	["Deadly Poison V"]={ class = "ROGUE", level = 60, },
+	["Instant Poison VI"]={ class = "ROGUE", level = 60, },
+	["Burst of Energy"]={ class = "ROGUE", level = 60, },
+	["Clean Escape"]={ class = "ROGUE", level = 60, },
+	["Head Rush"]={ class = "ROGUE", level = 60, },
+	["Rogue Armor Energize"]={ class = "ROGUE", level = 52, },
 --++ Rogue Talents ++	
 	["Ghostly Strike"]={ class = "ROGUE", level = 20, },
+	["Relentless Strikes Effect"]={ class = "ROGUE", level = 20, },
 	["Riposte"]={ class = "ROGUE", level = 20, },
 	["Blade Flurry"]={ class = "ROGUE", level = 30, },
 	["Cold Blood"]={ class = "ROGUE", level = 30, },
@@ -829,7 +870,6 @@ Spy_AbilityList = {
 	["Flame Shock"]={ class = "SHAMAN", level = 10, },
 	["Flametongue Weapon"]={ class = "SHAMAN", level = 10, },
 	["Searing Totem"]={ class = "SHAMAN", level = 10, },
-	["Strength of Earth Totem"]={ class = "SHAMAN", level = 10, },
 	["Ancestral Spirit"]={ class = "SHAMAN", level = 12, },
 	["Fire Nova Totem"]={ class = "SHAMAN", level = 12, },
 	["Purge"]={ class = "SHAMAN", level = 12, },
@@ -837,29 +877,26 @@ Spy_AbilityList = {
 	["Frost Shock"]={ class = "SHAMAN", level = 20, },
 	["Frostbrand Weapon"]={ class = "SHAMAN", level = 20, },
 	["Ghost Wolf"]={ class = "SHAMAN", level = 20, },
-	["Healing Stream Totem"]={ class = "SHAMAN", level = 20, },
 	["Lesser Healing Wave"]={ class = "SHAMAN", level = 20, },
 	["Poison Cleansing Totem"]={ class = "SHAMAN", level = 22, },
-	["Frost Resistance Totem"]={ class = "SHAMAN", level = 24, },
 	["Far Sight"]={ class = "SHAMAN", level = 26, },
 	["Magma Totem"]={ class = "SHAMAN", level = 26, },
 	["Mana Spring Totem"]={ class = "SHAMAN", level = 26, },
-	["Fire Resistance Totem"]={ class = "SHAMAN", level = 28, },
-	["Flametongue Totem"]={ class = "SHAMAN", level = 28, },
 	["Astral Recall"]={ class = "SHAMAN", level = 30, },
 	["Grounding Totem"]={ class = "SHAMAN", level = 30, },
-	["Nature Resistance Totem"]={ class = "SHAMAN", level = 30, },
 	["Reincarnation"]={ class = "SHAMAN", level = 30, },
 	["Windfury Weapon"]={ class = "SHAMAN", level = 30, },
 	["Chain Lightning"]={ class = "SHAMAN", level = 32, },
 	["Windfury Totem"]={ class = "SHAMAN", level = 32, },
 	["Sentry Totem"]={ class = "SHAMAN", level = 34, },
 	["Windwall Totem"]={ class = "SHAMAN", level = 36, },
-	["Disease Cleansing Totem"]={ class = "SHAMAN", level = 38, },
 	["Chain Heal"]={ class = "SHAMAN", level = 40, },
-	["Grace of Air Totem"]={ class = "SHAMAN", level = 42, },
-	["Tranquil Air Totem"]={ class = "SHAMAN", level = 50, },
+	["Stormcaller's Wrath"]={ class = "SHAMAN", level = 60, },
+	["Nature Aligned"]={ class = "SHAMAN", level = 60, },
 --++ Shaman Talents ++	
+	["Ancestral Healing"]={ class = "SHAMAN", level = 15, },
+	["Elemental Devastation"]={ class = "SHAMAN", level = 25, },
+	["Healing Way"]={ class = "SHAMAN", level = 30, },
 	["Parry"]={ class = "SHAMAN", level = 30, },
 	["Elemental Mastery"]={ class = "SHAMAN", level = 40, },
 	["Mana Tide Totem"]={ class = "SHAMAN", level = 40, },
@@ -875,7 +912,7 @@ Spy_AbilityList = {
 	["Curse of Agony"]={ class = "WARLOCK", level = 8, },
 	["Fear"]={ class = "WARLOCK", level = 8, },
 	["Create Healthstone (Minor)"]={ class = "WARLOCK", level = 10, },
-	["Drain Soul"]={ class = "WARLOCK", level = 10, },
+	["Soul Siphon"]={ class = "WARLOCK", level = 10, },
 	["Summon Voidwalker"]={ class = "WARLOCK", level = 10, },
 	["Health Funnel"]={ class = "WARLOCK", level = 12, },
 	["Curse of Recklessness"]={ class = "WARLOCK", level = 14, },
@@ -925,9 +962,13 @@ Spy_AbilityList = {
 	["Create Soulstone (Major)"]={ class = "WARLOCK", level = 60, },
 	["Create Spellstone (Major)"]={ class = "WARLOCK", level = 60, },
 --++ Warlock Talents ++	
+	["Aftermath"]={ class = "WARLOCK", level = 15, },
 	["Amplify Curse"]={ class = "WARLOCK", level = 20, },
 	["Fel Domination"]={ class = "WARLOCK", level = 20, },
+	["Fel Stamina"]={ class = "WARLOCK", level = 20, },
 	["Shadowburn"]={ class = "WARLOCK", level = 20, },
+	["Nightfall"]={ class = "WARLOCK", level = 25, },
+	["Shadow Trance"]={ class = "WARLOCK", level = 25, },
 	["Curse of Exhaustion"]={ class = "WARLOCK", level = 30, },
 	["Demonic Sacrifice"]={ class = "WARLOCK", level = 30, },
 	["Siphon Life"]={ class = "WARLOCK", level = 30, },
@@ -966,7 +1007,11 @@ Spy_AbilityList = {
 	["Whirlwind"]={ class = "WARRIOR", level = 36, },
 	["Pummel"]={ class = "WARRIOR", level = 38, },
 	["Recklessness"]={ class = "WARRIOR", level = 50, },
+	["Gift of Life"]={ class = "WARRIOR", level = 60, },
+	["Warrior's Wrath"]={ class = "WARRIOR", level = 60, },
 --++ Warrior Talents ++	
+	["Unbridled Wrath"]={ class = "WARRIOR", level = 15, },
+	["Blood Craze"]={ class = "WARRIOR", level = 20, },
 	["Last Stand"]={ class = "WARRIOR", level = 20, },
 	["Piercing Howl"]={ class = "WARRIOR", level = 20, },
 	["Concussion Blow"]={ class = "WARRIOR", level = 30, },
@@ -975,6 +1020,151 @@ Spy_AbilityList = {
 	["Bloodthirst"]={ class = "WARRIOR", level = 40, },
 	["Mortal Strike"]={ class = "WARRIOR", level = 40, },
 	["Shield Slam"]={ class = "WARRIOR", level = 40, },
+--++++++++++	
+	["Find Minerals"]={ level = 1, },
+	["Find Fish"]={ level = 1, },
+	["Find Herbs"]={ level = 1, },
+	["Fishing"]={ level = 1, },
+	["Herb Gathering"]={ level = 1, },
+	["Skinning"]={ level = 1, },
+	["Deep Wound"]={ level = 1, },
+	["Drain Soul"]={ level = 1, },
+	["Mana Drain"]={ level = 1, },
+	["Oracular Heal"]={ level = 1, },
+	["Cenarion Favor"]={ level = 1, },
+	["Echoes of Lordaeron"]={ level = 1, },
+	["Flametongue Attack"]={ level = 1, },
+	["Increased Stamina"]={ level = 1, },
+	["Shoot Bow"]={ level = 1, },
+	["Clearcasting"]={ level = 10, },
+	["Cure Disease"]={ level = 14, },
+	["Cure Poison"]={ level = 14, },
+	["Focused Casting"]={ level = 15, },
+	["Flurry"]={ level = 25, },
+	["Nature's Swiftness"]={ level = 30, },
+	["Barkskin"]={ level = 1, },
+	["Blessing of the Claw"]={ level = 1, },
+	["Gift of the Wild"]={ level = 1, },
+	["Hurricane"]={ level = 1, },
+	["Innervate"]={ level = 1, },
+	["Leader of the Pack"]={ level = 1, },
+	["Mark of the Wild"]={ level = 1, },
+	["Moonkin Aura"]={ level = 1, },
+	["Pounce"]={ level = 1, },
+	["Pounce Bleed"]={ level = 1, },
+	["Regrowth"]={ level = 1, },
+	["Rejuvenation"]={ level = 1, },
+	["Thorns"]={ level = 1, },
+	["Track Humanoids"]={ level = 10, },
+	["Feral Charge Effect"]={ level = 1, },
+	["Improved Concussive Shot"]={ level = 1, },
+	["Trueshot Aura"]={ level = 1, },
+	["Entrapment"]={ level = 1, },
+	["Expose Weakness"]={ level = 1, },
+	["Freezing Trap Effect"]={ level = 1, },
+	["Frost Trap Aura"]={ level = 1, },
+	["Arcane Intellect"]={ level = 1, },
+	["Arcane Brilliance"]={ level = 1, },
+	["Dampen Magic"]={ level = 1, },
+	["Chilled"]={ level = 1, },
+	["Counterspell - Silenced"]={ level = 1, },
+	["Elemental Vulnerability"]={ level = 1, },
+	["Fire Vulnerability"]={ level = 1, },
+	["Frostbite"]={ level = 1, },
+	["Ignite"]={ level = 1, },
+	["Impact"]={ level = 1, },
+	["Blessing of Freedom"]={ level = 1, },
+	["Blessing of Wisdom"]={ level = 1, },
+	["Concentration Aura"]={ level = 1, },
+	["Devotion Aura"]={ level = 1, },
+	["Shadow Resistance Aura"]={ level = 1, },
+	["Divine Spirit"]={ level = 1, },
+	["Fear Ward"]={ level = 1, },
+	["Inspiration"]={ level = 1, },
+	["Power Infusion"]={ level = 1, },
+	["Power Word: Fortitude"]={ level = 1, },
+	["Renew"]={ level = 1, },
+	["Shadow Protection"]={ level = 1, },
+	["Weakened Soul"]={ level = 1, },
+	["Power Word: Shield"]={ level = 1, },
+	["Prayer of Fortitude"]={ level = 1, },
+	["Prayer of Shadow Protection"]={ level = 1, },
+	["Prayer of Spirit"]={ level = 1, },
+	["Vampiric Embrace"]={ level = 1, },
+	["Armor of Faith"]={ level = 1, },
+	["Blackout"]={ level = 1, },
+	["Epiphany"]={ level = 1, },
+	["General's Warcry"]={ level = 1, },
+	["Shadow Vulnerability"]={ level = 1, },
+	["Ancestral Fortitude"]={ level = 1, },
+	["Glimpse of Madness"]={ level = 1, },
+	["Seduction"]={ level = 1, },
+	["Pyroclasm"]={ level = 1, },
+	["Battle Shout"]={ level = 1, },
+	["Charge Stun"]={ level = 1, },
+	["Intercept Stun"]={ level = 1, },
+	["Fiery Weapon"]={ level = 1, },
+	["Fire Resistance"]={ level = 1, },
+	["Holy Strength"]={ level = 1, },
+	["Unholy Curse"]={ level = 1, },
+	["Freeze"]={ level = 1, },
+	["Gnomish Death Ray"]={ level = 1, },
+	["Gnomish Rocket Boots"]={ level = 1, },
+	["Goblin Rocket Boots"]={ level = 1, },
+	["Grow"]={ level = 1, },
+	["Power of the Guardian"]={ level = 1, },
+	["Immune Charm/Fear/Polymorph"]={ level = 1, },
+	["Immune Fear/Polymorph/Stun"]={ level = 1, },
+	["Immune Root/Snare/Stun"]={ level = 1, },
+	["Insight of the Qiraji"]={ level = 1, },
+	["Poison Cloud"]={ level = 1, },
+	["Thunderfury"]={ level = 1, },
+	["Replenish Mana"]={ level = 23, },
+	["Flee"]={ level = 30, },
+	["Bladestorm"]={ level = 37, },
+	["Flurry Axe"]={ level = 42, },
+	["Hand of Justice"]={ level = 53, },
+	["Orb of Deception"]={ level = 54, },
+	["Chromatic Infusion"]={ level = 58, },
+	["Unstable Power"]={ level = 58, },
+	["Badge of the Swarmguard"]={ level = 60, },
+	["Bonereaver's Edge"]={ level = 60, },
+	["Ephemeral Power"]={ level = 60, },
+	["Jom Gabbar"]={ level = 60, },
+	["Slayer's Crest"]={ level = 60, },
+	["Spinal Reaper"]={ level = 60, },
+	["The Eye of the Dead"]={ level = 60, },
+	["Flaming Cannonball"]={ level = 1, },
+	["Goblin Sapper Charge"]={ level = 1, },
+	["Gordok Green Grog"]={ level = 1, },
+	["Invigorate"]={ level = 1, },
+	["Healing Potion"]={ level = 5, },
+	["Iron Grenade"]={ level = 1, },
+	["Heavy Dynamite"]={ level = 1, },
+	["Reckless Charge"]={ level = 1, },
+	["Restless Strength"]={ level = 1, },
+	["Snowball"]={ level = 1, },
+	["Supercharged Chronoboon Displacer"]={ level = 1, },
+	["Thorium Grenade"]={ level = 1, },
+	["Tidal Charm"]={ level = 1, },
+	["Restore Mana"]={ level = 5, },
+	["Battle Standard"]={ level = 10, },
+	["Swiftness of Zanza"]={ level = 15, },
+	["Free Action"]={ level = 20, },
+	["Lesser Invisibility"]={ level = 23, },
+	["Noggenfogger Elixir"]={ level = 35, },
+	["Invisibility"]={ level = 37, },
+	["Elixir of the Giants"]={ level = 38, },
+	["Invulnerability"]={ level = 45, },
+	["Whipper Root Tuber"]={ level = 45, },
+	["Elixir of the Mongoose"]={ level = 46, },
+	["Diamond Flask"]={ level = 50, },
+	["Fire Reflector"]={ level = 53, },
+	["Shahram"]={ level = 58, },
+	["Earthstrike"]={ level = 60, },
+	["Keeper's Sting"]={ level = 1, },
+	["Shoot"]={ level = 1, },
+	["Throw"]={ level = 1, },
 };
 
 Spy_IgnoreList = {

@@ -21,8 +21,7 @@ L["Add Note"] = "Notiz hinzufügen"
 L["Add ranks"] = "Ränge hinzufügen"
 L["Add rolls"] = "Würfe hinzufügen"
 L["Add Rolls"] = "Würfe hinzufügen"
---[[Translation missing --]]
-L["add_candidate"] = "Add Candidate"
+L["add_candidate"] = "Kandidat hinzufügen"
 L["add_ranks_desc"] = "Wähle einen Mindestrang aus, der am Beuterat teilnehmen darf:"
 L["add_ranks_desc2"] = [=[
 
@@ -78,6 +77,10 @@ L["Auto extracted from whisper"] = "Aus einer Flüsternachricht automatisch extr
 L["Auto Open"] = "Automatisch öffnen"
 L["Auto Pass"] = "Automatisches Passen"
 L["Auto pass BoE"] = "Auf BoE automatisch passen"
+--[[Translation missing --]]
+L["Auto Pass Transmog"] = "Auto Pass Transmog"
+--[[Translation missing --]]
+L["Auto Pass Transmog Source"] = "Auto Pass Transmog Source"
 L["Auto Pass Trinkets"] = "Auf Schmuckstücke automatisch passen"
 L["Auto Trade"] = "Automatisch Handeln"
 L["auto_award_desc"] = "Aktiviert die automatische Vergabe."
@@ -87,7 +90,13 @@ L["auto_enable_desc"] = "Aktivieren, dass RCLootCouncil sich um die Beute kümme
 L["auto_open_desc"] = "Aktivieren, um das Abstimmungsfenster automatisch zu öffnen, falls es verfügbar ist. Das Abstimmungsfenster kann anderenfalls mit \"/rc open\" geöffnet werden. Hinweis: Dies erfordert die Erlaubnis des Plündermeisters."
 L["auto_pass_boe_desc"] = "Deaktivieren, um niemals auf beim Anlegen gebundene Gegenstände automatisch zu passen."
 L["auto_pass_desc"] = "Aktivieren, um automatisch auf Gegenstände zu passen, die deine Klasse nicht benutzen kann."
+--[[Translation missing --]]
+L["auto_pass_transmog_desc"] = "Check to enable autopassing of items your class can only use for transmog."
+--[[Translation missing --]]
+L["auto_pass_transmog_source_desc"] = "Check to enable autopassing of items your class can only use for transmog and the appearance is already known from another item."
 L["auto_pass_trinket_desc"] = "Auswählen, um automatisch auf Schmuckstücke zu passen, die laut Dungeonjournal nicht für Deine Klasse geeignet sind"
+--[[Translation missing --]]
+L["autoGroupLoot_warning"] = "Note: Group Leader's settings will cause RCLootCouncil to automatically control group loot."
 L["autoloot_others_item_combat"] = [=[%s hat %s geplündert. Der Gegenstand wird der Session hinzugefügt, sobald der Kampf endet.
 ]=]
 L["Autopass"] = "Automatisches Passen"
@@ -136,6 +145,8 @@ L["channel_desc"] = "Der Kanal, in den die Nachricht gesendet wird."
 L["Chat print"] = "Chatausgabe"
 L["chat tVersion string"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFVersion |cFFFFA500 %s - %s"
 L["chat version String"] = "|cFF87CEFARCLootCouncil |cFFFFFFFFVersion |cFFFFA500 %s"
+--[[Translation missing --]]
+L["chat_cmd_add_found_items"] = "Found %d items with trade timers in your bags."
 L["chat_cmd_add_invalid_owner"] = "Der Spieler %s war entweder ungültig oder kein Kandidat."
 L["chat_commands_add"] = "Gegenstand zur Sitzung hinzufügen"
 L["chat_commands_award"] = [=[Sitzung mit geplünderten Gegenständen aus dem Inventar starten
@@ -276,10 +287,8 @@ L["Minimize in combat"] = "Im Kampf minimieren"
 L["Minor Upgrade"] = "Geringes Upgrade"
 L["Missing votes from:"] = "Fehlende Stimmen von:"
 L["ML sees voting"] = "Plündermeister sieht die Abstimmung"
---[[Translation missing --]]
-L["ML_ADD_INVALID_ITEM"] = "Invalid itemLink or itemID: %s"
---[[Translation missing --]]
-L["ML_ADD_ITEM_MAX_ATTEMPTS"] = "Couldn't fetch item info for %s - probably not a real item."
+L["ML_ADD_INVALID_ITEM"] = "Ungültiger Gegenstandslink oder Gegenstands-ID: %s"
+L["ML_ADD_ITEM_MAX_ATTEMPTS"] = "Die Gegenstandsinfo für %s konnte nicht geladen werden – wahrscheinlich kein echter Gegenstand."
 L["ml_sees_voting_desc"] = "Erlaubt es dem Plündermeister zu sehen, wer für wen abstimmt."
 L["module_tVersion_outdated_msg"] = "Testversion des neuesten Moduls %s ist: %s"
 L["module_version_outdated_msg"] = "Die Version des Moduls %s ist veraltet. Neueste Version ist %s. "
@@ -327,23 +336,30 @@ L["Open the Loot History"] = "Beuteverlauf öffnen"
 L["open_the_loot_history_desc"] = "Klicken, um den Beuteverlauf zu öffnen."
 L["Opens the synchronizer"] = "Öffnet den Synchronisierer"
 L["opt_addButton_desc"] = "Füge eine neue Schaltflächengruppe für den ausgewählten Slot hinzu."
---[[Translation missing --]]
-L["opt_autoAddBoEs_desc"] = "Automatically add all BoE (Bind on Equip) items to a session."
---[[Translation missing --]]
-L["opt_autoAddBoEs_name"] = "Auto Add BoEs"
---[[Translation missing --]]
-L["opt_autoAddItems_desc"] = "Automatically add all eligible items to a session."
+L["opt_autoAddBoEs_desc"] = "Automatisch alle BoE (Beim Anlegen gebundenen) Gegenstände zu dieser Sitzung hinzufügen"
+L["opt_autoAddBoEs_name"] = "BoEs automatisch hinzufügen"
+L["opt_autoAddItems_desc"] = "Automatisch alle wählbaren Gegenstände einer Sitzung hinzufügen."
 L["opt_autoAddItems_name"] = "Gegenstände automatisch hinzugefügen"
---[[Translation missing --]]
-L["opt_autoAddPets_desc"] = "Automatically add all Companion Pets to a session."
+L["opt_autoAddPets_desc"] = "Automatisch alle Haustiere einer Sitzung hinzufügen."
 L["opt_autoAddPets_name"] = "Begleiter hinzufügen"
+L["opt_autoAwardPrioList_desc"] = "Gegenstände werden an den dieser Prioritätsliste nach ersten Kandidaten aus deiner Gruppe  vergeben."
 --[[Translation missing --]]
-L["opt_autoAwardPrioList_desc"] = "Items are awarded to the first candidate found in your group according to this priority list."
+L["opt_autoGroupLoot_desc"] = "When enabled, RCLootCouncil will automatically click the pass and greed buttons so that all items lands in your inventory."
+--[[Translation missing --]]
+L["opt_autoGroupLoot_name"] = "Auto Group Loot"
+--[[Translation missing --]]
+L["opt_autoGroupLootGuildGroupOnly_desc"] = "When enabled, RCLootCouncil will only do group loot auto pass when you're in a guild group."
+--[[Translation missing --]]
+L["opt_autoGroupLootGuildGroupOnly_name"] = "Guild Groups Only"
 L["opt_autoTrade_desc"] = "Anhaken, um vergebene Gegenstände dem Handelsfenster automatisch hinzuzufügen, wenn man mit dem Gewinner handelt. Wenn deaktiviert, wird ein Pop-up eingeblendet bevor die Gegenstände hinzugefügt werden. "
 L["opt_award_later_desc"] = "Anhaken, um die \"Später vergeben\"-Funktion im Sitzungsfenster automatisch zu aktivieren."
 L["opt_buttonsGroup_desc"] = "Optionsgruppe für %s Schaltflächen und Antworten. Für eine detaillierte Erklärung siehe oben. "
 L["opt_chatFrameName_desc"] = "Wähle aus, in welchem Chatfenster RCLootCouncil Informationen ausgeben soll."
 L["opt_chatFrameName_name"] = "Chatfenster"
+--[[Translation missing --]]
+L["opt_closeWithEscape_desc"] = "When enabled, all non-critical RCLootCouncil frames can be closed by pressing 'Escape'. (Requires reload to take effect on already created frames)"
+--[[Translation missing --]]
+L["opt_closeWithEscape_name"] = "Escape Close"
 L["opt_deleteDate_confirm"] = [=[Bist du sicher, dass du alles, das älter als das gewählte ist, löschen möchtest?
 Dies kann nicht rückgängig gemacht werden.]=]
 L["opt_deleteDate_desc"] = "Lösche alles, was älter als die ausgewählte Anzahl an Tagen ist."
@@ -360,10 +376,14 @@ L["opt_printCompletedTrade_Desc"] = "Anhaken, damit jedes Mal eine Nachricht ver
 L["opt_printCompletedTrade_Name"] = "Handelsnachrichten"
 L["opt_rejectTrade_Desc"] = "Aktiviere diese Option, damit die Kandidaten auswählen können, ob sie den Gegenstand dem Rat \"geben\" möchten oder nicht. Wenn diese Option nicht aktiviert ist, werden alle handelbaren PL-Gegenstände automatisch hinzugefügt."
 L["opt_rejectTrade_Name"] = "Behalten erlauben"
+L["opt_skipSessionFrame_desc"] = "Überspringt das Sitzungsfenster. BEACHTE: Dies führt dazu, dass das Addon eine Sitzung mit allen wählbaren Gegenständen startet, ohne dass du die Möglichkeit hast die Liste zu bearbeiten!"
+L["opt_skipSessionFrame_name"] = "Sitzungsfenster überspringen"
 --[[Translation missing --]]
-L["opt_skipSessionFrame_desc"] = "Skips the Session Frame. NOTE: This causes the addon to start a session with all eligble items without you having a chance to edit the list!"
+L["opt_usage_AskGroupLoot"] = "Ask me every time Group Loot is enabled"
 --[[Translation missing --]]
-L["opt_skipSessionFrame_name"] = "Skip Session Frame"
+L["opt_usage_GroupLoot"] = "Always use RCLootCouncil with Group Loot"
+L["opt_useSlashRC_desc"] = "Deaktiviere diese Option, wenn du '/rc' für den Bereitschaftscheck wiederherstellen möchtest. RCLootCouncil-Kommandos sind immer noch mit '/rclc' verfügbar. Ein '/reload' wird benötigt damit diese Option in Kraft tritt."
+L["opt_useSlashRC_name"] = "Benutze /rc"
 L["options_autoAwardBoE_desc"] = "Aktiviere diese Option, um alle epischen BoE-Gegenständie (Beim Anlegen gebunden) aus dem ausgewählten Grund automatisch an eine bestimmte Person zu vergeben."
 L["options_autoAwardBoE_name"] = "BoE's automatisch vergeben"
 L["options_ml_outOfRaid_desc"] = "Wenn diese Option aktiviert ist, wird in einer Gruppe von 8 oder mehr Mitgliedern von jedem, der sich nicht in einer Instanz befindet, wenn eine Sitzung gestartet wird, automatisch die Antwort \"Nicht im Raid\" senden."

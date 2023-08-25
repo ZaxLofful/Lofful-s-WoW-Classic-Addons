@@ -1,15 +1,16 @@
-﻿## Interface: 11307
+﻿## Interface: 11403
 ## Title: Pawn
-## Version: 2.5.15
+## Version: 2.8.4
 ## Notes: Pawn helps you compare items and find upgrades.
-## OptionalDependencies: AtlasLoot, EQCompare, EquipCompare, LinkWrangler, MobInfo2, MultiTips, Outfitter, ArkInventoryRules
+## OptionalDependencies: Ace3, ArkInventoryRules, AtlasLoot, EQCompare, EquipCompare, LinkWrangler, MobInfo2, MultiTips, Outfitter
 ## SavedVariables: PawnCommon
 ## SavedVariablesPerCharacter: PawnOptions, PawnMrRobotScaleProviderOptions, PawnClassicScaleProviderOptions
+
+## X-Wago-ID: R4N2k46L
 
 VgerCore\VgerCore.lua
 
 Core.lua
-ItemIDs.lua
 Localization.lua
 Localization.deDE.lua
 Localization.es.lua
@@ -25,7 +26,9 @@ TooltipParsing.lua
 Gems.lua
 GemsClassic.lua
 GemsBurningCrusade.lua
+GemsWrath.lua
 ScaleTemplates.lua
+ItemIDs.lua
 Pawn.lua
 PawnUI.lua
 PawnUI.xml

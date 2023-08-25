@@ -14,11 +14,12 @@ local table_insert, table_concat, fmt = table.insert, table.concat, string.forma
 
 local WoWClassic = (WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE)
 local WoWBC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
+local WoWWrath = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
 
 local StateBar = setmetatable({}, {__index = ButtonBar})
 local StateBar_MT = {__index = StateBar}
 
-local defaults = Bartender4:Merge({
+local defaults = Bartender4.Util:Merge({
 	autoassist = false,
 	states = {
 		enabled = false,
@@ -95,10 +96,12 @@ DefaultStanceMap = setmetatable({}, { __index = function(t,k)
 				-- prowl is virtual, no real stance
 			{ id = "prowl", name = ("%s (%s)"):format((GetSpellInfo(768)), (GetSpellInfo(5215))), index = false},
 			{ id = "moonkin", name = GetSpellInfo(24858), index = 4 },
+			(WoWBC or WoWWrath) and { id = "treeoflife", name = GetSpellInfo(33891), index = 2 } or nil,
 		}
 	elseif k == "ROGUE" then
 		newT = {
 			{ id = "stealth", name = GetSpellInfo(1784), index = 1 },
+			WoWWrath and { id = "shadowdance", name = GetSpellInfo(51713), index = 2 } or nil,
 		}
 	elseif k ==  "WARRIOR" then
 		newT = {
@@ -106,7 +109,7 @@ DefaultStanceMap = setmetatable({}, { __index = function(t,k)
 			{ id = "def", name = GetSpellInfo(71), index = 2 },
 			{ id = "berserker", name = GetSpellInfo(2458), index = 3 },
 		}
-	elseif k == "PRIEST" and WoWBC then
+	elseif k == "PRIEST" and (WoWBC or WoWWrath) then
 		newT = {
 			{ id = "shadowform", name = GetSpellInfo(15473), index = 1 },
 		}
@@ -129,6 +132,10 @@ DefaultStanceMap = setmetatable({}, { __index = function(t,k)
 	elseif k == "ROGUE" then
 		newT = {
 			{ id = "stealth", name = GetSpellInfo(1784), index = 1 },
+		}
+	elseif k == "EVOKER" then
+		newT = {
+			{ id = "soar", name = GetSpellInfo(369536), index = 1 },
 		}
 	end
 	rawset(t, k, newT)
@@ -156,7 +163,7 @@ function StateBar:UpdateStates(returnOnly)
 
 		-- possessing will always be the most important change, if enabled
 		if self:GetStateOption("possess") then
-			table_insert(statedriver, "[overridebar][possessbar][shapeshift]possess")
+			table_insert(statedriver, "[overridebar][possessbar][shapeshift]possess;[bonusbar:5]dragon")
 		end
 
 		-- highest priority have our temporary quick-swap keys
@@ -204,17 +211,19 @@ function StateBar:UpdateStates(returnOnly)
 	end
 
 	if statedriver then
-		statedriver = statedriver:gsub("%[bonusbar:5%]11", "[overridebar][possessbar]possess")
+		statedriver = statedriver:gsub("%[bonusbar:5%]11", "[overridebar][possessbar][shapeshift]possess;[bonusbar:5]dragon")
 	end
 
 	self:SetAttribute("_onstate-page", [[
-		if newstate == "possess" or newstate == "11" then
+		if newstate == "possess" or newstate == "dragon" or newstate == "11" then
 			if HasVehicleActionBar() then
 				newstate = GetVehicleBarIndex()
 			elseif HasOverrideActionBar() then
 				newstate = GetOverrideBarIndex()
 			elseif HasTempShapeshiftActionBar() then
 				newstate = GetTempShapeshiftBarIndex()
+			elseif HasBonusActionBar() then
+				newstate = GetBonusBarIndex()
 			else
 				newstate = nil
 			end

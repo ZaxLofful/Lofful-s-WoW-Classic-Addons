@@ -1,6 +1,6 @@
 # Peggle (Unofficial)
 
-## [2.3.3](https://github.com/ketho-wow/wow_peggle/tree/2.3.3) (2021-05-10)
-[Full Changelog](https://github.com/ketho-wow/wow_peggle/compare/2.3.2...2.3.3) [Previous Releases](https://github.com/ketho-wow/wow_peggle/releases)
+## [2.3.6](https://github.com/ketho-wow/wow_peggle/tree/2.3.6) (2023-01-21)
+[Full Changelog](https://github.com/ketho-wow/wow_peggle/compare/2.3.5...2.3.6) [Previous Releases](https://github.com/ketho-wow/wow_peggle/releases)
 
-- Update for 9.0.5, 1.13.7, 2.5.1  
+- Update for patch 3.4.1  

@@ -1,7 +1,7 @@
 --[[
 	Enchantrix Addon for World of Warcraft(tm).
-	Version: 8.2.6428 (SwimmingSeadragon)
-	Revision: $Id: EnxManifest.lua 6428 2019-10-20 00:10:07Z none $
+	Version: 3.4.6849 (SwimmingSeadragon)
+	Revision: $Id: EnxManifest.lua 6849 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	Enchantrix Manifest
@@ -53,7 +53,7 @@ Enchantrix_RegisterRevision = manifest.RegisterRevision
 function manifest.ShowMessage(msg)
 	local messageFrame = manifest.messageFrame
 	if not messageFrame then
-		messageFrame = CreateFrame("Frame", "", UIParent)
+		messageFrame = CreateFrame("Frame", "", UIParent, BackdropTemplateMixin and "BackdropTemplate")
 		manifest.messageFrame = messageFrame
 
 		messageFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 150)
@@ -101,4 +101,4 @@ function manifest.Validate()
 	return true
 end
 
-Enchantrix_RegisterRevision("$URL: Enchantrix/EnxManifest.lua $", "$Rev: 6428 $")
+Enchantrix_RegisterRevision("$URL: Enchantrix/EnxManifest.lua $", "$Rev: 6849 $")

@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - iLevel Standard Deviation Statistics module
-	Version: 8.2.6370 (SwimmingSeadragon)
-	Revision: $Id: iLevel.lua 6370 2019-10-20 00:10:07Z none $
+	Version: 3.4.6809 (SwimmingSeadragon)
+	Revision: $Id: iLevel.lua 6809 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -424,10 +424,6 @@ function private.InitData()
 	private.InitData = nil
 	if private.UpgradeDB then private.UpgradeDB() end
 	ILRealmData = AucAdvancedStat_iLevelData.RealmData
-	if not ILRealmData then
-		ILRealmData = {} -- dummy value to avoid more errors - will not get saved
-		error("Error loading or creating Stat-iLevel database")
-	end
 end
 
 function private.OnLogout()
@@ -437,34 +433,27 @@ function private.OnLogout()
 			ILRealmData[serverKey] = nil
 		end
 	end
-	if AucAdvancedStat_iLevelData.OldRealmData then
-		if not AucAdvancedStat_iLevelData.OldRealmData.expires or time() > AucAdvancedStat_iLevelData.OldRealmData.expires then
-			AucAdvancedStat_iLevelData.OldRealmData = nil
-		end
-	end
 end
 
 function private.UpgradeDB()
 	private.UpgradeDB = nil
 
 	local saved = AucAdvancedStat_iLevelData
-
-	if saved and saved.Version == DATABASE_VERSION then return end
-
-	local _,_,_,wowversion = GetBuildInfo()
-	if wowversion >= 80000 then
-		-- WoW 8.0 Stat Wipe
-		-- due to the iLevel squish all stats from before WoW 8.0 are invalid
-		AucAdvancedStat_iLevelData = {
-			Version = DATABASE_VERSION,
-			RealmData = {}
-		}
-		return
+	if type(saved) == "table" and type(saved.RealmData) == "table" then
+		if saved.Version == DATABASE_VERSION then
+			saved.OldRealmData = nil -- delete any obsolete data - this line can be removed after some time
+			return
+		elseif saved.Version == 2 and DATABASE_VERSION == 3 and AucAdvanced.Classic then
+			-- Fixes an issue where in some cases Version got set to 2 when it should have been set to 3.
+			-- Originally the upgrade from 2 to 3 was due to an iLevel squish in Retail
+			saved.Version = DATABASE_VERSION
+			saved.RealmData = saved.RealmData or {}
+			return
+		end
 	end
 
-	if saved and saved.Version == 2 then return end
 	AucAdvancedStat_iLevelData = {
-		Version = 2,
+		Version = DATABASE_VERSION,
 		RealmData = {}
 	}
 end
@@ -475,13 +464,8 @@ function lib.ClearData(serverKey)
 		wipe(ILRealmData)
 		wipe(unpacked)
 		wipe(updated)
-		AucAdvancedStat_iLevelData.OldRealmData = nil
 		aucPrint(_TRANS('ILVL_Help_SlashHelp5').." {{".._TRANS("ADV_Interface_AllRealms").."}}") --Clearing iLevel stats for // All realms
 	else
-		local oldrealms = AucAdvancedStat_iLevelData.OldRealmData
-		if oldrealms then
-			oldrealms[serverKey] = nil -- silently delete any matching old data, if it exists
-		end
 		serverKey = ResolveServerKey(serverKey)
 		if ILRealmData[serverKey] then
 			ILRealmData[serverKey] = nil
@@ -620,4 +604,4 @@ function private.PackStats(data)
 	return concat(tmp, ",", 1, ntmp)
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Stat-iLevel/iLevel.lua $", "$Rev: 6370 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Stat-iLevel/iLevel.lua $", "$Rev: 6809 $")

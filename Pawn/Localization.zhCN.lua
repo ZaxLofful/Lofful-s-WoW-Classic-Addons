@@ -1,9 +1,9 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2021 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2023 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
--- 
+--
 -- Chinese (Simplified) resources
 ------------------------------------------------------------
 
@@ -93,6 +93,7 @@ PawnLocal =
 		["CritInfo"] = "爆击等级，影响近战、远程和法术的爆击几率。(在经典旧世中, 仅对物理攻击生效。)",
 		["DefenseInfo"] = "防御技能: 减少被首领攻击命中的几率。",
 		["DodgeInfo"] = "闪避: 增加完全闪避攻击的几率。",
+		["DominationSocketInfo"] = "平均统治碎片的套接字值。",
 		["DpsInfo"] = "武器的每秒伤害。(如果你想要给不同类型的武器估分，前往 \"特殊武器属性\" 部分。)",
 		--[[Translation missing --]]
 		["ExpertiseInfo"] = "Expertise. Negates your enemy's chances to dodge and parry.",
@@ -151,6 +152,7 @@ PawnLocal =
 		["SpellHitInfo"] = "法术命中: 增加法术攻击命中目标的几率 (对于首领而言尤为重要)。",
 		--[[Translation missing --]]
 		["SpellPenetrationInfo"] = "Spell Penetration. Negates an enemy's resistances to your spells.",
+		["SpellPowerInfo"] = "",
 		["SpiritInfo"] = "精神 - 影响非战斗状态下生命和法力的恢复速度 (在战斗状态下, 仅影响法力的恢复速度).",
 		["StaminaInfo"] = "耐力，增加你的生命值上限。",
 		["StrengthInfo"] = "力量，为力量型职业增加攻击强度。",
@@ -259,6 +261,9 @@ PawnLocal =
 		["Armor"] = "^#点护甲$",
 		["Armor2"] = "^UNUSED$",
 		["ArmorPenetration"] = "^装备： 你的攻击无视目标的#点护甲值。$",
+		["ArmorPenetrationRating"] = "^装备： 护甲穿透等级提高#。$",
+		["ArmorPenetrationRating2"] = "^装备： 使你的护甲穿透提高#点。$",
+		["ArmorPenetrationShort"] = "^%+?# 护甲穿透等级$",
 		["Avoidance"] = "^%+# 闪避$",
 		["Axe"] = "^斧$",
 		["BagSlots"] = "^%d+格容器 .+$",
@@ -278,6 +283,7 @@ PawnLocal =
 		["CritPercent"] = "^装备： ?使你造成致命一击的几率提高#%%。$",
 		["CritRating"] = "^装备： 使你的爆击等级提高#。$",
 		["CritRating2"] = "^UNUSED$",
+		["CritRating3"] = "^装备： 爆击等级提高#点。$",
 		["CritRatingShort"] = "^%+?# 爆击等级$",
 		["Crossbow"] = "^弩$",
 		["Dagger"] = "^匕首$",
@@ -308,8 +314,10 @@ PawnLocal =
 		["EnchantmentTitaniumWeaponChain"] = "^泰坦神铁武器链$",
 		["Equip"] = "装备：",
 		["ExpertiseRating"] = "^装备： 使你的精准等级提高#点。$",
+		["ExpertiseRatingShort"] = "^%+?# 精准等级$",
 		["FeralAp"] = "^装备： ?在猎豹、熊和巨熊形态下的攻击强度提高#点。$",
 		["FeralApMoonkin"] = "^装备： 在猎豹、熊、巨熊和枭兽形态下的攻击强度提高#点。$",
+		["FeralApWrath"] = "^在猎豹、熊、巨熊和枭兽形态下的攻击强度提高#点。$",
 		["FireResist"] = "^%+?# 火焰抗性$",
 		["FireSpellDamage"] = "^%+# 火焰法术伤害$",
 		["FireSpellDamage2"] = "^装备： ?提高火焰法术和效果所造成的伤害，最多#点。$",
@@ -345,6 +353,7 @@ PawnLocal =
 		["HitRatingShort"] = "^%+?# 命中等级$",
 		["HolySpellDamage"] = "^%+# 神圣法术伤害$",
 		["HolySpellDamage2"] = "^装备： ?提高神圣法术和效果所造成的伤害，最多#点。$",
+		["HolySpellDamage3"] = "^装备： ?使你的神圣法术和效果所造成的伤害提高最多#点。$",
 		["Hp5"] = "^装备: 每5秒恢复#生命力。$",
 		["Hp52"] = "^装备: 每5秒恢复#生命力。$",
 		["Hp53"] = "^每5秒恢复#生命力$",
@@ -363,6 +372,7 @@ PawnLocal =
 		["Mp52"] = "^装备： ?每5秒回复#点法力值。$",
 		["Mp53"] = "^每5秒法力回复%+#$",
 		["Mp54"] = "^UNUSED$",
+		["Mp55"] = "^装备： ?每5秒恢复#点法力值。$",
 		["MultiStatHeading"] = "^多项统计$",
 		["MultiStatSeparator1"] = "和",
 		["Multistrike"] = "^%+# 溅射$",
@@ -374,13 +384,14 @@ PawnLocal =
 		["Parry"] = "^%+?# 招架$",
 		["Parry2"] = "^UNUSED$",
 		["ParryPercent"] = "^装备： 使你招架攻击的几率提高#%%。$",
-		["ParryRating"] = "^装备： 使你的招架等级提高#。$",
+		["ParryRating"] = "^装备： 使你的招架等级提高#[点]*。$",
 		["ParryRatingShort"] = "^%+?# 招架等级$",
 		["Plate"] = "^板甲$",
 		["Polearm"] = "^长柄武器$",
 		["PvPPower"] = "^%+?# PvP强度$",
 		["RaidFinder"] = "^随机团队$",
 		["Rap"] = "^装备： ?%+# 远程攻击强度。$",
+		["Rap2"] = "^装备： 远程攻击强度提高#点。$",
 		["Requires2"] = "^UNUSED$",
 		["Resilience"] = "^%+?# PvP韧性$",
 		["Resilience2"] = "^UNUSED$",
@@ -402,11 +413,15 @@ PawnLocal =
 		["SpellCritRating"] = "^装备： 使你的法术爆击等级提高#。$",
 		["SpellCritRating2"] = "^装备： 法术爆击等级提高#点。$",
 		["SpellCritRatingShort"] = "^%+?# 法术爆击等级$",
+		["SpellCritRatingShort2"] = "^UNUSED$",
 		["SpellDamage"] = "^%+# 伤害和治疗法术$",
 		["SpellDamage2"] = "^装备： ?提高所有法术和魔法效果所造成的伤害和治疗效果，最多#点。$",
 		["SpellDamage3"] = "^装备： ?提高法术所造成的治疗效果，最多#点。$",
 		["SpellDamage4"] = "^装备： ?使治疗法术和效果所回复的生命值提高#点。$",
+		["SpellDamage5"] = "^%+# 法术伤害和治疗$",
+		["SpellDamage6"] = "^装备： ?使法术和魔法效果的治疗和伤害提高最多#点。$",
 		["SpellDamageAndHealing"] = "^装备： 使法术治疗提高最多#点，法术伤害提高最多#点。$",
+		["SpellDamageAndHealing2"] = "^UNUSED$",
 		["SpellDamageAndHealingEnchant"] = "^UNUSED$",
 		["SpellDamageAndHealingShort"] = "^%+# 法术治疗，%+# 法术伤害$",
 		["SpellDamageAndHealingShort2"] = "^UNUSED$",
@@ -420,6 +435,8 @@ PawnLocal =
 		["SpellPenetrationClassic"] = "^装备： 使你的法术目标的魔法抗性降低#点。$",
 		["SpellPenetrationShort"] = "^%+?# 法术穿透$",
 		["SpellPower"] = "^%+?# 法术强度$",
+		["SpellPower2"] = "^装备： 法术强度提高#点。$",
+		["SpellPower3"] = "^UNUSED$",
 		["Spirit"] = "^%+?# 精神$",
 		["Staff"] = "^法杖$",
 		["Stamina"] = "^%+?# 耐力$",
@@ -652,6 +669,7 @@ Pawn插件默认已经参考AskMrRobot给所有职业的专精建立了标准评
 		["ScaleRename"] = "重命名",
 		["ScaleRenameTooltip"] = "为这个属性权重重命名.",
 		["ScaleSelectorHeader"] = "选择一个属性权重:",
+		["ScaleSelectorNoneWarning"] = "至少选择一项。",
 		["ScaleSelectorShowingSuggestionsFor"] = "当前属性权重的专精",
 		["ScaleSelectorShowScale"] = "在提示栏中显示属性权重",
 		["ScaleSelectorShowScaleTooltip"] = "当这个选项被选中时，此属性权重将显示在此角色的物品工具提示上。每个属性权重可以显示在一个角色，多个角色，或干脆不显示。",
@@ -686,7 +704,7 @@ Pawn插件默认已经参考AskMrRobot给所有职业的专精建立了标准评
 
 -- Special case: wands use different text on Classic.
 -- So, patch things up here.
-if VgerCore.IsClassic or VgerCore.IsBurningCrusade then
+if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath then
 
 	local TooltipParsing_Classic =
 	{
@@ -712,7 +730,7 @@ if VgerCore.IsClassic or VgerCore.IsBurningCrusade then
 	end
 end
 
-if VgerCore.IsBurningCrusade then
+if VgerCore.IsBurningCrusade or VgerCore.IsWrath then
 
 	local TooltipParsing_BurningCrusade =
 	{

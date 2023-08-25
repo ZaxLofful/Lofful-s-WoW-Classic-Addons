@@ -1,7 +1,7 @@
 ﻿--[[
 	Enchantrix Addon for World of Warcraft(tm).
-	Version: 8.2.6428 (SwimmingSeadragon)
-	Revision: $Id: EnxStorage.lua 6428 2019-10-20 00:10:07Z none $
+	Version: 3.4.6849 (SwimmingSeadragon)
+	Revision: $Id: EnxStorage.lua 6849 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	Database functions and saved variables.
@@ -28,7 +28,7 @@
 		since that is its designated purpose as per:
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 ]]
-Enchantrix_RegisterRevision("$URL: Enchantrix/EnxStorage.lua $", "$Rev: 6428 $")
+Enchantrix_RegisterRevision("$URL: Enchantrix/EnxStorage.lua $", "$Rev: 6849 $")
 
 --[[
 Usages:
@@ -164,6 +164,7 @@ function saveDisenchant(sig, reagentID, count, itemLink)
 	assert(tonumber(count));
 
 	local itype = Enchantrix.Util.GetIType(itemLink)	-- must use full link to get correct quality result, thanks to quality boosts/bonuses
+local dType = Enchantrix.Util.GetITypeDetailed(itemLink)
 
 	local disenchant = ("%d:1:%d:0"):format(reagentID, count)
 	--Enchantrix.Util.DebugPrint("saveDisenchant", ENX_INFO, "saveDisenchant", sig, reagentID, count, type(sig), itype, disenchant )	-- debugging
@@ -171,6 +172,10 @@ function saveDisenchant(sig, reagentID, count, itemLink)
 	if itype then
 		EnchantedItemTypes[itype] = mergeDisenchant(EnchantedItemTypes[itype], disenchant)
 	end
+
+    if dType then
+        EnchantedDetailItemTypes[dType] = mergeDisenchant(EnchantedDetailItemTypes[dType], disenchant)
+    end
 
 	-- if we disenchanted successfully, then make sure it isn't on the non-disenchantable list
 	removeFromNonDisenchantable(sig)
@@ -200,7 +205,7 @@ end
 
 -- this will return nil for anything that is not prospectable
 function getItemProspects(link)
-    if (constants.Classic) then return end
+    if (constants.Classic and constants.Classic < 2) then return end
 
 	local itemType, itemID = tooltip:DecodeLink(link)
 	if (itemType ~= "item") then return end
@@ -236,7 +241,7 @@ end
 -- similar code in EnxTooltip.lua / millingTooltip
 
 function getItemMilling(link)
-    if (constants.Classic) then return end
+    if (constants.Classic and constants.Classic < 3) then return end
 
 	local itemType, itemID = tooltip:DecodeLink(link)
 	if (itemType ~= "item") then return end
@@ -663,6 +668,7 @@ function addonLoaded()
 	if not NonDisenchantablesLocal then NonDisenchantablesLocal = {} end
 	if not ProspectedLocal then ProspectedLocal = {} end
 	if not MillingLocal then MillingLocal = {} end
+	if not EnchantedDetailItemTypes then EnchantedDetailItemTypes = {} end
 
 	mergeDisenchantLists()
 end

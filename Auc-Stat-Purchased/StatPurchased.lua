@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - StatPurchased
-	Version: 8.2.6367 (SwimmingSeadragon)
-	Revision: $Id: StatPurchased.lua 6367 2019-10-20 00:10:07Z none $
+	Version: 3.4.6806 (SwimmingSeadragon)
+	Revision: $Id: StatPurchased.lua 6806 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -127,9 +127,11 @@ end
 function lib.Processors.scanstats()
 	private.ClearCache()
 end
+--[[ event currently unused
 function lib.Processors.gameactive()
-	if private.LookForOldData then private.LookForOldData() end
+
 end
+--]]
 
 lib.ScanProcessors = {}
 function lib.ScanProcessors.delete(operation, itemData, oldData)
@@ -574,62 +576,15 @@ local SPRealmData
 function private.UpgradeDB()
 	private.UpgradeDB = nil
 
-	local savedroot = AucAdvancedStatPurchasedData
-	local saveddata
-	if savedroot then
-		saveddata = savedroot.RealmData
-		if saveddata and savedroot.Version == DATABASE_VERSION then return end
+	local saved = AucAdvancedStatPurchasedData
+	if type(saved) == "table" and type(saved.RealmData) == "table" and saved.Version == DATABASE_VERSION then
+		return
 	end
 
-	local newSave = {
+	AucAdvancedStatPurchasedData = {
 		Version = DATABASE_VERSION,
 		RealmData = {}
 	}
-
-	if saveddata and savedroot.Version == "2.0" then
-		for serverKey, data in pairs(saveddata) do
-			if type(data) ~= "table" then
-				saveddata[serverKey] = nil
-			else
-				local realm, faction = AucAdvanced.SplitServerKey(serverKey)
-				if not realm or faction == "Neutral" then -- don't keep invalid or neutral (old style) serverKeys
-					saveddata[serverKey] = nil
-				else
-					-- check means for empty (for simplicity we ignore daily)
-					if type(data.means) ~= "table" or not next(data.means) then
-						saveddata[serverKey] = nil
-					end
-				end
-			end
-		end
-
-		if next(saveddata) then
-			newSave.OldRealmData = saveddata
-			saveddata.expires = time() + 1209600 -- 60 * 60 * 24 * 14 = 14 days
-		end
-	end
-
-	AucAdvancedStatPurchasedData = newSave
-end
-
-function private.LookForOldData()
-	private.LookForOldData = nil
-
-	local oldrealms = AucAdvancedStatPurchasedData.OldRealmData
-	if not oldrealms then return end
-
-	local newKey = Resources.ServerKey
-	if  not SPRealmData[newKey] then
-		-- prefer home faction, but use opposing if no home data
-		SPRealmData[newKey] = oldrealms[Resources.ServerKeyHome] or oldrealms[Resources.ServerKeyOpposing]
-	end
-
-	if not oldrealms.expires or time() > oldrealms.expires then
-		AucAdvancedStatPurchasedData.OldRealmData = nil
-	else
-		oldrealms[Resources.ServerKeyHome] = nil
-		oldrealms[Resources.ServerKeyOpposing] = nil
-	end
 end
 
 function lib.ClearData(serverKey)
@@ -699,10 +654,6 @@ function private.InitData()
 	-- Load Data
 	private.UpgradeDB()
 	SPRealmData = AucAdvancedStatPurchasedData.RealmData
-	if not SPRealmData then
-		SPRealmData = {} -- dummy table to avoid errors in future events; data will not be saved
-		error("Error loading or creating Stat-Purchased database")
-	end
 
 	-- Data maintenance
 	for serverKey, data in pairs(SPRealmData) do
@@ -734,4 +685,4 @@ function lib.ChangeServerKey(oldKey, newKey)
 	end
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Stat-Purchased/StatPurchased.lua $", "$Rev: 6367 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Stat-Purchased/StatPurchased.lua $", "$Rev: 6806 $")

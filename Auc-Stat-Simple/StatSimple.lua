@@ -1,7 +1,7 @@
 --[[
 Auctioneer - StatSimple
-Version: 8.2.6399 (SwimmingSeadragon)
-Revision: $Id: StatSimple.lua 6399 2019-10-20 00:10:07Z none $
+Version: 3.4.6807 (SwimmingSeadragon)
+Revision: $Id: StatSimple.lua 6807 2022-10-27 00:00:09Z none $
 URL: http://auctioneeraddon.com/
 
 This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -543,10 +543,6 @@ function private.InitData()
 	-- Load data
 	private.UpgradeDb()
 	SSRealmData = AucAdvancedStatSimpleData.RealmData
-	if not SSRealmData then
-		SSRealmData = {} -- dummy value to avoid more errors - will not get saved
-		error("Error loading or creating StatSimple database")
-	end
 
 	for serverKey, data in pairs (SSRealmData) do
 		if time() > data.dailypush then
@@ -557,9 +553,10 @@ end
 
 function private.UpgradeDb()
 	private.UpgradeDb = nil
-	if type(AucAdvancedStatSimpleData) == "table" and AucAdvancedStatSimpleData.Version == DATABASE_VERSION then return end
 
-	-- "Upgrade" to Version 3.0: database format has changed so drastically that we shall wipe the data and start fresh
+	local saved = AucAdvancedStatSimpleData
+	if type(saved) == "table" and type(saved.RealmData) == "table" and saved.Version == DATABASE_VERSION then return end
+
 	AucAdvancedStatSimpleData = {Version = DATABASE_VERSION, RealmData = {}}
 end
 
@@ -916,4 +913,4 @@ function private.WriteItemData(serverKey, storeID, storeProperty)
 	wipe(WriteStore)
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Stat-Simple/StatSimple.lua $", "$Rev: 6399 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Stat-Simple/StatSimple.lua $", "$Rev: 6807 $")

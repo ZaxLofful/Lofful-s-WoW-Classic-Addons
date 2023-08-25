@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Search UI - Searcher Snatch
-	Version: 8.2.6464 (SwimmingSeadragon)
-	Revision: $Id: SearcherSnatch.lua 6464 2019-10-20 00:10:07Z none $
+	Version: 3.4.6829 (SwimmingSeadragon)
+	Revision: $Id: SearcherSnatch.lua 6829 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is a plugin module for the SearchUI that assists in searching by refined paramaters
@@ -121,7 +121,7 @@ function lib:MakeGuiConfig(gui)
 	private.frame = frame
 
 	--Create the snatch list results frame
-	frame.snatchlist = CreateFrame("Frame", nil, frame)
+	frame.snatchlist = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 	frame.snatchlist:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -628,4 +628,4 @@ function private.refreshDisplay()
 	frame.pctBox.help:SetText(format("Buy as percent of %s value", get("snatch.price.model") or "market") )
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearcherSnatch.lua $", "$Rev: 6464 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearcherSnatch.lua $", "$Rev: 6829 $")

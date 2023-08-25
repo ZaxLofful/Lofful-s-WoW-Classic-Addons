@@ -1,7 +1,7 @@
 --[[
 	Auctioneer Advanced
-	Version: 8.2.6430 (SwimmingSeadragon)
-	Revision: $Id: CoreAPI.lua 6430 2019-10-20 00:10:07Z none $
+	Version: 3.4.6844 (SwimmingSeadragon)
+	Revision: $Id: CoreAPI.lua 6844 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -547,7 +547,7 @@ local ProgressBarFrames = {}
 local ActiveProgressBars = {}
 -- generate new bars as needed
 local function newBar()
-	local bar = CreateFrame("STATUSBAR", nil, UIParent, "TextStatusBar")
+	local bar = CreateFrame("STATUSBAR", nil, UIParent, BackdropTemplateMixin and "TextStatusBar,BackdropTemplate" or "TextStatusBar")
 	bar:SetWidth(300)
 	bar:SetHeight(18)
 	bar:SetBackdrop({
@@ -1529,5 +1529,5 @@ do
 end
 
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreAPI.lua $", "$Rev: 6430 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreAPI.lua $", "$Rev: 6844 $")
 AucAdvanced.CoreFileCheckOut("CoreAPI")

@@ -1,4 +1,252 @@
+# 0.19.0
+
+## Changes
+
+Updated for patch 3.4.2.
+
+### Roll column
+
+Switched to a new system that's much lighter on comms for propergating the automatic random rolls. This should fix the issues some people have with the last few sessions not receiving random rolls.
+
+This change is not backwards compatible, once the ML upgrades, everyone will have to in order to see the random rolls.
+
+### Trophy of the Crusade
+
+Is now considered an armor token for buttons and responses. Also added ilvl data.
+
+### Voting Frame session buttons
+
+Selecting an awarded session now shows a yellow checkmark instead of nothing on the session button.
+
+## Bugfixes
+
+- *History now records the correct response instead of "Awarded" when awarding multiple copies of the same item to a player.*
+- *Voting frame rows should no longer be jumping around excessively.*
+
+
+# 0.18.4
+
+Updated Ace3.
+
+## Bugfixes
+
+- *Removed creation of `C_Container` namespace which clashes with other addons (#53).*
+
+
+# 0.18.3
+
+## Bugfixes
+
+- *Fixed issue with Bagnon (#53)*
+
+# 0.18.2
+
+## Bugfixes
+
+- *Fixed issue with outdated libraries causing history frame to not show.*
+
+
+# 0.18.1
+
+
+## Bugfixes
+
+- *Fixed error related to warning about tradeable items becoming non-tradeable.*
+
+
+# 0.18.0
+
+## Changes
+
+Updated for patch 3.4.1.
+
+Add `/rc start` command which either shows the usage pop-up or starts the addon depending on your usage settings.
+
+### Voting Frame More Info
+
+Now shows the equip location of recently awarded items.
+
+### Export items in session
+
+Added new chat command `/rc export` which will export a csv formatted list of the items currently in session.
+
+### Additional Buttons
+
+Added button groups for mounts and bags.
+
+### Auto pass specific slots
+
+Added option to always auto pass specific equip slots - credit to Loogosh.
+
+## Bugfixes
+
+- *Date selection in delete history options now again shows the chosen value.*
+- *Fixed invisible header on TradeUI obstructing the title frame, making it unclickable.*
+- *Removed empty space on top of session frame.*
+- *Fixed error when changing a response in the history to a non default category response.*
+
+
+# 0.17.1
+
+## Changes
+
+## Bugfixes
+
+- *Closing the TradeUI would make it stop functioning properly (Curse#182, Curse#183, #47).*
+- *If an error occured when doing award later, last item would cause a lua error.*
+
+
+# 0.17.0
+
+## Changes
+
+### Checkmark
+
+Awarded items now also has a checkmark overlay on their session button.
+
+### Esc closing frames
+
+All RCLootCouncil frames except `Loot-` and `Voting Frame` can now be closed by pressing `Escape`.
+
+### TradeUI and ItemStorage
+
+Made several fixes to the ItemStorage which should eliminate outstanding issues with wrong warnings about trade timers and items staying in the award later list forever.
+
+Furthermore added a delete button to the TradeUI allowing one to remove items from it.
+
+## Bugfixes
+
+- *Frames will no longer intercept mouse scrolls when hidden (CurseClassic#181).*
+- *Items registered for "award_later", "to_trade", etc will now properly be removed on relog if  they no longer exists in players bags.*
+- *Test versions will no longer be listed as newer if you're not running a test version yourself.*
+- *Fixed potential nil error (#46).*
+
+
+# 0.16.1
+
+### Bugfixes
+
+- *Revamped last update's changes to ML detection - a few specific settings would cause canidates to ignore messages from the ML when they shouldn't.*
+- *Classic Era: Fixed login error related to auto pass.*
+
+
+# 0.16.0
+
+## Changes
+
+`/rc test` now uses WOTLK items in WOTLK.
+
+Warnings about `v3.0` has been removed for good.
+
+Added `itemName` to JSON export (CurseClassic#137).
+
+Award Later looting in combat is now possible if settings dictates no frames would be created.
+
+### Add all tradeable items to session
+
+It's now possible to add all items from your bags with a trade timer on them to a session at once.
+Simply use `/rc add bags` or `/rc add all` to do so. You must obviously still be ML/group leader to do so, and have the addon active.
+
+### Bugfixes
+
+- *Changed ML detection logic to match the logic of when to actually use the addon. This fixes issues with the player being registered as ML, but the ML interface not being setup e.g. when being in a party but using the setting "Only use in raids" (along with a few other scenarios), which in turn leads to errors when trying to use ML commands - basically all errors related to `lootXXXX being nil`.*
+- *Average item level calculation no longer includes shirts and tabards.*
+- *Fixed issue with tokens not showing intended item type info in Voting Frame.*
+- *Fixed issue with adding items to a session not always being parsed correctly.*
+- *Druids no longer auto passes on polearms (CurseClassic#174).*
+- *Deathknights now auto passes librams, idols, and totems.*
+- *Fixed issue with responses not updating their sort order when moving them around.*
+- *Fixed issues with TradeUI removing wrong items after trading.*
+
+# 0.15.1
+
+## Changes
+
+Added option for restoring `/rc` to its ready check functionality (#215, Curse#495).
+
+### Dev
+
+- *Added itemLink and responseText to `RCMLAwardSuccess` and `RCMLAwardFailed` AceEvents allowing for integration with Classic Loot Manager.*
+
+### Bugfixes
+
+- *Added `id` to json export (#43).*
+- *Award Later items now remembers which boss they where dropped by (#43).*
+
+
+# 0.15.0
+
+## Changes
+
+Updated for Wrath of the Lich King Classic.  
+This includes adding Death Knights to the auto pass table, but there might be other stuff I've forgotten - feel free to reach out if you find anything.
+
+
+### Bugfixes
+
+* *TradeUI should now properly handle reawards.*
+* *Doing a `/reload` should no longer incorrectly remove items marked for "award later" or "trade".*
+* *When using the `Observe` feature, voting frame could throw an error if certain comms was received out of order (CurseClassic#169).*
+
+# 0.14.1
+### Bugfixes
+
+* *Heart of Darkness should now actually be autolootable.*
+* *Selected round robin candidate is now truly random.*
+
+
+
+# 0.14.0
+
+## Changes
+
+### Always auto award list
+
+Added an option to choose items that should always be auto awarded. Located in the 'Awards' tab of the Master Looter options. Items can be added by itemID, name or item link.
+
+### TradeUI
+
+Implemented hotfix for handling duplicate items.
+Not as robust as I would like, but it should get the job done for now.
+
+### Burning Crusade Classic
+
+Updated .toc for patch 2.5.3.
+
+Added `Heart of Darkness` and `Mark of the Illidari` to the rep items loot list.
+
+### Bugfixes
+
+* *Fixed issue with `/rc remove` command.*
+
+# 0.13.2
+
+## Changes
+
+### Classic
+
+Updated for patch 1.14.1.
+
+### Burning Crusade Classic
+
+Updated for patch 2.5.2.
+
+# 0.13.1
+
+## Changes
+
+Added a fix for Blizzard breaking Dropdowns when using Master Loot.
+
+### Burning Crusade
+
+Wowhead links now points to `tbc.wowhead.com` (CurseClassic#144).
+
+## Bugfixes
+
+* *Using the observe feature could occasionally cause errors after `/reload`ing (CurseClassic#146).*
+
 # 0.13.0
+
 ## Changes
 
 Updated for Classic Era and Burning Crusade Classic.

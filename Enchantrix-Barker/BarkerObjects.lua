@@ -1,7 +1,7 @@
 --[[
 	Enchantrix:Barker Addon for World of Warcraft(tm).
-	Version: 8.2.6469 (SwimmingSeadragon)
-	Revision: $Id: BarkerObjects.lua 6469 2019-10-20 00:10:07Z none $
+	Version: 3.4.6813 (SwimmingSeadragon)
+	Revision: $Id: BarkerObjects.lua 6813 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	Barker namespace.
@@ -28,7 +28,7 @@
 		since that is it's designated purpose as per:
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 ]]
-EnchantrixBarker_RegisterRevision("$URL: Enchantrix-Barker/BarkerObjects.lua $", "$Rev: 6469 $")
+EnchantrixBarker_RegisterRevision("$URL: Enchantrix-Barker/BarkerObjects.lua $", "$Rev: 6813 $")
 
 -- Barker namespace
 Barker = {

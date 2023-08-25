@@ -1,6 +1,8 @@
-# <DBM> PvP
+# <DBM Mod> PvP
 
-## [r124](https://github.com/DeadlyBossMods/DBM-PvP/tree/r124) (2021-05-20)
-[Full Changelog](https://github.com/DeadlyBossMods/DBM-PvP/compare/r123...r124) [Previous Releases](https://github.com/DeadlyBossMods/DBM-PvP/releases)
+## [r150](https://github.com/DeadlyBossMods/DBM-PvP/tree/r150) (2023-08-22)
+[Full Changelog](https://github.com/DeadlyBossMods/DBM-PvP/compare/r149...r150) [Previous Releases](https://github.com/DeadlyBossMods/DBM-PvP/releases)
 
-- Fix AV timers for TBC prepatch (#102)  
+- Don't send D4 comms  
+- TOC update for classic era  
+- Update DBM-PvP.toc (#117)  

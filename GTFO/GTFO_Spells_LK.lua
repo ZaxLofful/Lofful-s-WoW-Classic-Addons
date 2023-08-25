@@ -63,7 +63,7 @@ GTFO.SpellID["55847"] = {
 };
 
 GTFO.SpellID["59014"] = {
-	--desc = "Shadow Void (Risen Drakkari Soulmage - Drak'Tharon Keep - Normal)";
+	--desc = "Shadow Void (Risen Drakkari Soulmage - Drak'Tharon Keep - Heroic)";
 	sound = 1;
 };
 
@@ -91,6 +91,17 @@ GTFO.SpellID["56867"] = {
 	--desc = "Poison Cloud (Savage Cave Beast - Old Kingdom)";
 	sound = 1;
 };
+
+GTFO.SpellID["56858"] = {
+	--desc = "Flamestrike (Twilight Worshipper - Old Kingdom)";
+	sound = 1;
+};
+
+GTFO.SpellID["61568"] = {
+	--desc = "Flamestrike (Twilight Worshipper - Old Kingdom - Heroic)";
+	sound = 1;
+};
+
 
 GTFO.SpellID["48381"] = {
 	--desc = "Spirit Fount (King Ymiron)";
@@ -207,6 +218,16 @@ GTFO.SpellID["62466"] = {
 	sound = 1;
 };
 
+GTFO.SpellID["62576"] = {
+	--desc = "Blizzard (Thorim 10)";
+	sound = 1;
+};
+
+GTFO.SpellID["62602"] = {
+	--desc = "Blizzard (Thorim 25)";
+	sound = 1;
+};
+
 GTFO.SpellID["62451"] = {
 	--desc = "Unstable Energy (Freya 10)";
 	sound = 1;
@@ -240,6 +261,7 @@ GTFO.SpellID["67640"] = {
 GTFO.SpellID["66320"] = {
 	--desc = "Fire Bomb (Northrend Beasts 10 Normal)";
 	sound = 1;
+	applicationOnly = true;
 };
 
 GTFO.SpellID["67473"] = {
@@ -251,6 +273,7 @@ GTFO.SpellID["67473"] = {
 GTFO.SpellID["67472"] = {
 	--desc = "Fire Bomb (Northrend Beasts 25 Normal)";
 	sound = 1;
+	applicationOnly = true;
 };
 
 GTFO.SpellID["67475"] = {
@@ -1237,6 +1260,14 @@ GTFO.SpellID["50229"] = {
 GTFO.SpellID["59323"] = {
 	--desc = "Whirlwind (Skadi the Ruthless - Utgarde Pinnacle)";
 	sound = 1;
+};
+
+-- WotLK Classic
+
+GTFO.SpellID["398140"] = {
+	--desc = "Icy Path (Defense Protocol Alpha - Heroic+)";
+	sound = 1;
+	ignoreApplication = true;
 };
 
 end

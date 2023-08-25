@@ -10,9 +10,10 @@ XPerl_RequestConfig(function(new)
 	if (XPerl_Player_Pet) then
 		XPerl_Player_Pet.conf = pconf
 	end
-end, "$Revision: 00a3cadfbbc8615840794db77581992f54190a2b $")
+end, "$Revision: 5a89ecaf32f24ffefbf320bef9dff40e1992eb4e $")
 
 local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
+local IsWrathClassic = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
 
 local XPerl_Player_Pet_HighlightCallback
 
@@ -133,7 +134,7 @@ function XPerl_Player_Pet_OnLoad(self)
 				if pcall(self.RegisterUnitEvent, self, event, "target") then
 					self:RegisterUnitEvent(event, "target")
 				end
-			elseif event == "UNIT_HAPPINESS" and classFileName == "HUNTER" then
+			elseif IsClassic and event == "UNIT_HAPPINESS" and classFileName == "HUNTER" then
 				if pcall(self.RegisterUnitEvent, self, event, "pet") then
 					self:RegisterUnitEvent(event, "pet")
 				end
@@ -239,6 +240,15 @@ local function XPerl_Player_Pet_UpdateAbsorbPrediction(self)
 	end
 end
 
+-- XPerl_Player_Pet_UpdateHotsPrediction
+local function XPerl_Player_Pet_UpdateHotsPrediction(self)
+	if pconf.absorbs then
+		XPerl_SetExpectedHots(self)
+	else
+		self.statsFrame.expectedHots:Hide()
+	end
+end
+
 -- XPerl_Player_Pet_UpdateHealPrediction
 local function XPerl_Player_Pet_UpdateHealPrediction(self)
 	if pconf.healprediction then
@@ -273,6 +283,7 @@ local function XPerl_Player_Pet_UpdateHealth(self)
 	XPerl_SetHealthBar(self, pethealth, pethealthmax)
 
 	XPerl_Player_Pet_UpdateAbsorbPrediction(self)
+	XPerl_Player_Pet_UpdateHotsPrediction(self)
 	XPerl_Player_Pet_UpdateHealPrediction(self)
 	XPerl_Player_Pet_UpdateResurrectionStatus(self)
 
@@ -343,7 +354,7 @@ local function XPerl_Player_Pet_SetHappiness(self)
 	local icon = self.happyFrame.icon
 	icon.tex:SetTexCoord(0.5625 - (0.1875 * happiness), 0.75 - (0.1875 * happiness), 0, 0.359375)
 
-	if (pconf.happiness.enabled and (not pconf.happiness.onlyWhenSad or happiness < 3)) then
+	if (pconf.happiness.enable and (not pconf.happiness.onlyWhenSad or happiness < 3)) then
 		self.happyFrame:Show()
 
 		icon.tooltip = _G[("PET_HAPPINESS"..happiness)]
@@ -426,7 +437,7 @@ end
 function XPerl_Player_Pet_OnEvent(self, event, unitID, ...)
 	local func = XPerl_Player_Pet_Events[event]
 	if string.find(event, "^UNIT_") then
-	 	if (unitID == "pet" or unitID == "player") then
+		if (unitID == "pet" or unitID == "player") then
 			func(self, unitID, ...)
 		end
 	else
@@ -607,7 +618,7 @@ function XPerl_Player_Pet_Events:UNIT_EXITED_VEHICLE(unit)
 end
 
 function XPerl_Player_Pet_Events:UNIT_THREAT_LIST_UPDATE(unit)
-	if (unit == "target") then
+	if unit == "target" then
 		XPerl_Unit_ThreatStatus(self)
 	end
 end
@@ -620,7 +631,7 @@ XPerl_Player_Pet_Events.UNIT_TARGET = XPerl_Player_Pet_Events.PLAYER_TARGET_CHAN
 -- PLAYER_REGEN_DISABLED
 local virtual
 function XPerl_Player_Pet_Events:PLAYER_REGEN_DISABLED()
-	if (virtual) then
+	if virtual then
 		virtual = nil
 		RegisterUnitWatch(XPerl_Player_Pet)
 		if (UnitExists("pet")) then
@@ -643,13 +654,16 @@ function XPerl_Player_Pet_Events:PLAYER_REGEN_DISABLED()
 end
 
 function XPerl_Player_Pet_Events:UNIT_HEAL_PREDICTION(unit)
-	if (pconf.healprediction and unit == self.partyid) then
+	if pconf.healprediction and unit == self.partyid then
 		XPerl_SetExpectedHealth(self)
+	end
+	if IsWrathClassic and pconf.hotPrediction and unit == self.partyid then
+		XPerl_SetExpectedHots(self)
 	end
 end
 
 function XPerl_Player_Pet_Events:UNIT_ABSORB_AMOUNT_CHANGED(unit)
-	if (pconf.absorbs and unit == self.partyid) then
+	if pconf.absorbs and unit == self.partyid then
 		XPerl_SetExpectedAbsorbs(self)
 	end
 end

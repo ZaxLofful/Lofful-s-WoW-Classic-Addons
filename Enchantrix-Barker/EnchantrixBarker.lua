@@ -1,7 +1,7 @@
 ﻿--[[
 	Enchantrix:Barker Addon for World of Warcraft(tm).
-	Version: 8.2.6469 (SwimmingSeadragon)
-	Revision: $Id: EnchantrixBarker.lua 6469 2019-10-20 00:10:07Z none $
+	Version: 3.4.6813 (SwimmingSeadragon)
+	Revision: $Id: EnchantrixBarker.lua 6813 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	This is an addon for World of Warcraft that adds the ability to advertise
@@ -30,17 +30,26 @@
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 
 ]]
-EnchantrixBarker_RegisterRevision("$URL: Enchantrix-Barker/EnchantrixBarker.lua $", "$Rev: 6469 $")
+EnchantrixBarker_RegisterRevision("$URL: Enchantrix-Barker/EnchantrixBarker.lua $", "$Rev: 6813 $")
 
 
--- need to know early if we're using Classic or Modern version
-local MINIMUM_CLASSIC = 11300
-local MAXIMUM_CLASSIC = 19999
+-- Need to know early if we're using Classic or Modern version
+local MAXIMUM_CLASSIC_1 = 19999
+local MAXIMUM_CLASSIC_2 = 29999
+local MINIMUM_RETAIL = 80300
 -- version, build, date, tocversion = GetBuildInfo()
 local _,_,_,tocVersion = GetBuildInfo()
-local isClassic = (tocVersion > MINIMUM_CLASSIC and tocVersion < MAXIMUM_CLASSIC)
-
-
+tocVersion = tonumber(tocVersion)
+local isClassic
+if tocVersion < MINIMUM_RETAIL then
+	if tocVersion <= MAXIMUM_CLASSIC_1 then
+		isClassic = 1
+	elseif tocVersion <= MAXIMUM_CLASSIC_2 then
+		isClassic = 2
+	else
+		isClassic = 3
+	end
+end
 
 local priorityList = {};
 
@@ -969,36 +978,36 @@ function Enchantrix_CreateBarker( isTest )
 
             --Barker.Util.DebugPrintQuick("craft index", index, craftName, numEnchantsAvailable )
 
-            if ( numEnchantsAvailable > 0 ) or isSkillUpMode then -- user has reagents, or customer supplies own reagents
+            if ( numEnchantsAvailable > 0 ) or isSkillUpMode or saveStringData then -- user has reagents, or customer supplies own reagents
 
                 -- does this skill produce an enchant, or a trade good?
-                local itemLink = GetCraftItemLink(index);
+                --local itemLink = GetCraftItemLink(index);
 
                 -- ALL results are nil, because we get enchant links, not item links
                 --local itemName, newItemLink, _rarity, _level, _minLevel, _itemType, _itemSubType, _itemStackCount, _itemEquipLoc, _itemIcon, _itemSell, _itemClassID, _itemSubClassID, itemBindType, _xpac, _setID, isCraftReagent = GetItemInfo(itemLink);
                 --local itemName, newItemLink = GetItemInfo(itemLink);
 
                 -- We really don't want to list rods or wands among our enchants for sale
-                -- enchants have hypens, item creation does not
+                -- in Classic, enchants have hypens, item creation does not
                 local isItem = craftName:match("-") == nil
 
                 local skillWeight = CraftTypeWeights[ craftType ] or 0;
                 skillWeight = tonumber(skillWeight)
 
                 -- item name and link are nil for enchants, and valid for produced items (which we want to ignore)
-                if (not isItem and ((skillWeight > 0) or (not isSkillUpMode)) ) then
-                    --print("enchant", craftName, itemLink, itemName, newItemLink )
-                    --print(craftName, skillWeight)
+                if (not isItem and (saveStringData or (skillWeight > 0) or (not isSkillUpMode)) ) then
+                    --print("enchant", craftName, skillWeight)
 
                     local cost = 0;
                     local profit = 0;
                     local price = 0;
 
-                    if not isSkillUpMode then
+                    if not isSkillUpMode or not saveStringData then
                         for j=1,GetCraftNumReagents(index),1 do
                             local reagentName,_,countRequired = GetCraftReagentInfo(index,j);
                             local reagent = GetCraftReagentItemLink(index,j);
                             cost = cost + (Enchantrix_GetReagentHSP(reagent)*countRequired);
+                            --print("reagent:", reagentName )
                         end
 
                         profit = cost * profitMargin*0.01;
@@ -1047,20 +1056,21 @@ function Enchantrix_CreateBarker( isTest )
             if ( recipe_info.learned and recipe_info.craftable and ((numEnchantsAvailable > 0) or isSkillUpMode) ) then -- user can craft this
 
                 -- does this skill produce an enchant, or a trade good?
-                local itemLink = _G.C_TradeSkillUI.GetRecipeItemLink(recipes[i]);
+                --local itemLink = _G.C_TradeSkillUI.GetRecipeItemLink(recipes[i]);
 
                 -- usually returns nils for everything, because we get enchant links instead of item links
-                local itemName, newItemLink = GetItemInfo(itemLink);
+                --local itemName, newItemLink = GetItemInfo(itemLink);
 
                 --Barker.Util.DebugPrintQuick("Can Craft ", i, " info: ", recipe_info )
 
                 -- We really don't want to list rods or wands among our enchants for sale
+                -- but retail enchant strings are not as well organize4d
                 local isRod = craftName:match("Rod") ~= nil or craftName:match("Wand") ~= nil
 
                 local skillWeight = CraftTypeWeights[ recipe_info.difficulty ] or 0;
 
                 -- item name and link are nil for enchants, and valid for produced items (which we want to ignore)
-                if (not itemName and not newItemLink and not isRod and (skillWeight > 0 or (not isSkillUpMode)) ) then
+                if (not isRod and (saveStringData or skillWeight > 0 or (not isSkillUpMode)) ) then
                     --print(craftName, skillWeight)
 
                     local cost = 0;
@@ -1073,6 +1083,7 @@ function Enchantrix_CreateBarker( isTest )
                             local _reagentName, _reagentTexture, reagentCountRequired, _playerReagentCount = _G.C_TradeSkillUI.GetRecipeReagentInfo(recipes[i], j)
                             local reagent = _G.C_TradeSkillUI.GetRecipeReagentItemLink(recipes[i], j)
                             cost = cost + (Enchantrix_GetReagentHSP(reagent)*reagentCountRequired);
+                            --print("reagent:", _reagentName )
                         end
 
                         profit = cost * profitMargin*0.01;

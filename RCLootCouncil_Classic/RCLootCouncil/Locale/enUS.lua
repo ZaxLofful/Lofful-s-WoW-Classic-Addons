@@ -498,6 +498,7 @@ L["You must select a target"] = true
 L["You're already running a session."] = true
 L["Your note:"] = true
 
+L["chat_cmd_add_found_items"] = "Found %d items with trade timers in your bags."
 L["chat_cmd_add_invalid_owner"] = "The player %s was either invalid or not a candidate."
 
 L["error_test_as_non_leader"] = "You cannot initiate a test while in a group without being the group leader."
@@ -536,3 +537,5 @@ L["opt_saveBonusRolls_Name"] = "Save Bonus Rolls"
 L["non_tradeable_reason_not_tradeable"] = "Not Tradeable"
 L["non_tradeable_reason_rejected_trade"] = "Wanted to keep item"
 L["non_tradeable_reason_nil"] = "Unknown"
+L.opt_useSlashRC_name = "Use /rc"
+L.opt_useSlashRC_desc = "Disable this if you want to restore '/rc' to ready check. RCLootCouncil commands are still available with '/rclc'. A '/reload' is required for this to take effect."

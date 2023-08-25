@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - EasyBuyout Utility Module
 	Version: 1.2.5 (GhostfromTexas)
-	Revision: $Id: EasyBuyout.lua 6350 2019-10-20 00:10:07Z none $
+	Revision: $Id: EasyBuyout.lua 6789 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This Auctioneer module allows for the ability to purchase items from
@@ -425,4 +425,4 @@ function private.EBMessage(messageString)
 	print(messageString)
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-EasyBuyout/EasyBuyout.lua $", "$Rev: 6350 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-EasyBuyout/EasyBuyout.lua $", "$Rev: 6789 $")

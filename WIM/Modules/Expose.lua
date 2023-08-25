@@ -28,7 +28,7 @@ local isWaiting = false;
 function Expose:VARIABLES_LOADED()
     -- add menu option inside of Minimap's menu.
     local minimapMenu = GetContextMenu("MENU_MINIMAP");
-    local info = _G.UIDropDownMenu_CreateInfo();
+    local info = {};
     info.text = (db.expose.combat and L["Disable"] or L["Enable"]).." Expose";
     info.func = function()
         db.expose.combat = not db.expose.combat;
@@ -119,7 +119,7 @@ function Expose:OnContainerHide()
         exposeFrame.left:SetPoint("BOTTOMRIGHT", exposeFrame.bottom, "TOPLEFT", db.expose.borderSize, 0);
         exposeFrame.right:SetPoint("TOPRIGHT", exposeFrame.top, "TOPRIGHT", 0, 0);
         exposeFrame.right:SetPoint("BOTTOMLEFT", exposeFrame.bottom, "TOPRIGHT", -(db.expose.borderSize), 0);
-    
+
         WIM.SetUpAnimation(exposeFrame, AnimTable, function(self) self:SetAlpha(1); end, false);
     else
         exposeFrame:Hide();

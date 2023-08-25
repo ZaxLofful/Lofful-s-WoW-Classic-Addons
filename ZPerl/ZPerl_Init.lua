@@ -6,22 +6,56 @@ local init_done, gradient, conf, doneOptions
 local errorCount = 0
 XPerl_RequestConfig(function(new)
 	conf = new
-end, "$Revision: 00a3cadfbbc8615840794db77581992f54190a2b $")
+end, "$Revision: 8c2ee354c22c703a5dd4fcc236c0c7d3bbfbc4c2 $")
 
-local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
+local _, _, _, clientRevision = GetBuildInfo()
 
-local GetNumSubgroupMembers = GetNumSubgroupMembers
+local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+local IsWrathClassic = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
+local IsVanillaClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
+local _G = _G
+local format = format
+local geterrorhandler = geterrorhandler
+local hooksecurefunc = hooksecurefunc
+local ipairs = ipairs
+local max = max
+local min = min
+local pairs = pairs
+local pcall = pcall
+local sort = sort
+local tinsert = tinsert
+local tonumber = tonumber
+local type = type
+local unpack = unpack
+
+local CreateColor = CreateColor
+local CreateFrame = CreateFrame
+local DisableAddOn = DisableAddOn
+local GetAddOnInfo = GetAddOnInfo
+local GetAddOnMetadata = GetAddOnMetadata
 local GetNumGroupMembers = GetNumGroupMembers
+local GetNumSubgroupMembers = GetNumSubgroupMembers
+local InCombatLockdown = InCombatLockdown
+local IsAltKeyDown = IsAltKeyDown
+local IsInRaid = IsInRaid
+local UnitAura = UnitAura
+local UnitClass = UnitClass
+local UnitInParty = UnitInParty
+local UnitInRaid = UnitInRaid
 local UnitIsGroupAssistant = UnitIsGroupAssistant
+local UnitName = UnitName
 
 local classOrder
-if IsClassic then
-	classOrder = {"WARRIOR", "ROGUE", "HUNTER", "DRUID", "SHAMAN", "PALADIN", "PRIEST", "MAGE", "WARLOCK", "MONK"}
+if IsRetail then
+	classOrder = {"WARRIOR", "DEATHKNIGHT", "ROGUE", "HUNTER", "DRUID", "SHAMAN", "PALADIN", "PRIEST", "MAGE", "WARLOCK", "MONK", "DEMONHUNTER", "EVOKER"}
+elseif IsWrathClassic then
+	classOrder = {"WARRIOR", "DEATHKNIGHT", "ROGUE", "HUNTER", "DRUID", "SHAMAN", "PALADIN", "PRIEST", "MAGE", "WARLOCK"}
 else
-	classOrder = {"WARRIOR", "DEATHKNIGHT", "ROGUE", "HUNTER", "DRUID", "SHAMAN", "PALADIN", "PRIEST", "MAGE", "WARLOCK", "MONK", "DEMONHUNTER"}
+	classOrder = {"WARRIOR", "ROGUE", "HUNTER", "DRUID", "SHAMAN", "PALADIN", "PRIEST", "MAGE", "WARLOCK"}
 end
 
--- SetTex
+-- SetTexCreateColor
 local highlightPositions = {
 	{0, 0.25, 0, 0.5},
 	{0.25, 0.75, 0, 0.5},
@@ -91,8 +125,9 @@ function XPerl_DoGradient(self, force)
 				end
 			end
 			if (self.gradient) then
+				local orient, r, g, b, a, r2, g2, b2, a2 = unpack(gradient)
+				self.gradient:SetGradient(orient, CreateColor(r, g, b, a), CreateColor(r2, g2, b2, a2))
 				self.gradient:Show()
-				self.gradient:SetGradientAlpha(unpack(gradient))
 			end
 			return true
 		end
@@ -499,7 +534,7 @@ function ZPerl_Init()
 
 	local name, title, notes, enabled = GetAddOnInfo("SupportFuncs")
 	if (name and enabled) then
-		local ver = GetAddOnMetadata(name, "Version")
+		local ver = GetAddOnMetadata and GetAddOnMetadata(name, "Version")
 		if (tonumber(ver) < 20000.2) then
 			XPerl_Notice("Out-dated version of SupportFuncs detected. This will break the X-Perl Range Finder by replacing standard Blizzard API functions.")
 		end
@@ -507,15 +542,15 @@ function ZPerl_Init()
 
 	name, title, notes, enabled = GetAddOnInfo("AutoBar")
 	if (name and enabled) then
-		local ver = GetAddOnMetadata(name, "Version")
-		if (ver < "2.01.00.02 beta") then
+		local ver = GetAddOnMetadata and GetAddOnMetadata(name, "Version")
+		if (ver < "2.01.00.02") then
 			XPerl_Notice("Out-dated version of AutoBar detected. This will taint the Targetting system for all mods that use them, including X-Perl.")
 		end
 	end
 
 	name, title, notes, enabled = GetAddOnInfo("TrinityBars")
 	if (name and enabled) then
-		local ver = GetAddOnMetadata(name, "Version")
+		local ver = GetAddOnMetadata and GetAddOnMetadata(name, "Version")
 		if (ver <= "20003.14") then
 			XPerl_Notice("Out-dated version of TrinityBars detected. This will taint the Targetting system for all mods that use them, including X-Perl.")
 		end

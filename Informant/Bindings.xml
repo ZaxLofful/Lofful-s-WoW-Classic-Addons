@@ -2,8 +2,8 @@
 <!--
 	Informant - An addon for World of Warcraft that shows pertinent information about
 	an item in a tooltip when you hover over the item in the game.
-	Version: 8.2.6374 (SwimmingSeadragon)
-	Revision: $Id: Bindings.xml 6374 2019-10-20 00:10:07Z none $
+	Version: 3.4.6850 (SwimmingSeadragon)
+	Revision: $Id: Bindings.xml 6850 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/dl/Informant/
 
 	License:
@@ -30,7 +30,7 @@
 
 -->
 	<!-- Pop up and down the information window -->
-	<Binding name="INFORMANT_POPUPDOWN" header="INFORMANT_HEADER">
+	<Binding name="INFORMANT_POPUPDOWN" header="INFORMANT_HEADER" category="ADDONS">
 		Informant.ShowHideInfo();
 	</Binding>
 </Bindings>

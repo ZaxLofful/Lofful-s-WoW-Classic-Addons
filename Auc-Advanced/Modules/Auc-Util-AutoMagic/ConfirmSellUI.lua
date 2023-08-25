@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - AutoMagic Utility module
-	Version: 8.2.6424 (SwimmingSeadragon)
-	Revision: $Id: ConfirmSellUI.lua 6424 2019-10-20 00:10:07Z none $
+	Version: 3.4.6799 (SwimmingSeadragon)
+	Revision: $Id: ConfirmSellUI.lua 6799 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	AutoMagic is an Auctioneer module which automates mundane tasks for you.
@@ -45,6 +45,8 @@ local selecteddata = {}
 function lib.ASCPrompt()
 	if next(lib.vendorlist) then
 		lib.confirmsellui:Show()
+	-- else
+		-- lib.confirmsellui:Hide()
 	end
 	lib.ASCRefreshSheet() --Always refresh the sheet or it can appear we have items left in GUI after the autosell function
 end
@@ -200,7 +202,7 @@ end
 local SelectBox = LibStub:GetLibrary("SelectBox")
 local ScrollSheet = LibStub:GetLibrary("ScrollSheet")
 
-lib.confirmsellui = CreateFrame("Frame", "confirmsellui", UIParent); lib.confirmsellui:Hide()
+lib.confirmsellui = CreateFrame("Frame", "confirmsellui", UIParent, BackdropTemplateMixin and "BackdropTemplate"); lib.confirmsellui:Hide()
 function lib.makeconfirmsellui()
 	lib.confirmsellui:ClearAllPoints()
 	lib.confirmsellui:SetPoint("CENTER", UIParent, "CENTER", 1,1)
@@ -258,7 +260,7 @@ function lib.makeconfirmsellui()
 	-- [name of frame]:SetPoint("[relative to point on my frame]","[frame we want to be relative to]","[point on relative frame]",-left/+right, -down/+up)
 
 	--Create the autosell list results frame
-	lib.confirmsellui.resultlist = CreateFrame("Frame", nil, lib.confirmsellui)
+	lib.confirmsellui.resultlist = CreateFrame("Frame", nil, lib.confirmsellui, BackdropTemplateMixin and "BackdropTemplate")
 	lib.confirmsellui.resultlist:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -332,4 +334,4 @@ function lib.makeconfirmsellui()
 end
 
 lib.makeconfirmsellui()
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-AutoMagic/ConfirmSellUI.lua $", "$Rev: 6424 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-AutoMagic/ConfirmSellUI.lua $", "$Rev: 6799 $")

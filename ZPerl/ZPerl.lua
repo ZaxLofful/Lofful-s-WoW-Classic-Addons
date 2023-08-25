@@ -8,11 +8,13 @@ local perc1F = "%.1f"..PERCENT_SYMBOL
 
 XPerl_RequestConfig(function(New)
 	conf = New
-end, "$Revision: 256342b956b039d64a954bf86b29e95acf49e5dd $")
-XPerl_SetModuleRevision("$Revision: 256342b956b039d64a954bf86b29e95acf49e5dd $")
+end, "$Revision: 8c2ee354c22c703a5dd4fcc236c0c7d3bbfbc4c2 $")
+XPerl_SetModuleRevision("$Revision: 8c2ee354c22c703a5dd4fcc236c0c7d3bbfbc4c2 $")
 
-local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
+local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+local IsWrathClassic = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
 local IsVanillaClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
 local LCD = IsVanillaClassic and LibStub and LibStub("LibClassicDurations", true)
 local UnitAuraDirect
 if LCD then
@@ -52,6 +54,7 @@ local type = type
 local unpack = unpack
 
 local CheckInteractDistance = CheckInteractDistance
+local CreateFrame = CreateFrame
 local DebuffTypeColor = DebuffTypeColor
 local GetAddOnCPUUsage = GetAddOnCPUUsage
 local GetAddOnMemoryUsage = GetAddOnMemoryUsage
@@ -82,6 +85,7 @@ local IsSpellInRange = IsSpellInRange
 local SecureButton_GetUnit = SecureButton_GetUnit
 local SetCursor = SetCursor
 local SetPortraitTexture = SetPortraitTexture
+local SetPortraitToTexture = SetPortraitToTexture
 local SetRaidTargetIconTexture = SetRaidTargetIconTexture
 local SpellCanTargetUnit = SpellCanTargetUnit
 local SpellIsTargeting = SpellIsTargeting
@@ -127,8 +131,6 @@ local UnitReaction = UnitReaction
 local UnregisterUnitWatch = UnregisterUnitWatch
 local UpdateAddOnCPUUsage = UpdateAddOnCPUUsage
 local UpdateAddOnMemoryUsage = UpdateAddOnMemoryUsage
-
-local CreateFrame = CreateFrame
 
 local BuffFrame = BuffFrame
 local GameTooltip = GameTooltip
@@ -290,6 +292,15 @@ XPerl_AnchorList = {"TOP", "LEFT", "BOTTOM", "RIGHT"}
 -- FindABandage()
 local function FindABandage()
 	local bandages = {
+		[173192] = true, -- Shrouded Cloth Bandage
+		[173191] = true, -- Heavy Shrouded Cloth Bandage
+		[158382] = true, -- Deep Sea Bandage
+		[158381] = true, -- Tidespray Linen Bandage
+		[142332] = true, -- Feathered Luffa
+		[136653] = true, -- Silvery Salve
+		[133942] = true, -- Silkweave Splint
+		[133940] = true, -- Silkweave Bandage
+		[115497] = true, -- Ashran Bandage
 		[111603] = true, -- Antiseptic Bandage
 		[72986] = true, -- Heavy Windwool Bandage
 		[72985] = true, -- Windwool Bandage
@@ -340,7 +351,7 @@ local function DoRangeCheck(unit, opt)
 			percent = 0 -- So just automatically set percent to 0 and avoid division of 0/0 all together in this situation.
 		elseif hp > 0 and hpMax == 0 then -- We have current HP but max hp failed.
 			hpMax = hp -- Make max hp at least equal to current health
-			percent = 100 -- 100% if they are alive with > 0 cur hp, since curhp = maxhp in this hack.
+			percent = 1 -- 100% if they are alive with > 0 cur hp, since curhp = maxhp in this hack.
 		else
 			percent = hp / hpMax -- Everything is dandy, so just do it right way.
 		end
@@ -430,17 +441,17 @@ local function DoRangeCheck(unit, opt)
 			elseif (opt.interact == 3) then -- 10y
 				if UnitCanAssist("player", unit) then
 					-- Sparrowhawk Net (10y)
-					range = IsItemInRange(not IsClassic and 32321 or 21866 --[[Alterac Ram Collar DND]], unit)
+					range = IsItemInRange(not IsVanillaClassic and 32321 or 17689 --[[Stormpike Training Collar]], unit)
 					if range == nil then
-						-- Fallback (8y) (Classic = 10 yards)
-						range = CheckInteractDistance(unit, not IsClassic and 2 or 1)
+						-- Fallback (8y) (BCC = 8y) (Vanilla = 10 yards)
+						range = CheckInteractDistance(unit, IsVanillaClassic and 1 or 2)
 					end
 				else
 					-- Sparrowhawk Net (10y)
-					range = IsItemInRange(not IsClassic and 32321 or 9618 --[[Wildkin Muisek Vessel]], unit)
+					range = IsItemInRange(not IsVanillaClassic and 32321 or 9618 --[[Wildkin Muisek Vessel]], unit)
 					if range == nil then
-						-- Fallback (8y) (Classic = 10 yards)
-						range = CheckInteractDistance(unit, not IsClassic and 2 or 1)
+						-- Fallback (8y) (BCC = 8y) (Vanilla = 10 yards)
+						range = CheckInteractDistance(unit, IsVanillaClassic and 1 or 2)
 					end
 				end
 			elseif (opt.interact == 2) then -- 20y
@@ -448,14 +459,14 @@ local function DoRangeCheck(unit, opt)
 					-- Mistletoe (20y)
 					range = IsItemInRange(21519, unit)
 					if range == nil then
-						-- Fallback (28y) (Classic = 21 yards)
+						-- Fallback (28y) (BCC = 28y) (Vanilla = 21 yards)
 						range = CheckInteractDistance(unit, 4)
 					end
 				else
 					-- Gnomish Death Ray (20y)
 					range = IsItemInRange(not IsClassic and 10645 or 1191 --[[Bag of Marbles]], unit)
 					if range == nil then
-						-- Fallback (28y) (Classic = 21 yards)
+						-- Fallback (28y) (BCC = 28y) (Vanilla = 21 yards)
 						range = CheckInteractDistance(unit, 4)
 					end
 				end
@@ -464,39 +475,39 @@ local function DoRangeCheck(unit, opt)
 					-- Handful of Snowflakes (30y)
 					range = IsItemInRange(not IsClassic and 34191 or 1180 --[[Scroll of Stamina]], unit)
 					if range == nil then
-						-- Fallback (28y) (Classic = 21 yards)
+						-- Fallback (28y) (BCC = 28y) (Vanilla = 21 yards)
 						range = CheckInteractDistance(unit, 4)
 					end
 				else
 					-- Handful of Snowflakes (30y)
 					range = IsItemInRange(not IsClassic and 34191 or 835 --[[Large Rope Net]], unit)
 					if range == nil then
-						-- Fallback (28y) (Classic = 21 yards)
+						-- Fallback (28y) (BCC = 28y) (Vanilla = 21 yards)
 						range = CheckInteractDistance(unit, 4)
 					end
 				end
 			end
 			-- CheckInteractDistance
-			-- 1 = Inspect = 28 yards (Classic = 10 yards)
-			-- 2 = Trade = 8 yards (Classic = 11 yards)
-			-- 3 = Duel = 7 yards (Classic = 10 yards)
-			-- 4 = Follow = 28 yards (Classic = 21 yards)
-			-- 5 = ??? = 7 yards (Classic = 10 yards)
+			-- 1 = Inspect = 28 yards (BCC = 28 yards) (Vanilla = 10 yards)
+			-- 2 = Trade = 8 yards (BCC = 8 yards) (Vanilla = 11 yards)
+			-- 3 = Duel = 7 yards (BCC = 7 yards) (Vanilla = 10 yards)
+			-- 4 = Follow = 28 yards (BCC = 28 yards) (Vanilla = 21 yards)
+			-- 5 = Pet-battle Duel = 7 yards (BCC = 7 yards) (Vanilla = 10 yards)
 		elseif (opt.spell) then
 			if UnitCanAssist("player", unit) then
 				range = IsSpellInRange(opt.spell, unit)
 				if range == nil then
-					-- Fallback (28y)
+					-- Fallback (28y) (BCC = 28y) (Vanilla = 21 yards)
 					range = CheckInteractDistance(unit, 4)
 				end
 			elseif UnitCanAttack("player", unit) then
 				range = IsSpellInRange(opt.spell, unit)
 				if range == nil then
-					-- Fallback (28y)
+					-- Fallback (28y) (BCC = 28y) (Vanilla = 21 yards)
 					range = CheckInteractDistance(unit, 4)
 				end
 			else
-				-- Fallback (28y)
+				-- Fallback (28y) (BCC = 28y) (Vanilla = 21 yards)
 				range = CheckInteractDistance(unit, 4)
 			end
 		elseif (opt.item and UnitCanAssist("player", unit)) then
@@ -786,67 +797,80 @@ hiddenParent:Hide()
 
 -- XPerl_BlizzFrameDisable
 function XPerl_BlizzFrameDisable(self)
-	if (self) then
-		UnregisterUnitWatch(self)
+	if not self then
+		return
+	end
 
-		self:UnregisterAllEvents()
+	UnregisterUnitWatch(self)
 
-		if self == PlayerFrame then
-			local events = {
-				"PLAYER_ENTERING_WORLD",
-				"UNIT_ENTERING_VEHICLE",
-				"UNIT_ENTERED_VEHICLE",
-				"UNIT_EXITING_VEHICLE",
-				"UNIT_EXITED_VEHICLE",
-			}
+	self:UnregisterAllEvents()
 
-			for i, event in pairs(events) do
-				if pcall(self.RegisterEvent, self, event) then
-					self:RegisterEvent(event)
-				end
+	if self == PlayerFrame then
+		local events = {
+			"PLAYER_ENTERING_WORLD",
+			"UNIT_ENTERING_VEHICLE",
+			"UNIT_ENTERED_VEHICLE",
+			"UNIT_EXITING_VEHICLE",
+			"UNIT_EXITED_VEHICLE",
+		}
+
+		for i, event in pairs(events) do
+			if pcall(self.RegisterEvent, self, event) then
+				self:RegisterEvent(event)
 			end
 		end
+	end
 
-		self:SetMovable(true)
-		self:SetUserPlaced(true)
-		self:SetDontSavePosition(true)
-		self:SetMovable(false)
+	if IsRetail and self == PartyFrame then
+		for frame in PartyFrame.PartyMemberFramePool:EnumerateActive() do
+			XPerl_BlizzFrameDisable(frame)
+		end
+	end
 
+	self:SetMovable(true)
+	self:SetUserPlaced(true)
+	self:SetDontSavePosition(true)
+	self:SetMovable(false)
+
+	if not InCombatLockdown() then
+		self:Hide()
+	end
+	self:SetParent(hiddenParent)
+
+	self:HookScript("OnShow", function(self)
 		if not InCombatLockdown() then
 			self:Hide()
 		end
-		self:SetParent(hiddenParent)
+	end)
 
-		self:HookScript("OnShow", function(self)
-			if not InCombatLockdown() then
-				self:Hide()
-			end
-		end)
+	local health = self.healthbar
+	if health then
+		health:UnregisterAllEvents()
+	end
 
-		local health = self.healthbar
-		if health then
-			health:UnregisterAllEvents()
-		end
+	local power = self.manabar
+	if power then
+		power:UnregisterAllEvents()
+	end
 
-		local power = self.manabar
-		if power then
-			power:UnregisterAllEvents()
-		end
+	local spell = self.spellbar
+	if spell then
+		spell:UnregisterAllEvents()
+	end
 
-		local spell = self.spellbar
-		if spell then
-			spell:UnregisterAllEvents()
-		end
+	local powerBarAlt = self.powerBarAlt
+	if powerBarAlt then
+		powerBarAlt:UnregisterAllEvents()
+	end
 
-		local powerBarAlt = self.powerBarAlt
-		if powerBarAlt then
-			powerBarAlt:UnregisterAllEvents()
-		end
+	local buffFrame = self.BuffFrame
+	if buffFrame then
+		buffFrame:UnregisterAllEvents()
+	end
 
-		local buffFrame = self.BuffFrame
-		if buffFrame then
-			buffFrame:UnregisterAllEvents()
-		end
+	local petFrame = self.petFrame or self.PetFrame
+	if petFrame then
+		petFrame:UnregisterAllEvents()
 	end
 end
 
@@ -1057,13 +1081,13 @@ function XPerl_SetHealthBar(self, hp, Max)
 	local percent
 	if hp >= 1 and Max == 0 then -- For some dumb reason max HP is 0, normal HP is not, so lets use normal HP as max
 		Max = hp
-		percent = 100
+		percent = 1
 	elseif hp == 0 and Max == 0 then -- Both are 0, so it's probably dead since usually current HP returns correctly when Max HP fails.
 		percent = 0
 	else
 		percent = hp / Max
 	end
-	if percent > 100 then percent = 100 end -- percent only goes to 100
+	if percent > 1 then percent = 1 end -- percent only goes to 100
 	if (conf.bar.inverse) then
 		bar:SetValue(Max - hp)
 		bar.tex:SetTexCoord(0, max(0,(1 - percent)), 0, 1)
@@ -1110,9 +1134,9 @@ function XPerl_SetHealthBar(self, hp, Max)
 		else
 			local show = percent * 100
 			if (show < 10) then
-				bar.percent:SetFormattedText(perc1F or "%.1f%%", show + 0.05)
+				bar.percent:SetFormattedText(perc1F or "%.1f%%", percent == 1 and 100 or show + 0.05)
 			else
-				bar.percent:SetFormattedText(percD or "%d%%", show + 0.5)
+				bar.percent:SetFormattedText(percD or "%d%%", percent == 1 and 100 or show + 0.5)
 			end
 		end
 	end
@@ -1403,10 +1427,18 @@ end
 -- XPerl_MinimapButton_UpdatePosition
 function XPerl_MinimapButton_UpdatePosition(self)
 	if (not conf.minimap.radius) then
-		conf.minimap.radius = 78
+		if IsRetail then
+			conf.minimap.radius = 101
+		else
+			conf.minimap.radius = 78
+		end
 	end
 	self:ClearAllPoints()
-	self:SetPoint("TOPLEFT", "Minimap", "TOPLEFT", 54 - (conf.minimap.radius * cos(conf.minimap.pos)), (conf.minimap.radius * sin(conf.minimap.pos)) - 55)
+	if IsRetail then
+		self:SetPoint("TOPLEFT", "Minimap", "TOPLEFT", 80 - (conf.minimap.radius * cos(conf.minimap.pos)), (conf.minimap.radius * sin(conf.minimap.pos)) - 82)
+	else
+		self:SetPoint("TOPLEFT", "Minimap", "TOPLEFT", 54 - (conf.minimap.radius * cos(conf.minimap.pos)), (conf.minimap.radius * sin(conf.minimap.pos)) - 55)
+	end
 end
 
 -- XPerl_MinimapButton_Dragging
@@ -1575,8 +1607,13 @@ function XPerl_SetManaBarType(self)
 	local m = self.statsFrame.manaBar
 	if (m and not self.statsFrame.greyMana) then
 		local unit = self.partyid -- SecureButton_GetUnit(self)
+		if not unit then
+			self.targetmanatype = 0
+			return
+		end
 		if (unit) then
 			local p = XPerl_GetDisplayedPowerType(unit)
+			self.targetmanatype = p
 			if (p) then
 				local c = conf.colour.bar[ManaColours[p]]
 				if (c) then
@@ -2151,6 +2188,7 @@ function XPerl_RestoreAllPositions()
 						break
 					end]]
 					if v.left and v.top then
+						frame:SetUserPlaced(false)
 						frame:ClearAllPoints()
 						frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", v.left / frame:GetScale(), v.top / frame:GetScale())
 						if v.height and v.width then
@@ -2169,7 +2207,7 @@ function XPerl_RestoreAllPositions()
 							frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
 							frame:SetUserPlaced(true)
 						else]]
-							frame:SetUserPlaced(true)
+							--frame:SetUserPlaced(true)
 						--end
 					end
 				end
@@ -2786,22 +2824,47 @@ local function AuraButtonOnShow(self)
 	if (not cd) then
 		cd = CreateFrame("Cooldown", nil, self, BackdropTemplateMixin and "BackdropTemplate,CooldownFrameTemplate" or "CooldownFrameTemplate")
 		self.cooldown = cd
-		cd:SetAllPoints()
+		if self.Icon then
+			cd:SetAllPoints(self.Icon)
+		else
+			cd:SetAllPoints(self:GetName().."Icon")
+		end
 	end
 	cd:SetReverse(true)
 	--cd:SetDrawEdge(true) Blizzard removed this call from 5.0.4, commented it out to avoid lua error
 
 	if (not cd.countdown) then
 		cd.countdown = self.cooldown:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-		cd.countdown:SetPoint("TOPLEFT")
-		cd.countdown:SetPoint("BOTTOMRIGHT", -1, 2)
+		if self.Icon then
+			cd.countdown:SetPoint("TOPLEFT", self.Icon)
+			cd.countdown:SetPoint("BOTTOMRIGHT", self.Icon, -1, 2)
+		else
+			cd.countdown:SetPoint("TOPLEFT", self:GetName().."Icon")
+			cd.countdown:SetPoint("BOTTOMRIGHT", self:GetName().."Icon", -1, 2)
+		end
 		cd.countdown:SetTextColor(1, 1, 0)
 	end
 
-	local name, icon, count, debuffType, duration, expirationTime, unitCaster = UnitAura("player", self.xindex, self.xfilter)
+	local _, _, _, _, duration, expirationTime, unitCaster = UnitAura("player", self.xindex, self.xfilter)
 	if duration and expirationTime then
 		local start = expirationTime - duration
 		XPerl_CooldownFrame_SetTimer(self.cooldown, start, duration, 1, unitCaster == "player")
+	end
+end
+
+-- XPerl_AuraButton_UpdateInFo
+-- Hook for Blizzard aura button setup to add cooldowns if we have them enabled
+local function XPerl_AuraButton_UpdateInfo(button, buttonInfo, expanded)
+	if not button then
+		return
+	end
+	if (conf.buffs.blizzardCooldowns and BuffFrame:IsShown()) then
+		button.xindex = buttonInfo.index
+		button.xfilter = buttonInfo.filter
+		button:SetScript("OnShow", AuraButtonOnShow)
+		if (button:IsShown()) then
+			AuraButtonOnShow(button)
+		end
 	end
 end
 
@@ -2822,7 +2885,12 @@ local function XPerl_AuraButton_Update(buttonName, index, filter)
 	end
 end
 
-hooksecurefunc("AuraButton_Update", XPerl_AuraButton_Update)
+if AuraFrameMixin then
+	-- TODO: Figure out what's changed here
+	--hooksecurefunc(AuraFrameMixin, "Update", XPerl_AuraButton_UpdateInfo)
+elseif AuraButton_Update then
+	hooksecurefunc("AuraButton_Update", XPerl_AuraButton_Update)
+end
 
 -- XPerl_Unit_BuffSpacing
 local function XPerl_Unit_BuffSpacing(self)
@@ -3875,7 +3943,11 @@ function XPerl_RegisterScalableFrame(self, anchorFrame, minScale, maxScale, resi
 		self.corner.frame = self
 	end
 
-	self:SetMinResize(10, 10)
+	if self.SetResizeBounds then
+		self:SetResizeBounds(10, 10)
+	else
+		self:SetMinResize(10, 10)
+	end
 
 	self.corner.scalable = scalable
 	self.corner.resizable = resizable
@@ -3948,7 +4020,7 @@ function XPerl_SetExpectedAbsorbs(self)
 			local min, max = healthBar:GetMinMaxValues()
 			local position = ((max - healthBar:GetValue()) / max) * healthBar:GetWidth()
 
-			if healthBar:GetWidth() <= 0 then
+			if healthBar:GetWidth() <= 0 or healthBar:GetWidth() == position then
 				return
 			end
 
@@ -3956,6 +4028,50 @@ function XPerl_SetExpectedAbsorbs(self)
 
 			bar:SetPoint("TopRight", healthBar, "TopRight", -position, 0)
 			bar:SetPoint("BottomRight", healthBar, "BottomRight", -position, 0)
+			return
+		end
+		bar:Hide()
+	end
+end
+
+-- XPerl_SetExpectedHots
+function XPerl_SetExpectedHots(self)
+	if WOW_PROJECT_ID ~= WOW_PROJECT_WRATH_CLASSIC then
+		return
+	end
+	local bar
+	if self.statsFrame and self.statsFrame.expectedHots then
+		bar = self.statsFrame.expectedHots
+	else
+		bar = self.expectedHots
+	end
+	if (bar) then
+		local unit = self.partyid
+
+		if not unit then
+			unit = self:GetParent().targetid
+		end
+
+		local amount
+		if IsClassic then
+			local guid = UnitGUID(unit)
+			amount = (HealComm:GetHealAmount(guid, HealComm.OVERTIME_HEALS, GetTime() + 3) or 0) * HealComm:GetHealModifier(guid)
+		end
+
+		if (amount and amount > 0 and not UnitIsDeadOrGhost(unit)) then
+			local healthMax = UnitHealthMax(unit)
+			local health = UnitIsGhost(unit) and 1 or (UnitIsDead(unit) and 0 or UnitHealth(unit))
+
+			if UnitIsAFK(unit) then
+				bar:SetStatusBarColor(0.2, 0.2, 0.2, 0.7)
+			else
+				bar:SetStatusBarColor(conf.colour.bar.hot.r, conf.colour.bar.hot.g, conf.colour.bar.hot.b, conf.colour.bar.hot.a)
+			end
+
+			bar:Show()
+			bar:SetMinMaxValues(0, healthMax)
+			bar:SetValue(min(healthMax, health + amount))
+
 			return
 		end
 		bar:Hide()
@@ -3978,11 +4094,11 @@ function XPerl_SetExpectedHealth(self)
 		end
 
 		local amount
-		if not IsClassic then
+		if not IsVanillaClassic then
 			amount = UnitGetIncomingHeals(unit)
 		else
 			local guid = UnitGUID(unit)
-			amount = (HealComm:GetHealAmount(guid, HealComm.ALL_HEALS, GetTime() + 3) or 0) * HealComm:GetHealModifier(guid)
+			amount = (HealComm:GetHealAmount(guid, HealComm.CASTED_HEALS, GetTime() + 3) or 0) * HealComm:GetHealModifier(guid)
 		end
 		if (amount and amount > 0 and not UnitIsDeadOrGhost(unit)) then
 			local healthMax = UnitHealthMax(unit)
@@ -4000,6 +4116,7 @@ function XPerl_SetExpectedHealth(self)
 			bar:Show()
 			bar:SetMinMaxValues(0, healthMax)
 			bar:SetValue(min(healthMax, health + amount))
+
 			return
 		end
 		bar:Hide()
@@ -4141,20 +4258,46 @@ function XPerl_Register_Prediction(self, conf, g2u, ...)
 		return
 	end
 
-	if not IsClassic then
-		if (conf.healprediction) then
+	if not IsVanillaClassic then
+		if conf.healprediction then
 			self:RegisterUnitEvent("UNIT_HEAL_PREDICTION", ...)
 		else
 			self:UnregisterEvent("UNIT_HEAL_PREDICTION")
 		end
 
-		if (conf.absorbs) then
-			self:RegisterUnitEvent("UNIT_ABSORB_AMOUNT_CHANGED", ...)
+		if not IsWrathClassic then
+			if conf.absorbs then
+				self:RegisterUnitEvent("UNIT_ABSORB_AMOUNT_CHANGED", ...)
+			else
+				self:UnregisterEvent("UNIT_ABSORB_AMOUNT_CHANGED")
+			end
 		else
-			self:UnregisterEvent("UNIT_ABSORB_AMOUNT_CHANGED")
+			-- HoT predictions do not work properly on Wrath Classic so use HealComm
+			if conf.hotPrediction then
+				local UpdateHealth = function(event, ...)
+					local unit = g2u(select(select("#", ...), ...))
+					if unit then
+						local f = self:GetScript("OnEvent")
+						f(self, "UNIT_HEAL_PREDICTION", unit)
+					end
+				end
+				HealComm.RegisterCallback(self, "HealComm_HealStarted", UpdateHealth)
+				HealComm.RegisterCallback(self, "HealComm_HealStopped", UpdateHealth)
+				HealComm.RegisterCallback(self, "HealComm_HealDelayed", UpdateHealth)
+				HealComm.RegisterCallback(self, "HealComm_HealUpdated", UpdateHealth)
+				HealComm.RegisterCallback(self, "HealComm_ModifierChanged", UpdateHealth)
+				HealComm.RegisterCallback(self, "HealComm_GUIDDisappeared", UpdateHealth)
+			else
+				HealComm.UnregisterCallback(self, "HealComm_HealStarted")
+				HealComm.UnregisterCallback(self, "HealComm_HealStopped")
+				HealComm.UnregisterCallback(self, "HealComm_HealDelayed")
+				HealComm.UnregisterCallback(self, "HealComm_HealUpdated")
+				HealComm.UnregisterCallback(self, "HealComm_ModifierChanged")
+				HealComm.UnregisterCallback(self, "HealComm_GUIDDisappeared")
+			end
 		end
 	else
-		if (conf.healprediction) then
+		if conf.healprediction then
 			local UpdateHealth = function(event, ...)
 				local unit = g2u(select(select("#", ...), ...))
 				if unit then
@@ -4177,5 +4320,4 @@ function XPerl_Register_Prediction(self, conf, g2u, ...)
 			HealComm.UnregisterCallback(self, "HealComm_GUIDDisappeared")
 		end
 	end
-
 end

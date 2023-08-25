@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Price Level Utility module
-	Version: 8.2.6451 (SwimmingSeadragon)
-	Revision: $Id: PriceLevel.lua 6451 2019-10-20 00:10:07Z none $
+	Version: 3.4.6795 (SwimmingSeadragon)
+	Revision: $Id: PriceLevel.lua 6795 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds a price level indicator
@@ -339,4 +339,4 @@ function lib.CalcLevel(link, quantity, bidPrice, buyPrice, itemWorth, serverKey)
 	return priceLevel, perItem, r,g,b, lvl, itemWorth
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-PriceLevel/PriceLevel.lua $", "$Rev: 6451 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-PriceLevel/PriceLevel.lua $", "$Rev: 6795 $")

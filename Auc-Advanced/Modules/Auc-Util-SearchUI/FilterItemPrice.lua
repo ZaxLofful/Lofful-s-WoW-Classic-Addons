@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Search UI - Filter IgnoreItemPrice
-	Version: 8.2.6464 (SwimmingSeadragon)
-	Revision: $Id: FilterItemPrice.lua 6464 2019-10-20 00:10:07Z none $
+	Version: 1.13.6645 (SwimmingSeadragon)
+	Revision: $Id: FilterItemPrice.lua 6829 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is a plugin module for the SearchUI that assists in searching by refined paramaters
@@ -204,7 +204,7 @@ function private.MakeGuiConfig(gui)
 	end
 
 	local content = gui.tabs[id].content
-	private.ignorelistGUI = CreateFrame("Frame", nil, content)
+	private.ignorelistGUI = CreateFrame("Frame", nil, content, BackdropTemplateMixin and "BackdropTemplate")
 	private.ignorelistGUI:SetPoint("BOTTOMRIGHT", content, "TOPRIGHT", -50, -295)
 	private.ignorelistGUI:SetPoint("TOPLEFT", content, "TOPRIGHT", -350, -20)
 	private.ignorelistGUI:SetBackdrop({
@@ -294,4 +294,4 @@ function lib.PostFilter(item, searcher, buyorbid)
 	end
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/FilterItemPrice.lua $", "$Rev: 6464 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/FilterItemPrice.lua $", "$Rev: 6829 $")

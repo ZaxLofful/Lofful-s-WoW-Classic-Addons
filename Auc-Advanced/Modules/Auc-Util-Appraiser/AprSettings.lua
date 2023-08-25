@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Appraisals and Auction Posting
-	Version: 8.2.6417 (SwimmingSeadragon)
-	Revision: $Id: AprSettings.lua 6417 2019-10-20 00:10:07Z none $
+	Version: 3.4.6787 (SwimmingSeadragon)
+	Revision: $Id: AprSettings.lua 6787 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds an appraisals tab to the AH for
@@ -68,7 +68,7 @@ private.durations = {
 	{ 2880, _TRANS('APPR_Interface_48Hours')  },--48 hours
 }
 
-if AucAdvanced.Classic then
+if AucAdvanced.Classic == 1 then
     private.durations = {
         { 120, _TRANS('APPR_Interface_2Hours')  },--2 hours
         { 480, _TRANS('APPR_Interface_8Hours')  },--8 hours
@@ -477,7 +477,7 @@ function private.SetupConfigGui(gui)
 	gui.scalewidth = 0.4
 	local content = gui.tabs[id][3]
 
-	local box = CreateFrame("Frame", nil, content)
+	local box = CreateFrame("Frame", nil, content, BackdropTemplateMixin and "BackdropTemplate")
 
 	local filter = gui:AddControl(id, "Text", 0.01, 1, "util.appraiser.filter", "");
 	filter.textEl:Hide()
@@ -535,7 +535,7 @@ function private.SetupConfigGui(gui)
 	})
 	box:SetBackdropColor(0, 0, 0, 0.8)
 
-	local scroller = CreateFrame("Slider", "AucApraiserItemScroll", content);
+	local scroller = CreateFrame("Slider", "AucApraiserItemScroll", content, BackdropTemplateMixin and "BackdropTemplate");
 	scroller:SetPoint("TOPLEFT", private.items[1], "TOPRIGHT", 0,0)
 	scroller:SetPoint("BOTTOMLEFT", private.items[8], "BOTTOMRIGHT", 0,0)
 	scroller:SetWidth(20)
@@ -571,4 +571,4 @@ function private.SetupConfigGui(gui)
 	private.guiId = id
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-Appraiser/AprSettings.lua $", "$Rev: 6417 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-Appraiser/AprSettings.lua $", "$Rev: 6787 $")

@@ -30,7 +30,7 @@ db_defaults.sounds = {
         msgin_sml = "Chat Blip",
         msgout = false,
         msgout_sml = "Chat Blip",
-        
+
         guild_sml = "Chat Blip",
         officer_sml = "Chat Blip",
         party_sml = "Chat Blip",
@@ -125,14 +125,6 @@ function ChatSounds:VARIABLES_LOADED()
     isGameSound = GetCVar("Sound_EnableAllSound") == "1" and true or false;
 end
 
-function _G.test()
-    if isGameSound then
-        _G.DEFAULT_CHAT_FRAME:AddMessage("Game Sound Enabled!");
-    else
-        _G.DEFAULT_CHAT_FRAME:AddMessage("Game Sound Disabled!");
-    end
-end
-
 -- Sound events
 function ChatSounds:PostEvent_ChatMessage(event, ...)
     local arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 = ...;
@@ -157,9 +149,9 @@ function ChatSounds:PostEvent_ChatMessage(event, ...)
             elseif(d.raid and (event == "CHAT_MSG_RAID" or event == "CHAT_MSG_RAID_LEADER")) then
                 playSound(db.sounds.chat.raid_sml);
             elseif(d.raid and event == "CHAT_MSG_INSTANCE_CHAT_LEADER") then
-                playSound(db.sounds.chat.battlegroundleader_sml);    
+                playSound(db.sounds.chat.battlegroundleader_sml);
             elseif(d.raid and (event == "CHAT_MSG_INSTANCE_CHAT" or event == "CHAT_MSG_INSTANCE_CHAT_LEADER")) then
-                playSound(db.sounds.chat.battleground_sml);    
+                playSound(db.sounds.chat.battleground_sml);
             elseif(d.say and event == "CHAT_MSG_SAY") then
                 playSound(db.sounds.chat.say_sml);
             elseif(event == "CHAT_MSG_CHANNEL" and isWorld) then

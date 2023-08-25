@@ -1,7 +1,7 @@
 ﻿--[[
 	Auctioneer
-	Version: 8.2.6430 (SwimmingSeadragon)
-	Revision: $Id: CoreMain.lua 6430 2019-10-20 00:10:07Z none $
+	Version: 3.4.6844 (SwimmingSeadragon)
+	Revision: $Id: CoreMain.lua 6844 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -83,29 +83,30 @@ local function OnTooltip(calltype, tip, hyperlink, quantity, name, quality)
 		return
 	end
 
-	tooltip:SetFrame(tip)
-	local additional = tooltip:GetExtra()
-	quantity = tonumber(quantity) or 1
-
 	-- Check to see if we need to load scandata
 	if AucAdvanced.Settings.GetSetting("scandata.tooltip.display") then
 		AucAdvanced.Scan.LoadScanData()
 	end
 
-	local saneLink = AucAdvanced.SanitizeLink(hyperlink)
-
+	tooltip:SetFrame(tip)
 	tooltip:SetColor(0.3, 0.9, 0.8)
 	tooltip:SetMoneyAsText(false)
 	tooltip:SetEmbed(false)
 
+	local additional = tooltip:GetExtra()
+	quantity = tonumber(quantity) or 1
+	local saneLink = AucAdvanced.SanitizeLink(hyperlink)
+	local serverKey = AucAdvanced.Resources.ServerKeyDisplay
 	local modules = AucAdvanced.GetAllModules()
 	local L = AucAdvanced.localizations
-	local market, seen
-	local doMarketprice, doDeposit = AucAdvanced.Settings.GetSetting("tooltip.marketprice.show"), AucAdvanced.Settings.GetSetting("core.tooltip.depositcost")
-	if doMarketprice or doDeposit then
-		market, seen = AucAdvanced.API.GetMarketValue(saneLink)
+
+	if serverKey ~= AucAdvanced.Resources.ServerKeyHome or AucAdvanced.Settings.GetSetting("core.tooltip.showfactionhome") then
+		tooltip:AddLine(format("Using data for |cff1fff00%s|r", AucAdvanced.GetServerKeyText(serverKey) or "Unknown"))
 	end
-	if doMarketprice then
+
+	if AucAdvanced.Settings.GetSetting("tooltip.marketprice.show") then
+		local market, seen = AucAdvanced.API.GetMarketValue(saneLink, serverKey)
+
 		if not market then
 			tooltip:AddLine(L"ADV_Interface_MarketPrice" ..": ".. L"ADV_Tooltip_NotAvailable")--Market Price // Not Available
 		else
@@ -124,10 +125,10 @@ local function OnTooltip(calltype, tip, hyperlink, quantity, name, quality)
 				if engineLib.GetItemPDF then
 					local price
 					if engineLib.GetPriceSeen then
-						price = engineLib.GetPriceSeen(saneLink)
+						price = engineLib.GetPriceSeen(saneLink, serverKey)
 					end
 					if not price and engineLib.GetPriceArray then
-						local pricearray = engineLib.GetPriceArray(saneLink)
+						local pricearray = engineLib.GetPriceArray(saneLink, serverKey)
 						if pricearray then
 							price = pricearray.price
 						end
@@ -145,19 +146,20 @@ local function OnTooltip(calltype, tip, hyperlink, quantity, name, quality)
 		end
 	end
 
-	if doDeposit then
-		local duration = AucAdvanced.Settings.GetSetting("core.tooltip.depositduration")
+	if AucAdvanced.Settings.GetSetting("core.tooltip.depositcost") then
+		local durationsetting = AucAdvanced.Settings.GetSetting("core.tooltip.depositduration")
+		local duration = AucAdvanced.Post.GetDurationCode(durationsetting) -- ### currently setting is in hours. todo: change all duration settings to proper duration code
+		local faction = AucAdvanced.Resources.DisplayFaction
 
-		local deposit = AucAdvanced.Post.GetDepositCost(saneLink, duration, 1, market, 1)
+		local deposit = AucAdvanced.Post.GetDepositCost(saneLink, duration, faction, 1)
 		if not deposit then
 			tooltip:AddLine(L"ADV_Tooltip_UnknownDepositCost", .2, .4, .6)
 		else
-			local hours = AucAdvanced.Post.AuctionDurationHours(duration) or 24 -- GetDepositCost defaults to 24hr if duration is invalid
+			local hours = AucAdvanced.Post.AuctionDurationHours(duration) or 0 -- ### Debug: we need to see if duration setting is invalid
 			local text = format(L"ADV_Tooltip_HourDepositCost", hours)
 			tooltip:AddLine(text..": ", deposit, .8, 1, .6)
 			if quantity > 1 and AucAdvanced.Settings.GetSetting("tooltip.marketprice.stacksize") then
-				local stackprice = (market or 0) * quantity
-				local stackdeposit = AucAdvanced.Post.GetDepositCost(saneLink, duration, 1, stackprice, quantity)
+				local stackdeposit = AucAdvanced.Post.GetDepositCost(saneLink, duration, faction, quantity)
 				if stackdeposit and stackdeposit ~= deposit then
 					tooltip:AddLine(text.." x"..tostring(quantity)..": ", stackdeposit, .8, 1, .6)
 				end
@@ -173,7 +175,6 @@ local function OnTooltip(calltype, tip, hyperlink, quantity, name, quality)
 		Modules whose tooltip does not depend on serverKey should check the order parameter to ensure they don't duplicate their output in the tooltip
 			usually they would only respond when order == 1
 		]]
-		local serverKey = AucAdvanced.Resources.ServerKey
 		local order = 1
 		AucAdvanced.SendProcessorMessage("itemtooltip", tooltip, hyperlink, serverKey, quantity, decoded, additional, order)
 
@@ -190,10 +191,10 @@ local function OnTooltip(calltype, tip, hyperlink, quantity, name, quality)
 			end
 		end
 		AucAdvanced.SendProcessorMessage("tooltip", tooltip, name, hyperlink, quality, quantity, cost, extra)
-	elseif calltype == "battlepet" then
-		local serverKey = AucAdvanced.Resources.ServerKey
-		local order = 1
-		AucAdvanced.SendProcessorMessage("battlepettooltip", tooltip, hyperlink, serverKey, quantity, decoded, additional, order)
+	-- elseif calltype == "battlepet" then
+		-- local serverKey = AucAdvanced.Resources.ServerKey
+		-- local order = 1
+		-- AucAdvanced.SendProcessorMessage("battlepettooltip", tooltip, hyperlink, serverKey, quantity, decoded, additional, order)
 	end
 	tooltip:ClearFrame(tip)
 end
@@ -202,9 +203,9 @@ end
 local function OnItemTooltip(tooltip, item, quantity, name, hyperlink, quality, ilvl, rlvl, itype, isubtype, stack, equiploc, texture)
 	return OnTooltip("item", tooltip, hyperlink, quantity, name, quality)
 end
-local function OnPetTooltip(tooltip, link, quantity, name, speciesID, breedQuality, level)
-	return OnTooltip("battlepet", tooltip, link, quantity, name, breedQuality)
-end
+-- local function OnPetTooltip(tooltip, link, quantity, name, speciesID, breedQuality, level)
+	-- return OnTooltip("battlepet", tooltip, link, quantity, name, breedQuality)
+-- end
 
 local function HookClickBag(hookParams, returnValue, self, button, ignoreShift)
 	if button == "RightButton" and IsAltKeyDown() and AucAdvanced.Settings.GetSetting("clickhook.enable") then
@@ -336,7 +337,7 @@ local function OnEnteringWorld(frame)
 		-- in most cases an error should have been reported elsewhere, we don't want to generate a new one
 		-- but we should give some indication of the problem, so we shall print a short message to chat instead
 		-- since we cannot guarantee Auc's print is working, we shall use default print function
-		print("Auctioneer load aborted: "..AucAdvanced.ABORTLOAD)
+		print("Auctioneer load aborted: "..(AucAdvanced.ABORTLOAD or "Core failed to load"))
 		return
 	end
 	AucAdvanced.Print(format("Auctioneer loaded (version %s)", AucAdvanced.Version))
@@ -354,13 +355,12 @@ local function OnEnteringWorld(frame)
 
 	tooltip:Activate()
 	tooltip:AddCallback({type = "item", callback = OnItemTooltip}, 600)
-	tooltip:AddCallback({type = "battlepet", callback = OnPetTooltip}, 600)
+	-- tooltip:AddCallback({type = "battlepet", callback = OnPetTooltip}, 600)
 	tooltip:AltChatLinkRegister(HookAltChatLinkTooltip)
 	ALTCHATLINKTOOLTIP_OPEN = tooltip:AltChatLinkConstants()
 
-	-- CoreResources & CoreServers must be activated first
+	-- CoreResources must be activated first
 	internal.Resources.Activate()
-	internal.Servers.Activate()
 
 	-- send general activate message
 	AucAdvanced.SendProcessorMessage("gameactive")
@@ -427,5 +427,5 @@ do -- ScheduleMessage handler
 end
 
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreMain.lua $", "$Rev: 6430 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreMain.lua $", "$Rev: 6844 $")
 AucAdvanced.CoreFileCheckOut("CoreMain")

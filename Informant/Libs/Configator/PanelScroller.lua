@@ -1,7 +1,7 @@
 --[[
 	PanelScroller
-	Version: 8.2.6341 (SwimmingSeadragon)
-	Revision: $Id: PanelScroller.lua 6341 2019-10-20 00:10:07Z none $
+	Version: 3.4.6848 (SwimmingSeadragon)
+	Revision: $Id: PanelScroller.lua 6848 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/dl/
 
 	License:
@@ -30,7 +30,7 @@ local LIBRARY_VERSION_MINOR = 5
 local lib = LibStub:NewLibrary(LIBRARY_VERSION_MAJOR, LIBRARY_VERSION_MINOR)
 if not lib then return end
 
-LibStub("LibRevision"):Set("$URL: Auc-Advanced/Libs/Configator/PanelScroller.lua $","$Rev: 6341 $","5.1.DEV.", 'auctioneer', 'libs')
+LibStub("LibRevision"):Set("$URL: Auc-Advanced/Libs/Configator/PanelScroller.lua $","$Rev: 6848 $","5.1.DEV.", 'auctioneer', 'libs')
 
 local kit = {
 	hPos = 0, hSize = 0, hWin = 0, hType = "AUTO",
@@ -268,8 +268,12 @@ local function DownDuttonOnClick(self)
 	PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
 end
 
-local function ScrollBarOnValueChanged(self, value)
+local function HorizontalScrollBarOnValueChanged(self, value)
 	self:GetParent():ScrollToCoords(value, nil)
+end
+
+local function VerticalScrollBarOnValueChanged(self, value)
+	self:GetParent():ScrollToCoords(nil, value)
 end
 
 local function ScrollUpdate(self)
@@ -341,7 +345,7 @@ local function HorizontalScrollBarTemplate(name, parent)
 	scrollbar.incrButton = rightButton
 
 	scrollbar:SetThumbTexture(KnobTemplate(name.."ThumbTexture", scrollbar))
-	scrollbar:SetScript("OnValueChanged", ScrollBarOnValueChanged)
+	scrollbar:SetScript("OnValueChanged", HorizontalScrollBarOnValueChanged)
 	return scrollbar
 end
 
@@ -372,7 +376,7 @@ local function VerticalScrollBarTemplate(name, parent)
 	scrollbar.decrButton = downButton
 
 	scrollbar:SetThumbTexture(KnobTemplate(name.."ThumbTexture", scrollbar))
-	scrollbar:SetScript("OnValueChanged", ScrollBarOnValueChanged)
+	scrollbar:SetScript("OnValueChanged", VerticalScrollBarOnValueChanged)
 	return scrollbar
 end
 

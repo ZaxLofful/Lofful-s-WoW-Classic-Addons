@@ -9,7 +9,7 @@ WIM.AddLocale("ruRU", {
 
 	["_DemoText"] = "Это демонстрационное окно! Разместите данное окно на Вашем экране там, где Вы хотели бы, чтобы появлялось окно WIM по умолчанию. После того, как Вы разместите данное окно в нужное место, закройте его и настройки будут сохранены автоматически.",
 
-	["_DateFormat"] = "%m/%d/%Y",
+	["_DateFormat"] = "%d.%m.%Y",
 
 	["Yes"] = "Да",
 	["No"] = "Нет",
@@ -348,7 +348,7 @@ WIM.AddLocale("ruRU", {
 	["Ignore"] = "Игнорировать",
 	["Block"] = "Блокировать",
 	["Filtering"] = "Фильтрация",
-	["Filtering allows you to control which messages are handled as well as how they are handlef by WIM."] = "Фильтрация позволяет вам контролировать, какие сообщения обрабатывать, а также каким образом они будут обрабатываться WIMом.",
+	["Filtering allows you to control which messages are handled as well as how they are handled by WIM."] = "Фильтрация позволяет вам контролировать, какие сообщения обрабатывать, а также каким образом они будут обрабатываться WIMом.",
 	["Enable Filtering"] = "Включить фильтрацию",
 	["Protected"] = "Под защитой",
 	["Action:"] = "Действие",

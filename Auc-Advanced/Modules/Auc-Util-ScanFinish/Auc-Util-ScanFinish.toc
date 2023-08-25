@@ -1,9 +1,9 @@
 ## Title: Auc:Util:Scan Finish
-## Interface: 80200
+## Interface: 30400
 ## Dependancies: Auc-Advanced
 ##
-## Version: 8.2.6456 (SwimmingSeadragon)
-## Revision: $Id: Auc-Util-ScanFinish.toc 6456 2019-10-20 00:10:07Z none $
+## Version: 3.4.6784 (SwimmingSeadragon)
+## Revision: $Id: Auc-Util-ScanFinish.toc 6784 2022-10-27 00:00:09Z none $
 ## Author: Norganna's AddOns
 ## X-Part-Of: Auctioneer
 ## X-Category: Auction House

@@ -1,7 +1,7 @@
 --[[
 	Auctioneer
-	Version: 8.2.6430 (SwimmingSeadragon)
-	Revision: $Id: CoreConfig.lua 6430 2019-10-20 00:10:07Z none $
+	Version: 3.4.6844 (SwimmingSeadragon)
+	Revision: $Id: CoreConfig.lua 6844 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -97,10 +97,14 @@ function private.CommandHandler(editbox, command, subcommand, ...)
 	elseif command == "config" then
 		AucAdvanced.Settings.Show()
 	elseif command == "clear" then
-		if ... then
-			subcommand = string.join(" ", subcommand, ...)
+		if subcommand then
+			if ... then
+				subcommand = string.join(" ", subcommand, ...)
+			end
+			AucAdvanced.API.ClearItem(subcommand)
+		else
+			private.Print("Command 'clear' requires an item link")
 		end
-		AucAdvanced.API.ClearItem(subcommand)
 	elseif command == "cleardata" then
 		if ... then
 			subcommand = string.join(" ", subcommand, ...)
@@ -190,5 +194,5 @@ coremodule.Processors = {
 	gameactive = function() private.Activate() end,
 }
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreConfig.lua $", "$Rev: 6430 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreConfig.lua $", "$Rev: 6844 $")
 AucAdvanced.CoreFileCheckOut("CoreConfig")

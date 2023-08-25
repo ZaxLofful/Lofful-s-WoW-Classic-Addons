@@ -1,7 +1,7 @@
 --[[
 	Auctioneer Addon for World of Warcraft(tm).
-	Version: 8.2.6460 (SwimmingSeadragon)
-	Revision: $Id: AskPrice.lua 6460 2019-10-20 00:10:07Z none $
+	Version: 3.4.6792 (SwimmingSeadragon)
+	Revision: $Id: AskPrice.lua 6792 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	Auctioneer AskPrice created by Mikezter and merged into
@@ -501,7 +501,7 @@ end
 
 --This function changed after AskPrice revision 2825 to include AucAdvanced's revision number in adition to AskPrice's
 function private.GetVersion()
-	return tonumber(("$Rev: 6460 $"):match("(%d+)")), (AucAdvanced.GetCurrentRevision()) --We just want the first return from GetCurrentRevision()
+	return tonumber(("$Rev: 6792 $"):match("(%d+)")), (AucAdvanced.GetCurrentRevision()) --We just want the first return from GetCurrentRevision()
 end
 
 --This function is used to check if the received request (which should be lowercased before the function is called) is a valid SmartWords request
@@ -622,4 +622,4 @@ function private.SetupConfigGui(gui)
 	gui:AddTip(id, _TRANS('ASKP_HelpTooltip_Whisper')) --"Shows (enabled) or hides (disabled) outgoing whispers from Askprice."
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-AskPrice/AskPrice.lua $", "$Rev: 6460 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-AskPrice/AskPrice.lua $", "$Rev: 6792 $")

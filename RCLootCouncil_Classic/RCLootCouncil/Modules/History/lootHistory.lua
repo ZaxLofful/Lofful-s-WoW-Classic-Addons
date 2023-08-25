@@ -89,8 +89,6 @@ end
 
 function LootHistory:OnDisable()
 	self:Hide()
-	self.frame:SetParent(nil)
-	self.frame = nil
 	data = {}
 end
 
@@ -775,6 +773,7 @@ end
 function LootHistory:GetFrame()
 	if self.frame then return self.frame end
 	local f = addon:CreateFrame("DefaultRCLootHistoryFrame", "history", L["RCLootCouncil Loot History"], 250, 480)
+	addon.UI:RegisterForEscapeClose(f, function() if self:IsEnabled() then self:Disable() end end)
 	local st = LibStub("ScrollingTable"):CreateST(self.scrollCols, NUM_ROWS, ROW_HEIGHT, { ["r"] = 1.0, ["g"] = 0.9, ["b"] = 0.0, ["a"] = 0.5 }, f.content)
 	st.frame:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 10, 10)
 	st:SetFilter(self.FilterFunc)
@@ -1605,6 +1604,7 @@ do
 				tinsert(export, string.format("\"%s\":\"%s\"", "player", tostring(player)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "date", tostring(self:GetLocalizedDate(d.date))))
 				tinsert(export, string.format("\"%s\":\"%s\"", "time", tostring(d.time)))
+				tinsert(export, string.format("\"%s\":\"%s\"", "id", tostring(d.id)))
 				tinsert(export, string.format("\"%s\":%s", "itemID", addon:GetItemIDFromLink(d.lootWon)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "itemString", addon:GetItemStringFromLink(d.lootWon)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "response", QuotesEscape(d.response)))
@@ -1621,6 +1621,7 @@ do
 				tinsert(export, string.format("\"%s\":\"%s\"", "equipLoc", tostring(getglobal(equipLoc) or "")))
 				tinsert(export, string.format("\"%s\":\"%s\"", "note", QuotesEscape(d.note)))
 				tinsert(export, string.format("\"%s\":\"%s\"", "owner", tostring(d.owner or "Unknown")))
+				tinsert(export, string.format("\"%s\":\"%s\"", "itemName", addon.Utils:GetItemNameFromLink(d.lootWon)))
 
 				processedEntries = processedEntries + 1;
 

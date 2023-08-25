@@ -238,15 +238,22 @@ end
 
 function Talented:GetTalentRanks(class, tab, index)
 	local talent = self:GetTalentInfo(class)[tab].talents[index].info
-	return talent.ranks --should be #talent.ranks
+	return talent.ranks --should be #talent.ranks if ranks is an array
 end
 
 function Talented:GetTalentLink(template, tab, index, rank)
-	local data = self:GetTalentInfo(template.class)
-	local rank = rank or (template[tab] and template[tab][index])
-	if not rank or rank == 0 then
-		rank = 1
+	-- local data = self:GetTalentInfo(template.class)
+	-- local rank = rank or (template[tab] and template[tab][index])
+	-- if not rank or rank == 0 then
+	-- 	rank = 1
+	-- end
+	-- return ("|cff71d5ff|Hspell:%d|h[%s]|h|r"):format(data[tab][index].ranks[rank],
+	-- 	self:GetTalentName(template.class, tab, index)
+	-- )
+	if Talented.current == template then
+		local link = GetTalentLink(tab, index) --note cannot get rank
+		return link
+	else
+		return nil
 	end
-	return
-		("|cff71d5ff|Hspell:%d|h[%s]|h|r"):format(data[tab][index].ranks[rank], self:GetTalentName(template.class, tab, index))
 end

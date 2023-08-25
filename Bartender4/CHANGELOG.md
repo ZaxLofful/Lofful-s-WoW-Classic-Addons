@@ -1,9 +1,8 @@
 # Bartender4
 
-## [4.10.9](https://github.com/Nevcairiel/Bartender4/tree/4.10.9) (2021-05-21)
-[Full Changelog](https://github.com/Nevcairiel/Bartender4/compare/4.10.8...4.10.9) [Previous Releases](https://github.com/Nevcairiel/Bartender4/releases)
+## [4.14.11](https://github.com/Nevcairiel/Bartender4/tree/4.14.11) (2023-08-07)
+[Full Changelog](https://github.com/Nevcairiel/Bartender4/compare/4.14.10...4.14.11) [Previous Releases](https://github.com/Nevcairiel/Bartender4/releases)
 
-- Fix changing the self-cast modifier on classic  
-    Fixes #54  
-- Support Shadowform stance paging on BCC  
-    Fixes #55  
+- Restore LFR/LFR button position when the game repositions it  
+- Remove WoW 9.x micromenu sizes  
+- Align micromenu with changed button sizes  

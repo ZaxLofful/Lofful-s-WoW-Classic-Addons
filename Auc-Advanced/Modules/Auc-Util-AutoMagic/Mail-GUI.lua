@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - AutoMagic Utility module
-	Version: 8.2.6424 (SwimmingSeadragon)
-	Revision: $Id: Mail-GUI.lua 6424 2019-10-20 00:10:07Z none $
+	Version: 3.4.6799 (SwimmingSeadragon)
+	Revision: $Id: Mail-GUI.lua 6799 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	AutoMagic is an Auctioneer module which automates mundane tasks for you.
@@ -38,7 +38,7 @@ local AppraiserValue, DisenchantValue, ProspectValue, VendorValue, bestmethod, b
 ---------------------------------------------------------
 -- Mail Interface
 ---------------------------------------------------------
-lib.ammailgui = CreateFrame("Frame", "", UIParent); lib.ammailgui:Hide()
+lib.ammailgui = CreateFrame("Frame", "", UIParent, BackdropTemplateMixin and "BackdropTemplate"); lib.ammailgui:Hide()
 function lib.makeMailGUI()
 	-- Set frame visuals
 	-- [name of frame]:SetPoint("[relative to point on my frame]","[frame we want to be relative to]","[point on relative frame]",-left/+right, -down/+up)
@@ -142,7 +142,7 @@ function lib.makeMailGUI()
 
 --[[Create  CustomMailerFrame]]
 
-	lib.CustomMailerFrame = CreateFrame("Frame", "", UIParent)
+	lib.CustomMailerFrame = CreateFrame("Frame", "", UIParent, BackdropTemplateMixin and "BackdropTemplate")
 	local frame = lib.CustomMailerFrame
 	frame:Hide()
 
@@ -221,7 +221,7 @@ function lib.makeMailGUI()
 		lib.MailListUpdate()
 	end
 
-	frame.resultlist = CreateFrame("Frame", nil, frame)
+	frame.resultlist = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 	frame.resultlist:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -322,7 +322,7 @@ function lib.makeMailGUI()
 
 
 	--Frame for displaying the lists
-	frame.buttonList = CreateFrame("Frame", nil, frame)
+	frame.buttonList = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 	frame.buttonList:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -556,4 +556,4 @@ end
 
 
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-AutoMagic/Mail-GUI.lua $", "$Rev: 6424 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-AutoMagic/Mail-GUI.lua $", "$Rev: 6799 $")

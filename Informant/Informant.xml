@@ -2,8 +2,8 @@
 <!--
 	Informant - An addon for World of Warcraft that shows pertinent information about
 	an item in a tooltip when you hover over the item in the game.
-	Version: 8.2.6374 (SwimmingSeadragon)
-	Revision: $Id: Informant.xml 6374 2019-10-20 00:10:07Z none $
+	Version: 3.4.6850 (SwimmingSeadragon)
+	Revision: $Id: Informant.xml 6850 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/dl/Informant/
 
 	License:
@@ -29,9 +29,9 @@
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 -->
 	<Script>
-		Informant_RegisterRevision("$URL: Informant/Informant.xml $", "$Rev: 6374 $")
+		Informant_RegisterRevision("$URL: Informant/Informant.xml $", "$Rev: 6850 $")
 	</Script>
-	
+
 	<GameTooltip name="Informant_ScanTooltip" frameStrata="TOOLTIP" hidden="true" parent="UIParent" inherits="GameTooltipTemplate">
 		<Scripts>
 			<Onload>
@@ -40,14 +40,13 @@
 		</Scripts>
 	</GameTooltip>
 
-	<Frame name="InformantFrame" toplevel="true" parent="UIParent" frameStrata="DIALOG" hidden="true" enableMouse="true" moveable="true">
+	<Frame name="InformantFrame" toplevel="true" parent="UIParent" frameStrata="DIALOG" hidden="true" enableMouse="true" movable="true" inherits="BackdropTemplate">
 		<Size>
 			<AbsDimension x="380" y="380"/>
 		</Size>
 		<Anchors>
 			<Anchor point="CENTER"/>
 		</Anchors>
-		<TitleRegion setAllPoints="true"/>
 		<Scripts>
 			<OnLoad>
 				Informant.FrameLoaded()
@@ -61,18 +60,9 @@
 			<OnEvent>
 				Informant.OnEvent(event, ...);
 			</OnEvent>
+			<OnDragStart>self:StartMoving()</OnDragStart>
+			<OnDragStop>self:StopMovingOrSizing()</OnDragStop>
 		</Scripts>
-		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\TutorialFrame\TutorialFrameBorder" tile="true">
-			<BackgroundInsets>
-				<AbsInset left="4" right="4" top="4" bottom="4"/>
-			</BackgroundInsets>
-			<TileSize>
-				<AbsValue val="32"/>
-			</TileSize>
-			<EdgeSize>
-				<AbsValue val="32"/>
-			</EdgeSize>
-		</Backdrop>
 		<Layers>
 			<Layer level="OVERLAY">
 				<FontString name="InformantFrameTitle" inherits="GameFontNormal" text="TITLE">

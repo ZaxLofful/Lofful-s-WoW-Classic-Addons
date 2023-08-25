@@ -23,14 +23,15 @@ XPerl_RequestConfig(function(new)
 	if (XPerl_PetTarget) then
 		XPerl_PetTarget.conf = conf.pettarget
 	end
-end, "$Revision: f59e7d739fe667c357cee87d003de6e802c8ae29 $")
+end, "$Revision: 8fc5cc64a1ac44a94d1ce283b83dcf1af669c63d $")
 
 local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
+local IsWrathClassic = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
 local IsVanillaClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 local LCD = IsVanillaClassic and LibStub and LibStub("LibClassicDurations", true)
 if LCD then
 	LCD.RegisterCallback("ZPerl", "UNIT_BUFF", function(event, unit)
-		if unit == "target" then
+		if unit == "target" or unit == "focus" then
 			XPerl_Target_Events:UNIT_AURA(event, unit)
 		end
 	end)
@@ -42,6 +43,7 @@ local bit_band = bit.band
 local format = format
 local max = max
 local pairs = pairs
+local select = select
 local string = string
 local tonumber = tonumber
 local tostring = tostring
@@ -50,6 +52,7 @@ local unpack = unpack
 
 local CanInspect = CanInspect
 local CheckInteractDistance = CheckInteractDistance
+local GetComboPoints = GetComboPoints
 local GetDifficultyColor = GetDifficultyColor or GetQuestDifficultyColor
 local GetInspectSpecialization = GetInspectSpecialization
 local GetLootMethod = GetLootMethod
@@ -62,6 +65,7 @@ local InCombatLockdown = InCombatLockdown
 local NotifyInspect = NotifyInspect
 local PlaySound = PlaySound
 local RegisterUnitWatch = RegisterUnitWatch
+local UnitAffectingCombat = UnitAffectingCombat
 local UnitBattlePetType = UnitBattlePetType
 local UnitCanAssist = UnitCanAssist
 local UnitCanAttack = UnitCanAttack
@@ -85,7 +89,9 @@ local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 local UnitIsEnemy = UnitIsEnemy
 local UnitIsFriend = UnitIsFriend
 local UnitIsGhost = UnitIsGhost
+local UnitIsGroupAssistant = UnitIsGroupAssistant
 local UnitIsGroupLeader = UnitIsGroupLeader
+local UnitIsMercenary = UnitIsMercenary
 local UnitIsPlayer = UnitIsPlayer
 local UnitIsPVP = UnitIsPVP
 local UnitIsPVPFreeForAll = UnitIsPVPFreeForAll
@@ -341,18 +347,11 @@ end
 -- Combo Points
 ---------------
 function XPerl_Target_UpdateCombo(self)
-	-- Anticipation
-	--[[local name = GetSpellInfo(114015)
-	local _, _, count = UnitAura("player", name, "HELPFUL")
-	if not count then
-		count = 0
-	end]]
-	local combopoints = UnitPower((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player", Enum.PowerType.ComboPoints)
-	--local combopoints = GetComboPoints((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player", self.partyid) + count
-	local r, g, b = GetComboColour(combopoints)
+	local comboPoints = IsClassic and GetComboPoints("player", "target") or UnitPower(UnitHasVehicleUI("player") and "vehicle" or "player", Enum.PowerType.ComboPoints)
+	local r, g, b = GetComboColour(comboPoints)
 	if (tconf.combo.enable) then
 		--self.cpFrame:Hide()
-		self.nameFrame.cpMeter:SetValue(combopoints)
+		self.nameFrame.cpMeter:SetValue(comboPoints)
 		self.nameFrame.cpMeter:Show()
 		if r and g and b then
 			self.nameFrame.cpMeter:SetStatusBarColor(r, g, b, 0.7)
@@ -368,7 +367,7 @@ function XPerl_Target_UpdateCombo(self)
 		--self.nameFrame.cpMeter:Hide()]]
 	if tconf.comboindicator.enable then
 		self.cpFrame:Show()
-		self.cpFrame.text:SetText(combopoints)
+		self.cpFrame.text:SetText(comboPoints)
 		if r and g and b then
 			self.cpFrame.text:SetTextColor(r, g, b)
 		else
@@ -379,7 +378,7 @@ function XPerl_Target_UpdateCombo(self)
 	end
 end
 
-local function XPerl_Target_DebuffUpdate(self)
+--[[local function XPerl_Target_DebuffUpdate(self)
 	local partyid = self.partyid
 	if (GetComboPoints((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player", partyid) == 0) then
 		local numDebuffs = 0
@@ -406,7 +405,7 @@ local function XPerl_Target_DebuffUpdate(self)
 	else
 		XPerl_Target_UpdateCombo(self)
 	end
-end
+end--]]
 
 -------------------------
 -- The Update Functions--
@@ -707,7 +706,7 @@ do
 					elseif (inspectReady and guid == UnitGUID(partyid)) then
 						local remoteInspectNeeded = not UnitIsUnit("player", partyid) or nil
 						if not IsClassic then
-							group =  GetInspectSpecialization("target")
+							group = GetInspectSpecialization("target")
 							local _, spec = GetSpecializationInfoByID(group)
 							name1 = group and spec or "None"
 						else
@@ -837,16 +836,26 @@ end
 
 -- XPerl_Target_SetMana
 function XPerl_Target_SetMana(self)
+	local partyid = self.partyid
+	if not partyid then
+		self.targetmana = 0
+		self.targetmanamax = 0
+		return
+	end
+
 	local targetmana, targetmanamax = UnitPower(self.partyid), UnitPowerMax(self.partyid)
 	local mb = self.statsFrame.manaBar
 
+	self.targetmana = targetmana
+	self.targetmanamax = targetmanamax
+
 	--Begin 4.3 division by 0 work around to ensure we don't divide if max is 0
 	local pmanaPct
-	if targetmana > 0 and targetmanamax == 0 then--We have current mana but max mana failed.
-		targetmanamax = targetmana--Make max mana at least equal to current mana
-		pmanaPct = 100--And percent 100% cause a number divided by itself is 1, duh.
+	if targetmana > 0 and targetmanamax == 0 then --We have current mana but max mana failed.
+		targetmanamax = targetmana --Make max mana at least equal to current mana
+		pmanaPct = 1 --And percent 100% cause a number divided by itself is 1, duh.
 	elseif targetmana == 0 and targetmanamax == 0 then--Probably doesn't use mana or is oom?
-		pmanaPct = 0--So just automatically set percent to 0 and avoid division of 0/0 all together in this situation.
+		pmanaPct = 0 --So just automatically set percent to 0 and avoid division of 0/0 all together in this situation.
 	else
 		pmanaPct = targetmana / targetmanamax--Everything is dandy, so just do it right way.
 	end
@@ -869,10 +878,10 @@ end
 -- XPerl_Target_SetComboBar
 function XPerl_Target_SetComboBar(self)
 	if (tconf.combo.enable) then
-		local combopoints = UnitPower((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player", Enum.PowerType.ComboPoints)
+		local comboPoints = IsClassic and GetComboPoints("player", "target") or UnitPower(UnitHasVehicleUI("player") and "vehicle" or "player", Enum.PowerType.ComboPoints)
 		local maxComboPoints = UnitPowerMax("player", Enum.PowerType.ComboPoints)
 		self.nameFrame.cpMeter:SetMinMaxValues(0, IsClassic and 5 or maxComboPoints)
-		self.nameFrame.cpMeter:SetValue(combopoints)
+		self.nameFrame.cpMeter:SetValue(comboPoints)
 	end
 end
 
@@ -934,17 +943,47 @@ local function XPerl_Target_UpdateAbsorbPrediction(self)
 	end
 end
 
+-- XPerl_Target_UpdateHotsPrediction
+local function XPerl_Target_UpdateHotsPrediction(self)
+	if not IsWrathClassic then
+		return
+	end
+	if self == XPerl_Target then
+		if tconf.hotPrediction then
+			XPerl_SetExpectedHots(self)
+		else
+			self.statsFrame.expectedHots:Hide()
+		end
+	elseif self == XPerl_TargetTarget or self == XPerl_TargetTargetTarget then
+		if conf.targettarget.hotPrediction then
+			XPerl_SetExpectedHots(self)
+		else
+			self.statsFrame.expectedHots:Hide()
+		end
+	elseif self == XPerl_Focus then
+		if fconf.hotPrediction then
+			XPerl_SetExpectedHots(self)
+		else
+			self.statsFrame.expectedHots:Hide()
+		end
+	elseif self == XPerl_FocusTarget then
+		if conf.focustarget.hotPrediction then
+			XPerl_SetExpectedHots(self)
+		else
+			self.statsFrame.expectedHots:Hide()
+		end
+	end
+end
+
 function XPerl_Target_UpdateResurrectionStatus(self)
 	if (UnitHasIncomingResurrection(self.partyid)) then
-		if (self == XPerl_Target and tconf.portrait) or
-		   (self == XPerl_Focus and fconf.portrait) then
+		if (self == XPerl_Target and tconf.portrait) or (self == XPerl_Focus and fconf.portrait) then
 			self.portraitFrame.resurrect:Show()
 		else
 			self.statsFrame.resurrect:Show()
 		end
 	else
-		if (self == XPerl_Target and tconf.portrait) or
-		   (self == XPerl_Focus and fconf.portrait) then
+		if (self == XPerl_Target and tconf.portrait) or (self == XPerl_Focus and fconf.portrait) then
 			self.portraitFrame.resurrect:Hide()
 		else
 			self.statsFrame.resurrect:Hide()
@@ -955,11 +994,19 @@ end
 -- XPerl_Target_UpdateHealth
 function XPerl_Target_UpdateHealth(self)
 	local partyid = self.partyid
+	if not partyid then
+		self.targethp = 0
+		self.targetmax = 0
+		self.afk = false
+		return
+	end
 
 	local hb = self.statsFrame.healthBar
 	local hbt = self.statsFrame.healthBar.text
 	local hp, hpMax, percent = XPerl_Target_GetHealth(self)
 
+	self.targethp = hp
+	self.targethpmax = hpMax
 	self.afk = UnitIsAFK(partyid) and conf.showAFK == 1
 
 	--[[if (self.targethp == 100) then
@@ -983,6 +1030,7 @@ function XPerl_Target_UpdateHealth(self)
 
 	XPerl_Target_UpdateAbsorbPrediction(self)
 	XPerl_Target_UpdateHealPrediction(self)
+	XPerl_Target_UpdateHotsPrediction(self)
 	XPerl_Target_UpdateResurrectionStatus(self)
 
 	if (percent) then
@@ -1093,40 +1141,22 @@ local function XPerl_Target_UpdateLeader(self)
 		end
 	end
 
+	local masterLooter = false
+	local method, partyID, raidID = GetLootMethod()
 
-
-
-	-- We can't determine who is master looter in raid if not in current party... :(
-	--Don't think this is the case anymore.... -- Cexikitin
-	local ml
-	--if (UnitInParty("party1") or UnitInRaid("player")) then
-
-		local method, pindex, rindex = GetLootMethod()
-		--[[local method, index = GetLootMethod()
-
-		if (method == "master" and index) then
-			if (index == 0 and UnitIsUnit("player", partyid)) then
-				ml = true
-			elseif (index >= 1 and index <= 4) then
-				ml = UnitIsUnit(partyid, "party"..index)
+	if method and method == "master" then
+		if raidID then
+			if UnitIsUnit("raid"..raidID, partyid) then
+				masterLooter = true
 			end
-		end]]--
-
-		if (method == "master") then
-			if (rindex ~= nil) then
-				if (UnitIsUnit("raid"..rindex, partyid)) then
-					ml = true
-				end
-			else
-				if (UnitIsUnit("party"..pindex, partyid) or (pindex == 0 and UnitIsUnit("player", partyid))) then
-					ml = true
-				end
+		elseif partyID then
+			if UnitIsUnit("party"..partyID, partyid) or (partyID == 0 and UnitIsUnit("player", partyid)) then
+				masterLooter = true
 			end
 		end
+	end
 
-	--end
-
-	if (ml) then
+	if masterLooter then
 		self.nameFrame.masterIcon:Show()
 	else
 		self.nameFrame.masterIcon:Hide()
@@ -1245,7 +1275,7 @@ function XPerl_Target_OnUpdate(self, elapsed)
 				XPerl_Target_Update_Range(self)
 			end
 			if conf.rangeFinder.enabled then
-				XPerl_UpdateSpellRange(self)
+				XPerl_UpdateSpellRange(self, partyid)
 			end
 
 			if (self.deferring) then
@@ -1649,7 +1679,7 @@ function XPerl_Target_Events:PARTY_LOOT_METHOD_CHANGED()
 	XPerl_Target_UpdateLeader(self)
 end
 XPerl_Target_Events.GROUP_ROSTER_UPDATE = XPerl_Target_Events.PARTY_LOOT_METHOD_CHANGED
-XPerl_Target_Events.PARTY_LEADER_CHANGED  = XPerl_Target_Events.PARTY_LOOT_METHOD_CHANGED
+XPerl_Target_Events.PARTY_LEADER_CHANGED = XPerl_Target_Events.PARTY_LOOT_METHOD_CHANGED
 
 function XPerl_Target_Events:UNIT_THREAT_LIST_UPDATE(unit)
 	if (UnitCanAttack("player", self.partyid or "target")) then
@@ -1664,17 +1694,29 @@ function XPerl_Target_Events:UNIT_HEAL_PREDICTION(unit)
 		if (tconf.healprediction and unit == self.partyid) then
 			XPerl_SetExpectedHealth(self)
 		end
+		if (tconf.hotPrediction and unit == self.partyid) then
+			XPerl_SetExpectedHots(self)
+		end
 	elseif self == XPerl_TargetTarget or self == XPerl_TargetTargetTarget then
 		if (conf.targettarget.healprediction and unit == self.partyid) then
 			XPerl_SetExpectedHealth(self)
+		end
+		if (conf.targettarget.hotPrediction and unit == self.partyid) then
+			XPerl_SetExpectedHots(self)
 		end
 	elseif self == XPerl_Focus then
 		if (fconf.healprediction and unit == self.partyid) then
 			XPerl_SetExpectedHealth(self)
 		end
+		if (fconf.hotPrediction and unit == self.partyid) then
+			XPerl_SetExpectedHots(self)
+		end
 	elseif self == XPerl_FocusTarget then
 		if (conf.focustarget.healprediction and unit == self.partyid) then
 			XPerl_SetExpectedHealth(self)
+		end
+		if (conf.focustarget.hotPrediction and unit == self.partyid) then
+			XPerl_SetExpectedHots(self)
 		end
 	end
 end
@@ -1831,8 +1873,7 @@ function XPerl_Target_Set_Bits(self)
 end
 
 function XPerl_Target_ComboFrame_Update()
-	--local comboPoints = GetComboPoints((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player")
-	local comboPoints = UnitPower((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player", Enum.PowerType.ComboPoints)
+	local comboPoints = IsClassic and GetComboPoints("player", "target") or UnitPower(UnitHasVehicleUI("player") and "vehicle" or "player", Enum.PowerType.ComboPoints)
 	if comboPoints > 0 and UnitCanAttack((not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player", "target") then
 		if not ComboFrame:IsShown() then
 			ComboFrame:Show()

@@ -5,11 +5,29 @@ local L = LibStub("AceLocale-3.0"):NewLocale("RCLootCouncil_Classic", "deDE")
 if not L then return end
 
 --[[Translation missing --]]
+L["ALWAYS_AUTO_AWARD_OPTION"] = "Always Auto Award"
+--[[Translation missing --]]
+L["ALWAYS_AUTO_AWARD_OPTION_DESC"] = "List of items that should always be auto awarded, regardless of other settings."
+--[[Translation missing --]]
+L["ALWAYS_AUTO_AWARD_OPTION_INPUT_DESC"] = "Enter the link, name or id of the item you want to add to the always auto award list."
+--[[Translation missing --]]
+L["ALWAYS_AUTO_AWARD_OPTION_LIST"] = "Always auto award list"
+--[[Translation missing --]]
+L["ALWAYS_AUTO_AWARD_OPTION_LIST_DESC"] = "Items that are always auto awarded. Click to remove an item."
+--[[Translation missing --]]
+L["ALWAYS_AUTO_AWARD_OPTION_LIST_NONE"] = "No items in list."
+--[[Translation missing --]]
 L["Auto Award Reputation Items"] = "Auto Award Reputation Items"
 --[[Translation missing --]]
 L["Instance"] = "Instance"
 --[[Translation missing --]]
 L["leaderUsage_desc"] = "Use the same setting when entering an instance as the leader?"
+--[[Translation missing --]]
+L["opt_advancedAutoPass_desc"] = "Check each slot to always auto pass items of that type."
+--[[Translation missing --]]
+L["opt_advancedAutoPass_name"] = "Advanced Auto Pass"
+--[[Translation missing --]]
+L["opt_advancedAutoPassSlot_desc"] = "Check to always auto pass %s items."
 --[[Translation missing --]]
 L["opt_autoAwardRepItems_desc"] = "Enables auto awarding of rep items such as Coins and Bijous in Zul'Gurub."
 --[[Translation missing --]]

@@ -1,7 +1,7 @@
 --[[
 	Auctioneer
-	Version: 8.2.6430 (SwimmingSeadragon)
-	Revision: $Id: CoreFinal.lua 6430 2019-10-20 00:10:07Z none $
+	Version: 3.4.6844 (SwimmingSeadragon)
+	Revision: $Id: CoreFinal.lua 6844 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -50,7 +50,7 @@ local _,_,_, internal = AucAdvanced.GetCoreModule(nil, nil, nil, nil, "CoreFinal
 
 internal.CoreModule.CoreFinalCall()
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreFinal.lua $", "$Rev: 6430 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/CoreFinal.lua $", "$Rev: 6844 $")
 AucAdvanced.CoreFileCheckOut("CoreFinal")
 AucAdvanced.CoreFileCheckOut() -- calling with no filename to finalize check in/out process
 if not AucAdvanced.ABORTLOAD then AucAdvanced.CORELOADED = time() end

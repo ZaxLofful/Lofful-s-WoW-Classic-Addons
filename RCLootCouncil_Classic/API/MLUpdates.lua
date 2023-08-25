@@ -33,24 +33,40 @@ local function getNextRRCandidate (args)
       if v < min then min = v end
    end
 
-   -- Get the name of the first person to equal min awards
+   -- Produce a list of eligible candidates
+   local eligible = {}
    for name, count in pairs(rrCandidates) do
       if count == min then
-         rrCandidates[name] = count + 1
-         return name
+         tinsert(eligible, name)
       end
    end
+
+   -- pick a random one
+   local name = eligible[math.random(1, #eligible)]
+   rrCandidates[name] = rrCandidates[name] + 1
+   return name
 end
 
 function MLModule:ShouldAutoAward (item, quality)
    if not item then return false end
-   -- Check for rep item auto award
+   local itemid = addon:GetItemIDFromLink(item)
    local db = addon:Getdb()
+
+   -- Check always list first
+   if itemid and db.autoAward and db.alwaysAutoAwardItems[itemid] then
+      if UnitInRaid(db.autoAwardTo) or UnitInParty(db.autoAwardTo) then -- TEST perhaps use self.group?
+         return true, "normal", db.autoAwardTo
+      else
+         addon:Print(L["Cannot autoaward:"])
+         addon:Print(format(L["Could not find 'player' in the group."], db.autoAwardTo))
+      end
+   end
+
+   -- Check for rep item auto award
    if not db.autoAwardRepItems then
       return orig_ShouldAutoAward(MLModule, item, quality)
    end
 
-   local itemid = addon:GetItemIDFromLink(item)
    if not (itemid and Classic.Lists.RepItems[itemid]) then
       -- We shouldn't handle this
       return orig_ShouldAutoAward(MLModule, item, quality)

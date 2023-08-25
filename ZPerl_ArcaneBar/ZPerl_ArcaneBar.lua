@@ -14,16 +14,42 @@ end
 local conf
 XPerl_RequestConfig(function(new)
 	conf = new
-end, "$Revision: d96e1fdbbd4a59135d05e101d6938f170d5c58f7 $")
+end, "$Revision: 8c2ee354c22c703a5dd4fcc236c0c7d3bbfbc4c2 $")
 
-local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo
-local LCC = LibStub("LibClassicCasterino", true)
-if LCC then
-    UnitCastingInfo = function(unit) return LCC:UnitCastingInfo(unit); end
-    UnitChannelInfo = function(unit) return LCC:UnitChannelInfo(unit); end
-end
 
+local _, _, _, clientRevision = GetBuildInfo()
+
+local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
+local IsVanillaClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
+local min = min
+local max = max
+local pairs = pairs
+local format = format
+local strfind = strfind
+local pcall = pcall
+
+local GetTime = GetTime
+local UnitCastingInfo = UnitCastingInfo
+local UnitChannelInfo = UnitChannelInfo
+local GetNetStats = GetNetStats
+local CreateColor = CreateColor
+local CreateFrame = CreateFrame
+
+local CASTING_BAR_HOLD_TIME = CASTING_BAR_HOLD_TIME
+local FAILED = FAILED
+local SPELL_FAILED_INTERRUPTED = SPELL_FAILED_INTERRUPTED
+
+local LCC = IsVanillaClassic and LibStub("LibClassicCasterino", true)
+if LCC then
+	UnitCastingInfo = function(unit)
+		return LCC:UnitCastingInfo(unit)
+	end
+	UnitChannelInfo = function(unit)
+		return LCC:UnitChannelInfo(unit)
+	end
+end
 
 -- Registers frame to spellcast events.
 local barColours = {
@@ -34,7 +60,7 @@ local barColours = {
 }
 
 local events = {
-	"UNIT_SPELLCAST_START", "UNIT_SPELLCAST_STOP", "UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED", "UNIT_SPELLCAST_INTERRUPTIBLE",  "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "UNIT_SPELLCAST_DELAYED", "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_UPDATE", "UNIT_SPELLCAST_CHANNEL_STOP", "PLAYER_ENTERING_WORLD"
+	"UNIT_SPELLCAST_START", "UNIT_SPELLCAST_STOP", "UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED", "UNIT_SPELLCAST_INTERRUPTIBLE", "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "UNIT_SPELLCAST_DELAYED", "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_UPDATE", "UNIT_SPELLCAST_CHANNEL_STOP", "PLAYER_ENTERING_WORLD"
 }
 
 -- enableToggle
@@ -45,7 +71,7 @@ local function enableToggle(self, value)
 				return XPerl_ArcaneBar_OnEvent(self, event, ...)
 			end
 			for i, event in pairs(events) do
-				if LCC and strfind(event, "^UNIT_SPELLCAST") then
+				if LCC and strfind(event, "^UNIT_SPELLCAST") and (IsClassic and event ~= "UNIT_SPELLCAST_INTERRUPTIBLE" and event ~= "UNIT_SPELLCAST_NOT_INTERRUPTIBLE") then
 					LCC.RegisterCallback(self, event, CastbarEventHandler)
 				else
 					if pcall(self.RegisterEvent, self, event) then
@@ -58,7 +84,7 @@ local function enableToggle(self, value)
 			if (self.unit == "target") then
 				self:RegisterEvent("PLAYER_TARGET_CHANGED")
 			elseif (self.unit == "focus") then
-				if not IsClassic then
+				if not IsVanillaClassic then
 					self:RegisterEvent("PLAYER_FOCUS_CHANGED")
 				end
 			elseif (strfind(self.unit, "^party")) then
@@ -89,21 +115,39 @@ local function overrideToggle(value)
 				local CastbarEventHandler = function(event, ...)
 					return XPerl_ArcaneBar_OnEvent(CastingBarFrame, event, ...)
 				end
-				if LCC and strfind(event, "^UNIT_SPELLCAST") then
-					LCC.RegisterCallback(CastingBarFrame, event, CastbarEventHandler)
+				if LCC then
+					for i, event in pairs(events) do
+						if strfind(event, "^UNIT_SPELLCAST") and (IsClassic and event ~= "UNIT_SPELLCAST_INTERRUPTIBLE" and event ~= "UNIT_SPELLCAST_NOT_INTERRUPTIBLE") then
+							LCC.RegisterCallback(CastingBarFrame, event, CastbarEventHandler)
+						end
+					end
 				else
 					for i, event in pairs(events) do
-						CastingBarFrame:RegisterEvent(event)
+						if IsRetail then
+							PlayerCastingBarFrame:RegisterEvent(event)
+						else
+							if event ~= "UNIT_SPELLCAST_INTERRUPTIBLE" and event ~= "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
+								CastingBarFrame:RegisterEvent(event)
+							end
+						end
 					end
 				end
 				pconf.bar.Overrided = nil
 			end
 		else
 			if (not pconf.bar.Overrided) then
-				CastingBarFrame:Hide()
-				CastingBarFrame:UnregisterAllEvents()
-				if LCC then
-					LCC.UnregisterAllCallbacks(CastingBarFrame)
+				if IsRetail then
+					PlayerCastingBarFrame:Hide()
+					PlayerCastingBarFrame:UnregisterAllEvents()
+					if LCC then
+						LCC.UnregisterAllCallbacks(PlayerCastingBarFrame)
+					end
+				else
+					CastingBarFrame:Hide()
+					CastingBarFrame:UnregisterAllEvents()
+					if LCC then
+						LCC.UnregisterAllCallbacks(CastingBarFrame)
+					end
 				end
 				pconf.bar.Overrided = 1
 			end
@@ -237,7 +281,7 @@ function XPerl_ArcaneBar_OnEvent(self, event, unit, ...)
 				self.flash = 1
 			end
 			self.fadeOut = 1
-			self.holdTime = GetTime() + CASTING_BAR_HOLD_TIME
+			self.holdTime = GetTime() + (CASTING_BAR_HOLD_TIME or 1)
 		end
 	elseif (event == "UNIT_SPELLCAST_INTERRUPTIBLE") or (event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE") then
 		if (self:IsShown()) then
@@ -326,8 +370,8 @@ end
 
 local function ShowPrecast(self, side)
 	if (self.precast) then
-	 	if (conf.player.castBar.precast) then
-	 		local _, _, _, latencyWorld = GetNetStats()
+		if (conf.player.castBar.precast) then
+			local _, _, _, latencyWorld = GetNetStats()
 			local lag = min(1000, latencyWorld)
 			if (lag < 10) then
 				self.precast:Hide()
@@ -502,9 +546,7 @@ local function XPerl_MakePreCast(self)
 	self.precast:SetWidth(1)
 	self.precast:Hide()
 	self.precast:SetBlendMode("ADD")
-	--self.precast:SetVertexColor(1, 0, 0)	--SetGradient("HORIZONTAL", 0, 0, 1, 1, 0, 0)
-	self.precast:SetGradient("HORIZONTAL", 0, 0, 1, 1, 0, 0)
-	--XPerl_MakePreCast = nil
+	self.precast:SetGradient("HORIZONTAL", CreateColor(0, 0, 1, 1), CreateColor(1, 0, 0, 1))
 end
 
 -- XPerl_ArcaneBar_RegisterFrame

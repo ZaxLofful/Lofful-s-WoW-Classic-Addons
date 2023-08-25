@@ -1,8 +1,8 @@
 --[[
 	Informant - An addon for World of Warcraft that shows pertinent information about
 	an item in a tooltip when you hover over the item in the game.
-	Version: 8.2.6374 (SwimmingSeadragon)
-	Revision: $Id: InfManifest.lua 6374 2019-10-20 00:10:07Z none $
+	Version: 3.4.6850 (SwimmingSeadragon)
+	Revision: $Id: InfManifest.lua 6850 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/dl/Informant/
 
 	Informant Manifest
@@ -31,10 +31,18 @@
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 ]]
 
-if (Informant_Manifest) then return end
+--[[ Create the Informant table as the first thing. Install empty module tables. ]]
+local Informant = {
+	Manifest = {},
+	Locale = {},
+	Settings = {},
+	Commands = {},
+}
+_G.Informant = Informant
 
-Informant_Manifest = { }
-local manifest = Informant_Manifest
+-- ### global Informant_Manifest was not used anywhere, therefore has been removed to reduce globals
+
+local manifest = Informant.Manifest
 
 manifest.revs = { }
 manifest.dist = {
@@ -51,13 +59,13 @@ function manifest.RegisterRevision(path, revision)
 		nLog.AddMessage("Informant", "AucRevision", N_INFO, "Loaded "..file, "Loaded", file, "revision", rev)
 	end
 end
-Informant_RegisterRevision = manifest.RegisterRevision
+Informant_RegisterRevision = manifest.RegisterRevision -- ### we shall leave this global here for now
 
 
 function manifest.ShowMessage(msg)
 	local messageFrame = manifest.messageFrame
 	if not messageFrame then
-		messageFrame = CreateFrame("Frame", "", UIParent)
+		messageFrame = CreateFrame("Frame", "", UIParent, BackdropTemplateMixin and "BackdropTemplate")
 		manifest.messageFrame = messageFrame
 
 		messageFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 150)
@@ -105,4 +113,4 @@ function manifest.Validate()
 	return true
 end
 
-Informant_RegisterRevision("$URL: Informant/InfManifest.lua $", "$Rev: 6374 $")
+Informant_RegisterRevision("$URL: Informant/InfManifest.lua $", "$Rev: 6850 $")

@@ -1,7 +1,7 @@
 --[[
 	StringRope Lib for World of Warcraft (tm)
-	Version: 8.2.6365 (SwimmingSeadragon)
-	Revision: $Id: StringRope.lua 6365 2019-10-20 00:10:07Z none $
+	Version: 3.4.6804 (SwimmingSeadragon)
+	Revision: $Id: StringRope.lua 6804 2022-10-27 00:00:09Z none $
 	URL: http://norganna.org
 
 	License:

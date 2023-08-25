@@ -1,7 +1,7 @@
 --[[
 	ScrollSheet
-	Version: 8.2.6341 (SwimmingSeadragon)
-	Revision: $Id: ScrollSheet.lua 6341 2019-10-20 00:10:07Z none $
+	Version: 3.4.6848 (SwimmingSeadragon)
+	Revision: $Id: ScrollSheet.lua 6848 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/dl/
 
 	License:
@@ -26,11 +26,11 @@
 --]]
 
 local LIBRARY_VERSION_MAJOR = "ScrollSheet"
-local LIBRARY_VERSION_MINOR = 22
+local LIBRARY_VERSION_MINOR = 23
 local lib = LibStub:NewLibrary(LIBRARY_VERSION_MAJOR, LIBRARY_VERSION_MINOR)
 if not lib then return end
 
-LibStub("LibRevision"):Set("$URL: Auc-Advanced/Libs/Configator/ScrollSheet.lua $","$Rev: 6341 $","5.1.DEV.", 'auctioneer', 'libs')
+LibStub("LibRevision"):Set("$URL: Auc-Advanced/Libs/Configator/ScrollSheet.lua $","$Rev: 6848 $","5.1.DEV.", 'auctioneer', 'libs')
 
 local GSC_GOLD="ffd100"
 local GSC_SILVER="e6e6e6"
@@ -591,7 +591,7 @@ function lib:Create(frame, layout, onEnter, onLeave, onClick, onResize, onSelect
 			nub:SetScript("OnEnter", function(self) self:LockHighlight() end)
 			nub:SetScript("OnLeave", function(self) self:UnlockHighlight() end)
 			--buttons lose the proper anchor when resized, havnt figured out why. So store and then reattach
-			nub:SetScript("OnMouseDown", function() nub.point, nub.relativeTo, nub.relativePoint, nub.xOfs, nub.yOfs = button:GetPoint()  button:StartSizing() end )
+			nub:SetScript("OnMouseDown", function() nub.point, nub.relativeTo, nub.relativePoint, nub.xOfs, nub.yOfs = button:GetPoint(1)  button:StartSizing() end )
 			nub:SetScript("OnMouseUp", function() button:StopMovingOrSizing() button:SetPoint(nub.point, nub.relativeTo, nub.relativePoint, nub.xOfs, nub.yOfs) lib.Processor("ColumnWidthSet", sheet, button, i) end )
 		end
 		label:SetPoint("TOPLEFT", button, "TOPLEFT", 0,0)

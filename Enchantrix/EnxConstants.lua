@@ -1,7 +1,7 @@
 --[[
 	Enchantrix Addon for World of Warcraft(tm).
-	Version: 8.2.6428 (SwimmingSeadragon)
-	Revision: $Id: EnxConstants.lua 6428 2019-10-20 00:10:07Z none $
+	Version: 3.4.6849 (SwimmingSeadragon)
+	Revision: $Id: EnxConstants.lua 6849 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	Enchantrix Constants.
@@ -28,18 +28,19 @@
 		since that is its designated purpose as per:
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 ]]
-Enchantrix_RegisterRevision("$URL: Enchantrix/EnxConstants.lua $", "$Rev: 6428 $")
+Enchantrix_RegisterRevision("$URL: Enchantrix/EnxConstants.lua $", "$Rev: 6849 $")
 
 local const = Enchantrix.Constants
 
 
--- need to know early if we're using Classic or Modern version
-local MINIMUM_CLASSIC = 11300
-local MAXIMUM_CLASSIC = 19999
--- version, build, date, tocversion = GetBuildInfo()
+-- Need to know early if we're using Classic or Modern version
+local MINIMUM_RETAIL = 80300
 local _,_,_,tocVersion = GetBuildInfo()
-const.Classic = (tocVersion > MINIMUM_CLASSIC and tocVersion < MAXIMUM_CLASSIC)
-
+if tocVersion < MINIMUM_RETAIL then
+	const.Classic = floor(tocVersion / 10000)
+else
+	const.Classic = nil -- will be nil for Retail
+end
 
 
 -- These are market norm prices, a median across all servers
@@ -118,6 +119,12 @@ const.StaticPrices = {
 	[152877] = 2000000, -- VEILEDCRYSTAL
 	[162460] =       1, -- HYDROCORE (can't sell it, but needs a value)
 	[152668] =       1, -- EXPULSOM (can't sell it, but needs a value)
+
+-- Shadowlands
+    [172230] =   50000, -- Soul Dust, Redux
+    [172231] =  200000, -- Sacred Shard
+    [172232] = 1000000, -- Eternal Crystal
+
 
 -- needs update - some items no longer available
 	[2772] =   11500, -- Iron Ore
@@ -227,6 +234,11 @@ const.StaticPrices = {
 	[153636] =  200000, --CRIMSON_PIGMENT
 	[153669] =  300000, --VIRIDESCENT_PIGMENT
 	[168662] = 1000000, --MAROON_PIGMENT
+
+-- Shadowlands pigments
+    [173057] =   20000, --LUMINOUS_PIGMENT
+    [173056] =   20000, --UMBRAL_PIGMENT
+    [175788] =  500000, --TRANQUIL_PIGMENT
 
 
 	[818] =      7500, 	-- TIGERSEYE
@@ -363,6 +375,15 @@ const.StaticPrices = {
 	[168192] =  1000000, --GEM_SANDSPINEL
 	[168193] =  1000000, --GEM_AZSHARINE
 
+-- Shadowlands 'Gems'
+    [173109] =  100000, -- GEM_ANGERSEYE
+    [173110] =  100000, -- GEM_UMBRYL
+    [173108] =  100000, -- GEM_ORIBLASE
+    [173170] =  500000, -- GEM_ESREBIRTH
+    [173171] =  500000, -- GEM_ESTORMENT
+    [173172] =  500000, -- GEM_ESSERVITUDE
+    [173173] =  500000, -- GEM_ESVALOR
+
 }
 
 const.DUST = 1
@@ -411,11 +432,8 @@ const.InventoryTypes = {
 	["INVTYPE_TRINKET"] = const.ARMOR,
 	["INVTYPE_WAIST"] = const.ARMOR,
 	["INVTYPE_WRIST"] = const.ARMOR,
+	["INVTYPE_RELIC"] = const.ARMOR,
 }
-
-if not const.Classic then
-	const.InventoryTypes["INVTYPE_RELIC"] = const.ARMOR
-end
 
 -- Enchanting reagents
 local VOID = 22450
@@ -495,10 +513,25 @@ local UMBRASHARD = 152876
 local VEILEDCRYSTAL = 152877
 local EXPULSOM = 152668
 
--- and in a form we can iterate over, with a fixed order for the UI
+
+-- Shadowlands items
+local SOULDUSTNEW = 172230
+local SACREDSHARD = 172231
+local ETERNALCRYS = 172232
+
+-- item qualities
+local UNCOMMON = 2
+local RARE = 3
+local EPIC = 4
+
+
+if not const.Classic then -- Retail tables
+
+-- List in a form we can iterate over, with a fixed order for the UI
 
 const.DisenchantReagentList = {
 
+ETERNALCRYS,
 VEILEDCRYSTAL,
 CHAOS_CRYSTAL,
 TEMPORAL,
@@ -509,6 +542,7 @@ MAELSTROM,
 ABYSS,
 VOID,
 
+SACREDSHARD,
 UMBRASHARD,
 LEYLIGHT_SHARD,
 LUMINOUS,
@@ -538,6 +572,7 @@ LPLANAR,
 LETERNAL,
 LMAGIC,
 
+SOULDUSTNEW,
 GLOOMDUST,
 ARKHANA,
 DRAENIC,
@@ -550,13 +585,6 @@ ILLUSION,
 STRANGE,
 
 }
-
-
--- item qualities
-local UNCOMMON = 2
-local RARE = 3
-local EPIC = 4
-
 
 -- the big disenchant table, indexed by [quality][type][level bracket]
 -- and yielding { { reagent type, drop probability, average drop quantity }, ... }
@@ -690,8 +718,6 @@ const.baseDisenchantTable = {
  },
 }
 
-
-
 -- map reagents to item levels they are obtainable from
 -- ignoring the 1% chance for rare drops
 
@@ -699,7 +725,8 @@ const.baseDisenchantTable = {
 
 const.ReverseDisenchantLevelList = {
 
-	[VEILEDCRYSTAL] = { 340, 500 },
+    [ETERNALCRYS]   = { 180, 300 }, -- Eternal Crystal
+	[VEILEDCRYSTAL] = { 340, 500 }, -- Veiled Crystal
 	[CHAOS_CRYSTAL] = { 153, 339 },	-- Chaos Crystal
 	[TEMPORAL]	    = { 137, 152 }, -- Temporal Crystal
 --	[FRACTEMPORAL]  = { 601, 800 }, -- Fractured Temporal Crystal			-- underskilled result
@@ -709,7 +736,8 @@ const.ReverseDisenchantLevelList = {
 	[ABYSS]         = {  95, 104 }, -- Abyss Crystal
 	[VOID]          = {  67,  94 }, -- Void Crystal
 
-	[UMBRASHARD]      = { 189, 400 },
+    [SACREDSHARD]     = { 130, 300 }, -- Sacred Shard
+	[UMBRASHARD]      = { 189, 400 }, -- Umbra Shard
 	[LEYLIGHT_SHARD]  = { 137, 188 }, -- Leylight Shard
 	[LUMINOUS]		  = { 118, 136 }, -- Luminous Shards
 	[ETHERAL] 		  = { 115, 117 }, -- Etheral Shard
@@ -735,7 +763,8 @@ const.ReverseDisenchantLevelList = {
 	[GMAGIC]      = {  16,  25 }, -- Greater Magic Essence
 	[LMAGIC]      = {   1,  15 }, -- Lesser Magic Essence
 
-	[GLOOMDUST] = { 171, 400 },
+    [SOULDUSTNEW] = { 100, 300 }, -- Soul Dust, Redux
+	[GLOOMDUST] = { 171, 400 }, -- Gloom Dust
 	[ARKHANA]   = { 137, 170 }, -- Arkhana
 	[DRAENIC]   = { 117, 136 }, -- Draenic Dust
 	[SPIRIT]    = { 107, 116 }, -- Spirit Dust
@@ -749,49 +778,106 @@ const.ReverseDisenchantLevelList = {
 }
 
 
-if const.Classic then
+else -- Tables for Classic: check const.Classic if we need to know exactly which Classic expansion we are in
 
 -- copied from early Legion table for now
 -- need to refine estimates with actual DE results
+-- WotLK values also copied from old Legion version, specifically 7.2.5688 - brykrys
 
-    const.DisenchantReagentList = {
+-- List in a form we can iterate over, with a fixed order for the UI.
+-- Each Classic client needs its own table
 
-    NEXUS,
+	if const.Classic == 1 then -- Classic Era regents
+		const.DisenchantReagentList = {
 
-    LBRILLIANT,
-    LRADIANT,
-    LGLOWING,
-    LGLIMMERING,
+			NEXUS,
 
-    SBRILLIANT,
-    SRADIANT,
-    SGLOWING,
-    SGLIMMERING,
+			LBRILLIANT,
+			LRADIANT,
+			LGLOWING,
+			LGLIMMERING,
 
-    GETERNAL,
-    GNETHER,
-    GMYSTIC,
-    GASTRAL,
-    GMAGIC,
+			SBRILLIANT,
+			SRADIANT,
+			SGLOWING,
+			SGLIMMERING,
 
-    LETERNAL,
-    LNETHER,
-    LMYSTIC,
-    LASTRAL,
-    LMAGIC,
+			GETERNAL,
+			GNETHER,
+			GMYSTIC,
+			GASTRAL,
+			GMAGIC,
 
-    ILLUSION,
-    DREAM,
-    VISION,
-    SOUL,
-    STRANGE,
+			LETERNAL,
+			LNETHER,
+			LMYSTIC,
+			LASTRAL,
+			LMAGIC,
 
-    }
+			ILLUSION,
+			DREAM,
+			VISION,
+			SOUL,
+			STRANGE,
+
+		}
+
+	else -- WotLK (any other client will fall back to this)
+		const.DisenchantReagentList = {
+
+			ABYSS,
+			VOID,
+			NEXUS,
+
+			DREAM_SHARD,
+			LPRISMATIC,
+			LBRILLIANT,
+			LRADIANT,
+			LGLOWING,
+			LGLIMMERING,
+
+			SDREAM_SHARD,
+			SPRISMATIC,
+			SBRILLIANT,
+			SRADIANT,
+			SGLOWING,
+			SGLIMMERING,
+
+			GCOSMIC,
+			GPLANAR,
+			GETERNAL,
+			GNETHER,
+			GMYSTIC,
+			GASTRAL,
+			GMAGIC,
+
+			LCOSMIC,
+			LPLANAR,
+			LETERNAL,
+			LNETHER,
+			LMYSTIC,
+			LASTRAL,
+			LMAGIC,
+
+			INFINITE,
+			ARCANE,
+			ILLUSION,
+			DREAM,
+			VISION,
+			SOUL,
+			STRANGE,
+
+		}
+
+end
+-- the big disenchant table, indexed by [quality][type][level bracket]
+-- and yielding { { reagent type, drop probability, average drop quantity }, ... }
+-- Todo: refine yields for each Classic client - may need separate tables if the yields are different between clients
 
     const.baseDisenchantTable = {
      [UNCOMMON] = {
       [const.WEAPON] = {
-       ["bounds"] = { 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65 },
+       ["bounds"] = { 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 99, 120, 151, 200 },
        [15]  = { { STRANGE , 0.20, 1.5 }, { LMAGIC  , 0.80, 1.5 }, },
        [20]  = { { STRANGE , 0.20, 2.5 }, { GMAGIC  , 0.75, 1.5 }, { SGLIMMERING, 0.05, 1.0 }, },
        [25]  = { { STRANGE , 0.15, 5.0 }, { LASTRAL , 0.75, 1.5 }, { SGLIMMERING, 0.10, 1.0 }, },
@@ -803,9 +889,15 @@ if const.Classic then
        [55]  = { { DREAM   , 0.20, 3.5 }, { LETERNAL, 0.75, 1.5 }, { SBRILLIANT , 0.05, 1.0 }, },
        [60]  = { { ILLUSION, 0.20, 1.5 }, { GETERNAL, 0.75, 1.5 }, { LBRILLIANT , 0.05, 1.0 }, },
        [65]  = { { ILLUSION, 0.20, 3.5 }, { GETERNAL, 0.75, 2.5 }, { LBRILLIANT , 0.05, 1.0 }, },
+       [99]  = { { ARCANE  , 0.20, 2.5 }, { LPLANAR , 0.75, 2.5 }, { SPRISMATIC , 0.05, 1.0 }, },
+       [120] = { { ARCANE  , 0.20, 3.5 }, { GPLANAR , 0.75, 1.5 }, { LPRISMATIC , 0.05, 1.0 }, },	-- highest level BC green
+       [151] = { { INFINITE, 0.20, 2.5 }, { LCOSMIC , 0.75, 1.5 }, { SDREAM_SHARD, 0.05, 1.0 }, },
+       [200] = { { INFINITE, 0.20, 5.5 }, { GCOSMIC , 0.75, 1.5 }, { DREAM_SHARD , 0.05, 1.0 }, },	-- highest level LK green is 182
+
        },
+
       [const.ARMOR] = {
-       ["bounds"] = { 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65 },
+       ["bounds"] = { 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 99, 120, 151, 200 },
        [15]  = { { STRANGE , 0.80, 1.5 }, { LMAGIC  , 0.20, 1.5 }, },
        [20]  = { { STRANGE , 0.75, 2.5 }, { GMAGIC  , 0.20, 1.5 }, { SGLIMMERING, 0.05, 1.0 }, },
        [25]  = { { STRANGE , 0.75, 5.0 }, { LASTRAL , 0.15, 1.5 }, { SGLIMMERING, 0.10, 1.0 }, },
@@ -817,12 +909,19 @@ if const.Classic then
        [55]  = { { DREAM   , 0.75, 3.5 }, { LETERNAL, 0.20, 1.5 }, { SBRILLIANT , 0.05, 1.0 }, },
        [60]  = { { ILLUSION, 0.75, 1.5 }, { GETERNAL, 0.20, 1.5 }, { LBRILLIANT , 0.05, 1.0 }, },
        [65]  = { { ILLUSION, 0.75, 3.5 }, { GETERNAL, 0.20, 2.5 }, { LBRILLIANT , 0.05, 1.0 }, },
+       [99]  = { { ARCANE  , 0.75, 2.5 }, { LPLANAR , 0.20, 2.5 }, { SPRISMATIC , 0.05, 1.0 }, },
+       [120] = { { ARCANE  , 0.75, 3.5 }, { GPLANAR , 0.20, 1.5 }, { LPRISMATIC , 0.05, 1.0 }, },	-- highest level BC green
+       [151] = { { INFINITE, 0.75, 2.5 }, { LCOSMIC , 0.20, 1.5 }, { SDREAM_SHARD, 0.05, 1.0 }, },
+       [200] = { { INFINITE, 0.75, 5.5 }, { GCOSMIC , 0.20, 1.5 }, { DREAM_SHARD , 0.05, 1.0 }, },	-- highest level LK green is 182
+
       },
+
      },
+
      [RARE] = {
         -- weapon lookups will fall back to the armor table
       [const.ARMOR] = {
-       ["bounds"] = { 25, 30, 35, 40, 45, 50, 55, 65, 70 },
+       ["bounds"] = { 25, 30, 35, 40, 45, 50, 55, 65, 99, 120, 164, 200 },
        [25]  = { { SGLIMMERING,     1.00, 1.0 } },
        [30]  = { { LGLIMMERING,     1.00, 1.0 } },
        [35]  = { { SGLOWING,        1.00, 1.0 } },
@@ -830,28 +929,48 @@ if const.Classic then
        [45]  = { { SRADIANT,        1.00, 1.0 } },
        [50]  = { { LRADIANT,        1.00, 1.0 } },
        [55]  = { { SBRILLIANT,      1.00, 1.0 } },
-       [65]  = { { LBRILLIANT , 0.99, 1.0 }, { NEXUS, 0.01, 1.0 }, },
-       [70]  = { { NEXUS, 1.0, 1.0 }, },
+       [65]  = { { LBRILLIANT,      1.00, 1.0 } },
+       [99]  = { { SPRISMATIC,      1.00, 1.0 } },
+       [120] = { { LPRISMATIC,      1.00, 1.0 } },
+       [164] = { { SDREAM_SHARD,    1.00, 1.0 } },
+       [200] = { { DREAM_SHARD ,    1.00, 1.0 } },	-- highest level LK blue is 200, first Cata blue is 288
+
       },
+
      },
      [EPIC] = {
         -- weapon lookups will fall back to the armor table
       [const.ARMOR] = {
-       ["bounds"] = { 40, 45, 50, 55, 60, 94, 99, 164, 299, 419, 495, 630, 750, 1000 },
+       ["bounds"] = { 40, 45, 50, 55, 66, 94, 99, 164, 299 },
        [40]  = { { SRADIANT,    1.00, 3.0 } },
        [45]  = { { SRADIANT,    1.00, 3.5 } },
        [50]  = { { LRADIANT,    1.00, 3.5 } },
        [55]  = { { SBRILLIANT,  1.00, 3.5 } },
-       [60]  = { { NEXUS,       1.00, 1.0 } },
-       [94]  = { { NEXUS,       1.00, 1.5 } },	-- highest level classic epic is 94
+       [66]  = { { LBRILLIANT,  0.60, 4.0 }, { GETERNAL, 0.25, 3.5 }, { ILLUSION, 0.15, 4.5 }, },
+       [94]  = { { NEXUS,       1.00, 1.5 } },	-- highest level classic item is 94, first BC epic is 95
+       [99]  = { { VOID,        1.00, 1.0 } },
+       [164] = { { VOID,        1.00, 1.5 } },	-- highest level BC epic is 164, first LK epic is 200
+       [299] = { { ABYSS,       1.00, 1.0 } },	-- highest level LK epic is 284, first Cata epic is 300
+
       },
+
      },
+
     }
+
+-- map reagents to item levels they are obtainable from
+-- ignoring the 1% chance for rare drops
 
     const.ReverseDisenchantLevelList = {
 
+        [ABYSS]       = { 165, 299 }, -- Abyss Crystal
+        [VOID]        = {  95, 164 }, -- Void Crystal
         [NEXUS]       = {  56,  94 }, -- Nexus Crystal
 
+        [DREAM_SHARD]     = { 165, 200 }, -- Dream Shard
+        [SDREAM_SHARD]    = { 121, 164 }, -- Small Dream Shard
+        [LPRISMATIC]      = { 100, 120 }, -- Large Prismatic Shard
+        [SPRISMATIC]      = {  66,  99 }, -- Small Prismatic Shard
         [LBRILLIANT]      = {  56,  65 }, -- Large Brilliant Shard
         [SBRILLIANT]      = {  51,  55 }, -- Small Brilliant Shard
         [LRADIANT]        = {  46,  50 }, -- Large Radiant Shard
@@ -861,6 +980,10 @@ if const.Classic then
         [LGLIMMERING]     = {  26,  30 }, -- Large Glimmering Shard
         [SGLIMMERING]     = {  1,   25 }, -- Small Glimmering Shard
 
+        [GCOSMIC]     = { 152, 200 }, -- Greater Cosmic Essence
+        [LCOSMIC]     = { 121, 151 }, -- Lesser Cosmic Essence
+        [GPLANAR]     = { 100, 120 }, -- Greater Planar Essence
+        [LPLANAR]     = {  66,  99 }, -- Lesser Planar Essence
         [GETERNAL]    = {  56,  65 }, -- Greater Eternal Essence
         [LETERNAL]    = {  51,  55 }, -- Lesser Eternal Essence
         [GNETHER]     = {  46,  50 }, -- Greater Nether Essence
@@ -872,6 +995,8 @@ if const.Classic then
         [GMAGIC]      = {  16,  20 }, -- Greater Magic Essence
         [LMAGIC]      = {   1,  15 }, -- Lesser Magic Essence
 
+        [INFINITE] = { 121, 200 }, -- Infinite Dust
+        [ARCANE]   = {  66, 120 }, -- Arcane Dust
         [ILLUSION] = {  56,  65 }, -- Illusion Dust
         [DREAM]    = {  46,  55 }, -- Dream Dust
         [VISION]   = {  36,  45 }, -- Vision Dust

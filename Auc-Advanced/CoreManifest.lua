@@ -1,7 +1,7 @@
 --[[
 	Auctioneer
-	Version: 8.2.6430 (SwimmingSeadragon)
-	Revision: $Id: CoreManifest.lua 6430 2019-10-20 00:10:07Z none $
+	Version: 3.4.6844 (SwimmingSeadragon)
+	Revision: $Id: CoreManifest.lua 6844 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is an addon for World of Warcraft that adds statistical history to the auction data that is collected
@@ -57,22 +57,21 @@ AucAdvanced = {
 	Buy = {},
 	Config = {},
 	Post = {},
-	Resources = {},
+	Resources = {Active=false}, -- 'Active' should never be nil
 	Scan = {},
 	Settings = {},
 }
--- Note: Due to the way AucAdvanced.Const is constructed it is intalled in CoreConst.lua
+-- Note: Due to the way AucAdvanced.Const is constructed it is installed in CoreConst.lua
 local lib = AucAdvanced
 
 -- Manifest Constants
-local DEV_VERSION = "7.7.DEV"
-local MINIMUM_TOC = 80000
-local MINIMUM_CLIENT = "8.0.0"
-local MINIMUM_CLASSIC = 11300
-local MAXIMUM_CLASSIC = 11399
-local MINIMUM_CLIENT_CLASSIC = "1.13.0"
--- MINIMUM_BUILD is optional, and should only be used where TOC is not sufficient; otherwise it should be commented out
--- local MINIMUM_BUILD = 00000
+local DEV_VERSION = "9.1.DEV"
+local MINIMUM_TOC = 11300
+local MINIMUM_CLIENT = "1.13.0"
+local API_CHANGED = 80300
+local API_CHANGED_MESSAGE = "This version of Auctioneer will not work with World of Warcraft Retail client version 8.3.0 or later."
+-- MINIMUM_BUILD is optional, and should only be used where TOC is not sufficient; otherwise it should be set to nil
+local MINIMUM_BUILD = nil
 
 
 -- Core File checking system: used to detect critical files that fail to load (i.e. due to lua errors while loading) - including this file!
@@ -103,7 +102,7 @@ end
 lib.CoreFileCheckIn("CoreManifest") -- check CoreManifest in as early as possible
 
 -- Version checking
-lib.Version="8.2.6430";
+lib.Version="3.4.6844";
 if lib.Version:byte(1) == 60 then -- 60 = '<'
 	lib.Version = DEV_VERSION
 end
@@ -120,11 +119,21 @@ lib.RETFUNCTION = function(x) return x end
 
 -- Check TOC version meets minimum requirements
 local _,build,_,tocVersion = GetBuildInfo()
-lib.Classic = (tocVersion > MINIMUM_CLASSIC and tocVersion < MAXIMUM_CLASSIC)
--- Check for Classic range first
-if not lib.Classic then
-	if tocVersion < MINIMUM_TOC or (MINIMUM_BUILD and tonumber(build) < MINIMUM_BUILD) then
-		message("Auctioneer requires game client version "..MINIMUM_CLIENT.." or higher, or Classic game client version "..MINIMUM_CLIENT_CLASSIC.." or higher.")
+if tocVersion >= API_CHANGED then
+	-- This version of AucAdvanced doesn't support any known Retail client
+	message(API_CHANGED_MESSAGE)
+	lib.ABORTLOAD = "Incorrect WoW client version"
+elseif tocVersion < MINIMUM_TOC or (MINIMUM_BUILD and tonumber(build) < MINIMUM_BUILD) then
+	message("Auctioneer requires Classic game client version "..MINIMUM_CLIENT.." or higher.")
+	lib.ABORTLOAD = "Incorrect WoW client version"
+else
+	-- Should be a Classic client
+	local classicnum = floor(tocVersion / 10000)
+	if classicnum > 0 then
+		lib.Classic = classicnum
+	else
+		-- Should not really be possible...
+		message("Auctioneer could not determine game client version")
 		lib.ABORTLOAD = "Incorrect WoW client version"
 	end
 end
@@ -295,9 +304,13 @@ function lib.ValidateInstall()
 	if lib.ABORTLOAD then
 		return nil, lib.ABORTLOAD
 	end
-	return lib.Resources and lib.Resources.Active
+	-- *ensure* we always return true or false, if not reporting an error
+	if lib.Resources.Active then
+		return true
+	end
+	return false
 end
 
 
-lib.RegisterRevision("$URL: Auc-Advanced/CoreManifest.lua $", "$Rev: 6430 $")
+lib.RegisterRevision("$URL: Auc-Advanced/CoreManifest.lua $", "$Rev: 6844 $")
 lib.CoreFileCheckOut("CoreManifest")

@@ -66,6 +66,7 @@ function RCVotingFrame:OnEnable()
 	self:RegisterComm("RCLootCouncil")
 	self:RegisterBucketEvent({"UNIT_PHASE", "ZONE_CHANGED_NEW_AREA"}, 1, "Update") -- Update "Out of instance" text when any raid members change zone
 	self:RegisterMessage("RCLootStatusReceived", "UpdateLootStatus")
+	self:RegisterMessage("RCLootTableAdditionsReceived", "OnLootTableAdditionsReceived")
 	db = addon:Getdb()
 	--active = true
 	moreInfo = db.modules["RCVotingFrame"].moreInfo
@@ -206,7 +207,7 @@ function RCVotingFrame:OnCommReceived(prefix, serializedMsg, distri, sender)
 				self:SetCandidateData(ses, name, "isTier", isTier)
 				self:SetCandidateData(ses, name, "isRelic", isRelic)
 				self:SetCandidateData(ses, name, "response", response)
-				self:Update()
+				self:UpdateSession(ses)
 
 			elseif command == "lootAck" then
 				-- v2.7.4: Extended to contain playerName, specID, ilvl, data
@@ -216,6 +217,7 @@ function RCVotingFrame:OnCommReceived(prefix, serializedMsg, distri, sender)
 				if not specID then -- Old lootAck
 					for i = 1, #lootTable do
 						self:SetCandidateData(i, name, "response", "WAIT")
+						self:UpdateSession(i)
 					end
 				else
 					for k,d in pairs(sessionData) do
@@ -242,9 +244,9 @@ function RCVotingFrame:OnCommReceived(prefix, serializedMsg, distri, sender)
 						elseif sessionData.response[i] == true then
 							self:SetCandidateData(i, name, "response", "AUTOPASS")
 						end
+						self:UpdateSession(i)
 					end
 				end
-				self:Update()
 
 			elseif command == "awarded" and addon:UnitIsUnit(sender, addon.masterLooter) then
 				self:ScheduleTimer(function()
@@ -258,7 +260,17 @@ function RCVotingFrame:OnCommReceived(prefix, serializedMsg, distri, sender)
 						if oldWinner and not addon:UnitIsUnit(oldWinner,winner) then -- reawarded
 							self:SetCandidateData(k, oldWinner, "response", self:GetCandidateData(k, oldWinner, "real_response"))
 						end
-						self:SetCandidateData(k, winner, "real_response", self:GetCandidateData(k, winner, "response"))
+						local oldResponse = self:GetCandidateData(k, winner, "response")
+						if oldResponse == "AWARDED" then
+							-- We never want to record "Awarded" as the real response.
+							-- If we haven't already set "real_response" then somethings broken :(
+							if not self:GetCandidateData(k, winner, "real_response") then
+								addon:GetModule("ErrorHandler"):LogError("Response is 'AWARDED' without a recorded 'real_response'")
+								addon:Debug(k, v.link)
+							end
+						else
+							self:SetCandidateData(k, winner, "real_response", oldResponse)
+						end
 						self:SetCandidateData(k, winner, "response", "AWARDED")
 					end
 				end
@@ -291,23 +303,31 @@ function RCVotingFrame:OnCommReceived(prefix, serializedMsg, distri, sender)
 							self:SetCandidateData(i, name, "response", "NOTHING")
 						end
 					end
+					self:UpdateSession(i)
 				end
-				self:Update()
 
 			elseif command == "response" then
 				local session, name, t = unpack(data)
 				for k,v in pairs(t) do
 					self:SetCandidateData(session, name, k, v)
 				end
-				self:Update()
+				self:UpdateSession(session)
 
+			-- Deprecated, replaced with 'rrolls'. Kept for backwards compatibility.
 			elseif command == "rolls" then
 				if addon:UnitIsUnit(sender, addon.masterLooter) then
 					local session, table = unpack(data)
 					for name, roll in pairs(table) do
 						self:SetCandidateData(session, name, "roll", roll)
 					end
-					self:Update()
+					self:UpdateSession(session)
+				else
+					addon:Debug("Non-ML", sender, "sent rolls!")
+				end
+
+			elseif command == "rrolls" then
+				if addon:UnitIsUnit(sender, addon.masterLooter) then
+					self:OnRRollsReceived(unpack(data))
 				else
 					addon:Debug("Non-ML", sender, "sent rolls!")
 				end
@@ -316,8 +336,8 @@ function RCVotingFrame:OnCommReceived(prefix, serializedMsg, distri, sender)
 				local name, roll, sessions = unpack(data)
 				for _,ses in ipairs(sessions) do
 					self:SetCandidateData(ses, name, "roll", roll)
+					self:UpdateSession(ses)
 				end
-				self:Update()
 
 			elseif command == "reconnectData" and addon:UnitIsUnit(sender, addon.masterLooter) then
 				-- We assume we always receive a regular lootTable command first
@@ -336,26 +356,28 @@ function RCVotingFrame:OnCommReceived(prefix, serializedMsg, distri, sender)
 				self:Update()
 				self:UpdatePeopleToVote()
 
-			elseif command == "lt_add" and addon:UnitIsUnit(sender, addon.masterLooter) then
-				local oldLenght = #lootTable
-				for k,v in pairs(unpack(data)) do
-					lootTable[k] = v
-				end
-				-- Add the sessions in order to avoid messing with SessionButtons
-				for i = oldLenght + 1, #lootTable do
-					self:SetupSession(i, lootTable[i])
-					if addon.isMasterLooter and db.autoAddRolls then
-						self:DoRandomRolls(i)
-					end
-				end
-				self:SwitchSession(session)
-
 			elseif command == "not_tradeable" or command == "rejected_trade" then
 				self:AddNonTradeable(unpack(data), addon:UnitName(sender), command)
 
 			end
 		end
 	end
+end
+
+function RCVotingFrame:OnLootTableAdditionsReceived (_, lt)
+	addon:Print("lt_additions")
+	local oldLenght = #lootTable
+	for k,v in pairs(lt) do
+		lootTable[k] = v
+	end
+	-- Add the sessions in order to avoid messing with SessionButtons
+	for i = oldLenght + 1, #lootTable do
+		self:SetupSession(i, lootTable[i])
+		if addon.isMasterLooter and db.autoAddRolls then
+			self:DoRandomRolls(i)
+		end
+	end
+	self:SwitchSession(session)
 end
 
 -- Getter/Setter for candidate data
@@ -461,31 +483,33 @@ function RCVotingFrame:HandleVote(session, name, vote, voter)
 	self:UpdatePeopleToVote()
 end
 
--- Get rolls ranged from 1 to 100 for all candidates, and guarantee everyone's roll is different.
-function RCVotingFrame:GenerateNoRepeatRollTable(ses)
+--- Get a number of rolls ranged from 1 to 100 that's guaranteed to be unique.
+--- @param numberToGenerate integer # The number of rolls to generate (max 100).
+--- @return string # Comma seperated list of rolls.
+function RCVotingFrame:GenerateNoRepeatRollTable(numberToGenerate)
+	assert(numberToGenerate <= 100, "Can't generate more than 100 rolls at a time.")
 	local rolls = {}
 	for i = 1, 100 do
 		rolls[i] = i
 	end
 
 	local t = {}
-	for name, _ in pairs(lootTable[ses].candidates) do
+	for i = 1, numberToGenerate do
 		if #rolls > 0 then
-			local i = math.random(#rolls)
-			t[name] = rolls[i]
-			tremove(rolls, i)
-		else -- We have more than 100 candidates !?!?
-			t[name] = 0
+			-- Pick a random roll from the list and remove it
+			local roll = tremove(rolls, math.random(#rolls))
+			t[i] = roll
 		end
 	end
-	return t
+	local result = table.concat(t, ",")
+	return result
 end
 
-function RCVotingFrame:DoRandomRolls(ses)
-	local table = self:GenerateNoRepeatRollTable(ses)
+function RCVotingFrame:DoRandomRolls(session)
+	local rolls = self:GenerateNoRepeatRollTable(addon:GetNumGroupMembers())
 	for k, v in ipairs(lootTable) do
-		if addon:ItemIsItem(lootTable[ses].link, v.link) then
-			addon:SendCommand("group", "rolls", k, table)
+		if addon:ItemIsItem(lootTable[session].link, v.link) then
+			addon:SendCommand("group", "rrolls", k, rolls)
 		end
 	end
 end
@@ -495,22 +519,50 @@ function RCVotingFrame:DoAllRandomRolls()
 
 	for ses, t in ipairs(lootTable) do
 		if not sessionsDone[ses] and not t.isRoll then -- Don't use auto rolls on session that requesting rolls from raid members.
-			local table = self:GenerateNoRepeatRollTable(ses)
+			local rolls = self:GenerateNoRepeatRollTable(addon:GetNumGroupMembers())
 			for k, v in ipairs(lootTable) do
 				if addon:ItemIsItem(t.link, v.link) then
 					sessionsDone[k] = true
-					addon:SendCommand("group", "rolls", k, table)
+					addon:SendCommand("group", "rrolls", k, rolls)
 				end
 			end
 		end
 	end
+end
 
+
+local function reversedSort(a,b) return a > b end
+
+---@param session integer The Session the rolls belongs to.
+---@param rolls string Comma seperated list of rolls.
+function RCVotingFrame:OnRRollsReceived(session, rolls)
+	-- Create and sort candidates
+	local candidates = {}
+	for name in pairs(lootTable[session].candidates) do
+		tinsert(candidates, name)
+	end
+
+	-- The rolls received corrosponds to our candidates in alphabetical order.
+	-- By reverse sorting, we can pop the last element and assign it as we go.
+	table.sort(candidates, reversedSort)
+	for roll in rolls:gmatch("%d+") do
+		local candidate = tremove(candidates)
+		self:SetCandidateData(session, candidate, "roll", tonumber(roll))
+	end
+	self:UpdateSession(session)
 end
 
 ------------------------------------------------------------------
 --	Visuals
 -- @section Visuals
 ------------------------------------------------------------------
+
+--- Updates a particular session, but only if we're currently viewing it.
+--- Used to avoid updating sessions we can't see, which can cause resorts on our current session.
+function RCVotingFrame:UpdateSession(sessionToUpdate)
+	if session == sessionToUpdate then self:Update() end
+end
+
 --@param forceUpdate If false/nil, updates will be delayed to only happen once every MIN_UPDATE_INTERVAL
 function RCVotingFrame:Update(forceUpdate)
 	needUpdate = false
@@ -673,8 +725,10 @@ function RCVotingFrame:UpdateMoreInfo(row, data)
 		local r,g,b
 		tip:AddLine(L["Latest item(s) won"])
 		for _, v in ipairs(moreInfoData[name]) do -- extract latest awarded items
-			if v[3] then r,g,b = unpack(v[3],1,3) end
-			tip:AddDoubleLine(v[1], v[2], nil,nil,nil, r or 1, g or 1, b or 1)
+			local _, itemType, _, location, _, classID = GetItemInfoInstant(v[1])
+			local locationText = getglobal(location) or classID == Enum.ItemClass.Miscellaneous and L["Armor Token"] or itemType
+			if v[3] then r, g, b = unpack(v[3], 1, 3) end
+			tip:AddDoubleLine(locationText .. " " .. v[1], v[2], 1, 1, 1, r or 1, g or 1, b or 1)
 		end
 		tip:AddLine(" ") -- spacer
 		tip:AddLine(_G.TOTAL)
@@ -1037,14 +1091,26 @@ function RCVotingFrame:UpdateSessionButton(i, texture, link, awarded)
 			btn:SetPoint("TOP", sessionButtons[i-1], "BOTTOM", 0, -2)
 		end
 		btn:SetScript("Onclick", function() RCVotingFrame:SwitchSession(i); end)
+		btn.check = btn:CreateTexture("RCSessionButton" .. i .. "CheckMark", "OVERLAY")
+		btn.check:SetTexture("interface/raidframe/readycheck-ready")
+		btn.check:SetDesaturated(true)
+		btn.check:SetAllPoints()
+		btn.check:Hide()
 	end
 	-- then update it
 	btn:SetNormalTexture(texture or "Interface\\InventoryItems\\WoWUnknownItem01")
+	btn.check:Hide()
 	local lines = { format(L["Click to switch to 'item'"], link) }
 	if i == session then
 		btn:SetBorderColor("yellow")
+		btn.check:SetVertexColor(1, 1, 0, 1)
+		if awarded then
+			btn.check:Show()
+		end
 	elseif awarded then
 		btn:SetBorderColor("green")
+		btn.check:SetVertexColor(0, 1, 0, 1)
+		btn.check:Show()
 		tinsert(lines, L["This item has been awarded"])
 	else
 		btn:SetBorderColor("white") -- white
@@ -1458,7 +1524,7 @@ function RCVotingFrame:GetAwardPopupData(session, name, data, reason)
 	return {
 		session 		= session,
 		winner		= name,
-		responseID	= data.response,
+		responseID	= data.real_response or data.response,
 		reason		= reason,
 		votes			= data.votes,
 		gear1 		= data.gear1,

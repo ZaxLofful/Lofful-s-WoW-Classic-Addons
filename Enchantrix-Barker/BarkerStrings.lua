@@ -4,8 +4,8 @@
 	http://localizer.norganna.org/
 
 	AddOn: EnchantrixBarker
-	Revision: $Id: BarkerStrings.lua 6469 2019-10-20 00:10:07Z none $
-	Version: 8.2.6469 (SwimmingSeadragon)
+	Revision: $Id: BarkerStrings.lua 6813 2022-10-27 00:00:09Z none $
+	Version: 3.4.6813 (SwimmingSeadragon)
 
 	License:
 		This program is free software; you can redistribute it and/or

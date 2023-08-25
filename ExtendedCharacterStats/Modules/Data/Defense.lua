@@ -5,6 +5,14 @@ local DataUtils = ECSLoader:ImportModule("DataUtils")
 
 local _Defense = {}
 
+local _, _, classId = UnitClass("player")
+
+local MAX_SKILL = (UnitLevel("player")) * 5
+-- A tank needs to reduce the chance to be critically hit by 5.6% to achieve crit immunity
+local CRIT_IMMUNITY_CAP = 5.6
+-- Every 25 defense reduce the chance to be critically hit by 1 %
+local DEFENSE_FOR_CRIT_REDUCTION = 25
+
 
 ---@return number
 function Data:GetArmorValue()
@@ -12,33 +20,77 @@ function Data:GetArmorValue()
     return DataUtils:Round(effectiveArmor, 2)
 end
 
----@return string
-function Data:GetDefenseValue()
-    local numSkills = GetNumSkillLines()
-    local skillIndex = 0
+---@return number
+function _Defense:GetCritReduction()
+    local defBonus = Data:GetDefenseValue()
 
-    for i = 1, numSkills do
-        local skillName = select(1, GetSkillLineInfo(i))
-        local isHeader = select(2, GetSkillLineInfo(i))
-
-        if (isHeader == nil or (not isHeader)) and (skillName == DEFENSE) then
-            skillIndex = i
-            break;
+    local talentBonus = 0
+    if classId == Data.DRUID then
+        if ECS.IsWotlk then
+            local _, _, _, _, points, _, _, _ = GetTalentInfo(2, 18)
+            talentBonus = points * 2 -- 0-6% from Survival of the Fittest
+        else
+            local _, _, _, _, points, _, _, _ = GetTalentInfo(2, 16)
+            talentBonus = points * 1 -- 0-3% from Survival of the Fittest
         end
     end
 
-    local skillRank = 0
-    local skillModifier = 0
-    if (skillIndex > 0) then
-        skillRank = select(4, GetSkillLineInfo(skillIndex))
-        skillModifier = select(6, GetSkillLineInfo(skillIndex))
+    -- Only the defense value above 350 counts towards crit immunity
+    local critReductionFromDefense =  (defBonus - MAX_SKILL) / DEFENSE_FOR_CRIT_REDUCTION
+    if critReductionFromDefense < 0 then
+        critReductionFromDefense = 0
+    end
+    local critReducingFromResilience = GetCombatRatingBonus(15)
+
+    return critReductionFromDefense + critReducingFromResilience + talentBonus
+end
+
+---@return string
+function Data:GetCritImmunity()
+    local critReduction = _Defense:GetCritReduction()
+    local critImmunity = critReduction / CRIT_IMMUNITY_CAP * 100
+
+    if critImmunity < 0 then
+        critImmunity = 0
     end
 
-    if ECS.IsTBC then
-        skillModifier = skillModifier + math.floor(GetCombatRatingBonus(CR_DEFENSE_SKILL))
+    return DataUtils:Round(critImmunity, 2) .. "%"
+end
+
+---@return string
+function Data:GetCritReduction()
+    return DataUtils:Round(_Defense:GetCritReduction(), 2) .. "%"
+end
+
+---@return string
+function Data:GetAvoidance()
+    local enemyAttackRating = (UnitLevel("player")) * 5
+
+    local avoidance
+    if ECS.IsWotlk then
+        local defense = math.floor(GetCombatRatingBonus(CR_DEFENSE_SKILL));
+        local enemyMissCoef = classId == Data.DRUID and 0.972 or 0.956; -- 0.972 for bears
+        local baseMissChance = 5 - (enemyAttackRating - select(1, UnitDefense("player"))) * 0.04; -- vs lvl 80
+        local enemyMissChance = baseMissChance + 1 / (0.0625 + enemyMissCoef / (defense * 0.04));
+        avoidance = enemyMissChance + GetDodgeChance() + GetParryChance() + GetBlockChance()
+    else
+        local defense = Data:GetDefenseValue()
+        local enemyMissChance = 5 + (((defense) - enemyAttackRating) * .04)
+        avoidance = enemyMissChance + GetDodgeChance() + GetParryChance() + GetBlockChance()
     end
 
-    return skillRank .. " + " .. skillModifier
+    return DataUtils:Round(avoidance, 2) .. "%"
+end
+
+---@return number
+function Data:GetDefenseRating()
+    return DataUtils:Round(GetCombatRating(CR_DEFENSE_SKILL), 2)
+end
+
+---@return number
+function Data:GetDefenseValue()
+    local skillRank, skillModifier = UnitDefense("player")
+    return skillRank + skillModifier
 end
 
 
@@ -66,7 +118,7 @@ function Data:GetBlockValue()
 end
 
 ---@return number
-function Data:GetResilienceValue()
+function Data:GetResilienceRating()
     return DataUtils:Round(GetCombatRating(15), 2)
 end
 

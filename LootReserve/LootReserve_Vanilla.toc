@@ -1,0 +1,20 @@
+## Interface: 11404
+
+## Version: 2023-08-23
+## X-Min-Allowed-Version: 2023-06-20
+
+## X-Curse-Project-ID: 390790
+## X-Wago-ID: WL6JpyGv
+
+## Title: LootReserve
+## Notes: Soft reserves management addon
+## Author: Anonomit (Damagus-Benediction)|nOriginal addon by Tagar-NethergardeKeep
+
+## SavedVariables: LootReserveGlobalSave
+## SavedVariablesPerCharacter: LootReserveCharacterSave
+
+## OptionalDeps: Ace3, ItemCache
+## X-Embeds: Ace3, ItemCache
+
+
+addon.xml

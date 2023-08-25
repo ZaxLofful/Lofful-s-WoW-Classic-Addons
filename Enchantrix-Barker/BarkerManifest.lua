@@ -1,7 +1,7 @@
 --[[
 	Enchantrix:Barker Addon for World of Warcraft(tm).
-	Version: 8.2.6469 (SwimmingSeadragon)
-	Revision: $Id: BarkerManifest.lua 6469 2019-10-20 00:10:07Z none $
+	Version: 3.4.6813 (SwimmingSeadragon)
+	Revision: $Id: BarkerManifest.lua 6813 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	EnchantrixBarker Manifest
@@ -57,7 +57,7 @@ EnchantrixBarker_RegisterRevision = manifest.RegisterRevision
 function manifest.ShowMessage(msg)
 	local messageFrame = manifest.messageFrame
 	if not messageFrame then
-		messageFrame = CreateFrame("Frame", "", UIParent)
+		messageFrame = CreateFrame("Frame", "", UIParent, BackdropTemplateMixin and "BackdropTemplate")
 		manifest.messageFrame = messageFrame
 
 		messageFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 150)
@@ -105,4 +105,4 @@ function manifest.Validate()
 	return true
 end
 
-EnchantrixBarker_RegisterRevision("$URL: Enchantrix-Barker/BarkerManifest.lua $", "$Rev: 6469 $")
+EnchantrixBarker_RegisterRevision("$URL: Enchantrix-Barker/BarkerManifest.lua $", "$Rev: 6813 $")

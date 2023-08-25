@@ -129,6 +129,7 @@ WIM.AddLocale("ptBR", {
     ["Death Knight"] = LOCALIZED_CLASS_NAMES_MALE.DEATHKNIGHT,
     ["Monk"] = LOCALIZED_CLASS_NAMES_MALE.MONK,
     ["Demon Hunter"] = LOCALIZED_CLASS_NAMES_MALE.DEMONHUNTER,
+	["Evoker"] = LOCALIZED_CLASS_NAMES_MALE.EVOKER,
 
     -- Female Class Names --
     ["DruidF"] = LOCALIZED_CLASS_NAMES_FEMALE.DRUID,
@@ -143,6 +144,7 @@ WIM.AddLocale("ptBR", {
     ["Death KnightF"] = LOCALIZED_CLASS_NAMES_FEMALE.DEATHKNIGHT,
     ["MonkF"] = LOCALIZED_CLASS_NAMES_FEMALE.MONK,
     ["Demon HunterF"] = LOCALIZED_CLASS_NAMES_FEMALE.DEMONHUNTER,
+	["EvokerF"] = LOCALIZED_CLASS_NAMES_FEMALE.EVOKER,
 
     ["Game Master"] = "Mestre do jogo",
 
@@ -356,7 +358,7 @@ WIM.AddLocale("ptBR", {
     ["Ignore"] = "Ignorar",
     ["Block"] = "Bloqueio",
     ["Filtering"] = "Filtragem",
-    ["Filtering allows you to control which messages are handled as well as how they are handlef by WIM."] = "Filtragem permite que você controle quais mensagens são tratadas também como elas são manipuladas pelo WIM.",
+    ["Filtering allows you to control which messages are handled as well as how they are handled by WIM."] = "Filtragem permite que você controle quais mensagens são tratadas também como elas são manipuladas pelo WIM.",
     ["Enable Filtering"] = "Habilitar Filtrar",
     ["Protected"] = "Protegido",
     ["Action:"] = "Ação:",

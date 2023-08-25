@@ -1,7 +1,7 @@
 ﻿--[[
 	Enchantrix Addon for World of Warcraft(tm).
-	Version: 8.2.6428 (SwimmingSeadragon)
-	Revision: $Id: EnxUtil.lua 6428 2019-10-20 00:10:07Z none $
+	Version: 3.4.6849 (SwimmingSeadragon)
+	Revision: $Id: EnxUtil.lua 6849 2022-10-27 00:00:09Z none $
 	URL: http://enchantrix.org/
 
 	General utility functions
@@ -28,7 +28,7 @@
 		since that is its designated purpose as per:
 		http://www.fsf.org/licensing/licenses/gpl-faq.html#InterpreterIncompat
 ]]
-Enchantrix_RegisterRevision("$URL: Enchantrix/EnxUtil.lua $", "$Rev: 6428 $")
+Enchantrix_RegisterRevision("$URL: Enchantrix/EnxUtil.lua $", "$Rev: 6849 $")
 
 -- Global functions
 --local getItems
@@ -70,13 +70,13 @@ function isDisenchantable(id)
 			-- GetItemInfo() failed, item might be disenchantable
 			return true
 		end
-		
+
 		-- Legion (Wow 7.0) currently has artifact relics disenchantable, but they don't follow normal equipment rules, and are a subtype of Gem
 		-- convert this to a type we can handle
 		if (itemType == "Gem" and  itemSubType == "Artifact Relic") then
 			itemEquipLoc = "INVTYPE_TRINKET"
 		end
-		
+
 		if (not Enchantrix.Constants.InventoryTypes[itemEquipLoc]) then
 			-- Neither weapon nor armor
 			return false
@@ -369,13 +369,21 @@ function getReagentPrice(reagentID, extra)
 				price5 = AucAdvanced.API.GetMarketValue(link);
 			end
 		end
-		if Auctioneer and Enchantrix.State.Auctioneer_Loaded
-			and Auctioneer.Util and Auctioneer.Statistic then
-			local itemKey = ("%d:0:0"):format(reagentID);
-			local realm = Auctioneer.Util.GetAuctionKey()
-			hsp = Auctioneer.Statistic.GetHSP(itemKey, realm)
-			median = Auctioneer.Statistic.GetUsableMedian(itemKey, realm)
-		end
+        if Auctioneer and Enchantrix.State.Auctioneer_Loaded
+            and tonumber(Auctioneer.MajorVersion) >= 8 then
+			local stats = Auctioneer:Statistics( tostring(reagentID) )
+
+--- TEMPORARY - how to handle list!?  Mostly want "Over time"
+            for name, stat in ipairs(stats) do
+                local price, type = stat:Best()
+                local points = stat:Number()
+
+                if price and points > 0 and price > 0 then
+                    median = price
+                else
+                end
+            end
+        end
 	end
 
 	if not EnchantConfig.cache then EnchantConfig.cache = {} end
@@ -427,7 +435,7 @@ end
 -- we want to keep just the itemID and suffixID (random enchantment)
 function getSigFromLink(link)
 	assert(type(link) == "string")
-	
+
 --	local _, _, id, rand = link:find("item:(%d+):%d+:%d+:%d+:%d+:%d+:([-%d]+)")	-- old version from Warlords
 	local _, _, id, rand = link:find("item:(%d+):%d*:%d*:%d*:%d*:%d*:([-%d]*)")	-- current for Legion
 	--Enchantrix.Util.DebugPrint("getSigFromLink input", ENX_INFO, "getting sig for ", link, id, rand )	-- debugging
@@ -668,7 +676,7 @@ function createProfiler(name)
 end
 
 Enchantrix.Util = {
-	Revision			= "$Rev: 6428 $",
+	Revision			= "$Rev: 6849 $",
 
 --	GetItems			= getItems,
 --	GetItemType			= getItemType,
@@ -700,9 +708,13 @@ Enchantrix.Util = {
 function Enchantrix.Util.GetIType(link)
 	if not link then return end
 	--Enchantrix.Util.DebugPrintQuick("GetIType type: ", type(link), " link: ", link, tooltip:DecodeLink(link) )	-- DEBUGGING
-	
+
 	local const = Enchantrix.Constants
 	local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, invTexture = GetItemInfo(link)
+    local effLevel, _preview, baseLevel = GetDetailedItemLevelInfo(link)
+    if effLevel then
+        itemLevel = effLevel
+    end
 
 	if not (itemName and itemEquipLoc and itemRarity and itemLevel) then
 		-- Enchantrix.Util.DebugPrintQuick("GetIType could not get item info for: ", link, itemName , itemEquipLoc , itemRarity , itemLevel, tooltip:DecodeLink(link) )
@@ -725,6 +737,35 @@ function Enchantrix.Util.GetIType(link)
 	return ("%d:%d:%d"):format(itemLevel,itemRarity,class)
 end
 
+function Enchantrix.Util.GetITypeDetailed(link)
+	if not link then return end
+	--Enchantrix.Util.DebugPrintQuick("GetIType type: ", type(link), " link: ", link, tooltip:DecodeLink(link) )	-- DEBUGGING
+
+	local const = Enchantrix.Constants
+	local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, invTexture = GetItemInfo(link)
+    local effLevel, _preview, baseLevel = GetDetailedItemLevelInfo(link)
+
+	if not (itemName and itemEquipLoc and itemRarity and itemLevel) then
+		-- Enchantrix.Util.DebugPrintQuick("GetIType could not get item info for: ", link, itemName , itemEquipLoc , itemRarity , itemLevel, tooltip:DecodeLink(link) )
+		return
+	end
+
+	-- Legion (Wow 7.0) currently has artifact relics disenchantable, but they don't follow normal equipment rules, and are a subtype of Gem
+	-- convert this to a type we can handle
+	if (itemType == "Gem" and  itemSubType == "Artifact Relic") then
+		itemEquipLoc = "INVTYPE_TRINKET"
+	end
+
+	local class = const.InventoryTypes[itemEquipLoc] or 0
+
+	if itemRarity < 2 or not (class and (class == const.WEAPON or class == const.ARMOR)) then
+		--Enchantrix.Util.DebugPrint("GetIType", ENX_INFO, "Item not weapon or armor", "for: " .. itemRarity .. ", " .. class .. ", ".. itemType ..  ", ".. itemSubType ..  ", ".. itemEquipLoc ..  ", " ..link)
+		return
+	end
+
+	return ("%d:%d:%d:%d:%d"):format(baseLevel,itemLevel,effLevel,itemRarity,class)
+end
+
 
 
 function Enchantrix.Util.DisenchantSkillRequiredForItemLevel(level, quality)
@@ -736,8 +777,65 @@ function Enchantrix.Util.DisenchantSkillRequiredForItemLevel(level, quality)
 	if (quality > 4) then
 		return 0;
 	end
-	
-	-- it appears that DE of everything now only requires skill 1
+
+-- Need to double check Classic Classic!
+
+	-- Classic BC (or later) has reintroduced skill levels
+	if (Enchantrix.Constants.Classic and Enchantrix.Constants.Classic >= 2) then
+
+		-- Wrath section copied as-is from Auctioneer Suite 7.2.5688
+		if (level >= 200) then
+			-- rares still bugged Nov 2011, guess they're going to stay that way
+			if (quality ~= 3) then
+				return 375;
+			else
+				return 325;
+			end
+
+		elseif (level >= 152) then
+			-- rares still bugged Nov 2009
+			if (quality ~= 3) then
+				return 350;
+			else
+				return 325;
+			end
+
+		elseif (level >= 130) then
+			return 325;
+
+		elseif (level > 65) then
+		-- someone changed their math with the Burning Crusade
+
+			-- epics are a little different
+			if (quality == 4) then
+				if (level >= 90) then
+					return 300;
+				else
+					return 225;
+				end
+			end
+
+			if (level >= 100) then
+				return 275;
+			else
+				return 225;
+			end
+
+		elseif (level > 20) then
+			local temp = level - 21;
+			temp = 1 + floor( temp / 5 );
+			temp = temp * 25;
+			if (temp > 275) then
+				temp = 275;
+			end
+			return temp;
+		end
+
+		if (quality > 2) then
+			return 25;
+		end
+	end
+
 	return 1;
 end
 
@@ -817,7 +915,7 @@ function Enchantrix.Util.GetUserSkillByName( name )
 			resultRank = rank1
 		elseif name == skillName2 then
 			resultRank = rank2
-		end	
+		end
 	-- Classic uses old code path for finding skill rank
 	elseif GetNumSkillLines then
 		local MyExpandedHeaders = {}
@@ -857,7 +955,7 @@ function Enchantrix.Util.GetUserSkillByName( name )
 			end
 		end
 	end
-	
+
 	Enchantrix.Util.SkillCacheRank[ name ] = resultRank
 	Enchantrix.Util.SkillCacheTimeStamp[ name ] = GetTime()
 

@@ -1,20 +1,17 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2021 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2023 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 --
 -- Scale templates
 ------------------------------------------------------------
 
 
--- Test code for getting spec IDs matched up:
---/script local Index; for Index = 1, GetNumSpecializations() do local ID, Name = GetSpecializationInfo(Index) VgerCore.Message("(" .. Index .. ") Spec ID " .. ID .. " is " .. Name) end
-
 -- Returns the template from PawnScaleTemplates for a given class ID and spec ID.
 function PawnFindScaleTemplate(ClassID, SpecID)
 	local _, Template
-	
-	if VgerCore.IsClassic or VgerCore.IsBurningCrusade then
+
+	if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath then
 		for _, Template in pairs(PawnScaleTemplatesClassic) do
 			if Template.ClassID == ClassID then return Template end
 		end
@@ -34,8 +31,8 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 	if NoStats then
 		ScaleValues = {}
 	else
-		if VgerCore.IsClassic or VgerCore.IsBurningCrusade then
-			ScaleValues = 
+		if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath then
+			ScaleValues =
 			{
 				["Stamina"] = 0.01,
 				["Armor"] = 0.1,
@@ -63,7 +60,7 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 				["Ap"] = 0.5,
 				["Rap"] = 0.4,
 				["FeralAp"] = 0.5,
-	
+
 				["SpellDamage"] = 0.855,
 				["Healing"] = 0.455,
 
@@ -73,7 +70,7 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 				["BlockRating"] = 1,
 				["BlockValue"] = 0.65,
 				["ResilienceRating"] = 1,
-	
+
 				["MetaSocketEffect"] = 36,
 
 				["Mp5"] = 2.5,
@@ -143,16 +140,26 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 			if Template.ClassID ~= 11 then
 				ScaleValues.FeralAp = nil
 			end
+
+			-- Wrath merged some stats together.
+			if VgerCore.IsWrath then
+				ScaleValues.SpellCritRating = nil
+				ScaleValues.SpellHitRating = nil
+				ScaleValues.SpellHasteRating = nil
+				ScaleValues.SpellPower = ScaleValues.SpellDamage
+				ScaleValues.SpellDamage = nil
+				ScaleValues.Healing = nil
+			end
 		else
-			ScaleValues = 
+			ScaleValues =
 			{
 				["Stamina"] = 0.01,
-	
+
 				["CritRating"] = 0.5,
 				["HasteRating"] = 0.5,
 				["MasteryRating"] = 0.5,
 				["Versatility"] = 0.5,
-	
+
 				["MovementSpeed"] = 0.01,
 				["Avoidance"] = 0.01,
 				["Leech"] = 0.01,
@@ -175,7 +182,7 @@ function PawnGetStatValuesForTemplate(Template, NoStats)
 		for _, StatName in pairs(Template.UnusableStats) do
 			ScaleValues[StatName] = PawnIgnoreStatValue
 
-			if (VgerCore.IsClassic or VgerCore.IsBurningCrusade) and StatName == "IsShield" then
+			if (VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath) and StatName == "IsShield" then
 				ScaleValues.BlockRating = nil
 				ScaleValues.BlockValue = nil
 			end
@@ -263,6 +270,30 @@ PawnScaleTemplates =
 {
 	["ClassID"] = 11, -- Druid
 	["SpecID"] = 4, -- Restoration
+	["Role"] = "HEALER",
+	["PrimaryStat"] = "Intellect",
+	["UnusableStats"] = {}
+},
+
+{
+	["ClassID"] = 13, -- Evoker
+	["SpecID"] = 3, -- Augmentation
+	["Role"] = "DAMAGER",
+	["PrimaryStat"] = "Intellect",
+	["UnusableStats"] = {}
+},
+
+{
+	["ClassID"] = 13, -- Evoker
+	["SpecID"] = 1, -- Devastation
+	["Role"] = "DAMAGER",
+	["PrimaryStat"] = "Intellect",
+	["UnusableStats"] = {}
+},
+
+{
+	["ClassID"] = 13, -- Evoker
+	["SpecID"] = 2, -- Preservation
 	["Role"] = "HEALER",
 	["PrimaryStat"] = "Intellect",
 	["UnusableStats"] = {}
@@ -435,7 +466,7 @@ PawnScaleTemplates =
 	["Role"] = "DAMAGER",
 	["PrimaryStat"] = "Agility",
 	["HideUpgrades"] = 2, -- Hide 2H upgrades
-	["UnusableStats"] = { "IsShield", "IsFrill" }
+	["UnusableStats"] = { "IsDagger", "IsShield", "IsFrill" }
 },
 
 {
@@ -502,6 +533,11 @@ PawnScaleTemplatesClassic =
 {
 
 {
+	["ClassID"] = 6, -- Death Knight
+	["PrimaryStats"] = { "Strength", "Agility", "Stamina" }
+},
+
+{
 	["ClassID"] = 11, -- Druid
 	["PrimaryStats"] = { "Strength", "Agility", "Stamina", "Intellect", "Spirit" }
 },
@@ -548,6 +584,49 @@ PawnScaleTemplatesClassic =
 
 }
 
+-- PawnNewbieSpec: Which spec should we give advice for before level 10?
+PawnNewbieSpec =
+{
+	[1] = -- Warrior
+	1, -- Arms
+
+	[2] = -- Paladin
+	3, -- Retribution
+
+	[3] = -- Hunter
+	2, -- Marksmanship
+
+	[4] = -- Rogue
+	1, -- Assassination
+
+	[5] = -- Priest
+	3, -- Shadow
+
+	[6] = -- Death Knight
+	2, -- Frost
+
+	[7] = -- Shaman
+	1, -- Elemental
+
+	[8] = -- Mage
+	1, -- Arcane
+
+	[9] = -- Warlock
+	2, -- Destruction
+
+	[10] = -- Monk
+	3, -- Windwalker
+
+	[11] = -- Druid
+	1, -- Balance
+
+	[12] = -- Demon Hunter
+	2, -- Vengeance
+
+	[13] = -- Evoker
+	1, -- Devastation
+}
+
 -- PawnNeverUsableStats: Master list of stats that are NEVER usable for each class, regardless of spec. 
 PawnNeverUsableStats =
 {
@@ -587,6 +666,9 @@ PawnNeverUsableStats =
 
 	[12] = -- Demon Hunter
 	{ "IsDagger", "IsMace", "IsWand", "IsBow", "IsCrossbow", "IsGun", "Is2HAxe", "Is2HMace", "Is2HSword", "IsPolearm", "IsStaff", "IsMail", "IsPlate", "IsShield", "IsThrown" },
+
+	[13] = -- Evoker
+	{  "IsWand", "IsBow", "IsCrossbow", "IsGun", "IsPolearm", "IsWarglaive", "IsOffHand", "IsPlate", "IsShield", "IsThrown" },
 }
 
 if VgerCore.IsClassic then

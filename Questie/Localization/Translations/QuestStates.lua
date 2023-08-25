@@ -12,7 +12,7 @@ local questStateLocales = {
         ["zhCN"] = "完成",
         ["zhTW"] = "完成",
         ["esES"] = "Completa",
-        ["frFR"] = "Complété",
+        ["frFR"] = "Terminée",
     },
     ["Failed"] = {
         ["ptBR"] = "Fracassada",
@@ -24,7 +24,7 @@ local questStateLocales = {
         ["zhCN"] = "失败",
         ["zhTW"] = "失敗",
         ["esES"] = "Fracasado",
-        ["frFR"] = "Échoué",
+        ["frFR"] = "Échouée",
     },
     ["Available"] = {
         ["ptBR"] = "Disponível",
@@ -48,7 +48,7 @@ local questStateLocales = {
         ["zhCN"] = "已有",
         ["zhTW"] = "已有",
         ["esES"] = "Activa",
-        ["frFR"] = "Activé",
+        ["frFR"] = "Activée",
     },
     ["Event"] = {
         ["ptBR"] = "Evento",
@@ -73,6 +73,18 @@ local questStateLocales = {
         ["zhTW"] = "可重複",
         ["esES"] = "Repetible",
         ["frFR"] = "Répétable",
+    },
+    ["PvP"] = {
+        ["ptBR"] = false,
+        ["ruRU"] = true,
+        ["deDE"] = false,
+        ["koKR"] = false,
+        ["esMX"] = false,
+        ["enUS"] = true,
+        ["zhCN"] = false,
+        ["zhTW"] = false,
+        ["esES"] = false,
+        ["frFR"] = false,
     },
 }
 

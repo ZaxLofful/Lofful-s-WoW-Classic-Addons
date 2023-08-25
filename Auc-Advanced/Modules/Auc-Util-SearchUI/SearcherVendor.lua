@@ -1,7 +1,7 @@
 --[[
 	Auctioneer - Search UI - Searcher Vendor
-	Version: 8.2.6464 (SwimmingSeadragon)
-	Revision: $Id: SearcherVendor.lua 6464 2019-10-20 00:10:07Z none $
+	Version: 3.4.6829 (SwimmingSeadragon)
+	Revision: $Id: SearcherVendor.lua 6829 2022-10-27 00:00:09Z none $
 	URL: http://auctioneeraddon.com/
 
 	This is a plugin module for the SearchUI that assists in searching by refined paramaters
@@ -51,7 +51,7 @@ default("vendor.timeleft", 0)
 
 -- strings for the vendor search UI panel
 function private.getTimeLeftStrings()
-    if AucAdvanced.Classic then
+    if AucAdvanced.Classic == 1 then
         return {
                 {0, "Any"},
                 {1, "less than 30 min"},
@@ -159,4 +159,4 @@ function lib.Search(item)
 	return false, "Not enough profit"
 end
 
-AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearcherVendor.lua $", "$Rev: 6464 $")
+AucAdvanced.RegisterRevision("$URL: Auc-Advanced/Modules/Auc-Util-SearchUI/SearcherVendor.lua $", "$Rev: 6829 $")

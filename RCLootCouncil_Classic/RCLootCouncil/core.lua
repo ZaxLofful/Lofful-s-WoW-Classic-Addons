@@ -20,10 +20,11 @@
 		RCConfigTableChanged	-	fires when the user changes a settings. args: [val]; a few settings supplies their name.
 		RCUpdateDB				-	fires when the user receives sync data from another player.
 		RCLootStatusReceived - 	fires when new loot status is received, i.e. when it's safe to call :GetLootStatusData.
+		RCLootTableAdditionsReceived - fires when additional lootTable data has been received and processed.
 	ml_core:
 		RCMLAddItem				- 	fires when an item is added to the loot table. args: item, loottable entry
-		RCMLAwardSuccess		- 	fires when an item is successfully awarded. args: session, winner, status.
-		RCMLAwardFailed		-	fires when an item is unsuccessfully awarded. args: session, winner, status.
+		RCMLAwardSuccess		- 	fires when an item is successfully awarded. args: session, winner, status, link, responseText.
+		RCMLAwardFailed		-	fires when an item is unsuccessfully awarded. args: session, winner, status, link, responseText.
 		RCMLBuildMLdb       -   fires just before the MLdb is built. arg: MLdb, the master looter db table.
 		RCMLLootHistorySend	- 	fires just before loot history is sent out. args: loot_history table (the table sent to users), all arguments from ML:TrackAndLogLoot()
 	votingFrame:
@@ -165,6 +166,11 @@ function RCLootCouncil:OnInitialize()
 		}
 	}
 
+	-- List of itemIds that should not be blacklisted
+	self.blackListOverride = {
+		-- [itemId] = true
+	}
+
 	self.testMode = false;
 	-- create the other buttons/responses
 	for i = 1, self.defaults.profile.maxButtons do
@@ -185,11 +191,7 @@ function RCLootCouncil:OnInitialize()
 		tinsert(self.defaults.profile.awardReasons, {color = {1, 1, 1, 1}, disenchant = false, log = true, sort = 400+i, text = "Reason "..i,})
 	end
 
-	-- register chat and comms
-	self:RegisterChatCommand("rc", "ChatCommand")
-	self:RegisterChatCommand("rclc", "ChatCommand")
-	self.customChatCmd = {} -- Modules that wants their cmds used with "/rc"
-	self:RegisterComms()
+	-- init db
 	self.db = LibStub("AceDB-3.0"):New("RCLootCouncilDB", self.defaults, true)
 	self.lootDB = LibStub("AceDB-3.0"):New("RCLootCouncilLootDB")
 	--[[ Format:
@@ -210,6 +212,16 @@ function RCLootCouncil:OnInitialize()
 	db = self.db.profile
 	historyDB = self.lootDB.factionrealm
 	debugLog = self.db.global.log
+
+	-- Slash setup
+	if db.useSlashRC then -- Allow presevation of readycheck shortcut.
+		self:RegisterChatCommand("rc", "ChatCommand")
+	end
+	self:RegisterChatCommand("rclc", "ChatCommand")
+	self.customChatCmd = {} -- Modules that wants their cmds used with "/rc"
+
+	-- Comms
+	self:RegisterComms()
 
 	-- Add logged in message in the log
 	self:DebugLog("Logged In")
@@ -476,6 +488,10 @@ function RCLootCouncil:ChatCommand(msg)
 		db.chatFrameName = self.defaults.profile.chatFrameName
 		self:Print(L["Windows reset"])
 
+	elseif input == "start" or input == string.lower(_G.START) then
+		-- Simply emulate player entering raid.
+		self:OnRaidEnter()
+
 	elseif input == "debuglog" or input == "log" then
 		for k,v in ipairs(debugLog) do print(k,v); end
 
@@ -490,6 +506,10 @@ function RCLootCouncil:ChatCommand(msg)
 
 	elseif input == "trade" then
 		self.TradeUI:Show(true)
+
+	elseif input == "export" then
+		self:ExportCurrentSession()
+
 --[==[@debug@
 	elseif input == 't' then -- Tester cmd
 		-- Test items with several modifiers. Should probably be added to the regular test func
@@ -611,7 +631,6 @@ function RCLootCouncil:SendCommandModified (prefix, serializedMsg, channel, targ
 	self:SendCommMessage(prefix, serializedMsg, channel, target, prio, ...)
 end
 
-local v3VersionWarningCount = 0
 --- Receives RCLootCouncil commands.
 -- Params are delivered by AceComm-3.0, but we need to extract our data created with the
 -- RCLootCouncil:SendCommand function.
@@ -641,21 +660,7 @@ function RCLootCouncil:OnCommReceived(prefix, serializedMsg, distri, sender)
 				end
 
 			elseif command == "lt_add" and self:UnitIsUnit(sender, self.masterLooter) then
-				-- We can skip most of the normal lootTable checks since a session should running
-				local oldLenght = #lootTable
-				for k,v in pairs(unpack(data)) do
-					lootTable[k] = v
-				end
-				-- REVIEW This runs over the entire lootTable again, but will probably need changing anyway in v3.0
-				self:PrepareLootTable(lootTable)
-				self:DoAutoPasses(lootTable, oldLenght)
-				self:SendLootAck(lootTable, oldLenght)
-				for k,v in ipairs(lootTable) do
-					if k > oldLenght then
-						self:GetActiveModule("lootframe"):AddSingleItem(v)
-					end
-				end
-				-- VotingFrame handles this by itself.
+				self:OnLootTableAdditionsReceived(unpack(data))
 
 			elseif command == "candidates" and self:UnitIsUnit(sender, self.masterLooter) then
 				self.candidates = unpack(data)
@@ -831,12 +836,6 @@ function RCLootCouncil:OnCommReceived(prefix, serializedMsg, distri, sender)
 			end
 			self:Debug("Error in deserializing comm:", command, data);
 		end
-
-	elseif prefix == "RCLCv" then
-		-- v3.0 has been released!
-		if v3VersionWarningCount <= 5 then
-			self:Print("RCLootCouncil v3.0 has been released. This version is no longer compatible, please upgrade!")
-		end
 	end
 end
 
@@ -896,6 +895,7 @@ function RCLootCouncil:OnLootTableReceived (lt)
 
 	-- Hand the lootTable to the votingFrame
 	if self.isCouncil or self.mldb.observe then
+		self:CallModule("votingframe") -- Might not be activated 
 		self:GetActiveModule("votingframe"):ReceiveLootTable(lootTable)
 	end
 
@@ -971,6 +971,16 @@ end
 
 function RCLootCouncil:ChatCmdAdd(args)
 	if not args[1] or args[1] == "" then return end -- We need at least 1 arg
+
+	-- Add all items in bags with trade timers
+	if args[1] == "bags" or args[1] == "all" then
+		local items = self:GetAllItemsInBagsWithTradeTimer()
+		self:Print(format(L["chat_cmd_add_found_items"], #items))
+		for _, v in ipairs(items) do self:GetActiveModule("masterlooter"):AddUserItem(v, self.playerName) end
+		return
+	end
+
+	-- Add linked items
 	local owner
 	-- See if one of the args is a owner
 	if not args[1]:find("|") and type(tonumber(args[1])) ~= "number" then
@@ -1106,13 +1116,7 @@ function RCLootCouncil:Test(num, fullTest, trinketTest)
 	end, 5)
 end
 
-local interface_options_old_cancel = InterfaceOptionsFrameCancel:GetScript("OnClick")
 function RCLootCouncil:EnterCombat()
-	-- Hack to remove CompactRaidGroup taint
-	-- Make clicking cancel the same as clicking okay
-	InterfaceOptionsFrameCancel:SetScript("OnClick", function()
-	 InterfaceOptionsFrameOkay:Click()
-	end)
 	self.inCombat = true
 	if not db.minimizeInCombat then return end
 	for _,frame in ipairs(frames) do
@@ -1125,8 +1129,6 @@ function RCLootCouncil:EnterCombat()
 end
 
 function RCLootCouncil:LeaveCombat()
-	-- Revert
-	InterfaceOptionsFrameCancel:SetScript("OnClick", interface_options_old_cancel)
 	self.inCombat = false
 	if not db.minimizeInCombat then return end
 	for _,frame in ipairs(frames) do
@@ -1317,6 +1319,10 @@ end
 function RCLootCouncil:GetIlvlDifference(item, g1, g2)
 	if not g1 and g2 then error("You can't provide g2 without g1 in :GetIlvlDifference()") end
 	local _, link, _, ilvl, _, _, _, _, equipLoc = GetItemInfo(item)
+	if not ilvl then
+		self:Debug(format("GetIlvlDifference: item: %s had ilvl %s", tostring(item), tostring(ilvl)))
+		return -1
+	end
 	if not g1 then
 		g1, g2 = self:GetPlayersGear(link, equipLoc, playersData.gears)
 	end
@@ -1459,10 +1465,11 @@ end
 -- Should only be called once when the loot table is received (RCLootCouncil:OnCommReceived).
 -- v2.15 The current implementation ensures this only gets called when all items are cached - this function relies on that!
 function RCLootCouncil:PrepareLootTable(lootTable)
-	for ses, v in ipairs(lootTable) do
+	for ses, v in pairs(lootTable) do
 		local _, _, rarity, ilvl, _, _, subType, _, equipLoc, texture,
 		_, typeID, subTypeID, bindType, _, _, _ = GetItemInfo(v.link)
 		local itemID = GetItemInfoInstant(v.link)
+		v.itemID	= itemID
 		v.quality 	= rarity
 		v.ilvl 		= self:GetTokenIlvl(v.link) or ilvl
 		v.equipLoc 	= RCTokenTable[itemID] and self:GetTokenEquipLoc(RCTokenTable[itemID]) or equipLoc
@@ -1472,6 +1479,7 @@ function RCLootCouncil:PrepareLootTable(lootTable)
 		v.typeID 	= typeID
 		v.subTypeID = subTypeID
 		v.session 	= v.session or ses
+		v.token = itemID and RCTokenTable[itemID]
 
 		if not v.classes then -- We didn't receive "classes", because ML is using an old version. Generate it from token data.
 			if RCTokenClasses and RCTokenClasses[itemID] then
@@ -1495,7 +1503,7 @@ end
 function RCLootCouncil:SendLootAck(table, skip)
 	local toSend = {gear1 = {}, gear2 = {}, diff = {}, response = {}}
 	local hasData = false
-	for k, v in ipairs(table) do
+	for k, v in pairs(table) do
 		local session = v.session or k
 		if session > (skip or 0) then
 			hasData = true
@@ -1515,7 +1523,7 @@ end
 -- Sets lootTable[session].autopass = true if an autopass occurs, and informs the user of the change
 -- @param skip Will only auto pass sessions > skip or 0
 function RCLootCouncil:DoAutoPasses(table, skip)
-	for k,v in ipairs(table) do
+	for k,v in pairs(table) do
 		local session = v.session or k
 		if session > (skip or 0) then
 			if db.autoPass and not v.noAutopass then
@@ -1720,6 +1728,21 @@ function RCLootCouncil:GetContainerItemTradeTimeRemaining(container, slot)
 	end
 end
 
+--- Finds all items in players bags that has a trade timer.
+---@return itemLink[] items
+function RCLootCouncil:GetAllItemsInBagsWithTradeTimer()
+	local items = {}
+	for container=0, _G.NUM_BAG_SLOTS do
+         for slot=1, self.C_Container.GetContainerNumSlots(container) or 0 do
+			local time =self:GetContainerItemTradeTimeRemaining(container, slot)
+			if  time > 0 and time < math.huge then
+				tinsert(items, self.C_Container.GetContainerItemLink(container, slot))
+			end
+		 end
+	end
+	return items
+end
+
 function RCLootCouncil:IsItemBoE(item)
 	if not item then return false end
 	-- Item binding type: 0 - none; 1 - on pickup; 2 - on equip; 3 - on use; 4 - quest.
@@ -1787,6 +1810,11 @@ function RCLootCouncil:GetGuildRanks()
 	return t;
 end
 
+--- Returns the number of group members, the player included (i.e. min 1).
+function RCLootCouncil:GetNumGroupMembers()
+	local num = GetNumGroupMembers()
+	return num > 0 and num or 1
+end
 
 function RCLootCouncil:GetNumberOfDaysFromNow(oldDate)
 	return self.Utils:GetNumberOfDaysFromNow(oldDate)
@@ -2576,7 +2604,8 @@ function RCLootCouncil:CreateFrame(name, cName, title, width, height)
 	f:RegisterConfig(db.UI[cName])
 	f:RestorePosition() -- might need to move this to after whereever GetFrame() is called
 	f:MakeDraggable()
-	f:SetScript("OnMouseWheel", function(f,delta) if IsControlKeyDown() then lwin.OnMouseWheel(f,delta) end end)
+	local scrollScriptHandler = function(f,delta) if IsControlKeyDown() then lwin.OnMouseWheel(f,delta) end end
+	f:SetScript("OnMouseWheel",  scrollScriptHandler)
 	f:SetToplevel(true)
 
 	local tf = CreateFrame("Frame", "RC_UI_"..cName.."_Title", f, BackdropTemplateMixin and "BackdropTemplate")
@@ -2652,6 +2681,7 @@ function RCLootCouncil:CreateFrame(name, cName, title, width, height)
 		if not frame.minimized then
 			frame.content:Hide()
 			frame.minimized = true
+			f:SetScript("OnMouseWheel", nil)
 		end
 	end
 	f.Maximize = function(frame)
@@ -2659,6 +2689,7 @@ function RCLootCouncil:CreateFrame(name, cName, title, width, height)
 		if frame.minimized then
 			frame.content:Show()
 			frame.minimized = false
+			f:SetScript("OnMouseWheel",  scrollScriptHandler)
 		end
 	end
 	-- Support for auto hide in combat:
@@ -2889,40 +2920,43 @@ end
 function RCLootCouncil:GetResponse(type, name)
 	-- REVIEW With proper inheritance, most of this should be redundant
 	-- Check if the type should be translated to something else
-	type = type and type or "default"
-	if self.mldb.responses and not self.mldb.responses[type] and self.BTN_SLOTS[type] and self.mldb.responses[self.BTN_SLOTS[type]] then
-		type = self.BTN_SLOTS[type]
-	end
-	-- FIXME If we use non default button without mldb (i.e. changing responses in loot history), this will fail.
-   if type == "default" or (self.mldb and not self.mldb.responses[type]) then -- We have a value if mldb is blank
-      if db.responses.default[name] or self.mldb.responses.default[name] then
-         return (self.mldb.responses and self.mldb.responses.default and self.mldb.responses.default[name]) or db.responses.default[name]
-      else
-         self:Debug("No db.responses.default entry for response:", name)
-         return self.defaults.profile.responses.default.DEFAULT -- Use default
-      end
-   else -- This must be supplied by the ml
-      if next(self.mldb) then
-         if self.mldb.responses[type] then
-            if self.mldb.responses[type][name] then
-               return self.mldb.responses[type][name]
-            else
-               self:Debug("No mldb.responses["..tostring(type).."] entry for response:".. tostring(name))
-            end
-         else
+	type = type or "default"
+	if self.mldb.responses and not self.mldb.responses[type] and self.BTN_SLOTS[type]
+		and self.mldb.responses[self.BTN_SLOTS[type]] then type = self.BTN_SLOTS[type] end
+
+	if type == "default" or (self.mldb and self.mldb.responses and not self.mldb.responses[type]) then -- We have a value if mldb is blank
+		if db.responses.default[name] or self.mldb.responses.default[name] then
+			return (self.mldb.responses and self.mldb.responses.default and self.mldb.responses.default[name])
+				or db.responses.default[name]
+		else
+			self:Debug("No db.responses.default entry for response:", name)
+			return self.defaults.profile.responses.default.DEFAULT -- Use default
+		end
+	else
+		if next(self.mldb) then
+			if self.mldb.responses[type] then
+				if self.mldb.responses[type][name] then
+					return self.mldb.responses[type][name]
+				else
+					self:Debug("No mldb.responses[" .. tostring(type) .. "] entry for response:" .. tostring(name))
+				end
+			else
 				-- This type is not enabled, so use default:
-            if db.responses.default[name] or self.mldb.responses.default[name] then
-               return self.mldb.responses.default and self.mldb.responses.default[name] or db.responses.default[name]
-            else
-               self:Debug("Unknown response entry", type, name)
-               return db.responses.default.DEFAULT -- Use default
-            end
-         end
-      else
-         self:Debug("No mldb for GetReponse: ".. tostring(type).. ", ".. tostring(name))
-      end
-   end
-   return {} -- Fallback
+				if db.responses.default[name] or self.mldb.responses.default[name] then
+					return self.mldb.responses.default and self.mldb.responses.default[name] or db.responses.default[name]
+				else
+					self:Debug("Unknown response entry", type, name)
+					return db.responses.default.DEFAULT -- Use default
+				end
+			end
+			-- See if we have local settings
+		elseif db.responses[type] and db.responses[type][name] then
+			return db.responses[type][name]
+		else
+			self:Debug("No db or mldb for GetReponse", type, name)
+		end
+	end
+	return {} -- Fallback
 end
 
 --- Returns the number of buttons of a specific type
@@ -3106,3 +3140,36 @@ end
 	-- Fix for response object in response color:
 	/run local c=0;for _,r in pairs(RCLootCouncil.db.profile.responses.default)do if r.color then r.color.color = nil;r.color.text = nil;c=c+1;end;end;print("Fixed",c,"buttons")
 ]]
+
+local function CheckCachedLootTable(lootTable)
+	local cached = true
+	for _, v in pairs(lootTable) do if not GetItemInfo(v.link) then cached = false end end
+	return cached
+end
+
+function RCLootCouncil:OnLootTableAdditionsReceived(lt)
+	-- Ensure items are cached
+	if not CheckCachedLootTable(lt) then return self:ScheduleTimer("OnLootTableAdditionsReceived", 0, lt) end
+	-- Setup the additions
+	self:PrepareLootTable(lt)
+	self:DoAutoPasses(lt)
+	self:SendLootAck(lt)
+	-- Inject into lootTable
+	local oldLenght = #lootTable
+	for k, v in pairs(lt) do lootTable[k] = v end
+
+	for i = oldLenght + 1, #lootTable do self:GetActiveModule("lootframe"):AddSingleItem(lootTable[i]) end
+	self:SendMessage("RCLootTableAdditionsReceived", lt)
+end
+
+function RCLootCouncil:ExportCurrentSession()
+	if not lootTable or #lootTable == 0 then return self:Print(L["No session running"]) end
+	local exportData = { "session,item,itemID,ilvl" }
+	for session, data in ipairs(lootTable) do
+		exportData[session + 1] = table.concat({ session, data.link:gsub("|", "||"), data.itemID, data.ilvl }, ",")
+	end
+	local csv = table.concat(exportData, "\n")
+	local frame = RCLootCouncil:GetActiveModule("history"):GetFrame()
+	frame.exportFrame.edit:SetText(csv)
+	frame.exportFrame:Show()
+end
