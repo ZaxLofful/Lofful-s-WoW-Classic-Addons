@@ -1,6 +1,6 @@
 ## Interface: 11404
 ## X-Min-Interface: 11402
-## Version: 1.14.45
+## Version: 1.14.46
 ## Title:|cffffe00a<|r|cffff7d0aDBM Mod|r|cffffe00a>|r |cff10ff10Azeroth (Classic)|r
 ## Title-deDE:|cffffe00a<|r|cffff7d0aDBM Mod|r|cffffe00a>|r |cff10ff10Azeroth (Classic)|r
 ## Title-esES:|cffffe00a<|r|cffff7d0aDBM Mod|r|cffffe00a>|r |cff10ff10Azeroth (Clásico)|r
