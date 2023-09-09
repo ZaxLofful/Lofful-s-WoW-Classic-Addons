@@ -200,7 +200,7 @@ E.spell_db = {
 		{ ["class"]="DEATHKNIGHT",["type"]="interrupt",["buff"]=47482,["spec"]=252,["duration"]=30,["name"]="Leap",["icon"]=237569,["spellID"]=47482, },
 		{ ["class"]="DEATHKNIGHT",["type"]="offensive",["buff"]=203173,["spec"]=true,["duration"]=30,["name"]="Death Chain",["icon"]=1390941,["spellID"]=203173, },
 		{ ["class"]="DEATHKNIGHT",["type"]="other",["buff"]=207018,["spec"]=true,["duration"]=20,["name"]="Murderous Intent",["icon"]=136088,["spellID"]=207018, },
-		{ ["class"]="DEATHKNIGHT",["type"]="offensive",["buff"]=196770,["spec"]=true,["duration"]=45,["name"]="Dead of Winter",["icon"]=538770,["spellID"]=287250, },
+		{ ["class"]="DEATHKNIGHT",["type"]="offensive",["buff"]=196770,["spec"]=true,["duration"]=30,["name"]="Dead of Winter",["icon"]=538770,["spellID"]=287250, },
 		{ ["class"]="DEATHKNIGHT",["type"]="counterCC",["buff"]=49039,["duration"]=120,["name"]="Lichborne",["icon"]=136187,["spellID"]=49039, },
 		{ ["class"]="DEATHKNIGHT",["type"]="other",["buff"]=48265,["duration"]=45,["name"]="Death's Advance",["icon"]=237561,["spellID"]=48265, },
 		{ ["class"]="DEATHKNIGHT",["type"]="disarm",["buff"]=49576,["duration"]={[250]=15,["default"]=25},["name"]="Death Grip",["icon"]=237532,["spellID"]=49576, },
@@ -370,7 +370,6 @@ E.spell_db = {
 		{ ["class"]="DRUID",["type"]="externalDefensive",["buff"]=102342,["spec"]=true,["name"]="Ironbark",["duration"]=90,["icon"]=572025,["spellID"]=102342, },
 		{ ["class"]="DRUID",["type"]="cc",["buff"]=106951,["spec"]=true,["name"]="Berserk",["duration"]=180,["icon"]=236149,["spellID"]=106951,["talent"]=102543, },
 		{ ["class"]="DRUID",["type"]="offensive",["buff"]=274837,["spec"]=true,["name"]="Feral Frenzy",["duration"]=45,["icon"]=132140,["spellID"]=274837, },
-		{ ["class"]="DRUID",["type"]="offensive",["buff"]=391891,["spec"]=true,["name"]="Adaptive Swarm",["duration"]=25,["icon"]=3578197,["spellID"]=391888, },
 		{ ["class"]="DRUID",["type"]="offensive",["buff"]=102543,["spec"]=true,["name"]="Incarnation: Avatar of Ashamane",["duration"]=180,["icon"]=571586,["spellID"]=102543, },
 		{ ["class"]="DRUID",["type"]="defensive",["buff"]=61336,["spec"]=true,["name"]="Survival Instincts",["charges"]=1,["duration"]=180,["icon"]=236169,["spellID"]=61336, },
 		{ ["class"]="DRUID",["type"]="offensive",["buff"]=5217,["spec"]=true,["name"]="Tiger's Fury",["duration"]=30,["icon"]=132242,["spellID"]=5217, },
@@ -408,6 +407,8 @@ E.spell_db = {
 
 
 
+		{ ["class"]="DRUID",["type"]="defensive",["buff"]=377847,["spec"]=true,["name"]="Well-Honed Instincts",["duration"]=120,["icon"]=236169,["spellID"]=377847, },
+		{ ["class"]="DRUID",["type"]="offensive",["buff"]=102693,["spec"]=true,["name"]="Grove Guardians",["charges"]=3,["duration"]=20,["icon"]=132129,["spellID"]=102693, },
 	},
 	["WARLOCK"] = {
 		{ ["class"]="WARLOCK",["type"]="offensive",["buff"]=417537,["spec"]=true,["duration"]=45,["name"]="Oblivion",["icon"]=828455,["spellID"]=417537, },
@@ -746,7 +747,8 @@ E.spell_db = {
 		]]
 
 		{ ["class"]="TRINKET",["type"]="consumable",["name"]="Refreshing Healing Potion",["buff"]=370511,["duration"]=300,["icon"]=4497595,["spellID"]=370511,["item"]=nil, }, --["item"]=191378
-		{ ["class"]="TRINKET",["type"]="other",["buff"]=408234,["item"]=205146,["name"]="Activate Weyrnstone",["duration"]=120,["icon"]=5199618,["spellID"]=408234, },
+		{ ["class"]="TRINKET",["type"]="other",["buff"]=408234,["name"]="Activate Weyrnstone",["duration"]=120,["icon"]=5199618,["spellID"]=408234,["item"]=205146, },
+		{ ["class"]="TRINKET",["type"]="defensive",["buff"]=410232,["name"]="Undulating Sporecloak",["duration"]=120,["icon"]=3752753,["spellID"]=410232,["item"]=205025, },
 	},
 }
 

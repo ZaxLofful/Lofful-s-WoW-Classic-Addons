@@ -1,0 +1,11 @@
+# Copyright (C) 2006-2023 JoanasWorld, All rights reserved.  See license.txt for license and copyright information
+## Interface: 11404
+## Title: Joana's Speed Leveling Guide
+## Version: 3.01.01
+## Notes: Version: 3.01.01
+## DefaultState: enabled
+## SavedVariables: JoanasGuides_Account
+## SavedVariablesPerCharacter: JoanasGuides_Character
+## OptionalDeps: TomTom
+
+Main.xml
