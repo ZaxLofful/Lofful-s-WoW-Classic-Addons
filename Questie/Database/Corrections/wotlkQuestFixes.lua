@@ -148,11 +148,17 @@ function QuestieWotlkQuestFixes:Load()
         [2279] = {
             [questKeys.preQuestSingle] = {2278},
         },
+        [2701] = {
+            [questKeys.finishedBy] = {nil,{141980}},
+        },
         [2767] = {
             [questKeys.triggerEnd] = {"Escort OOX-22/FE to safety", {[zoneIDs.FERALAS]={{55.63,51.35}}}},
         },
         [2879] = {
             [questKeys.requiredSourceItems] = {9255,9256,9257,9258},
+        },
+        [3602] = {
+            [questKeys.requiredSourceItems] = {},
         },
         [3763] = {
             [questKeys.startedBy] = {{6735}},
@@ -168,6 +174,9 @@ function QuestieWotlkQuestFixes:Load()
         },
         [4127] = {
             [questKeys.startedBy] = {nil,{164909,186419}},
+        },
+        [4144] = {
+            [questKeys.specialFlags] = nil,
         },
         [4362] = {
             [questKeys.preQuestSingle] = {4361},
@@ -192,11 +201,24 @@ function QuestieWotlkQuestFixes:Load()
             [questKeys.parentQuest] = 0,
             [questKeys.zoneOrSort] = sortKeys.SPECIAL,
         },
+        [5057] = {
+            [questKeys.requiredRaces] = raceIDs.NONE,
+        },
         [5502] = {
             [questKeys.questLevel] = -1,
             [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
             [questKeys.zoneOrSort] = sortKeys.SPECIAL,
             [questKeys.preQuestGroup] = {915,925},
+        },
+        [5505] = {
+            [questKeys.startedBy] = {{11056}},
+            [questKeys.finishedBy] = {{11056}},
+        },
+        [5721] = {
+            [questKeys.extraObjectives] = {{{[zoneIDs.EASTERN_PLAGUELANDS]={{35.01,84.05}}}, Questie.ICON_TYPE_EVENT, l10n("Place the Relic Bundle in the Town Square."),}},
+        },
+        [6185] = {
+            [questKeys.triggerEnd] = {"The Blightcaller Uncovered", {[zoneIDs.EASTERN_PLAGUELANDS]={{23.4,67.8}}}},
         },
         [6961] = {
             [questKeys.exclusiveTo] = {6962},
@@ -209,6 +231,13 @@ function QuestieWotlkQuestFixes:Load()
         },
         [7024] = {
             [questKeys.exclusiveTo] = {6962},
+        },
+        [7641] = {
+            [questKeys.preQuestSingle] = {7638,7670},
+        },
+        [7643] = {
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {7642,7648},
         },
         [7800] = {
             [questKeys.preQuestSingle] = {},
@@ -1734,6 +1763,12 @@ function QuestieWotlkQuestFixes:Load()
         [12741] = {
             [questKeys.requiredMinRep] = {1104,9000},
         },
+        [12752] = {
+            [questKeys.startedBy] = {{19169,19175,19176,19177,19178,20102}},
+        },
+        [12753] = {
+            [questKeys.startedBy] = {{18927,19148,19171,19172,19173,20102}},
+        },
         [12754] = {
             [questKeys.extraObjectives] = {{{[zoneIDs.PLAGUELANDS_THE_SCARLET_ENCLAVE]={{60.9,75.5}}}, Questie.ICON_TYPE_EVENT, l10n("Use the Makeshift Cover"),}},
         },
@@ -1755,8 +1790,26 @@ function QuestieWotlkQuestFixes:Load()
             ---[questKeys.objectives] = {nil,nil,{{39748}},nil,{{{28079,28078},28078,"Frenzyheart Attacker"}}},
             [questKeys.extraObjectives] = {{{[zoneIDs.SHOLAZAR_BASIN]={{65.60,59.48}}}, Questie.ICON_TYPE_EVENT, l10n("Charge the Dormant Polished Crystal at the exposed Lifeblood Pillar"),}},
         },
+        [12772] = {
+            [questKeys.startedBy] = {{18927,19148,19171,19172,19173,20102}},
+        },
+        [12775] = {
+            [questKeys.startedBy] = {{18927,19148,19171,19172,19173,20102}},
+        },
+        [12777] = {
+            [questKeys.startedBy] = {{18927,19148,19171,19172,19173,20102}},
+        },
         [12779] = {
             [questKeys.extraObjectives] = {{{[zoneIDs.PLAGUELANDS_THE_SCARLET_ENCLAVE]={{53.5,36.7}}}, Questie.ICON_TYPE_EVENT, l10n("Use the Horn of the Frostbrood"),}},
+        },
+        [12782] = {
+            [questKeys.startedBy] = {{19169,19175,19176,19177,19178,20102}},
+        },
+        [12783] = {
+            [questKeys.startedBy] = {{19169,19175,19176,19177,19178,20102}},
+        },
+        [12784] = {
+            [questKeys.startedBy] = {{19169,19175,19176,19177,19178,20102}},
         },
         [12797] = {
             [questKeys.extraObjectives] = {{{[zoneIDs.UN_GORO_CRATER]={{50.54,7.74,}}}, Questie.ICON_TYPE_EVENT, l10n("Travel through the Waygate"),}},
@@ -1779,8 +1832,14 @@ function QuestieWotlkQuestFixes:Load()
         [12807] = {
             [questKeys.objectives] = {{{29344,}}},
         },
+        [12808] = {
+            [questKeys.startedBy] = {{18927,19148,19171,19172,19173,20102}},
+        },
         [12810] = {
             [questKeys.objectives] = {{{29392,}}},
+        },
+        [12811] = {
+            [questKeys.startedBy] = {{19169,19175,19176,19177,19178,20102}},
         },
         [12813] = {
             [questKeys.objectives] = {nil,nil,nil,nil,{{{29329,29330,29333,29338},29398}}},
@@ -1920,6 +1979,9 @@ function QuestieWotlkQuestFixes:Load()
         },
         [12927] = {
             [questKeys.objectives] = {{{29746}}},
+        },
+        [12930] = {
+            [questKeys.exclusiveTo] = {12929},
         },
         [12932] = {
             [questKeys.objectives] = {{{30014}}},
@@ -4175,6 +4237,9 @@ function QuestieWotlkQuestFixes:Load()
         },
         [14352] = {
             [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
+        },
+        [14349] = {
+            [questKeys.preQuestGroup] = {6022,6042,6133,6135,6136},
         },
         [14418] = {
             [questKeys.requiredRaces] = raceIDs.UNDEAD,

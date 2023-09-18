@@ -36,7 +36,7 @@ function Scrap:OnEnable()
 	self:RegisterSignal('SETS_CHANGED', 'OnSettings')
 	self:OnSettings()
 
-	CreateFrame('Frame', nil, InterfaceOptionsFrame or SettingsPanel):SetScript('OnShow', function()
+	CreateFrame('Frame', nil, SettingsPanel or InterfaceOptionsFrame):SetScript('OnShow', function()
 		LoadAddOn('Scrap_Config')
 	end)
 end
@@ -147,7 +147,7 @@ function Scrap:IsFiltered(id, ...)
 	elseif class == ARMOR or class == WEAPON then
 		if value and slot ~= 'INVTYPE_TABARD' and slot ~= 'INVTYPE_BODY' and subclass ~= FISHING_POLE then
 			if quality == POOR then
-				return ((slot ~= 'INVTYPE_SHOULDER' and level > INTRO_BREAKPOINT) or level > SHOULDER_BREAKPOINT)
+				return bound ~= LE_ITEM_BIND_ON_EQUIP and ((slot ~= 'INVTYPE_SHOULDER' and level > INTRO_BREAKPOINT) or level > SHOULDER_BREAKPOINT)
 			elseif quality >= UNCOMMON and quality <= EPIC and location and C_Item.IsBound(location) then
 				if IsEquippableItem(id) and not Search:BelongsToSet(id) then
 					return self:IsLowEquip(slot, level) or self.charsets.unusable and Search:IsUnusable(id)
@@ -156,7 +156,7 @@ function Scrap:IsFiltered(id, ...)
 		end
 
 	elseif quality == POOR then
-		return true
+		return bound ~= LE_ITEM_BIND_ON_EQUIP
 	elseif class == CONSUMABLES then
 		return self.charsets.consumable and quality < RARE and self:IsLowConsumable(level)
 	end
