@@ -8,7 +8,7 @@ local component = UI.CreateComponent("GuideContainer")
 function component.Init()
 	local frame = CreateFrame("Frame", nil, UIParent)
 	frame:Hide()
-	frame:SetSize(242, 120)
+	frame:SetSize(242, 40)
 	local windowLocation = State.GetWindowLocation()
 	if (windowLocation) then
 		frame:ClearAllPoints();
@@ -43,8 +43,17 @@ function component.Init()
 end
 
 function component.Update()
+	local inInstance = IsInInstance()
+	local shown
+	if (inInstance and State.IsHiddenInInstances()) then
+		shown = false
+	else
+		shown = State.IsGuideShown()
+	end
+	if (component.frame:IsShown() ~= shown) then
+		component.frame:SetShown(shown)
+	end
 	if (component:IsDirty() and not InCombatLockdown()) then
-		component.frame:SetShown(State.IsGuideShown())
 		component.frame:SetScale(State.GetGuideScale())
 		component:MarkClean()
 	end

@@ -3,7 +3,7 @@
         Credits/Blame: Phanx, Woopy, a14219
 --]]
 
-local CONFIG, Config = ...
+local CONFIG = ...
 local L = LibStub('AceLocale-3.0'):NewLocale(CONFIG, 'esES') or LibStub('AceLocale-3.0'):NewLocale(CONFIG, 'esMX')
 if not L then return end
 
@@ -82,6 +82,7 @@ L.MapFrame = 'Al abrir el mapa del mundo'
 -- colors
 L.ColorOptions = 'Opciones de color'
 L.ColorOptionsDesc = 'Estas opciones te permite cambiar los colores de las ranuras en las ventanas de %s.'
+
 L.GlowQuality = 'Colorear según la calidad'
 L.GlowQuest = 'Colorear objetos de misión'
 L.GlowUnusable = 'Colorear objetos inutilizables'

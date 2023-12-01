@@ -148,10 +148,18 @@ function component.Init(components)
 
     function GuideTooltip:SetSideAnchor()
         self:SetOwner(components.Header.frame, "ANCHOR_NONE")
-        if (ScreenSide.GetCurrentSide(components.GuideContainer.frame) == SCREEN_LEFT) then
-            self:SetPoint("TOPLEFT", components.Header.frame, "BOTTOMRIGHT", 3, 0)
+        if (State.IsInvertedModeEnabled()) then
+            if (ScreenSide.GetCurrentSide(components.GuideContainer.frame) == SCREEN_LEFT) then
+                self:SetPoint("BOTTOMLEFT", components.Header.frame, "TOPRIGHT", 3, 0)
+            else
+                self:SetPoint("BOTTOMRIGHT", components.Header.frame, "TOPLEFT", -18, 0)
+            end
         else
-            self:SetPoint("TOPRIGHT", components.Header.frame, "BOTTOMLEFT", -18, 0)
+            if (ScreenSide.GetCurrentSide(components.GuideContainer.frame) == SCREEN_LEFT) then
+                self:SetPoint("TOPLEFT", components.Header.frame, "BOTTOMRIGHT", 3, 0)
+            else
+                self:SetPoint("TOPRIGHT", components.Header.frame, "BOTTOMLEFT", -18, 0)
+            end
         end
     end
 

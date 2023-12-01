@@ -906,5 +906,4 @@ WMOAreas = {
 	["Zaetar's Grave"] = 31464,
 	["Zalashji's Den"] = 26630,
 	["Zeramas"] = 44468,
-	["foo"] = 18135,
 }

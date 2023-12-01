@@ -4,7 +4,7 @@
 GRM_Patch = {};
 local patchNeeded = false;
 local DBGuildNames = {};
-local totalPatches = 120;
+local totalPatches = 122;
 local startTime = 0;
 local FID = 0;
 local PID = 0;
@@ -1477,6 +1477,31 @@ GRM_Patch.SettingsCheck = function ( numericV , count , patch )
         end
     end
 
+    -- patch 121
+    patchNum = patchNum + 1;
+    if numericV < 1.988 and baseValue < 1.988 then
+        
+        GRM_Patch.ModifyMemberSpecificData ( GRM_Patch.FixStandardStamp , true , true , false , nil );
+        GRM_Patch.AddNewSetting ( "hideFramesInCombat" , true );
+
+        GRM_AddonSettings_Save.VERSION = "R1.988";
+        if loopCheck ( 1.988 ) then
+            return;
+        end
+    end
+
+    -- patch 122
+    patchNum = patchNum + 1
+    if numericV < 1.990 and baseValue < 1.990 then
+        
+        GRM_Patch.ModifyMemberSpecificData ( GRM_Patch.FixHCModeData , true , true , false , nil );
+
+        GRM_AddonSettings_Save.VERSION = "R1.990";
+        if loopCheck ( 1.990 ) then
+            return;
+        end
+    end
+
     GRM_Patch.FinalizeReportPatches( patchNeeded , numActions );
 end
 
@@ -1847,6 +1872,8 @@ end
 -- What it Does:    Converts a given timestamp: "22 Mar '17" into Epoch Seconds time (UTC timezone)
 -- Purpose:         On adding notes, epoch time is considered when calculating how much time has passed, for exactness and custom dates need to include it.
 GRM.TimeStampToEpoch = function ( timestamp , IsStartOfDay , knownHour , knownMinute , knownSeconds )
+    local monthEnum = { Jan = 1 , Feb = 2 , Mar = 3 , Apr = 4 , May = 5 , Jun = 6 , Jul = 7 , Aug = 8 , Sep = 9 , Oct = 10 , Nov = 11 , Dec = 12 };
+    local daysBeforeMonthEnum = { ['1']=0 , ['2']=31 , ['3']=59 , ['4']=90 , ['5']=120 , ['6']=151 , ['7']=181 , ['8']=212 , ['9']=243 , ['10']=273 , ['11']=304 , ['12']=334 };
     -- Parsing Timestamp to useful data.
     if not timestamp then
         return;
@@ -8199,7 +8226,7 @@ end
 -- Purpose:         Standard format change.
 GRM_Patch.FixStandardFormatAndRankHistFormat = function ( player )
 
-    if player.joinDateHist then
+    if player.joinDateHist and #player.joinDateHist[1] == 7 and player.joinDateHist[1][1] ~= "" then
         for i = 1 , #player.joinDateHist do
             if type ( player.joinDateHist[i][4] ) ~= string then
                 if player.joinDateHist[i][1] == 0 then
@@ -8214,7 +8241,7 @@ GRM_Patch.FixStandardFormatAndRankHistFormat = function ( player )
         player.rankHist = { { 0 , 0 , 0 , "0" , 0 , false , 1 } };
     end
 
-    if player.rankHist and #player.rankHist[1] == 8 then
+    if player.rankHist and #player.rankHist[1] == 8 and player.rankHist[1][2] ~= "" then
         for i = 1 , #player.rankHist do
             if type ( player.rankHist[i][5] ) ~= string then
                 if player.rankHist[i][2] == 0 then
@@ -8457,3 +8484,53 @@ GRM_Patch.ClearAllAltGroupsAndMainStatus = function( guildName )
 
     end
 end
+
+-- 1.988
+-- Method:          GRM_Patch.FixStandardStamp( playerTable )
+-- What it Does:    Fixes some formatting issues that existed from a previous bug
+-- Purpose:         Clean up DB.
+GRM_Patch.FixStandardStamp = function ( player )
+
+    if not player.rankHist[1] or type(player.rankHist[1][2]) == "String" then
+        player.rankHist = { { player.rankName , 0 , 0 , 0 , "0" , 0 , false , 1 } }; 
+    elseif type(player.rankHist[1][6]) == "String" then
+        if #player.rankHist[1][6] > 0 then
+            player.rankHist[1][6] = time();
+            player.rankHist[1][7] = true;
+        else
+            player.rankHist[1][6] = 0;
+            player.rankHist[1][7] = false;
+        end
+    end
+
+    if not player.joinDateHist[1] or type(player.joinDateHist[1][1]) == "String" then
+        player.rankHist = { { 0 , 0 , 0 , "0" , 0 , false , 1 } };
+    elseif type(player.rankHist[1][5]) == "String" then
+        if #player.rankHist[1][5] > 0 and player.rankHist[1][1] > 0 then
+            player.rankHist[1][5] = time();
+            player.rankHist[1][6] = true
+        else
+            player.rankHist[1][5] = 0;
+            player.rankHist[1][6] = false
+        end
+
+    end
+
+    return player
+end
+
+-- 1.990
+-- Method:          GRM_Patch.FixHCModeData( playerTable )
+-- What it Does:    Adds the 6th index of the timeOfDeath array. The default was only 5, but when death occurred a new entry was added
+-- Purpose:         Consistency of the DB so it is easier to parse with external tools
+GRM_Patch.FixHCModeData = function ( player )
+
+    if player.HC then
+        if #player.HC.timeOfDeath == 5 then
+            player.HC.timeOfDeath[6] = false;
+        end
+    end
+    
+    return player
+end
+

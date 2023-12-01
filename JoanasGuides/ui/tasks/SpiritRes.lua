@@ -20,4 +20,11 @@ function TaskType:RenderFunc(task, container)
     end
 end
 
+function TaskType:Setup(task)
+    if (not task.setupCompleted) then
+        task.condition = task.condition and "not HC and (DEADORGHOST or (" .. task.condition .. "))" or "not HC and DEADORGHOST"
+        task.setupCompleted = true
+    end
+end
+
 RegisterTaskType(TaskType)

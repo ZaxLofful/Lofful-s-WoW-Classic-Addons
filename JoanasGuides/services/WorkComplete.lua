@@ -18,7 +18,7 @@ function WorkCompleteService.Update()
 			local playSound = false
 			if (tracker) then
 				for task, val in pairs(tracker) do
-					if (task.completedPassed and false) then
+					if (task.completedPassed) then
 						playSound = true
 						break
 					else
@@ -46,7 +46,7 @@ function WorkCompleteService.Update()
 		tracker = { }
 		if (currentStep) then
 			for _, taskGroup in ipairs(currentStep) do
-				if (taskGroup.conditionPassed and not taskGroup.completedPassed) then
+				if (taskGroup.conditionPassed) then
 					for _, task in ipairs(taskGroup) do
 						if (task.conditionPassed and not task.completedPassed) then
 							local questID = task.complete or task.startwork

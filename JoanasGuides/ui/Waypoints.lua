@@ -4,7 +4,7 @@ select(2, ...).SetupGlobalFacade()
 local component = UI.CreateComponent("Waypoints")
 
 local arrow = addon.CreateArrow(0, 1, 0)
-local currentWaypoint, currentLocation, tooltipLabel, tooltipAltLabel
+local currentWaypoint, currentLocation, tooltipLabel, tooltipAltLabel, pingSetting
 
 arrow.tooltip = {
 	Show = function(this)
@@ -43,6 +43,10 @@ function component.Update()
 			end
 		end
 		local changed = false
+		if (State.IsMapPingAnimationEnabled() ~= pingSetting) then
+			changed = true
+			pingSetting = State.IsMapPingAnimationEnabled()
+		end
 		if (currentLocation ~= activeLocation) then
 			currentLocation = activeLocation
 			changed = true
@@ -55,7 +59,7 @@ function component.Update()
 		end
 		if (changed) then
 			if (currentLocation) then
-				arrow:SetTarget(currentLocation.x / 100, currentLocation.y / 100, currentLocation.map)
+				arrow:SetTarget(currentLocation.x / 100, currentLocation.y / 100, currentLocation.map, not State.IsMapPingAnimationEnabled())
 				tooltipLabel = currentLocation:GetTooltipLabel()
 				tooltipAltLabel = currentLocation:GetTooltipLabel(true)
 			else
@@ -69,12 +73,17 @@ function component.Update()
 					currentWaypoint = nil
 				end
 				if (currentLocation) then
+					local arrivaldistance = 1
+					if (currentLocation.radius ~= 0) then
+						arrivaldistance = currentLocation.radius
+					end
 					currentWaypoint = TomTom:AddWaypoint(currentLocation.map, currentLocation.x / 100, currentLocation.y / 100, {
 						title = tooltipAltLabel,
 						persistent = false,
 						minimap = false,
 						world = false,
 						cleardistance = 0,
+						arrivaldistance = arrivaldistance,
 					})
 				end
 			end

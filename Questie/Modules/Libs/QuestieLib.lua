@@ -106,7 +106,7 @@ function QuestieLib:GetRGBForObjective(objective)
     end
 
     local float = objective.Collected / objective.Needed
-    local trackerColor = Questie.db.global.trackerColorObjectives
+    local trackerColor = Questie.db.profile.trackerColorObjectives
     if not trackerColor or trackerColor == "white" or trackerColor == "minimal" then
         -- White
         return "|cFFEEEEEE"
@@ -136,7 +136,7 @@ function QuestieLib:GetColoredQuestName(questId, showLevel, showState, blizzLike
         name = QuestieLib:GetQuestString(questId, name, level, blizzLike)
     end
 
-    if Questie.db.global.enableTooltipsQuestID then
+    if Questie.db.profile.enableTooltipsQuestID or Questie.IsSoD then
         name = name .. " (" .. questId .. ")"
     end
 
@@ -149,7 +149,7 @@ function QuestieLib:GetColoredQuestName(questId, showLevel, showState, blizzLike
             name = name .. " " .. Questie:Colorize("(" .. l10n("Complete") .. ")", "green")
 
         -- Quests treated as complete - zero objectives or synthetic objectives
-        elseif isComplete == 0 and QuestieDB:GetQuest(questId).isComplete == true then
+        elseif isComplete == 0 and QuestieDB.GetQuest(questId).isComplete == true then
             name = name .. " " .. Questie:Colorize("(" .. l10n("Complete") .. ")", "green")
         end
     end
@@ -256,7 +256,9 @@ end
 --- same as the player level. This function should be used whenever accessing the quest or required level.
 ---@param questId QuestId
 ---@param playerLevel Level? ---@ PlayerLevel, if nil we fetch current level
----@return Level questLevel, Level requiredLevel @questLevel & requiredLevel
+---@return Level questLevel
+---@return Level requiredLevel
+---@return Level requiredMaxLevel
 function QuestieLib.GetTbcLevel(questId, playerLevel)
     local questLevel, requiredLevel = QuestieDB.QueryQuestSingle(questId, "questLevel"), QuestieDB.QueryQuestSingle(questId, "requiredLevel")
     if (questLevel == -1) then
@@ -269,7 +271,7 @@ function QuestieLib.GetTbcLevel(questId, playerLevel)
             requiredLevel = level;
         end
     end
-    return questLevel, requiredLevel;
+    return questLevel, requiredLevel, QuestieDB.QueryQuestSingle(questId, "requiredMaxLevel");
 end
 
 ---@param questId QuestId
@@ -362,7 +364,7 @@ function QuestieLib:GetRaceString(raceMask)
 end
 
 function QuestieLib:CacheItemNames(questId)
-    local quest = QuestieDB:GetQuest(questId)
+    local quest = QuestieDB.GetQuest(questId)
     if (quest and quest.ObjectiveData) then
         for _, objectiveDB in pairs(quest.ObjectiveData) do
             if objectiveDB.Type == "item" then

@@ -420,22 +420,23 @@ function DBM_GUI:CreateBossModPanel(mod)
 				elseif tonumber(spellID) then
 					spellID = tonumber(spellID)
 					if spellID < 0 then
-					    title, desc, _, icon = DBM:EJ_GetSectionInfo(-spellID)
+						title, desc, _, icon = DBM:EJ_GetSectionInfo(-spellID)
 					else
 						local _title = DBM:GetSpellInfo(spellID)
 						if _title then
 							title, desc, icon = _title, tonumber(spellID), GetSpellTexture(spellID)
-						else--Not a valid spellid (Such as a ptr/beta mod loaded on live
-							title, desc, icon = spellID, L.NoDescription, 136116
 						end
 					end
 				elseif spellID:find("^ej") then
 					title, desc, _, icon = DBM:EJ_GetSectionInfo(spellID:gsub("ej", ""))
 				elseif spellID:find("^at") then
-					spellID = spellID:gsub("at", "")
-					_, title, _, _, _, _, _, desc, _, icon = GetAchievementInfo(spellID)
-				else
-					title = spellID
+					_, title, _, _, _, _, _, desc, _, icon = GetAchievementInfo(spellID:gsub("at", ""))
+					if not title then--Core has debug for spell and EJ, but this calls WoW API directly
+						DBM:Debug("|cffff0000Invalid call to GetAchievementInfo for achievementID: |r"..spellID:gsub("at", ""))
+					end
+				end
+				if not title then--Spell/EJ section/achievement not found - typo/removed/ptr or beta mod on live
+					title, desc, icon = spellID, L.NoDescription, 136116
 				end
 				if not usedSpellID then
 					usedSpellID = "|Hgarrmission:DBM:wacopy:"..spellID.."|h|cff69ccf0"..spellID.."|r|h"
@@ -661,7 +662,7 @@ do
 		area.frame:SetPoint("TOPLEFT", 10, modProfileArea and -260 or -25)
 
 		local statOrder = {
-			"lfr", "normal", "normal25", "heroic", "heroic25", "mythic", "challenge", "timewalker"
+			"lfr", "follower", "normal", "normal25", "heroic", "heroic25", "mythic", "challenge", "timewalker"
 		}
 
 		for _, mod in ipairs(DBM.Mods) do
@@ -728,6 +729,7 @@ do
 				end
 
 				local statTypes = {
+					follower	= "Follower",--no PLAYER_DIFFICULTY entry yet
 					lfr25		= PLAYER_DIFFICULTY3,
 					normal		= mod.addon.minExpansion < 5 and RAID_DIFFICULTY1 or PLAYER_DIFFICULTY1,
 					normal25	= RAID_DIFFICULTY2,
@@ -845,7 +847,6 @@ do
 						else
 							mod.panel = addon.panel:CreateNewPanel(mod.id or "Error: DBM.Mods", addon.optionsTab, nil, nil, mod.localization.general.name)
 						end
-						DBM_GUI:CreateBossModPanel(mod)
 					end
 				end
 			end

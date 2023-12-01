@@ -42,6 +42,8 @@ function LocationsInitService.InitGuide(guide)
                         gameobject = locationAsTable and locationAsTable.gameobject,
                         conditionPassed = false,
                         onactivate = locationAsTable.onactivate,
+                        onenter = locationAsTable.onenter,
+                        onleave = locationAsTable.onleave,
                         root = step,
                         idx = idx
                     }, LocationMixin)

@@ -142,27 +142,18 @@ end
 function TaxiService.OnGossipShow()
 	if (not GuideNavigationService.IsGuideSet()) then return false end
 	local gossipOption
-	if (C_GossipInfo and C_GossipInfo.GetOptions) then
-		local options = C_GossipInfo.GetOptions()
-		if (options) then
-			for idx, option in ipairs(options) do
-				if (option.icon == 132057) then
-					gossipOption = idx
-					break
-				end
-			end
-		end
-	else
-		local options = { GetGossipOptions() }
-		for i = 1, #options, 2 do
-			if (options[i + 1] == "taxi") then
-				gossipOption = (i + 1) / 2
+	local options = C_GossipInfo.GetOptions()
+	if (options) then
+		for _, option in ipairs(options) do
+			if (option.icon == 132057) then
+				gossipOption = option
+				break
 			end
 		end
 	end
 	if (gossipOption and FindEligibleTaxiNode()) then
 		if (State.IsAutoTaxiEnabled()) then
-			SelectGossipOption(gossipOption)
+			C_GossipInfo.SelectOption(gossipOption.gossipOptionID)
 		end
 		return true
 	end

@@ -5,8 +5,8 @@ local TaskType = Mixin({
 	type = "button"
 }, TaskTypeMixin)
 
-function TaskType:IsCompletedFunc()
-	return false
+function TaskType:IsCompletedFunc(task)
+	return task.optional or false
 end
 
 function TaskType:RenderFunc(task, container)

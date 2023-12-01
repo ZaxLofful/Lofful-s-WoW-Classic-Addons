@@ -5,8 +5,8 @@
 ## X-License: All Rights Reserved
 ## X-Category: Bags & Inventory
 
-## Version: 10.1.4
-## Interface: 100107
+## Version: 10.2.1
+## Interface: 100200
 ## Dependencies: Scrap
 ## LoadOnDemand: 1
 

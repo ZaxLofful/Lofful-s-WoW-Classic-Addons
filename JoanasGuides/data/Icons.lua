@@ -47,6 +47,14 @@ Icons = {
 		atlas = "VignetteKill",
 		scale = 1.2,
 	},
+	["vignetteloot"] = {
+		atlas = "VignetteLoot",
+		scale = 1.2,
+	},
+	["vignetteelite"] = {
+		atlas = "VignetteLootElite",
+		scale = 1.2,
+	},
 	["warlockportalhorde"] = {
 		atlas = "warlockportalhorde",
 		scale = 1.2

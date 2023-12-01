@@ -75,7 +75,9 @@ local function OnUpdate()
                 else
                     if (not arrow.ping:IsShown()) then
                         arrow.ping:Show()
-                        arrow.ping.animation:Play()
+                        if (arrow.enablePingAnimation) then
+                            arrow.ping.animation:Play()
+                        end
                     end
                     local xDist = unitPositionY - arrow.worldTargetY
                     local yDist = unitPositionX - arrow.worldTargetX
@@ -126,7 +128,7 @@ frame:SetScript("OnUpdate", OnUpdate)
 
 local ArrowMixin = { }
 
-function ArrowMixin:SetTarget(targetX, targetY, mapID)
+function ArrowMixin:SetTarget(targetX, targetY, mapID, disablePingAnimation)
     assert(type(targetX) == "number")
     assert(type(targetY) == "number")
     assert(type(mapID) == "number")
@@ -136,9 +138,15 @@ function ArrowMixin:SetTarget(targetX, targetY, mapID)
     local _, coordinate = C_Map.GetWorldPosFromMapPos(mapID, { x = targetX, y = targetY })
     self.worldTargetX = coordinate.x
     self.worldTargetY = coordinate.y
+    self.enablePingAnimation = not disablePingAnimation
     arrows[self] = true
     active = true
     self:Show()
+    if (disablePingAnimation) then
+        self.ping.animation:Stop()
+    else
+        self.ping.animation:Play()
+    end
 end
 
 function ArrowMixin:ClearTarget()

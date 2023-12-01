@@ -146,6 +146,35 @@ setmetatable(DEBUFF, {
 	end
 })
 
+local SPELL = { }
+
+setmetatable(SPELL, {
+	__index = function(_, key)
+		return IsPlayerSpell(key)
+	end
+})
+
+local SPELLCAST = { }
+
+setmetatable(SPELLCAST, {
+	__index = function(_, key)
+		if (currentRoot) then
+			if (currentRoot == GuideNavigationService.GetStep()) then
+				SpellsCastService.AddWatch(key)
+			end
+			return SpellsCastService.WasSpellCast(key)
+		end
+	end
+})
+
+local PETSPELL = { }
+
+setmetatable(PETSPELL, {
+	__index = function(_, key)
+		return PetSpellsService.HasPetSpell(key)
+	end
+})
+
 local contextFunctions = {
 	ACTIVE = function()
 		if (currentRoot ~= GuideNavigationService.GetStep()) then return 0 end
@@ -187,6 +216,9 @@ local contextFunctions = {
 	end,
 	HC = function()
 		return HardcoreService.IsHardcoreEnabled()
+	end,
+	INGROUP = function()
+		return IsInGroup()
 	end,
 	JOYOUS = function()
 		return AuraService.PlayerHasBuff(377749)
@@ -319,6 +351,9 @@ function Condition_OnAddonLoad()
 	else
 		context["TBC"] = true
 	end
+	if (C_GameRules and C_GameRules.HasActiveSeason and C_GameRules.HasActiveSeason() and C_GameRules.GetActiveSeason() ~= Enum.SeasonID.Hardcore) then
+		context["SOD"] = true
+	end
 	context["PHASE"] = 6
 	context[playerClass] = true
 	Condition_ResetGuides()
@@ -343,6 +378,9 @@ function Condition_OnAddonLoad()
 	context["EXITED"] = EXITED
 	context["BUFF"] = BUFF
 	context["DEBUFF"] = DEBUFF
+	context["SPELL"] = SPELL
+	context["PETSPELL"] = PETSPELL
+	context["SPELLCAST"] = SPELLCAST
 	context["SESSION"] = CustomVariablesService.GetSessionScope()
 	context["VAR"] = CustomVariablesService.GetCharacterScope()
 	for k, v in pairs(ProfessionService.Tiers) do
@@ -351,6 +389,9 @@ function Condition_OnAddonLoad()
 	for k in pairs(Professions) do
 		contextFunctions[k] = function()
 			return ProfessionService.PlayerProfessions[k] or 0
+		end
+		contextFunctions[k .. "_POINTS"] = function()
+			return ProfessionService.GetPoints(k)
 		end
 	end
 	for _, slotName in ipairs(EquipmentService.GetSlotNames()) do

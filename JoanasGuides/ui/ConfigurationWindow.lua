@@ -3,12 +3,11 @@ select(2, ...).SetupGlobalFacade()
 
 local frame, isMoving
 
-local Init, ShowTooltip, HideTooltip
+local ShowTooltip, HideTooltip
 
 local component = UI.CreateComponent("ConfigurationWindow")
 
-function Init()
-    if (frame) then return end
+function component:Init()
     local BACKDROP_GLUE_TOOLTIP_16_16 = {
         bgFile = "Interface\\Glues\\Common\\Glue-Tooltip-Background",
         edgeFile = "Interface\\Glues\\Common\\Glue-Tooltip-Border",
@@ -53,11 +52,18 @@ function Init()
     title2:SetText("Configuration Options")
 
     local lastComponent
+    local hcTooltip
+    if (HardcoreService.IsHardcoreServer()) then
+        hcTooltip = "Cannot be turned off when playing on official Hardcore servers. This is for your own safety"
+    else
+        hcTooltip = "Effectively takes out death warps and makes your journey through Azeroth safer.\n\n(setting saved per character)"
+    end
 
     local options = {
         {
             text = L["Hardcore Mode"],
-            tooltip = "Effectively takes out death warps and makes your journey through Azeroth safer.\n\n(setting saved per character)",
+            tooltip = hcTooltip,
+            enabled = not HardcoreService.IsHardcoreServer(),
             checked = function()
                 return HardcoreService.IsHardcoreEnabled()
             end,
@@ -68,7 +74,7 @@ function Init()
         },
         {
             text = L["Open World Grouping"],
-            tooltip = "Steps labeled \"GROUP 2+ Players\" are taken out of the guide.\n\n(setting saved per character)",
+            tooltip = "When checked, steps requiring a group are included in the guide.\n\nAlthough the official Hardcore servers allow this, disabling the option is useful if you are playing with a more strict unofficial hardcore ruleset.\n\n(setting saved per character)",
             checked = function()
                 return State.IsGroupingEnabled()
             end,
@@ -79,7 +85,7 @@ function Init()
         },
         {
             text = L["Auction House / Mailbox Usage"],
-            tooltip = "Unofficial Hardcore uses these rules.\n\n(setting saved per character)",
+            tooltip = "When checked, steps involving use of the auction house and mailbox are included in the guide.\n\nAlthough the official Hardcore servers allow this, disabling the option is useful if you are playing with a more strict unofficial hardcore ruleset.\n\n(setting saved per character)",
             checked = function()
                 return State.IsAHEnabled()
             end,
@@ -90,12 +96,32 @@ function Init()
         },
         {
             text = L["Automatically Accept and Turn-In Quests"],
-            tooltip = "The addon will only accept & turn-in quests that pertain to the guide. If you are using another addon that automatically accept/turn-in quests, then it’s recommended to turn that off\n\n(setting saved account-wide)",
+            tooltip = "The addon will only accept & turn-in quests that pertain to the guide. If you are using another addon that automatically accept/turn-in quests, then it’s recommended to turn that off on those other addons.\n\n(setting saved account-wide)",
             checked = function()
                 return State.IsAutoQuestsEnabled()
             end,
             func = function()
                 State.SetAutoQuestsEnabled(not State.IsAutoQuestsEnabled())
+            end
+        },
+        {
+            text = L["Automatically Make Inns Your Home"],
+            tooltip = "On steps where the guide is instructing you to do so, the addon will automatically make the inn your home (set hearthstone location) when you interact with any innkeeper.\n\n(setting saved account-wide)",
+            checked = function()
+                return State.IsAutoSetHome()
+            end,
+            func = function()
+                State.SetAutoSetHome(not State.IsAutoSetHome())
+            end
+        },
+        {
+            text = L["Automatically Bank Items"],
+            tooltip = "When you access the bank while on a step that requires depositing or withdrawing items, the addon will automatically do it for you.\n\n(setting saved account-wide)",
+            checked = function()
+                return State.IsAutoBankingEnabled()
+            end,
+            func = function()
+                State.SetAutoBankingEnabled(not State.IsAutoBankingEnabled())
             end
         },
         {
@@ -120,7 +146,13 @@ function Init()
         },
         {
             text = L["Show Step ID"],
-            tooltip = "Shown above addon, the Step ID is a mirror from the web guides. Also use the Step ID to report bugs to me.\n\n(setting saved account-wide)",
+            tooltip = function()
+                if (State.IsInvertedModeEnabled()) then
+                    return "Shown underneath addon, the Step ID is a mirror from the web guides. Also use the Step ID to report bugs to Joana.\n\n(setting saved account-wide)"
+                else
+                    return "Shown above addon, the Step ID is a mirror from the web guides. Also use the Step ID to report bugs to Joana.\n\n(setting saved account-wide)"
+                end
+            end,
             isNotRadio = true,
             notCheckable = false,
             checked = function()
@@ -143,6 +175,18 @@ function Init()
             end
         },
         {
+            text = L["Animated Map Ping"],
+            tooltip = "Animate the minimap ping when showing the location of the current waypoint\n\n(setting saved account-wide)",
+            isNotRadio = true,
+            notCheckable = false,
+            checked = function()
+                return State.IsMapPingAnimationEnabled()
+            end,
+            func = function()
+                State.SetMapPingAnimationEnabled(not State.IsMapPingAnimationEnabled())
+            end
+        },
+        {
             text = L["Automatically Mark Targeted NPCs"],
             tooltip = "Raid symbol will appear above selected targets\n\n(setting saved account-wide)",
             isNotRadio = true,
@@ -152,6 +196,18 @@ function Init()
             end,
             func = function()
                 State.SetTargetMarkingEnabled(not State.IsTargetMarkingEnabled())
+            end
+        },
+        {
+            text = L["Hide Guide When in Instances"],
+            tooltip = "When checked, the guide will be hidden automatically when you enter an instance\n\n(setting saved account-wide)",
+            isNotRadio = true,
+            notCheckable = false,
+            checked = function()
+                return State.IsHiddenInInstances()
+            end,
+            func = function()
+                State.SetHiddenInInstances(not State.IsHiddenInInstances())
             end
         },
         {
@@ -255,13 +311,18 @@ function Init()
         frame:Hide()
     end)
     frame:OnBackdropLoaded()
-    frame:SetSize(320, 376) -- + 22 for every checkbutton
+    frame:SetSize(320, 464) -- + 22 for every checkbutton
+    frame:Hide();
 end
 
 function ShowTooltip(button)
     GuideTooltip:SetOwner(frame, "ANCHOR_NONE")
     GuideTooltip:AddLine(button.opts.text)
-    GuideTooltip:AddLine(button.opts.tooltip, 1, 1, 1, true)
+    if (type(button.opts.tooltip) == "function") then
+        GuideTooltip:AddLine(button.opts.tooltip(), 1, 1, 1, true)
+    else
+        GuideTooltip:AddLine(button.opts.tooltip, 1, 1, 1, true)
+    end
     GuideTooltip:SetPoint("LEFT", button, "RIGHT", 12, 0)
     GuideTooltip:Show()
 end
@@ -271,7 +332,6 @@ function HideTooltip(button)
 end
 
 function UI.OpenConfigurationWindow()
-    Init()
     frame:ClearAllPoints()
     frame:SetPoint("CENTER", UIParent, "CENTER")
     frame:Show()

@@ -112,13 +112,14 @@ function LocationsService.SetStep(step)
         for _, location in ipairs(locations) do
             location:ResetFlags()
             location.within = nil
+            location.withinChanged = nil
             location.conditionPassed = nil
             location.activateFired = nil
         end
     end
 end
 
-function LocationsService.UpdateActiveLocation()
+function LocationsService.UpdateLocations()
     local lastActiveLocation = activeLocation
     --If ACTIVE has previously been initialized, but its location is now unavailable, set ACTIVE to nil (uninitalize)
     if (activeLocation and (not activeLocation.conditionPassed or Flags.HasFlag(activeLocation, "H"))) then
@@ -149,15 +150,19 @@ function LocationsService.UpdateActiveLocation()
         activeLocation = GetNextCheckpoint()
     end
     -- Reset activateFired for all locations no longer activated
+    local triggersUpdated
     if (locations) then
         for _, location in ipairs(locations) do
             if (location ~= activeLocation) then
                 location.activateFired = nil
             end
+            if (location.onenter or location.onleave) then
+                triggersUpdated = triggersUpdated or TriggerService.OnEnterOrLeave(location)
+            end
         end
     end
     TriggerService.OnActivate(activeLocation)
-    return activeLocation ~= lastActiveLocation
+    return activeLocation ~= lastActiveLocation or triggersUpdated
 end
 
 function LocationsService.UpdateCheckpoint()
@@ -175,12 +180,12 @@ function LocationsService.UpdateCheckpoint()
 end
 
 function LocationsService.UpdatePlayerPosition()
-    local x, y
+    local x, y, continentID, _
     if (PlayerPositionOverride) then
-        x, y = PlayerPositionOverride()
+        x, y, _, continentID  = PlayerPositionOverride()
     end
     if (not x) then
-        x, y = UnitPosition("player")
+        x, y, _, continentID = UnitPosition("player")
     end
     if (not x) then
         x, y = lastX, lastY
@@ -196,7 +201,7 @@ function LocationsService.UpdatePlayerPosition()
             for idx, location in ipairs(locations) do
                 local distance = x and addon.GetDistanceInYards(x, y, location.worldX, location.worldY) or 2147483647
                 local within
-                if (PlacesService.GetCurrentContinentID() == location.continentID) then
+                if (continentID == location.continentID) then
                     within = distance <= location.radius
                 else
                     within = false
@@ -204,6 +209,7 @@ function LocationsService.UpdatePlayerPosition()
                 if (within ~= location.within) then
                     changed = true
                     location.within = within
+                    location.withinChanged = true
                 end
                 if (within and bookmark.visited[idx] ~= within) then
                     bookmark.visited[idx] = true

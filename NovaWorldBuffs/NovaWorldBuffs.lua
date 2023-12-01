@@ -1585,7 +1585,7 @@ local buffLag, dl1, dl2 = 15;
 local lastZanBuffGained = 0;
 local lastDmfBuffGained = 0;
 local lastHeraldAlert = 0;
-local speedtest = 0;
+--local speedtest = 0;
 local waitingCombatEnd, hideSummonPopup;
 local lastRendHandIn, lastOnyHandIn, lastNefHandIn, lastZanHandIn = 0, 0, 0, 0;
 local unitDamageFrame = CreateFrame("Frame");
@@ -1885,7 +1885,7 @@ function NWB:combatLogEventUnfiltered(...)
 			if (expirationTime >= 7199) then
 				NWB:trackNewBuff(spellName, "dmf", npcID);
 				lastDmfBuffGained = GetServerTime();
-				NWB:debug(GetTime() - speedtest);
+				--NWB:debug(GetTime() - speedtest);
 				if (NWB.db.global.dmfGotBuffSummon) then
 					if (not InCombatLockdown() and C_SummonInfo.GetSummonConfirmTimeLeft() > 0) then
 						hideSummonPopup = true;
@@ -2756,7 +2756,7 @@ function NWB:printDmfPercent()
 end
 
 --Track our current buff durations across all chars.
-local gotPlayedData;
+local gotPlayedData, reregisterPlayedEvent;
 local chronoRestoreUsed = 0;
 function NWB:trackNewBuff(spellName, type, npcID)
 	if (not NWB.data.myChars[UnitName("player")].buffs[spellName]) then
@@ -2795,7 +2795,10 @@ function NWB:trackNewBuff(spellName, type, npcID)
 		NWB.currentTrackBuff = NWB.data.myChars[UnitName("player")].buffs[spellName];
 		--Hide the msg from chat.
 		if (not gotPlayedData) then
-			DEFAULT_CHAT_FRAME:UnregisterEvent("TIME_PLAYED_MSG");
+			if (DEFAULT_CHAT_FRAME:IsEventRegistered("TIME_PLAYED_MSG")) then
+				reregisterPlayedEvent = true;
+				DEFAULT_CHAT_FRAME:UnregisterEvent("TIME_PLAYED_MSG");
+			end
 			gotPlayedData = true;
 			RequestTimePlayed();
 		end
@@ -3451,7 +3454,9 @@ function NWB:timePlayedMsg(...)
 	end
 	--Reregister the chat frame event after we're done.
 	--C_Timer.After(5, function()
-		DEFAULT_CHAT_FRAME:RegisterEvent("TIME_PLAYED_MSG");
+		if (reregisterPlayedEvent) then
+			DEFAULT_CHAT_FRAME:RegisterEvent("TIME_PLAYED_MSG");
+		end
 	--end)
 	NWB:syncBuffsWithCurrentDuration();
 	NWB:recalcBuffTimers();
@@ -3837,7 +3842,10 @@ f:SetScript("OnEvent", function(self, event, ...)
 				--Only request played data at logon if we didn't get it already for some reason.
 				if (not gotPlayedData) then
 					gotPlayedData = true;
-					DEFAULT_CHAT_FRAME:UnregisterEvent("TIME_PLAYED_MSG");
+					if (DEFAULT_CHAT_FRAME:IsEventRegistered("TIME_PLAYED_MSG")) then
+						reregisterPlayedEvent = true;
+						DEFAULT_CHAT_FRAME:UnregisterEvent("TIME_PLAYED_MSG");
+					end
 					RequestTimePlayed();
 				end
 			end)
@@ -12839,7 +12847,7 @@ function NWB:fastDmfDamageBuff()
 	if ((GetServerTime() - fastBuffRunning) < (count * delay)) then
 		return;
 	end
-	speedtest = GetTime();
+	--speedtest = GetTime();
 	SelectGossipOption(1);
 	fastBuffRunning = GetServerTime();
 	for i = 1, count do
@@ -12895,9 +12903,9 @@ f:SetScript("OnEvent", function(self, event, ...)
 	end
 end)
 
-function NWB:buffDroppedTaxiNode(type, skipCheck)
+function NWB:buffDroppedTaxiNode(buffType, skipCheck)
 	local _, _, zone = NWB.dragonLib:GetPlayerZonePosition();
-	if (type == "zg") then
+	if (buffType == "zg") then
 		local g1 = GetGossipOptions();
 		--Fix for for when it was moved to C_GossipInfo and changed to a table instead of strings, but still backwards compatible.
 		if (g1 and type(g1) == "table") then

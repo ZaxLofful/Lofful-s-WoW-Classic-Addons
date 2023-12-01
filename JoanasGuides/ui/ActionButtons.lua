@@ -82,7 +82,13 @@ function component.Update()
 						else
 							if (actionButton.buttonRef and ((hasKeybinds and hasVisible)
 									or (hasVisibleTaskGroups[actionButton.buttonRef.parent]))) then
-								actionButton.dim = true
+								local step = GuideNavigationService.GetStep()
+								actionButton.dim = nil
+								for i = actionButton.buttonRef.parent.idx + 1, #step do
+									if (step[i].conditionPassed and not step[i].completedPassed) then
+										actionButton.dim = true
+									end
+								end
 							else
 								actionButton.dim = nil
 							end
@@ -180,6 +186,7 @@ function component.Update()
 				actionButton:UpdateCount()
 			end
 		end
+		TargetScanService.Reset()
 		updateTimer = TOOLTIP_UPDATE_TIME;
 	end
 	for _, actionButton in ipairs(actionButtons) do

@@ -36,10 +36,12 @@
 	<Script file="ui/Target.lua" />
 	<Script file="ui/map/MapPinsContainer.lua" />
 	<Script file="ui/TaskType.lua" />
+	<Script file="ui/tasks/BankTaskMixin.lua" />
 	<Script file="ui/tasks/DoQuestMixin.lua" />
 	<Script file="ui/tasks/Accept.lua" />
 	<Script file="ui/tasks/Button.lua" />
 	<Script file="ui/tasks/Complete.lua" />
+	<Script file="ui/tasks/Deposit.lua" />
 	<Script file="ui/tasks/Die.lua" />
 	<Script file="ui/tasks/GameObject.lua" />
 	<Script file="ui/tasks/GetItem.lua" />
@@ -53,6 +55,7 @@
 	<Script file="ui/tasks/TakeTaxi.lua" />
 	<Script file="ui/tasks/Text.lua" />
 	<Script file="ui/tasks/Turnin.lua" />
+	<Script file="ui/tasks/Withdraw.lua" />
 	<Script file="ui/MenuButton.lua" />
 	<Script file="ui/Slider.lua" />
 	<Script file="ui/ConfigurationWindow.lua" />

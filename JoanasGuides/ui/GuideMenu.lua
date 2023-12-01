@@ -174,6 +174,20 @@ local function createGuideMenu()
 			})
 	table.insert(
 			menuData,
+			{
+				text = L["Inverted Mode"],
+				isNotRadio = true,
+				notCheckable = false,
+				checked = function()
+					return State.IsInvertedModeEnabled()
+				end,
+				func = function()
+					State.SetInvertedModeEnabled(not State.IsInvertedModeEnabled())
+					UI.CloseGuideMenu()
+				end
+			})
+	table.insert(
+			menuData,
 			1,
 			{
 				text = string.format("%s v%s", L["Joana's Speed Leveling Guides"], GuideModules.GetAddonVersion()),
@@ -220,14 +234,26 @@ function UI.ToggleGuideMenu()
 	if (guideMenu:IsShown()) then
 		guideMenu:Display(false)
 	else
-		if (GuideNavigationService.IsGuideSet()) then
-			if (ScreenSide.GetCurrentSide(guideContainer.frame) == SCREEN_LEFT) then
-				guideMenu:Display(createGuideMenu(), "TOPLEFT", guideHeader.frame, "BOTTOMRIGHT", -4, 2)
+		if (State.IsInvertedModeEnabled()) then
+			if (GuideNavigationService.IsGuideSet()) then
+				if (ScreenSide.GetCurrentSide(guideContainer.frame) == SCREEN_LEFT) then
+					guideMenu:Display(createGuideMenu(), "BOTTOMLEFT", guideHeader.frame, "TOPRIGHT", -4, -2)
+				else
+					guideMenu:Display(createGuideMenu(), "BOTTOMRIGHT", guideHeader.frame, "TOPLEFT", -16, -2)
+				end
 			else
-				guideMenu:Display(createGuideMenu(), "TOPRIGHT", guideHeader.frame, "BOTTOMLEFT", -16, 2)
+				guideMenu:Display(createGuideMenu(), "BOTTOMLEFT", guideHeader.frame, "TOPLEFT", -34, 0)
 			end
 		else
-			guideMenu:Display(createGuideMenu(), "TOPLEFT", guideHeader.frame, "BOTTOMLEFT", -20, 0)
+			if (GuideNavigationService.IsGuideSet()) then
+				if (ScreenSide.GetCurrentSide(guideContainer.frame) == SCREEN_LEFT) then
+					guideMenu:Display(createGuideMenu(), "TOPLEFT", guideHeader.frame, "BOTTOMRIGHT", -4, 2)
+				else
+					guideMenu:Display(createGuideMenu(), "TOPRIGHT", guideHeader.frame, "BOTTOMLEFT", -16, 2)
+				end
+			else
+				guideMenu:Display(createGuideMenu(), "TOPLEFT", guideHeader.frame, "BOTTOMLEFT", -20, 0)
+			end
 		end
 	end
 end

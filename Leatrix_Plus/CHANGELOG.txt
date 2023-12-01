@@ -1,3 +1,46 @@
+1.15.04 - 29th November 2023
+- For 'Enhance minimap' ('Interface'), fixed an issue which caused a button to be created for SexyMap (if installed).
+- Added flight times.
+
+1.15.03 - 22nd November 2023
+- Added flight times.
+
+1.15.01.alpha.1 - 15th November 2023
+- Code updates.
+
+1.15.00 - 15th November 2023
+- Preliminary update for game version 1.15.0.
+- For 'Enhance trainers' ('Interface'), fixed an issue which caused trainer frames to show alongside gossip frames.
+- Added flight times.
+
+1.14.135 - 8th November 2023
+- For 'Enhance tooltip' ('Interface'), the scale slider now applies to the game settings panel tooltips.
+- Added flight times.
+
+1.14.134 - 1st November 2023
+- For 'Enhance tooltip' ('Interface'), the scale slider now applies to LibDBIcon tooltips.
+- General code updates.
+- Added flight times.
+
+1.14.133 - 25th October 2023
+- For 'Enhance minimap' ('Interface'), fixed an issue with the consolidated buffs frame layering.
+- Added flight times.
+
+1.14.131 - 11th October 2023
+- Added flight times.
+
+1.14.130 - 4th October 2023
+- Fixed a potential issue with 'Automate quests' ('Automation') which may have occasionally shown a Lua error when accepting a quest.
+- Added flight times.
+
+1.14.129 - 27th September 2023
+- For 'Enhance minimap', removed the 'Hide the world map button' option since it's no longer used.
+- Updated flight data structure, replaced SoM references with Hardcore and reduced memory usage for 'Show flight times' ('Interface').
+- Added flight times.
+
+1.14.128 - 20th September 2023
+- Added flight times.
+
 1.14.127 - 14th September 2023
 - Fixed an issue with 'Enhance minimap' ('Interface') which caused the area under the minimap to be unclickable if you have moved the minimap.
 - Added flight times.

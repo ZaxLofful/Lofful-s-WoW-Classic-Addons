@@ -28,7 +28,7 @@ function ShowIllustration(filename)
 			hscale = blackout:GetHeight() / illustration.height
 		end
 		illustrationFrame:SetTexCoord(illustration.left, illustration.right, illustration.top, illustration.bottom)
-		illustrationFrame:SetTexture(string.format("Interface/AddOns/%s/illustrations/%s.blp", addonName, filename))
+		illustrationFrame:SetTexture(string.format("Interface/AddOns/%s/illustrations/%s.png", addonName, filename))
 		local scale = math.min(wscale, hscale)
 		illustrationFrame:SetSize(illustration.width * scale, illustration.height * scale)
 		IllustrationContainer:Show()

@@ -5,12 +5,19 @@ local DisplayMenu, DisplaySubMenu, Factory_CreateMenuButton, PopulateMenu
 
 function DisplayMenu(menuFrame, menuData, ...)
     if (menuData) then
+        menuFrame:SetScale(1)
         menuFrame.opening = true
         menuFrame:ClearAllPoints()
         menuFrame:SetPoint(...)
         menuFrame:Show()
         local minWidth = PopulateMenu(menuFrame, menuData)
         menuFrame:SetWidth(math.max(minWidth + 40), 240)
+        local menuFrameMaxHeight = UIParent:GetHeight() * UIParent:GetEffectiveScale() - 25
+        local menuFrameHeight = menuFrame:GetHeight() * menuFrame:GetEffectiveScale()
+        if (menuFrameHeight > menuFrameMaxHeight) then
+            local newScale = menuFrameMaxHeight / menuFrameHeight
+            menuFrame:SetScale(newScale)
+        end
     else
         menuFrame:Hide()
         menuFrame.submenu:Hide()

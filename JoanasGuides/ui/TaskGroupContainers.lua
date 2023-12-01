@@ -10,6 +10,7 @@ local isCombatDirty
 local lastStep
 local taskContainers
 local taskGroupContainers
+local invertedMode = false
 
 local CreateTaskGroupContainer, ResetTaskGroupContainer, SwapBuffer, TaskGroupContainerMarkCombatDirty,
 	TaskGroupContainerSetShown, TryTransition
@@ -77,12 +78,21 @@ function TaskGroupContainerSetShown(self, shown)
 	local frame = self.frame
 	frame:ClearAllPoints()
 	local hasPrevious = self:HasPrevious()
-	frame:SetPoint(
-			shown and "TOPLEFT" or "BOTTOMLEFT",
-			hasPrevious and self:GetPrevious().frame or header.frame,
-			"BOTTOMLEFT",
-			hasPrevious and 0 or -20,
-			shown and 2 or 0)
+	if (State.IsInvertedModeEnabled()) then
+		frame:SetPoint(
+				shown and "BOTTOMLEFT" or "TOPLEFT",
+				hasPrevious and self:GetPrevious().frame or header.frame,
+				"TOPLEFT",
+				hasPrevious and 0 or -20,
+				(shown and (hasPrevious and -2 or 0)) or (hasPrevious and 0 or 2))
+	else
+		frame:SetPoint(
+				shown and "TOPLEFT" or "BOTTOMLEFT",
+				hasPrevious and self:GetPrevious().frame or header.frame,
+				"BOTTOMLEFT",
+				hasPrevious and 0 or -20,
+				shown and 2 or 0)
+	end
 	frame:SetShown(shown)
 end
 
@@ -145,6 +155,12 @@ end
 function component.Update()
 	local inCombatLockdown = InCombatLockdown()
 	if (component:IsDirty()) then
+		if (State.IsInvertedModeEnabled() ~= invertedMode) then
+			for _, taskGroupContainer in ipairs(taskGroupContainers) do
+				taskGroupContainer:SetShown(taskGroupContainer.frame:IsShown())
+			end
+			invertedMode = State.IsInvertedModeEnabled()
+		end
 		if (GuideNavigationService.IsGuideSet()) then
 			local currentStep = GuideNavigationService.GetStep()
 			local anyFading = false

@@ -21,7 +21,7 @@ function Visualizer:OnEnable()
 	backdrop:SetAllPoints(portrait)
 
 	local mask = portrait:GetParent():CreateMaskTexture()
-	mask:SetTexture('Interface/CHARACTERFRAME/TempPortraitAlphaMask')
+	mask:SetTexture('Interface/CharacterFrame/TempPortraitAlphaMask')
 	mask:SetAllPoints(backdrop)
 	backdrop:AddMaskTexture(mask)
 	portrait:AddMaskTexture(mask)
@@ -151,17 +151,12 @@ function Visualizer.Scroll:update()
 		if id then
 			local name, link, quality = GetItemInfo(id)
 			button.item, button.link = id, link
+			button:SetHighlightLocked(id == self.item.id)
 			button.Text:SetTextColor(ITEM_QUALITY_COLORS[quality].color:GetRGB())
 			button.Icon:SetTexture(GetItemIcon(id))
 			button.Text:SetText(name)
 			button:SetWidth(width)
 			button:Show()
-
-			if id == self.item.id then
-				button:LockHighlight()
-			else
-				button:UnlockHighlight()
-			end
 
 			if focus == button then
 				button:GetScript('OnEnter')(button)

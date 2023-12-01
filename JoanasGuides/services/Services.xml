@@ -4,13 +4,14 @@
 
     <Script file="services/Aura.lua" />
     <Script file="services/AutoQuests.lua" />
+    <Script file="services/Bank.lua" />
     <Script file="services/ButtonGeneration.lua" />
     <Script file="services/Color.lua" />
     <Script file="services/CompatibilityWarnings.lua" />
     <Script file="services/CustomVariables.lua" />
     <Script file="services/Equipment.lua" />
     <Script file="services/Evaluation.lua" />
-    <Script file="services/GhostService.lua" />
+    <Script file="services/Ghost.lua" />
     <Script file="services/Gossip.lua" />
     <Script file="services/Guide.lua" />
     <Script file="services/GuideNavigation.lua" />
@@ -18,12 +19,15 @@
     <Script file="services/Header.lua" />
     <Script file="services/Icon.lua" />
     <Script file="services/Illustration.lua" />
+    <Script file="services/Innkeeper.lua" />
     <Script file="services/Keybind.lua" />
     <Script file="services/Locations.lua" />
     <Script file="services/LocationsInit.lua" />
     <Script file="services/Merchant.lua" />
+    <Script file="services/PetSpells.lua" />
     <Script file="services/Places.lua" />
     <Script file="services/Professions.lua" />
+    <Script file="services/SpellsCast.lua" />
     <Script file="services/TargetScan.lua" />
     <Script file="services/Taxi.lua" />
     <Script file="services/Testing.lua" />

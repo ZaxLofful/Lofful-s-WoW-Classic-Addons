@@ -1,4 +1,73 @@
 
+## **VERSION 1.9901 RELEASE - November 8th, 2023**
+
+* Slight .toc issue on mainline build for 10.2 compatibility. Updated!
+
+* Accidentally left in a debug print, now removed.
+
+* Macro tool you could edit the rules if you didn't have access, this is now fixed, and was just from some testing I forgot to reset back.
+
+## **VERSION 1.990 RELEASE - November 7th, 2023**
+
+*Compatibility update for 10.2 Dragonflight release*
+
+*Compatibility update for latest Classic Wrath Build*
+
+***BUG FIXES***
+
+* Due to some recent changes by Blizz, on the backend, some certain actions that should not cause "taint" (the error that says your action has been blocked), are causing taint. I have resolved a few of them that could occur where in combat. There are some that are erroneously triggering, however, for many many addons. There is a crowd effort among addon devs right now, but it seems like the general consensus is wait and see if Blizz fixes the error for 10.2 in just a week and we'll see. So, if you are still getting them after this patch, just wait til 10.2 drops and we'll see what happens from there.
+
+* Fixed an issue where GRM could throw errors when entering combat if the addon is enabled when NOT in a guild. Now, the addon should not be doing inCombat status cheecks if you are not in a guild.
+
+* Cleaned up the settings data to ensure no deprecated settings existed. The game now does a validation check. I had found a few save files I was given where people had rolled back to far earlier versions and it caused a lot of issues or added some ghost db entries to the saves. This now  cleans it up at start of your session. Very lightweight pre-check and prevents the endless amount of issues that can result because of this.
+
+* FIxed an issue where a Lua error could happen in the error message to the player indicating the person they were syncing with went offline, effectively stopping to que with the next person who might be in que to sync.
+
+* Fixed an issue where you were not able to add someone to the ban list manually. 
+
+* The player window or the search log should open when you shift-click or ctrl-shift-click names in the chat box. This was not working properly.
+
+
+## **VERSION 1.989 RELEASE - October 6th, 2023**
+
+***BUG FIXES***
+
+* GRM was causing there to be a closing frame sound in Classic builds when a new person joined the guild. This should no longer happen!
+
+* GRM ctrl-click to open player names was not properly refreshing to the next player if you had already open the mouseover window by doing so. You would have to close and reopen to refresh. It should now properly refresh. This was not an issue in retail build.
+
+
+## **VERSION 1.988 RELEASE - October 1st, 2023**
+
+***QUALITY OF LIFE***
+
+* GRM will now auto-hide all GRM frames when entering combat. The frames that were hidden will return when combat ends. This is to prevent any issues of GRM getting in the way when every second counts, especially in hardcore mode. This can be completely disabled in the GRM > Options > UI Settings
+
+***BUG FIXES***
+
+* There was an issue with GRM frame eating your keystrokes when entering combat. This should no longer happen, even if you choose to disable the option to auto-hide the frames. That is only an extra feature. 
+
+* Fixed an issue with the join date and rank date hist not storing properly when important data from another person who has been banned.
+
+* Fixed an issue which left the epoch timestamp of a data change incorrectly as a string instead of an int, causing a lua error whentrying to sync.
+
+* Fixed an issue where in some languages you were not able to unban a player if they were still in your guild.
+
+* Fixed an issue where when adding a ban it would say you had a missing "key" whilst referencing a Class name, which clearly didn't make sense.
+
+
+## **VERSION 1.987 RELEASE - September 27th, 2023**
+
+***BUG FIXES***
+
+* Fixed an issue affecting Classic builds that would cause the GRM mouseover not to properly display
+
+* Fixed an issue where a player joining the guild was not always registering immediately so there would be no data on the player on mouseover.
+
+* Fixed an issue where when GRM modifies a join date, or a rejoin date with the advanced join date tool, or just when someone rejoins the guild, if the custom join tag or rejoin tag were similar, like "J:" and "RJ:", for example, then GRM was parsing the string incorrectly and correcting the date, but adding an extra char on the tail end of the note. It should now properly remove it. Unfortunately, this will not retroactively fix any notes that were modified, but it will prevent it going forward.
+
+*Please note, I am aware of reports of the main designation being lost among alt groups, and in some cases, some alts, during sync. It appears to be affecting the same group over and over. This is something I am working on but it will take some time as I am possibly going to rewrite the whole sync protocol I wrote. I am seeing if it is necessary. Sorry about the hassle but I will have a fix for it soon!*
+
 
 ## **VERSION 1.986 RELEASE - September 14th, 2023**
 

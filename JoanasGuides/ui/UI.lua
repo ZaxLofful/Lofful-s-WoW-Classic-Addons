@@ -58,6 +58,9 @@ function UI.IsTaskGroupDimmed(taskGroup)
 	if (taskGroup.root.completedPassed) then
 		return true
 	elseif (not taskGroup.optionalPassed) then
+		if (taskGroup.completedPassed and taskGroup.completed) then
+			return true
+		end
 		return false
 	elseif (taskGroup.completedPassed) then
 		if (taskGroup.completed) then return true end

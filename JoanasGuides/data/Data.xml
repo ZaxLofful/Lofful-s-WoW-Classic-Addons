@@ -50,6 +50,7 @@
     <Script file="data/TaxiNodeLocations/TaxiNodeLocations-Era.lua" />
     <Script file="data/TaxiNodeLocations/TaxiNodeLocations-TBC.lua" />
     <Script file="data/TaxiNodeLocations/TaxiNodeLocations-WOTLK.lua" />
+    <Script file="data/TurninOnlyQuests.lua" />
     <Script file="data/WMOAreas/WMOAreas-deDE.lua" />
     <Script file="data/WMOAreas/WMOAreas-esES.lua" />
     <Script file="data/WMOAreas/WMOAreas-esMX.lua" />

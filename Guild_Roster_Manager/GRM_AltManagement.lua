@@ -9,9 +9,16 @@
 GRM.GetAltGroupMain = function ( altGroup , includeGUID )
     local main = "";
     local GUID = "";
+    local class = "";
 
     if altGroup ~= "" and GRM_Alts[GRM_G.guildName][altGroup] then
         main = GRM_Alts[GRM_G.guildName][altGroup].main;
+
+        for i = 1 , #GRM_Alts[GRM_G.guildName][altGroup] do
+            if GRM_Alts[GRM_G.guildName][altGroup][i].name == main then
+                class = GRM_Alts[GRM_G.guildName][altGroup][i].class;
+            end
+        end
 
         local player = GRM.GetPlayer ( main );
         if includeGUID and player then
@@ -19,7 +26,7 @@ GRM.GetAltGroupMain = function ( altGroup , includeGUID )
         end
     end
 
-    return main , GUID;
+    return main , GUID , class;
 end
 
 -- Method:          GRM.GetPlayerMain ( string )
@@ -903,15 +910,7 @@ GRM.ResetBirthdayForAltGroup = function ( name , isLiveSync , num , sender , isU
             end
         else
             GRMsyncGlobals.updateCount = GRMsyncGlobals.updateCount + 1;
-            GRMsyncGlobals.updatesEach[6] = GRMsyncGlobals.updatesEach[6] + 1;
-        -- elseif not isUnknown then
-            -- if GRM.S().syncChatEnabled then
-            --     if #alts > 0 then
-            --         GRM.Report ( GRM.L ( "{name}'s alt grouping has had their Birthday removed by: {name2}" , GRM.GetClassifiedName ( name , true ) , GRM.GetClassifiedName ( sender , true ) ) );
-            --     else
-            --         GRM.Report ( GRM.L ( "{name}'s Birthday has been removed by: {name2}" , GRM.GetClassifiedName ( name , true ) , GRM.GetClassifiedName ( sender , true ) ) );
-            --     end
-            -- end                
+            GRMsyncGlobals.updatesEach[6] = GRMsyncGlobals.updatesEach[6] + 1;              
         end
 
         if not isUnknown and GRM_UI.GRM_MemberDetailMetaData:IsVisible() and GRM_G.currentName == name then

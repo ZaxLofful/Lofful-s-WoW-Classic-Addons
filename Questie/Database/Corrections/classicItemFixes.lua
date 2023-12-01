@@ -1118,12 +1118,6 @@ function QuestieItemFixes:Load()
         [19808] = {
             [itemKeys.objectDrops] = {},
         },
-        [19850] = {
-            [itemKeys.objectDrops] = {180204},
-        },
-        [19851] = {
-            [itemKeys.objectDrops] = {180205},
-        },
         [19975] = {
             [itemKeys.objectDrops] = {},
         },
@@ -1153,6 +1147,30 @@ function QuestieItemFixes:Load()
         },
         [20464] = {
             [itemKeys.class] = 12,
+        },
+        [20490] = {
+            [itemKeys.npcDrops] = {5111},
+        },
+        [20491] = {
+            [itemKeys.npcDrops] = {6741},
+        },
+        [20492] = {
+            [itemKeys.npcDrops] = {6740},
+        },
+        [20493] = {
+            [itemKeys.npcDrops] = {6929},
+        },
+        [20494] = {
+            [itemKeys.npcDrops] = {6826},
+        },
+        [20495] = {
+            [itemKeys.npcDrops] = {11814},
+        },
+        [20496] = {
+            [itemKeys.npcDrops] = {6735},
+        },
+        [20497] = {
+            [itemKeys.npcDrops] = {6746},
         },
         [20708] = {
             [itemKeys.objectDrops] = {},

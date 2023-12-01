@@ -1,7 +1,7 @@
 select(2, ...).SetupGlobalFacade()
 
-local AddonVersion = "3.01.01"
-local GuideVersion = "3.01.01"
+local AddonVersion = "3.02.05"
+local GuideVersion = "3.02.05"
 
 GuideModules = { }
 
@@ -59,8 +59,8 @@ function GuideModules.Reload()
 	modules = { }
 	local warnings = { }
 	local incompatible
-	-- Nov 1 2023 12:00 AM EDT
-	local expiration = 1698811200
+	-- Jan 9 2024 12:00 AM EDT
+	local expiration = 1704776400
 	local expired = time() > expiration
 	local expiringSoon = time() > expiration - (60 * 60 * 24 * 7)
 

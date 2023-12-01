@@ -39,7 +39,8 @@ local function OnClick(frame, questRef, refType)
 end
 
 function Hyperlinks.GetQuestHyperlink(questRef, refType)
-    local name = questRef.label or Names.GetQuestName(questRef[refType])
+    local questName = Names.GetQuestName(questRef[refType])
+    local name = questRef.label or questName
     return string.format("|Hquest:%s:%s:%s|h%s|h", questRef[refType], Hyperlinks.CreateReference(questRef), refType, name)
 end
 

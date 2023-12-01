@@ -287,6 +287,7 @@ function QuestieQuestFixes:Load()
             [questKeys.requiredRaces] = raceIDs.ALL_ALLIANCE,
             [questKeys.preQuestGroup] = {1687,1479,1558},
             [questKeys.inGroupWith] = nil,
+            [questKeys.childQuests] = {},
         },
         [566] = {
             [questKeys.preQuestSingle] = {549}, -- #1484
@@ -479,6 +480,8 @@ function QuestieQuestFixes:Load()
             [questKeys.objectivesText] = {"Get some Strawberry Ice Cream for your ward. The lad seems to prefer Tigule's brand ice cream."}, -- orc orphan
             [questKeys.preQuestGroup] = {1800,910,911},
             [questKeys.inGroupWith] = nil,
+            [questKeys.childQuests] = {},
+            [questKeys.parentQuest] = 0,
         },
         [918] = {
             [questKeys.preQuestSingle] = {},
@@ -489,6 +492,7 @@ function QuestieQuestFixes:Load()
         [925] = {
             [questKeys.preQuestGroup] = {1800,910,911},
             [questKeys.inGroupWith] = nil,
+            [questKeys.parentQuest] = 0,
         },
         [926] = {
             [questKeys.parentQuest] = 924, -- #806
@@ -1038,7 +1042,6 @@ function QuestieQuestFixes:Load()
         },
         [1918] = {
             [questKeys.startedBy] = {{12759},nil,{16408}},
-            [questKeys.preQuestSingle] = {25},
         },
         [1920] = {
             [questKeys.preQuestSingle] = {}, -- #1328
@@ -1330,7 +1333,7 @@ function QuestieQuestFixes:Load()
             [questKeys.startedBy] = {{5797},nil,{10621}},
         },
         [3520] = {
-            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_SLAY, l10n("Slay Vale Screechers and use Veh'kinya's Bramble on their corpse."), 0, {{"monster", 5307},{"monster", 5308}}}},
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_SLAY, l10n("Slay Vale Screechers and use Yeh'kinya's Bramble on their corpse."), 0, {{"monster", 5307},{"monster", 5308}}}},
         },
         [3525] = {
             [questKeys.triggerEnd] = {"Protect Belnistrasz while he performs the ritual to shut down the idol", {[zoneIDs.THE_BARRENS]={{50.86,92.87}}}},
@@ -1627,6 +1630,9 @@ function QuestieQuestFixes:Load()
         [4734] = {
             [questKeys.objectives] = {nil,{{400062,"Test the Eggscilliscope Prototype"}}},
         },
+        [4735] = {
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_OBJECT, l10n("Collect eggs using the Collectronic Module."), 0, {{"object", 400062}}}},
+        },
         [4736] = {
             [questKeys.requiredRaces] = raceIDs.ALL_ALLIANCE,
         },
@@ -1687,13 +1693,14 @@ function QuestieQuestFixes:Load()
             [questKeys.objectivesText] = {"Get some Strawberry Ice Cream for your ward. The lad seems to prefer Tigule's brand ice cream."}, -- human orphan
             [questKeys.inGroupWith] = nil,
             [questKeys.preQuestGroup] = {1479,1558,1687},
+            [questKeys.childQuests] = {},
         },
         [4866] = {
             [questKeys.objectives] = {{{9563,"Milked"}}},
         },
         [4867] = {
             [questKeys.requiredSourceItems] = {12533,12534},
-            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_OBJECT, l10n("Combine Omokk's Head with the Roughshot Pike."),0,{{"object", 175621}}},
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_OBJECT, l10n("Combine Omokk's Head with the Roughshod Pike."),0,{{"object", 175621}}},
 			                               {nil, Questie.ICON_TYPE_OBJECT, l10n("Use it to instantly kill one nearby ogre."),0,{{"object", 400063}}},
 			},
         },
@@ -1729,6 +1736,9 @@ function QuestieQuestFixes:Load()
         },
         [5041] = {
             [questKeys.preQuestSingle] = {},
+        },
+        [5047] = {
+            [questKeys.name] = "Pip Quickwit, At Your Service!",
         },
         [5056] = {
             [questKeys.requiredSourceItems] = {12733},
@@ -1778,7 +1788,7 @@ function QuestieQuestFixes:Load()
             [questKeys.requiredSkill] = {164,275},
         },
         [5126] = {
-            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN and classIDs.SHAMAN,
+            [questKeys.requiredClasses] = classIDs.WARRIOR + classIDs.PALADIN + classIDs.SHAMAN,
             [questKeys.triggerEnd] = {"Listen to Lorax's Tale", {[zoneIDs.WINTERSPRING]={{63.82,73.79}}}},
             [questKeys.zoneOrSort] = sortKeys.BLACKSMITHING,
         },
@@ -1835,6 +1845,13 @@ function QuestieQuestFixes:Load()
         },
         [5305]  ={
             [questKeys.exclusiveTo] = {8869},
+            [questKeys.requiredSpecialization] = specKeys.BLACKSMITHING_WEAPON,
+        },
+        [5306]  ={
+            [questKeys.requiredSpecialization] = specKeys.BLACKSMITHING_WEAPON,
+        },
+        [5307]  ={
+            [questKeys.requiredSpecialization] = specKeys.BLACKSMITHING_WEAPON,
         },
         [5321] = {
             [questKeys.triggerEnd] = {"Escort Kerlonian Evershade to Maestra's Post", {[zoneIDs.ASHENVALE]={{26.77,36.91}}}},
@@ -2494,26 +2511,35 @@ function QuestieQuestFixes:Load()
         [7489] = {
             [questKeys.preQuestSingle] = {}, -- #1514
         },
+        [7490] = {
+            [questKeys.startedBy] = {{10184},nil,{18422}},
+        },
         [7492] = {
             [questKeys.startedBy] = {{10879,10880,10881},nil,nil}, -- #1350
         },
         [7494] = {
             [questKeys.startedBy] = {{2198,10877,10878},nil,nil}, -- #2489
         },
+        [7495] = {
+            [questKeys.startedBy] = {{10184},nil,{18423}},
+        },
         [7507] = {
-            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN,
+            [questKeys.requiredClasses] = classIDs.WARRIOR + classIDs.PALADIN,
         },
         [7508] = {
-            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN,
+            [questKeys.requiredClasses] = classIDs.WARRIOR + classIDs.PALADIN,
         },
         [7509] = {
-            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN,
+            [questKeys.requiredClasses] = classIDs.WARRIOR + classIDs.PALADIN,
         },
         [7541] = {
             [questKeys.questLevel] = 40, -- #1320
         },
         [7622] = {
             [questKeys.triggerEnd] = {"The Balance of Light and Shadow", {[zoneIDs.EASTERN_PLAGUELANDS]={{21.19,17.79}}}}, -- #2332
+        },
+        [7632] = {
+            [questKeys.startedBy] = {{12018},{179703},{18703}},
         },
         [7633] = {
             [questKeys.preQuestSingle] = {7632},
@@ -2570,14 +2596,20 @@ function QuestieQuestFixes:Load()
         [7761] = {
             [questKeys.startedBy] = {{9046},nil,{18987}},
         },
+        [7781] = {
+            [questKeys.startedBy] = {{11583},nil,{19003}},
+        },
+        [7783] = {
+            [questKeys.startedBy] = {{11583},nil,{19002}},
+        },
         [7785] = {
-            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN and classIDs.HUNTER and classIDs.ROGUE,
+            [questKeys.requiredClasses] = classIDs.WARRIOR + classIDs.PALADIN + classIDs.HUNTER + classIDs.ROGUE,
         },
         [7786] = {
-            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN and classIDs.HUNTER and classIDs.ROGUE,
+            [questKeys.requiredClasses] = classIDs.WARRIOR + classIDs.PALADIN + classIDs.HUNTER + classIDs.ROGUE,
         },
         [7787] = {
-            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN and classIDs.HUNTER and classIDs.ROGUE,
+            [questKeys.requiredClasses] = classIDs.WARRIOR + classIDs.PALADIN + classIDs.HUNTER + classIDs.ROGUE,
         },
         [7795] = {
             [questKeys.preQuestSingle] = {7794},
@@ -2664,13 +2696,12 @@ function QuestieQuestFixes:Load()
             [questKeys.requiredMinRep] = {510,42000},
         },
         [8149] = {
-            [questKeys.requiredSourceItems] = {19850},
             [questKeys.requiredRaces] = raceIDs.ALL_ALLIANCE,
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Place a tribute at Uther's Tomb"),0,{{"object", 180204},}}},
         },
         [8150] = {
-            [questKeys.requiredSourceItems] = {19851},
-            [questKeys.exclusiveTo] = {2851},
             [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Place a tribute at Grom's Monument"),0,{{"object", 180205},}}},
         },
         [8166] = {
             [questKeys.specialFlags] = 0,
@@ -2758,6 +2789,9 @@ function QuestieQuestFixes:Load()
         [8315] = {
             [questKeys.extraObjectives] = {{{[zoneIDs.SILITHUS]={{47.50,54.50}}}, Questie.ICON_TYPE_EVENT, l10n("Draw the glyphs into the sand to summon the Qiraji Emissary."),}},
         },
+        [8317] = {
+            [questKeys.requiredSourceItems] = {20424},
+        },
         [8331]  ={
             [questKeys.exclusiveTo] = {8332},
         },
@@ -2816,7 +2850,7 @@ function QuestieQuestFixes:Load()
             [questKeys.exclusiveTo] = {8399,8400,8401,8402,8403},
         },
         [8373] = {
-            [questKeys.triggerEnd] = {"Clean up a stink bomb that's been dropped on Southshore!", {[zoneIDs.HILLSBRAD_FOOTHILLS]={{49.60,58.60}}}},
+            [questKeys.objectives] = {nil,{{180449,"Clean up a stink bomb that's been dropped on Southshore!"}}},
         },
         [8399] = {
             [questKeys.exclusiveTo] = {8372,8400,8401,8402,8403},
@@ -2853,6 +2887,9 @@ function QuestieQuestFixes:Load()
         },
         [8438] = {
             [questKeys.zoneOrSort] = sortKeys.ARATHI_BASIN,
+        },
+        [8446] = {
+            [questKeys.startedBy] = {{14887,14888,14889,14890},nil,{20644}},
         },
         [8447] = {
             [questKeys.triggerEnd] = {"Waking Legends.",{[zoneIDs.MOONGLADE]={{40.0,48.6}}}},
@@ -3010,8 +3047,18 @@ function QuestieQuestFixes:Load()
             [questKeys.requiredLevel] = 1,
             [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
         },
+        [8535] = {
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Summon a Templar using a full Twilight set."),0,{{"object", 180456},{"object", 180518},{"object", 180529},{"object", 180544},{"object", 180549},{"object", 180564},}}},
+        },
         [8536] = {
             [questKeys.specialFlags] = 1,
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Summon a Templar using a full Twilight set."),0,{{"object", 180456},{"object", 180518},{"object", 180529},{"object", 180544},{"object", 180549},{"object", 180564},}}},
+        },
+        [8537] = {
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Summon a Templar using a full Twilight set."),0,{{"object", 180456},{"object", 180518},{"object", 180529},{"object", 180544},{"object", 180549},{"object", 180564},}}},
+        },
+        [8538] = {
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Summon a Duke using a full Twilight set and neck."),0,{{"object", 180461},{"object", 180534},{"object", 180554},}}},
         },
         [8542] = {
             [questKeys.requiredLevel] = 1,
@@ -3159,6 +3206,9 @@ function QuestieQuestFixes:Load()
         [8736] = {
             [questKeys.triggerEnd] = {"The Redemption of Eranikus", {[zoneIDs.MOONGLADE]={{51.8,36.4}}}},
         },
+        [8737] = {
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Summon a Templar using a full Twilight set."),0,{{"object", 180456},{"object", 180518},{"object", 180529},{"object", 180544},{"object", 180549},{"object", 180564},}}},
+        },
         [8747] = {
             [questKeys.exclusiveTo] = {8752,8753,8754,8755,8756,8757,8758,8759,8760,8761}, --protector neutral
         },
@@ -3214,6 +3264,9 @@ function QuestieQuestFixes:Load()
             [questKeys.requiredClasses] = classIDs.NONE,
             [questKeys.exclusiveTo] = {8767},
         },
+        [8791] = {
+            [questKeys.startedBy] = {{15339},nil,{21220}},
+        },
         [8792] = {
             [questKeys.requiredLevel] = 1,
         },
@@ -3238,6 +3291,9 @@ function QuestieQuestFixes:Load()
         },
         [8798] = {
             [questKeys.requiredSkill] = {202,250},
+        },
+        [8801] = {
+            [questKeys.startedBy] = {{15727},nil,{21221}},
         },
         [8804] = {
             [questKeys.specialFlags] = 1, -- #2401
@@ -3620,6 +3676,9 @@ function QuestieQuestFixes:Load()
         [9118] = {
             [questKeys.specialFlags] = 1,
         },
+        [9120] = {
+            [questKeys.startedBy] = {{15990},nil,{22520}},
+        },
         [9124] = {
             [questKeys.requiredMinRep] = {529,3000},
         },
@@ -3660,40 +3719,40 @@ function QuestieQuestFixes:Load()
             [questKeys.preQuestSingle] = {9033},
         },
         [9234] = {
-            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN,
+            [questKeys.requiredClasses] = classIDs.WARRIOR + classIDs.PALADIN,
         },
         [9235] = {
-            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN,
+            [questKeys.requiredClasses] = classIDs.WARRIOR + classIDs.PALADIN,
         },
         [9236] = {
-            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN,
+            [questKeys.requiredClasses] = classIDs.WARRIOR + classIDs.PALADIN,
         },
         [9238] = {
-            [questKeys.requiredClasses] = classIDs.PRIEST and classIDs.MAGE and classIDs.WARLOCK,
+            [questKeys.requiredClasses] = classIDs.PRIEST + classIDs.MAGE + classIDs.WARLOCK,
         },
         [9239] = {
-            [questKeys.requiredClasses] = classIDs.PRIEST and classIDs.MAGE and classIDs.WARLOCK,
+            [questKeys.requiredClasses] = classIDs.PRIEST + classIDs.MAGE + classIDs.WARLOCK,
         },
         [9240] = {
-            [questKeys.requiredClasses] = classIDs.PRIEST and classIDs.MAGE and classIDs.WARLOCK,
+            [questKeys.requiredClasses] = classIDs.PRIEST + classIDs.MAGE + classIDs.WARLOCK,
         },
         [9241] = {
-            [questKeys.requiredClasses] = classIDs.ROGUE and classIDs.DRUID,
+            [questKeys.requiredClasses] = classIDs.ROGUE + classIDs.DRUID,
         },
         [9242] = {
-            [questKeys.requiredClasses] = classIDs.ROGUE and classIDs.DRUID,
+            [questKeys.requiredClasses] = classIDs.ROGUE + classIDs.DRUID,
         },
         [9243] = {
-            [questKeys.requiredClasses] = classIDs.ROGUE and classIDs.DRUID,
+            [questKeys.requiredClasses] = classIDs.ROGUE + classIDs.DRUID,
         },
         [9244] = {
-            [questKeys.requiredClasses] = classIDs.HUNTER and classIDs.SHAMAN,
+            [questKeys.requiredClasses] = classIDs.HUNTER + classIDs.SHAMAN,
         },
         [9245] = {
-            [questKeys.requiredClasses] = classIDs.HUNTER and classIDs.SHAMAN,
+            [questKeys.requiredClasses] = classIDs.HUNTER + classIDs.SHAMAN,
         },
         [9246] = {
-            [questKeys.requiredClasses] = classIDs.HUNTER and classIDs.SHAMAN,
+            [questKeys.requiredClasses] = classIDs.HUNTER + classIDs.SHAMAN,
         },
         [9248] = {
             [questKeys.requiredMinRep] = {609,0},

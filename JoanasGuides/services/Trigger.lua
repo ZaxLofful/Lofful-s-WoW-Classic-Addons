@@ -29,10 +29,37 @@ function TriggerService.OnActivate(obj)
             obj.activateFired = nil
             return
         end
-        if (obj:IsActive() and not obj.activateFired) then
+        if (obj:IsActive() and obj.activateFired == nil) then
             table.insert(queue, obj)
+            obj.activateFired = false
         end
     end
+end
+
+function TriggerService.OnEnterOrLeave(obj)
+    local queued
+    if (obj.withinChanged and obj and obj.root == GuideNavigationService.GetStep()) then
+        if (obj.onenter) then
+            if (obj:IsPlayerWithin() and obj.enterFired == nil) then
+                table.insert(queue, obj)
+                obj.enterFired = false
+                queued = true
+            else
+                obj.enterFired = nil
+            end
+        end
+        if (obj.onleave) then
+            if (not obj:IsPlayerWithin() and obj.leaveFired == nil) then
+                table.insert(queue, obj)
+                obj.leaveFired = false
+                queued = true
+            else
+                obj.leaveFired = nil
+            end
+        end
+        obj.withinChanged = nil
+    end
+    return queued
 end
 
 function TriggerService.OnComplete(node)
@@ -70,7 +97,8 @@ function TriggerService.RunAll()
                 obj.completedFired = true
                 triggersRan = true
             end
-        elseif (obj.onactivate) then
+        end
+        if (obj.onactivate and obj.activateFired == false) then
             if (type(obj.onactivate) == "string") then
                 obj.onactivate = loadstring(obj.onactivate)
             end
@@ -78,6 +106,28 @@ function TriggerService.RunAll()
                 setfenv(obj.onactivate, context)
                 obj.onactivate()
                 obj.activateFired = true
+                triggersRan = true
+            end
+        end
+        if (obj.onenter and obj.enterFired == false) then
+            if (type(obj.onenter) == "string") then
+                obj.onenter = loadstring(obj.onenter)
+            end
+            if (IsRecursionSafe(obj.onenter)) then
+                setfenv(obj.onenter, context)
+                obj.onenter()
+                obj.enterFired = true
+                triggersRan = true
+            end
+        end
+        if (obj.onleave and obj.leaveFired == false) then
+            if (type(obj.onleave) == "string") then
+                obj.onleave = loadstring(obj.onleave)
+            end
+            if (IsRecursionSafe(obj.onleave)) then
+                setfenv(obj.onleave, context)
+                obj.onleave()
+                obj.leaveFired = true
                 triggersRan = true
             end
         end

@@ -25,7 +25,12 @@ function SetOpts(button, opts)
             button.text:SetPoint("LEFT", button, "LEFT", 28, 0)
             button.minWidth = button.minWidth + 20
         end
-        button:SetEnabled(not opts.isTitle and true or false)
+        button:SetEnabled((not opts.isTitle and true or false) and opts.enabled ~= false)
+        if (opts.enabled == false) then
+            button:SetDisabledFontObject("GameFontDisableSmallLeft")
+            button:SetMotionScriptsWhileDisabled(true)
+            button.checkbox:SetDesaturated(true)
+        end
         button.arrow:SetShown(opts.hasArrow and true or false)
         if (opts.hasArrow) then
             button.minWidth = button.minWidth + 32

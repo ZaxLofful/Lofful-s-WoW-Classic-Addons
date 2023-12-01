@@ -69,6 +69,7 @@ function State.Init()
 	SavedVariables.enableStepID = DefaultTrue(SavedVariables.enableStepID)
 	SavedVariables.objectiveCompletionSound = DefaultTrue(SavedVariables.objectiveCompletionSound)
 	SavedVariables.autoquests = DefaultTrue(SavedVariables.autoquests)
+	SavedVariables.autobanking = DefaultTrue(SavedVariables.autobanking)
 	SavedVariables.autotaxi = DefaultTrue(SavedVariables.autotaxi)
 	_G[SavedVariablesPerCharacterName] = DefaultEmptyTable(_G[SavedVariablesPerCharacterName])
 	local playerGUID = UnitGUID("player")
@@ -85,8 +86,16 @@ function State.IsAHEnabled()
 	return DefaultValue(SavedVariablesPerCharacter.ah, true)
 end
 
+function State.IsAutoBankingEnabled()
+	return SavedVariables.autobanking
+end
+
 function State.IsAutoQuestsEnabled()
 	return SavedVariables.autoquests
+end
+
+function State.IsAutoSetHome()
+	return DefaultValue(SavedVariables.autosethome, true)
 end
 
 function State.IsAutoTaxiEnabled()
@@ -109,8 +118,20 @@ function State.IsHardcoreEnabled()
 	return DefaultValue(SavedVariablesPerCharacter.hc, false)
 end
 
+function State.IsHiddenInInstances()
+	return DefaultValue(SavedVariables.hiddenInInstances, true)
+end
+
+function State.IsInvertedModeEnabled()
+	return DefaultValue(SavedVariables.invertedMode,false)
+end
+
 function State.IsKeybindDisplayEnabled()
 	return DefaultValue(SavedVariables.keybindDisplay, true)
+end
+
+function State.IsMapPingAnimationEnabled()
+	return DefaultValue(SavedVariables.mapPingAnimationEnabled, true)
 end
 
 function State.IsStepIDEnabled()
@@ -129,8 +150,16 @@ function State.SetAHEnabled(enabled)
 	SavedVariablesPerCharacter.ah = enabled
 end
 
+function State.SetAutoBankingEnabled(flag)
+	SavedVariables.autobanking = flag
+end
+
 function State.SetAutoQuestsEnabled(flag)
 	SavedVariables.autoquests = flag
+end
+
+function State.SetAutoSetHome(flag)
+	SavedVariables.autosethome = flag
 end
 
 function State.SetAutoTaxiEnabled(flag)
@@ -170,6 +199,17 @@ function State.SetHardcoreEnabled(enabled)
 	SavedVariablesPerCharacter.hc = enabled
 end
 
+function State.SetHiddenInInstances(enabled)
+	SavedVariables.hiddenInInstances = enabled
+end
+
+function State.SetInvertedModeEnabled(overridden)
+	if (not InCombatLockdown()) then
+		SavedVariables.invertedMode = overridden
+		UI.MarkDirty()
+	end
+end
+
 function State.SetKeybindDisplayEnabled(enabled)
 	SavedVariables.keybindDisplay = enabled
 end
@@ -180,6 +220,11 @@ end
 
 function State.SetNPCAlertSound(soundID)
 	SavedVariables.npcAlertSound = soundID or 0
+end
+
+function State.SetMapPingAnimationEnabled(enabled)
+	SavedVariables.mapPingAnimationEnabled = enabled
+	UI.MarkDirty()
 end
 
 function State.SetStepIDEnabled(enabled)

@@ -33,7 +33,12 @@ popupDialog = {
 setmetatable(popupDialog, popupDialogMetatable)
 
 local destroyItemMacroTemplate = "/run StaticPopupDialogs.JoanasGuides_CONFIRM_DESTROY_ITEM.run(%s, '%s')"
-local targetSingleMacroTemplate = "/target [noexists] %s\n/cleartarget [dead]"
+local targetSingleMacroTemplate1 = "/target %s\n/cleartarget [dead]"
+local targetSingleMacroTemplate2 = "/target [noexists] %s\n/cleartarget [dead]"
+
+local targetSingleMacroTemplateAllowDead1 = "/target %s"
+local targetSingleMacroTemplateAllowDead2 = "/target [noexists] %s"
+
 
 StaticPopupDialogs["JoanasGuides_CONFIRM_DESTROY_ITEM"] = popupDialog
 
@@ -65,6 +70,9 @@ function CalculateYOffset(fromY, button)
     local bHeight = button[1]:GetHeight()
     local spacing = 4
     local yOffset = (taskGroupContainer.frame:GetBottom() + (taskGroupContainer.frame:GetHeight() / 2)) - fromY + 2.5
+    if (State.IsInvertedModeEnabled()) then
+        bPos = bTotal + 1 - bPos
+    end
     return yOffset + (bHeight * bTotal + spacing * (bTotal - 1)) / 2 - bHeight / 2 - (bHeight + spacing) * (bPos - 1)
 
 end
@@ -208,6 +216,18 @@ function ActionButtonMixin:Init()
             button:SetScript("OnEnter", OnEnter)
             button:SetScript("OnLeave", OnLeave)
             button:SetScript("OnDragStart", OnDragStart)
+            button:SetScript("OnMouseDown", function()
+                if (self.buttonRef and self.buttonRef.targets) then
+                    if (not self.buttonRef.targetsShifted) then
+                        self.buttonRef.targetsShifted = { }
+                        for _, target in ipairs(self.buttonRef.targets) do
+                            table.insert(self.buttonRef.targetsShifted, target)
+                        end
+                    end
+                    table.insert(self.buttonRef.targetsShifted, table.remove(self.buttonRef.targetsShifted, 1))
+                    UI.GetComponent("ActionButtons"):MarkDirty()
+                end
+            end)
             button:Show()
         end
         self[1]:SetScript("OnEvent", OnEvent)
@@ -224,12 +244,12 @@ function ActionButtonMixin:IsShown()
     return self[1]:IsShown()
 end
 
-function ActionButtonMixin:Reset()
+function ActionButtonMixin:Reset(preserveButtonRef)
     self.itemID = nil
     self.npcIDs = nil
     self.targetStrings = nil
     self.type = nil
-    self.buttonRef = nil
+    self.buttonRef = preserveButtonRef and self.buttonRef or nil
     self.dim = nil
     self[1]:SetAttribute("item", nil)
     self[1]:SetAttribute("type1", nil)
@@ -268,8 +288,10 @@ function ActionButtonMixin:SetButtonRef(buttonRef)
         local itemCount = GetItemCount(itemID, false) or 0
         self:SetAvailable(itemCount ~= 0)
         self:UpdateCount()
+        self.buttonRef = buttonRef
     elseif (buttonRef.target or buttonRef.targets) then
-        self:SetTargets(buttonRef.target or buttonRef.targets)
+        self.buttonRef = buttonRef
+        self:SetTargets(buttonRef.target or buttonRef.targetsShifted or buttonRef.targets)
         self:SetAvailable(true)
         if (buttonRef.alert) then
 --            self:SetIconTexture(254883)
@@ -281,7 +303,6 @@ function ActionButtonMixin:SetButtonRef(buttonRef)
         --self:SetIconTexture(236179)
     end
     self:RefreshButtonCooldown()
-    self.buttonRef = buttonRef
 end
 
 function ActionButtonMixin:SetDestroyItemID(itemID)
@@ -330,7 +351,7 @@ function ActionButtonMixin:SetSpell(spellID)
 end
 
 function ActionButtonMixin:SetTargets(npcIDs)
-    self:Reset()
+    self:Reset(true)
     if (type(npcIDs) ~= "table") then
         npcIDs = { npcIDs }
     end
@@ -340,7 +361,15 @@ function ActionButtonMixin:SetTargets(npcIDs)
     for i, npcID in ipairs(npcIDs) do
         local targetString =  Names.GetName(GetCreatureName,npcID)
         table.insert(self.targetStrings, targetString)
-        table.insert(macroText, string.format(targetSingleMacroTemplate, targetString))
+        local template1, template2 = targetSingleMacroTemplate1, targetSingleMacroTemplate2
+        if (self.buttonRef.allowdead) then
+            template1, template2 = targetSingleMacroTemplateAllowDead1, targetSingleMacroTemplateAllowDead2
+        end
+        if (i == 1) then
+            table.insert(macroText, string.format(template1, targetString))
+        else
+            table.insert(macroText, string.format(template2, targetString))
+        end
         if (i ~= #npcIDs) then table.insert(macroText, "\n") end
     end
     local macroTextConcat = table.concat(macroText)

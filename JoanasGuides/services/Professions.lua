@@ -2,6 +2,9 @@
 select(2, ...).SetupGlobalFacade()
 
 local eventFrame = CreateFrame("Frame")
+local skillNameLUT
+local skillPoints = { }
+local RefreshSkillPoints
 
 ProfessionService = { }
 
@@ -17,7 +20,36 @@ ProfessionService.Tiers = {
 
 ProfessionService.PlayerProfessions = { }
 
+function ProfessionService.GetPoints(profKey)
+	if (skillNameLUT) then
+		local skillName = skillNameLUT[profKey]
+		if (skillName) then
+			return skillPoints[skillName] or 0
+		end
+	end
+	return 0
+end
+
+function RefreshSkillPoints()
+	local numSkills = GetNumSkillLines();
+	skillPoints = { }
+	for i = 1, numSkills do
+		local skillName, _, _, skillRank = GetSkillLineInfo(i);
+		skillPoints[skillName] = skillRank
+	end
+end
+
 local function OnEvent()
+	if (not skillNameLUT) then
+		skillNameLUT = { }
+		for profKey, tiers in pairs(Professions) do
+			local name = GetSpellInfo(tiers[1])
+			if (name) then
+				skillNameLUT[name] = profKey
+				skillNameLUT[profKey] = name
+			end
+		end
+	end
 	for profKey, tiers in pairs(Professions) do
 		ProfessionService.PlayerProfessions[profKey] = 0
 		for i = #tiers, 1, -1 do
@@ -27,8 +59,11 @@ local function OnEvent()
 			end
 		end
 	end
+	RefreshSkillPoints()
 	MarkAllDirty()
 end
 
 eventFrame:SetScript("OnEvent", OnEvent)
 eventFrame:RegisterEvent("SPELLS_CHANGED")
+eventFrame:RegisterEvent("SKILL_LINES_CHANGED")
+eventFrame:RegisterEvent("CHARACTER_POINTS_CHANGED")

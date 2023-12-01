@@ -91,10 +91,16 @@ function GuideService.GetGuide(guideID)
                 if (taskGroup.buttons) then
                     for _, buttonRef in ipairs(taskGroup.buttons) do
                         buttonRef.parent = taskGroup
+                        buttonRef.root = step
                     end
                 end
             end
             SetupHierarchicalReferences(step)
+            for _, taskGroup in ipairs(step) do
+                for _, task in ipairs(taskGroup) do
+                    task.taskType:Setup(task)
+                end
+            end
         end
         guideCache[guideID] = guide
         local moduleInfo = GuideModules.GetModule(guide.info.moduleID)

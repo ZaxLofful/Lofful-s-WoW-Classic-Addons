@@ -52,43 +52,46 @@ function DoQuestMixin:RenderFunc(task, container)
 			if (not task.warn) then break end
 		end
 	end
+	local color
 	if (task.warn) then
 		task.iconOverride = IconService.GetIconInfo("services-icon-warning")
+		color = Color.RED_TEXT
 	else
 		task.iconOverride = nil
-	end
-	if (task.objectives) then
-		for _, objective in ipairs(task.objectives) do
-			objectivesMap[objective] = true
+		color = self.taskColor
+		if (task.objectives) then
+			for _, objective in ipairs(task.objectives) do
+				objectivesMap[objective] = true
+			end
 		end
-	end
-	if (objectives) then
-		local hasSpecifiedObjectives = (task.objective or task.objectives)
-		for idx, objective in ipairs(objectives) do
-			local detail = container.taskDetailContainers[idx]
-			local icon
-			local isSpecifiedObjective = idx == task.objective or objectivesMap[idx]
-			if (objective.finished or questCompleted) then
-				if (hasSpecifiedObjectives and not isSpecifiedObjective) then
-					icon = IconService.GetIconInfo("capacitance-general-workordercheckmark-small")
+		if (objectives) then
+			local hasSpecifiedObjectives = (task.objective or task.objectives)
+			for idx, objective in ipairs(objectives) do
+				local detail = container.taskDetailContainers[idx]
+				local icon
+				local isSpecifiedObjective = idx == task.objective or objectivesMap[idx]
+				if (objective.finished or questCompleted) then
+					if (hasSpecifiedObjectives and not isSpecifiedObjective) then
+						icon = IconService.GetIconInfo("capacitance-general-workordercheckmark-small")
+					else
+						icon = IconService.GetIconInfo("capacitance-general-workordercheckmark")
+					end
+				elseif (isSpecifiedObjective) then
+					icon = IconService.GetIconInfo("minimaparrow")
 				else
-					icon = IconService.GetIconInfo("capacitance-general-workordercheckmark")
+					icon = IconService.GetIconInfo("partymember")
 				end
-			elseif (isSpecifiedObjective) then
-				icon = IconService.GetIconInfo("minimaparrow")
-			else
-				icon = IconService.GetIconInfo("partymember")
+				IconService.SetIconTexture(detail.icon, icon)
+				detail:SetAlpha(objective.finished and DIM or 1.0)
+				detail.hasIcon = true
+				detail.text:SetText(FormatQuestObjective(objective, questCompleted))
+				if (hasSpecifiedObjectives and not isSpecifiedObjective) then
+					detail:SetFontTiny()
+				end
+				detail:SetShown(true)
 			end
-			IconService.SetIconTexture(detail.icon, icon)
-			detail:SetAlpha(objective.finished and DIM or 1.0)
-			detail.hasIcon = true
-			detail.text:SetText(FormatQuestObjective(objective, questCompleted))
-			if (hasSpecifiedObjectives and not isSpecifiedObjective) then
-				detail:SetFontTiny()
-			end
-			detail:SetShown(true)
 		end
 	end
 	container.text:SetShown(true)
-	container.text:SetText(self.taskPrefix:format(self.taskColor, link))
+	container.text:SetText(self.taskPrefix:format(color, link))
 end

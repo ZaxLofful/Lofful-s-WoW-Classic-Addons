@@ -75,7 +75,8 @@ function OnUpdate(self, elapsed_)
 				--	Determine what the active location is and set the ACTIVE condition
 				--		If the location is newly active and has an onactivate handler, add it to the execution queue (max once/update)
 				--		If ACTIVE got changed, mark dirty
-				if (LocationsService.UpdateActiveLocation()) then
+				-- Check for onenter/onleave trigger updates and set them
+				if (LocationsService.UpdateLocations()) then
 					MarkAllDirty()
 				end
 				--	Fire all handlers in the execution queue (if any handlers got fired, mark dirty)
@@ -123,12 +124,14 @@ end
 
 frame:SetScript("OnEvent", Init)
 frame:RegisterEvent("ADDON_LOADED")
-frame:RegisterEvent("BAG_UPDATE")
+frame:RegisterEvent("BAG_UPDATE_DELAYED")
+frame:RegisterEvent("GROUP_ROSTER_UPDATE")
 frame:RegisterEvent("HEARTHSTONE_BOUND")
 frame:RegisterEvent("PLAYER_MONEY")
 frame:RegisterEvent("PLAYER_LEVEL_UP")
 frame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED");
 frame:RegisterEvent("PLAYER_XP_UPDATE")
+frame:RegisterEvent("RAID_ROSTER_UPDATE")
 frame:RegisterEvent("QUEST_LOG_UPDATE")
 frame:RegisterEvent("UPDATE_FACTION")
 

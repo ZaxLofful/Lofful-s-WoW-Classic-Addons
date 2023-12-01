@@ -76,7 +76,15 @@ function QuestieEvent:Load()
     QuestieEvent.eventDates["Lunar Festival"] = QuestieEvent.lunarFestival[year]
     local activeEvents = {}
 
-    local eventCorrections = (Questie.IsTBC or Questie.IsWotlk) and QuestieEvent.eventDateCorrections["TBC"] or QuestieEvent.eventDateCorrections["CLASSIC"]
+    local eventCorrections
+    if Questie.IsTBC then
+        eventCorrections = QuestieEvent.eventDateCorrections["TBC"]
+    elseif Questie.IsClassic then
+        eventCorrections = QuestieEvent.eventDateCorrections["CLASSIC"]
+    else
+        eventCorrections = {}
+    end
+
     for eventName,dates in pairs(eventCorrections) do
         if dates then
             QuestieEvent.eventDates[eventName] = dates
@@ -247,7 +255,6 @@ QuestieEvent.eventDates = {
         startDate = "21/11",
         endDate = "27/11"
     },
-    ["Peon Day"] = {startDate = "30/9", endDate = "30/9"},
     ["Hallow's End"] = {startDate = "18/10", endDate = "31/10"},
     ["Winter Veil"] = {startDate = "15/12", endDate = "1/1"}
 }
@@ -534,18 +541,18 @@ tinsert(QuestieEvent.eventQuests, {"Darkmoon Faire", 10939}) -- Darkmoon Storms 
 tinsert(QuestieEvent.eventQuests, {"Darkmoon Faire", 10940}) -- Darkmoon Furies Deck
 tinsert(QuestieEvent.eventQuests, {"Darkmoon Faire", 10941}) -- Darkmoon Lunacy Deck
 
---tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11450}) -- Fire Training
+tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11450}) -- Fire Training
 tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11356}) -- Costumed Orphan Matron
 tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11357}) -- Masked Orphan Matron
 tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11131}) -- Stop the Fires!
-tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11135}) -- The Headless Horseman
-tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11220}) -- The Headless Horseman
---tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11219}) -- Stop the Fires!
+tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11135, nil, nil, QuestieCorrections.TBC_ONLY}) -- The Headless Horseman
+tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11220, nil, nil, QuestieCorrections.TBC_ONLY}) -- The Headless Horseman
+tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11219}) -- Stop the Fires!
 tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11361}) -- Fire Training
 tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11360}) -- Fire Brigade Practice
---tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11449}) -- Fire Training
---tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11440}) -- Fire Brigade Practice
---tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11439}) -- Fire Brigade Practice
+tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11449}) -- Fire Training
+tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11440}) -- Fire Brigade Practice
+tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11439}) -- Fire Brigade Practice
 tinsert(QuestieEvent.eventQuests, {"Hallow's End", 12133}) -- Smash the Pumpkin
 tinsert(QuestieEvent.eventQuests, {"Hallow's End", 12135}) -- Let the Fires Come!
 tinsert(QuestieEvent.eventQuests, {"Hallow's End", 12139}) -- Let the Fires Come!
@@ -630,15 +637,17 @@ tinsert(QuestieEvent.eventQuests, {"Hallow's End", 12407}) -- Candy Bucket
 tinsert(QuestieEvent.eventQuests, {"Hallow's End", 12408}) -- Candy Bucket
 tinsert(QuestieEvent.eventQuests, {"Hallow's End", 12409}) -- Candy Bucket
 --tinsert(QuestieEvent.eventQuests, {"Hallow's End", 12410}) -- Candy Bucket -- doesn't exist
-tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11392}) -- Call the Headless Horseman
-tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11401}) -- Call the Headless Horseman
-tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11403, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- Free at Last!
-tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11242, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- Free at Last!
+tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11392, nil, nil, QuestieCorrections.TBC_ONLY}) -- Call the Headless Horseman
+tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11401, nil, nil, QuestieCorrections.TBC_ONLY}) -- Call the Headless Horseman
+tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11403}) -- Free at Last!
+tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11242}) -- Free at Last!
 --tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11404}) -- Call the Headless Horseman
 --tinsert(QuestieEvent.eventQuests, {"Hallow's End", 11405}) -- Call the Headless Horseman
 
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 11127}) -- <NYI>Thunderbrew Secrets
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 12022}) -- Chug and Chuck!
+tinsert(QuestieEvent.eventQuests, {"Brewfest", 11122}) -- There and Back Again
+tinsert(QuestieEvent.eventQuests, {"Brewfest", 11412}) -- There and Back Again
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 11117}) -- Catch the Wild Wolpertinger!
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 11431}) -- Catch the Wild Wolpertinger!
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 11318}) -- Now This is Ram Racing... Almost.
@@ -662,11 +671,15 @@ tinsert(QuestieEvent.eventQuests, {"Brewfest", 11441}) -- Brewfest!
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 11446}) -- Brewfest!
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 12062}) -- Insult Coren Direbrew
 --tinsert(QuestieEvent.eventQuests, {"Brewfest", 12194}) -- Say, There Wouldn't Happen to be a Souvenir This Year, Would There?
+--tinsert(QuestieEvent.eventQuests, {"Brewfest", 12193}) -- Say, There Wouldn't Happen to be a Souvenir This Year, Would There?
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 12191}) -- Chug and Chuck!
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 11293}) -- Bark for the Barleybrews!
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 11294}) -- Bark for the Thunderbrews!
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 11407}) -- Bark for Drohn's Distillery!
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 11408}) -- Bark for T'chali's Voodoo Brewery!
+tinsert(QuestieEvent.eventQuests, {"Brewfest", 12318}) -- Save Brewfest!
+tinsert(QuestieEvent.eventQuests, {"Brewfest", 12491}) -- Direbrew's Dire Brew
+tinsert(QuestieEvent.eventQuests, {"Brewfest", 12492}) -- Direbrew's Dire Brew
 
 
 tinsert(QuestieEvent.eventQuests, {"Midsummer", 9324}) -- Stealing Orgrimmar's Flame
@@ -962,16 +975,32 @@ tinsert(QuestieEvent.eventQuests, {"Hallow's End", 13474}) -- Candy Bucket
 tinsert(QuestieEvent.eventQuests, {"Hallow's End", 13501}) -- Candy Bucket
 tinsert(QuestieEvent.eventQuests, {"Hallow's End", 13548}) -- Candy Bucket
 
-tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14036}) -- Pilgrim's Bounty
-tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14022}) -- Pilgrim's Bounty
+--tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14036}) -- Pilgrim's Bounty
+--tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14022}) -- Pilgrim's Bounty
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14023}) -- Spice Bread Stuffing
 tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14024}) -- Pumpkin Pie
 tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14028}) -- Cranberry Chutney
 tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14030}) -- They're Ravenous In Darnassus
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14033}) -- Candied Sweet Potatoes
 tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14035}) -- Slow-roasted Turkey
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14037}) -- Spice Bread Stuffing
 tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14040}) -- Pumpkin Pie
 tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14041}) -- Cranberry Chutney
 tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14043}) -- Candied Sweet Potatoes
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14044}) -- Undersupplied in the Undercity
 tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14047}) -- Slow-roasted Turkey
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14048}) -- Can't Get Enough Turkey
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14051}) -- Don't Forget The Stuffing
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14053}) -- We're Out of Cranberry Chutney Again?
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14054}) -- Easy As Pie
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14055}) -- She Says Potato
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14058}) -- She Says Potato
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14059}) -- We're Out of Cranberry Chutney Again?
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14060}) -- Easy As Pie
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14061}) -- Can't Get Enough Turkey
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14062}) -- Don't Forget The Stuffing
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14064}) -- Sharing a Bountiful Feast
+tinsert(QuestieEvent.eventQuests, {"Pilgrim's Bounty", 14065}) -- Sharing a Bountiful Feast
 
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 13931}) -- Another Year, Another Souvenir. -- Doesn't seem to be in the game
 tinsert(QuestieEvent.eventQuests, {"Brewfest", 13932}) -- Another Year, Another Souvenir. -- Doesn't seem to be in the game

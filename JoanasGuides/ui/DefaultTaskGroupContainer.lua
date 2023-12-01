@@ -10,13 +10,13 @@ local guideFrame
 local headerFrame
 local TaskGroupContainers
 local defaultTaskGroupContainer
+local invertedMode = false
 
 function component.Init(components)
 	guideFrame = components.GuideContainer.frame
 	headerFrame = components.Header.frame
 	TaskGroupContainers = components.TaskGroupContainers
 	defaultTaskGroupContainer = { }
-
 	local frame = CreateFrame("Frame", nil, guideFrame, "BackdropTemplate")
 	frame.boundingBox = CreateFrame("Frame", nil, guideFrame)
 	frame.boundingBox:SetSize(240, 50)
@@ -28,21 +28,30 @@ function component.Init(components)
 	frame.backdropBorderColor = GLUE_BACKDROP_BORDER_COLOR
 	frame:OnBackdropLoaded()
 	defaultTaskGroupContainer.frame = frame
-	frame:SetPoint("TOPLEFT", headerFrame, "BOTTOMLEFT", -20, 2)
+	if (State.IsInvertedModeEnabled()) then
+		frame:SetPoint("BOTTOMLEFT", headerFrame, "TOPLEFT", -20, 4)
+	else
+		frame:SetPoint("TOPLEFT", headerFrame, "BOTTOMLEFT", -20, 2)
+	end
 	frame:SetShown(false)
-
 	local text = frame:CreateFontString(nil, "ARTWORK", "GameFontWhiteSmall")
 	text:SetJustifyH("LEFT")
 	text:SetPoint("TOPLEFT", frame, "TOPLEFT", 14, -10)
 	text:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
-	text:SetText("This is a test This is a test")
-
 	defaultTaskGroupContainer.text = text
-
 end
 
 function component.Update()
 	if (component:IsDirty()) then
+		if (State.IsInvertedModeEnabled() ~= invertedMode) then
+			defaultTaskGroupContainer.frame:ClearAllPoints()
+			if (State.IsInvertedModeEnabled()) then
+				defaultTaskGroupContainer.frame:SetPoint("BOTTOMLEFT", headerFrame, "TOPLEFT", -20, 4)
+			else
+				defaultTaskGroupContainer.frame:SetPoint("TOPLEFT", headerFrame, "BOTTOMLEFT", -20, 2)
+			end
+			invertedMode = State.IsInvertedModeEnabled()
+		end
 		if ((not GuideNavigationService.IsGuideSet()) or TaskGroupContainers.IsShown()) then
 			defaultTaskGroupContainer.frame:SetShown(false)
 		else

@@ -7,7 +7,7 @@ function component.Init(components)
 	local parent = components.Header.frame
 	local frame = CreateFrame("Button", nil, parent)
 	frame:SetSize(30, 30)
-	frame:SetScale(0.7);
+	frame:SetScale(0.7)
 	frame:SetPoint("BOTTOMRIGHT", parent.IconBorder, "BOTTOMRIGHT", 2, 4)
 	AddTexture(
 			frame,

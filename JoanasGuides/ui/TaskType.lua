@@ -48,6 +48,10 @@ function TaskTypeMixin:RenderFunc(task, container)
 	container.text:Show()
 end
 
+function TaskTypeMixin:Setup(task)
+
+end
+
 function GetTaskType(task)
 	for k, v in pairs(taskTypes) do
 		if (task[k]) then return v end

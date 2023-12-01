@@ -90,7 +90,9 @@ function Cacher:PLAYER_MONEY()
 end
 
 function Cacher:CURRENCY_DISPLAY_UPDATE(_, id, quantity)
-	self.player.currency[id] = (quantity or 0) > 0 and quantity or nil
+	if id and quantity then
+		self.player.currency[id] = quantity > 0 and quantity or nil
+	end
 end
 
 function Cacher:CURRENCY_TRACKED_CHANGED()
@@ -108,11 +110,9 @@ function Cacher:BANK_CLOSE()
 	for i = FIRST_BANK_SLOT, LAST_BANK_SLOT do
 		self:SaveBag(i)
 	end
-
 	if REAGENTBANK_CONTAINER and IsReagentBankUnlocked() then
 		self:SaveBag(REAGENTBANK_CONTAINER)
 	end
-
 	self:SaveBag(BANK_CONTAINER)
 end
 

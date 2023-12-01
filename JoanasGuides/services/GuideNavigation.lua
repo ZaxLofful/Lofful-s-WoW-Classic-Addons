@@ -250,6 +250,7 @@ function GuideNavigationService.SetStep(stepID)
             currentGuide.bookmark.taxiTaken = nil
             currentGuide.bookmark.died = nil
             currentGuide.bookmark.spiritRessed = nil
+            currentGuide.bookmark.spellsCast = nil
         end
         SyncValues("merchantVisited", currentGuide.bookmark, currentStep)
         SyncValues("petStableVisited", currentGuide.bookmark, currentStep)
