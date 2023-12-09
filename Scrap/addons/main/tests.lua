@@ -3,8 +3,13 @@ if not Tests then return end
 local Replace, IsFalse = WoWUnit.Replace, WoWUnit.IsFalse
 
 local function NotJunk(id)
+<<<<<<< HEAD
 	Replace(Scrap, 'junk', Scrap.baseList.__index)
 	Replace(Scrap, 'charsets', {consumable = true, equip = true})
+=======
+	Replace(Scrap, 'junk', Scrap.BaseList.__index)
+	Replace(Scrap, 'charsets', {consumable = true, equip = true, auto={}})
+>>>>>>> classic_hardcore
 
 	return IsFalse(Scrap:IsJunk(id))
 end

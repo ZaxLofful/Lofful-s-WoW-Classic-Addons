@@ -10,9 +10,48 @@ XPerl_RequestConfig(function(new)
 	if (XPerl_Player_Pet) then
 		XPerl_Player_Pet.conf = pconf
 	end
-end, "$Revision: 00a3cadfbbc8615840794db77581992f54190a2b $")
+end, "$Revision: 69c525b70b9bc2136160b2e5738adf94987affaf $")
 
 local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
+local IsWrathClassic = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
+local IsVanillaClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
+-- Upvalues
+local _G = _G
+local format = format
+local max = max
+local pairs = pairs
+local pcall = pcall
+local string = string
+local tonumber = tonumber
+
+local CreateFrame = CreateFrame
+local GetPetHappiness = GetPetHappiness
+local InCombatLockdown = InCombatLockdown
+local RegisterAttributeDriver = RegisterAttributeDriver
+local RegisterStateDriver = RegisterStateDriver
+local RegisterUnitWatch = RegisterUnitWatch
+local UnitAffectingCombat = UnitAffectingCombat
+local UnitClass = UnitClass
+local UnitExists = UnitExists
+local UnitGUID = UnitGUID
+local UnitHasIncomingResurrection = UnitHasIncomingResurrection
+local UnitHasVehicleUI = UnitHasVehicleUI
+local UnitHealth = UnitHealth
+local UnitHealthMax = UnitHealthMax
+local UnitInVehicle = UnitInVehicle
+local UnitIsCharmed = UnitIsCharmed
+local UnitIsDead = UnitIsDead
+local UnitIsFriend = UnitIsFriend
+local UnitIsGhost = UnitIsGhost
+local UnitName = UnitName
+local UnitPower = UnitPower
+local UnitPowerMax = UnitPowerMax
+local UnregisterUnitWatch = UnregisterUnitWatch
+
+local CombatFeedback_Initialize = CombatFeedback_Initialize
+local CombatFeedback_OnCombatEvent = CombatFeedback_OnCombatEvent
+local CombatFeedback_OnUpdate = CombatFeedback_OnUpdate
 
 local XPerl_Player_Pet_HighlightCallback
 
@@ -133,7 +172,7 @@ function XPerl_Player_Pet_OnLoad(self)
 				if pcall(self.RegisterUnitEvent, self, event, "target") then
 					self:RegisterUnitEvent(event, "target")
 				end
-			elseif event == "UNIT_HAPPINESS" and classFileName == "HUNTER" then
+			elseif IsClassic and event == "UNIT_HAPPINESS" and classFileName == "HUNTER" then
 				if pcall(self.RegisterUnitEvent, self, event, "pet") then
 					self:RegisterUnitEvent(event, "pet")
 				end
@@ -165,7 +204,7 @@ function XPerl_Player_Pet_OnLoad(self)
 	self:SetScript("OnShow", XPerl_Unit_UpdatePortrait)
 
 	if (XPerl_ArcaneBar_RegisterFrame) then
-		XPerl_ArcaneBar_RegisterFrame(self.nameFrame, (not IsClassic and UnitHasVehicleUI("player")) and "player" or "pet")
+		XPerl_ArcaneBar_RegisterFrame(self.nameFrame, (not IsVanillaClassic and UnitHasVehicleUI("player")) and "player" or "pet")
 	end
 
 	XPerl_RegisterHighlight(self.highlight, 2)
@@ -239,6 +278,15 @@ local function XPerl_Player_Pet_UpdateAbsorbPrediction(self)
 	end
 end
 
+-- XPerl_Player_Pet_UpdateHotsPrediction
+local function XPerl_Player_Pet_UpdateHotsPrediction(self)
+	if pconf.absorbs then
+		XPerl_SetExpectedHots(self)
+	else
+		self.statsFrame.expectedHots:Hide()
+	end
+end
+
 -- XPerl_Player_Pet_UpdateHealPrediction
 local function XPerl_Player_Pet_UpdateHealPrediction(self)
 	if pconf.healprediction then
@@ -273,6 +321,7 @@ local function XPerl_Player_Pet_UpdateHealth(self)
 	XPerl_SetHealthBar(self, pethealth, pethealthmax)
 
 	XPerl_Player_Pet_UpdateAbsorbPrediction(self)
+	XPerl_Player_Pet_UpdateHotsPrediction(self)
 	XPerl_Player_Pet_UpdateHealPrediction(self)
 	XPerl_Player_Pet_UpdateResurrectionStatus(self)
 
@@ -343,7 +392,7 @@ local function XPerl_Player_Pet_SetHappiness(self)
 	local icon = self.happyFrame.icon
 	icon.tex:SetTexCoord(0.5625 - (0.1875 * happiness), 0.75 - (0.1875 * happiness), 0, 0.359375)
 
-	if (pconf.happiness.enabled and (not pconf.happiness.onlyWhenSad or happiness < 3)) then
+	if (pconf.happiness.enable and (not pconf.happiness.onlyWhenSad or happiness < 3)) then
 		self.happyFrame:Show()
 
 		icon.tooltip = _G[("PET_HAPPINESS"..happiness)]
@@ -369,7 +418,7 @@ end
 
 -- XPerl_Player_Pet_Update_Control
 local function XPerl_Player_Pet_Update_Control(self)
-	if (UnitIsCharmed(self.partyid) and not IsClassic and not UnitInVehicle("player")) then
+	if (UnitIsCharmed(self.partyid) and not IsVanillaClassic and not UnitInVehicle("player")) then
 		self.nameFrame.warningIcon:Show()
 	else
 		self.nameFrame.warningIcon:Hide()
@@ -426,7 +475,7 @@ end
 function XPerl_Player_Pet_OnEvent(self, event, unitID, ...)
 	local func = XPerl_Player_Pet_Events[event]
 	if string.find(event, "^UNIT_") then
-	 	if (unitID == "pet" or unitID == "player") then
+		if (unitID == "pet" or unitID == "player") then
 			func(self, unitID, ...)
 		end
 	else
@@ -607,7 +656,7 @@ function XPerl_Player_Pet_Events:UNIT_EXITED_VEHICLE(unit)
 end
 
 function XPerl_Player_Pet_Events:UNIT_THREAT_LIST_UPDATE(unit)
-	if (unit == "target") then
+	if unit == "target" then
 		XPerl_Unit_ThreatStatus(self)
 	end
 end
@@ -620,7 +669,7 @@ XPerl_Player_Pet_Events.UNIT_TARGET = XPerl_Player_Pet_Events.PLAYER_TARGET_CHAN
 -- PLAYER_REGEN_DISABLED
 local virtual
 function XPerl_Player_Pet_Events:PLAYER_REGEN_DISABLED()
-	if (virtual) then
+	if virtual then
 		virtual = nil
 		RegisterUnitWatch(XPerl_Player_Pet)
 		if (UnitExists("pet")) then
@@ -643,13 +692,16 @@ function XPerl_Player_Pet_Events:PLAYER_REGEN_DISABLED()
 end
 
 function XPerl_Player_Pet_Events:UNIT_HEAL_PREDICTION(unit)
-	if (pconf.healprediction and unit == self.partyid) then
+	if pconf.healprediction and unit == self.partyid then
 		XPerl_SetExpectedHealth(self)
+	end
+	if IsWrathClassic and pconf.hotPrediction and unit == self.partyid then
+		XPerl_SetExpectedHots(self)
 	end
 end
 
 function XPerl_Player_Pet_Events:UNIT_ABSORB_AMOUNT_CHANGED(unit)
-	if (pconf.absorbs and unit == self.partyid) then
+	if pconf.absorbs and unit == self.partyid then
 		XPerl_SetExpectedAbsorbs(self)
 	end
 end

@@ -3,7 +3,7 @@
 -- License: GNU GPL v3, 29 June 2007 (see LICENSE.txt)
 
 local XPerl_Raid_Events = { }
-local RaidGroupCounts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+local RaidGroupCounts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 local myGroup
 local FrameArray = { }		-- List of raid frames indexed by raid ID
 local RaidPositions = { }	-- Back-matching of unit names to raid ID
@@ -22,7 +22,7 @@ local conf, rconf
 XPerl_RequestConfig(function(newConf)
 	conf = newConf
 	rconf = conf.raid
-end, "$Revision: 00a3cadfbbc8615840794db77581992f54190a2b $")
+end, "$Revision: 7c303655db44388c76e9dd660ef8ea045a1a721f $")
 
 --[[if type(RegisterAddonMessagePrefix) == "function" then
 	RegisterAddonMessagePrefix("CTRA")
@@ -36,12 +36,16 @@ end
 
 --local new, del, copy = XPerl_GetReusableTable, XPerl_FreeTable, XPerl_CopyTable
 
+local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+local IsWrathClassic = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
+local IsVanillaClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
 
 local format = format
 local strsub = strsub
 
 local GetNumGroupMembers = GetNumGroupMembers
+local UnitGUID = UnitGUID
 local UnitHealth = UnitHealth
 local UnitHealthMax = UnitHealthMax
 local UnitIsConnected = UnitIsConnected
@@ -61,8 +65,8 @@ local XPerl_ColourHealthBar = XPerl_ColourHealthBar
 local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo
 local LCC = LibStub("LibClassicCasterino", true)
 if LCC then
-    UnitCastingInfo = function(unit) return LCC:UnitCastingInfo(unit); end
-    UnitChannelInfo = function(unit) return LCC:UnitChannelInfo(unit); end
+	UnitCastingInfo = function(unit) return LCC:UnitCastingInfo(unit); end
+	UnitChannelInfo = function(unit) return LCC:UnitChannelInfo(unit); end
 end
 
 -- TODO - Watch for:	 ERR_FRIEND_OFFLINE_S = "%s has gone offline."
@@ -78,10 +82,12 @@ ZPerl_Roster = { }
 -- NUM_RAID_GROUPS = 8
 -- MEMBERS_PER_RAID_GROUP = 5
 
-local localGroups = LOCALIZED_CLASS_NAMES_MALE
-local WoWclassCount = 0
-for k, v in pairs(localGroups) do
-	WoWclassCount = WoWclassCount + 1
+local LOCALIZED_CLASS_NAMES_MALE = LOCALIZED_CLASS_NAMES_MALE
+local CLASS_COUNT = 0
+for k, v in pairs(LOCALIZED_CLASS_NAMES_MALE) do
+	if k ~= "Adventurer" then
+		CLASS_COUNT = CLASS_COUNT + 1
+	end
 end
 
 local resSpells
@@ -164,7 +170,7 @@ function XPerl_Raid_OnLoad(self)
 
 	self:SetScript("OnEvent", XPerl_Raid_OnEvent)
 
-	for i = 1, WoWclassCount do
+	for i = 1, CLASS_COUNT do
 		--_G["XPerl_Raid_Grp"..i]:UnregisterEvent("UNIT_NAME_UPDATE")
 		tinsert(raidHeaders, _G[XPERL_RAIDGRP_PREFIX..i])
 	end
@@ -183,6 +189,7 @@ function XPerl_Raid_OnLoad(self)
 		self.state:SetFrameRef("ZPerlRaidHeader10", _G[XPERL_RAIDGRP_PREFIX..10])
 		self.state:SetFrameRef("ZPerlRaidHeader11", _G[XPERL_RAIDGRP_PREFIX..11])
 		self.state:SetFrameRef("ZPerlRaidHeader12", _G[XPERL_RAIDGRP_PREFIX..12])
+		self.state:SetFrameRef("ZPerlRaidHeader13", _G[XPERL_RAIDGRP_PREFIX..13])
 
 		self.state:SetAttribute("partySmallRaid", XPerlDB.party.smallRaid)
 		self.state:SetAttribute("raidEnabled", XPerlDB.raid.enable)
@@ -203,6 +210,7 @@ function XPerl_Raid_OnLoad(self)
 				self:GetFrameRef("ZPerlRaidHeader10"):Hide()
 				self:GetFrameRef("ZPerlRaidHeader11"):Hide()
 				self:GetFrameRef("ZPerlRaidHeader12"):Hide()
+				self:GetFrameRef("ZPerlRaidHeader13"):Hide()
 			elseif self:GetAttribute('partySmallRaid') or not self:GetAttribute('raidEnabled') then
 				return
 			else
@@ -218,12 +226,12 @@ function XPerl_Raid_OnLoad(self)
 				self:GetFrameRef("ZPerlRaidHeader10"):Show()
 				self:GetFrameRef("ZPerlRaidHeader11"):Show()
 				self:GetFrameRef("ZPerlRaidHeader12"):Show()
+				self:GetFrameRef("ZPerlRaidHeader13"):Show()
 			end
 		]])
 		RegisterStateDriver(self.state, "groupupdate", "[petbattle] hide; show")
 	end
 
-	self.time = 0
 	self.Array = { }
 
 	--[[if (rconf.enable) then
@@ -507,6 +515,18 @@ local function XPerl_Raid_UpdateHealPrediction(self)
 	end
 end
 
+-- XPerl_Raid_UpdateHotsPrediction
+local function XPerl_Raid_UpdateHotsPrediction(self)
+	if not IsWrathClassic then
+		return
+	end
+	if rconf.hotPrediction then
+		XPerl_SetExpectedHots(self)
+	else
+		self.statsFrame.expectedHots:Hide()
+	end
+end
+
 local function XPerl_Raid_UpdateResurrectionStatus(self)
 	if (UnitHasIncomingResurrection(self.partyid)) then
 		self.statsFrame.resurrect:Show()
@@ -552,6 +572,7 @@ local function XPerl_Raid_UpdateHealth(self)
 
 	XPerl_Raid_UpdateAbsorbPrediction(self)
 	XPerl_Raid_UpdateHealPrediction(self)
+	XPerl_Raid_UpdateHotsPrediction(self)
 	XPerl_Raid_UpdateResurrectionStatus(self)
 
 	local name, realm = UnitName(partyid)
@@ -601,7 +622,7 @@ local function XPerl_Raid_UpdateHealth(self)
 			local percentHp
 			if health > 0 and healthmax == 0 then -- We have current hp but max hp failed.
 				healthmax = health -- Make max hp at least equal to current health
-				percentHp = 100 -- And percent 100% cause a number divided by itself is 1, duh.
+				percentHp = 1 -- And percent 100% cause a number divided by itself is 1, duh.
 			elseif health == 0 and healthmax == 0 then -- Probably dead target
 				percentHp = 0 -- So just automatically set percent to 0 and avoid division of 0/0 all together in this situation.
 			else
@@ -614,13 +635,13 @@ local function XPerl_Raid_UpdateHealth(self)
 				if rconf.values then
 					self.statsFrame.healthBar.text:SetFormattedText("%d/%d", health, healthmax)
 				elseif rconf.precisionPercent then
-					self.statsFrame.healthBar.text:SetFormattedText(perc1F, percentHp * 100 + 0.05)
+					self.statsFrame.healthBar.text:SetFormattedText(perc1F, percentHp == 1 and 100 or percentHp * 100 + 0.05)
 				else
 					local show = percentHp * 100
 					if show < 10 then
-						self.statsFrame.healthBar.text:SetFormattedText(perc1F or "%.1f%%", show + 0.05)
+						self.statsFrame.healthBar.text:SetFormattedText(perc1F or "%.1f%%", percentHp == 1 and 100 or percentHp * 100 + 0.05)
 					else
-						self.statsFrame.healthBar.text:SetFormattedText(percD or "%d%%", show + 0.5)
+						self.statsFrame.healthBar.text:SetFormattedText(percD or "%d%%", percentHp == 1 and 100 or percentHp * 100 + 0.5)
 					end
 				end
 			end
@@ -675,7 +696,7 @@ local function XPerl_Raid_UpdateMana(self)
 				local pmanaPct
 				if mana > 0 and manamax == 0 then -- We have current mana but max mana failed.
 					manamax = mana -- Make max mana at least equal to current health
-					pmanaPct = 100 -- And percent 100% cause a number divided by itself is 1, duh.
+					pmanaPct = 1 -- And percent 100% cause a number divided by itself is 1, duh.
 				elseif mana == 0 and manamax == 0 then--Probably doesn't use mana or is oom?
 					pmanaPct = 0 -- So just automatically set percent to 0 and avoid division of 0/0 all together in this situation.
 				else
@@ -1110,8 +1131,8 @@ function XPerl_Raid_OnUpdate(self, elapsed)
 					end
 				end]]--
 				if conf.rangeFinder.enabled then
-					self.time = self.time + elapsed
-					if (self.time > 0.2) then
+					self.time = elapsed + (self.time or 0)
+					if self.time > 0.2 then
 						self.time = 0
 						if (frame.partyid) then
 							XPerl_UpdateSpellRange(frame, frame.partyid, true)
@@ -1227,7 +1248,7 @@ function XPerl_Raid_UpdateDisplay(self)
 		XPerl_Raid_UpdateManaType(self)
 		XPerl_Raid_UpdateMana(self)
 	end
-	if not IsClassic then
+	if not IsVanillaClassic then
 		XPerl_Raid_RoleUpdate(self, UnitGroupRolesAssigned(self.partyid))
 	end
 	XPerl_Raid_UpdatePlayerFlags(self)
@@ -1265,7 +1286,7 @@ function XPerl_Raid_HideShowRaid()
 		end
 	end
 
-	for i = 1, WoWclassCount do
+	for i = 1, CLASS_COUNT do
 		if (rconf.group[i] and enable and (i < 9 or rconf.sortByClass) and not singleGroup) then
 			if not IsClassic and not C_PetBattles.IsInBattle() then
 				if (not raidHeaders[i]:IsShown()) then
@@ -1338,8 +1359,26 @@ end
 
 -- COMPACT_UNIT_FRAME_PROFILES_LOADED
 function XPerl_Raid_Events:COMPACT_UNIT_FRAME_PROFILES_LOADED()
-	if rconf.enable then
+	if not rconf.disableDefault then
+		return
+	end
+	if IsClassic then
 		DisableCompactRaidFrames()
+	end
+	if CompactRaidFrameManager then
+		CompactRaidFrameManager:UnregisterAllEvents()
+		hooksecurefunc(CompactRaidFrameManager, "Show", function(self)
+			self:Hide()
+		end)
+		CompactRaidFrameManager:Hide()
+	end
+
+	if CompactRaidFrameContainer then
+		CompactRaidFrameContainer:UnregisterAllEvents()
+		hooksecurefunc(CompactRaidFrameContainer, "Show", function(self)
+			self:Hide()
+		end)
+		CompactRaidFrameContainer:Hide()
 	end
 end
 
@@ -1482,7 +1521,7 @@ function XPerl_Raid_Events:GROUP_ROSTER_UPDATE()
 	BuildGuidMap()
 	if (IsInRaid() or (IsInGroup() and rconf.inParty)) then
 		XPerl_Raid_Frame:Show()
-		if not IsClassic then
+		if not IsVanillaClassic then
 			if (rconf.raid_role) then
 				for i, frame in pairs(FrameArray) do
 					if (frame.partyid) then
@@ -1673,7 +1712,7 @@ end
 
 -- UNIT_SPELLCAST_STOP
 function XPerl_Raid_Events:UNIT_SPELLCAST_STOP(unit)
-	if (unit) then
+	if unit then
 		local unitName, realm = UnitName(unit)
 		if realm and realm ~= "" then
 			unitName = unitName.."-"..realm
@@ -1684,7 +1723,7 @@ end
 
 -- UNIT_SPELLCAST_FAILED
 function XPerl_Raid_Events:UNIT_SPELLCAST_FAILED(unit)
-	if (unit) then
+	if unit then
 		local unitName, realm = UnitName(unit)
 		if realm and realm ~= "" then
 			unitName = unitName.."-"..realm
@@ -1697,13 +1736,19 @@ XPerl_Raid_Events.UNIT_SPELLCAST_INTERRUPTED = XPerl_Raid_Events.UNIT_SPELLCAST_
 
 
 function XPerl_Raid_Events:UNIT_HEAL_PREDICTION(unit)
-	if (rconf.healprediction and unit == self.partyid) then
+	if rconf.healprediction and unit == self.partyid then
 		XPerl_SetExpectedHealth(self)
+	end
+	if not IsWrathClassic then
+		return
+	end
+	if rconf.hotPrediction and unit == self.partyid then
+		XPerl_SetExpectedHots(self)
 	end
 end
 
 function XPerl_Raid_Events:UNIT_ABSORB_AMOUNT_CHANGED(unit)
-	if (rconf.absorbs and unit == self.partyid) then
+	if rconf.absorbs and unit == self.partyid then
 		XPerl_SetExpectedAbsorbs(self)
 	end
 end
@@ -1907,7 +1952,7 @@ function SetRaidRoster()
 
 	--del(RaidGroupCounts)
 	--RaidGroupCounts = new(0,0,0,0,0,0,0,0,0,0,0)
-	RaidGroupCounts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	RaidGroupCounts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 	local player
 	for i = 1, GetNumGroupMembers() do
@@ -1938,7 +1983,7 @@ function SetRaidRoster()
 			end
 
 			if (rconf.sortByClass) then
-				for j = 1, WoWclassCount do
+				for j = 1, CLASS_COUNT do
 					if (rconf.class[j].name == fileName and rconf.class[j].enable) then
 						RaidGroupCounts[j] = RaidGroupCounts[j] + 1
 						break
@@ -1996,7 +2041,7 @@ end
 
 -- XPerl_ScaleRaid
 function XPerl_ScaleRaid()
-	for frame = 1, 12 do
+	for frame = 1, 13 do
 		local f = _G["XPerl_Raid_Title"..frame]
 		if (f) then
 			f:SetScale(rconf.scale)
@@ -2010,7 +2055,7 @@ function XPerl_Raid_SetWidth()
 		XPerl_OutOfCombatQueue[XPerl_Raid_SetWidth] = true
 		return
 	end
-	for i = 1, 12 do
+	for i = 1, 13 do
 		local f = _G["XPerl_Raid_Title"..i]
 		if (f) then
 			f:SetWidth(80 + rconf.size.width)
@@ -2038,7 +2083,7 @@ function XPerl_RaidTitles()
 	end
 
 	local c
-	for i = 1, WoWclassCount do
+	for i = 1, CLASS_COUNT do
 		local confClass = rconf.class[i].name
 		local frame = _G["XPerl_Raid_Title"..i]
 		local titleFrame = frame.text
@@ -2144,7 +2189,7 @@ end
 
 -- XPerl_EnableRaidMouse()
 function XPerl_EnableRaidMouse()
-	for i = 1, 12 do
+	for i = 1, 13 do
 		local frame = _G["XPerl_Raid_Title"..i]
 		if (XPerlLocked == 0) then
 			frame:EnableMouse(true)
@@ -2435,10 +2480,8 @@ local function SetMainHeaderAttributes(self)
 		self:SetAttribute("sortMethod", nil)
 	end
 
-	--self:SetAttribute("showSolo", true)
 	self:SetAttribute("showParty", rconf.inParty)
 	self:SetAttribute("showPlayer", rconf.inParty)
-
 	self:SetAttribute("showRaid", true)
 
 	if rconf.anchor ~= "BOTTOM" then
@@ -2468,22 +2511,7 @@ local function SetMainHeaderAttributes(self)
 end
 
 local function DefaultRaidClasses()
-	if IsClassic then
-		return {
-			{enable = true, name = "WARRIOR"},
-			--{enable = true, name = "DEATHKNIGHT"},
-			{enable = true, name = "ROGUE"},
-			{enable = true, name = "HUNTER"},
-			{enable = true, name = "MAGE"},
-			{enable = true, name = "WARLOCK"},
-			{enable = true, name = "PRIEST"},
-			{enable = true, name = "DRUID"},
-			{enable = true, name = "SHAMAN"},
-			{enable = true, name = "PALADIN"},
-			--{enable = true, name = "MONK"},
-			--{enable = true, name = "DEMONHUNTER"},
-		}
-	else
+	if IsRetail then
 		return {
 			{enable = true, name = "WARRIOR"},
 			{enable = true, name = "DEATHKNIGHT"},
@@ -2497,6 +2525,32 @@ local function DefaultRaidClasses()
 			{enable = true, name = "PALADIN"},
 			{enable = true, name = "MONK"},
 			{enable = true, name = "DEMONHUNTER"},
+			{enable = true, name = "EVOKER"}
+		}
+	elseif IsWrathClassic then
+		return {
+			{enable = true, name = "WARRIOR"},
+			{enable = true, name = "DEATHKNIGHT"},
+			{enable = true, name = "ROGUE"},
+			{enable = true, name = "HUNTER"},
+			{enable = true, name = "MAGE"},
+			{enable = true, name = "WARLOCK"},
+			{enable = true, name = "PRIEST"},
+			{enable = true, name = "DRUID"},
+			{enable = true, name = "SHAMAN"},
+			{enable = true, name = "PALADIN"},
+		}
+	else
+		return {
+			{enable = true, name = "WARRIOR"},
+			{enable = true, name = "ROGUE"},
+			{enable = true, name = "HUNTER"},
+			{enable = true, name = "MAGE"},
+			{enable = true, name = "WARLOCK"},
+			{enable = true, name = "PRIEST"},
+			{enable = true, name = "DRUID"},
+			{enable = true, name = "SHAMAN"},
+			{enable = true, name = "PALADIN"},
 		}
 	end
 end
@@ -2517,7 +2571,7 @@ local function GroupFilter(n)
 		end
 
 		local invalid
-		for i = 1, WoWclassCount do
+		for i = 1, CLASS_COUNT do
 			if (not rconf.class[i]) then
 				invalid = true
 			end
@@ -2526,7 +2580,7 @@ local function GroupFilter(n)
 			rconf.class = DefaultRaidClasses()
 		end
 
-		for i = 1, WoWclassCount do
+		for i = 1, CLASS_COUNT do
 			if (rconf.class[i].enable) then
 				if (not f) then
 					f = rconf.class[i].name
@@ -2548,7 +2602,7 @@ function XPerl_Raid_ChangeAttributes()
 
 	rconf.anchor = (rconf and rconf.anchor) or "TOP"
 
-	for i = 1, rconf.sortByClass and WoWclassCount or (IsClassic and 9 or 12) do
+	for i = 1, rconf.sortByClass and CLASS_COUNT or (IsVanillaClassic and 9 or (IsWrathClassic and 10 or 13)) do
 		local groupHeader = raidHeaders[i]
 
 		-- Hide this when we change attributes, so the whole re-calc is only done once, instead of for every attribute change
@@ -2613,7 +2667,7 @@ function XPerl_Raid_Set_Bits(self)
 	XPerl_ScaleRaid()
 	XPerl_Raid_SetWidth()
 
-	for i = 1, 12 do
+	for i = 1, 13 do
 		XPerl_SavePosition(_G["XPerl_Raid_Title"..i], true)
 	end
 

@@ -1,9 +1,9 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2021 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2023 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
--- 
+--
 -- English resources
 ------------------------------------------------------------
 
@@ -97,6 +97,7 @@ For more information on customizing Pawn, please see the help file (Readme.htm) 
 		["CritInfo"] = "Critical strike.  Increases the chance that your attacks and healing spells will hit with increased potency.  (In WoW Classic, this only affects physical attacks.)",
 		["DefenseInfo"] = "Defense skill.  Decreases the chance that you'll be hit by boss attacks.",
 		["DodgeInfo"] = "Dodge.  Increases the chance that you'll dodge attacks entirely.",
+		["DominationSocketInfo"] = "The value of a socket for an average Shard of Domination.",
 		["DpsInfo"] = "Weapon damage per second.  (If you want to value DPS differently for different types of weapons, see the \"Special weapon stats\" section.)",
 		["ExpertiseInfo"] = "Expertise. Negates your enemy's chances to dodge and parry.",
 		["FeralApInfo"] = "Feral Attack Power.  Increases the damage of druid attacks when in feral forms.  Does not include attack power gained from strength and agility.",
@@ -152,6 +153,7 @@ For more information on customizing Pawn, please see the help file (Readme.htm) 
 		["SpellDamageInfo"] = "Spell damage.  Increases the damage dealt by your offensive spells.",
 		["SpellHitInfo"] = "Spell Hit.  Increases the chance that your damaging spells hit the target, especially bosses.",
 		["SpellPenetrationInfo"] = "Spell Penetration. Negates an enemy's resistances to your spells.",
+		["SpellPowerInfo"] = "Spell power.  Increases both damage and healing dealt by spells.",
 		["SpiritInfo"] = "Spirit.  Affects your out-of-combat mana regeneration.",
 		["StaminaInfo"] = "Stamina.  Increases your health.",
 		["StrengthInfo"] = "Strength.  Increases the power of some classes' abilities.",
@@ -260,6 +262,9 @@ For more information on customizing Pawn, please see the help file (Readme.htm) 
 		["Armor"] = "^%+?# Armor$",
 		["Armor2"] = "^UNUSED$",
 		["ArmorPenetration"] = "^Equip: Your attacks ignore # of your opponent's armor%.$",
+		["ArmorPenetrationRating"] = "^Equip: Increases armor penetration rating by #%.$",
+		["ArmorPenetrationRating2"] = "^Equip: Increases your armor penetration by #%.$",
+		["ArmorPenetrationShort"] = "^%+?# Armor Penetration Rating$",
 		["Avoidance"] = "^%+# Avoidance$",
 		["Axe"] = "^Axe$",
 		["BagSlots"] = "^%d+ Slot .+$",
@@ -279,6 +284,7 @@ For more information on customizing Pawn, please see the help file (Readme.htm) 
 		["CritPercent"] = "^Equip: Improves your chance to get a critical strike by #%%%.$",
 		["CritRating"] = "^Equip: Increases your critical strike rating by #%.$",
 		["CritRating2"] = "^Equip: Improves critical strike rating by #%.$",
+		["CritRating3"] = "^UNUSED$",
 		["CritRatingShort"] = "^%+?# Critical Strike Rating$",
 		["Crossbow"] = "^Crossbow$",
 		["Dagger"] = "^Dagger$",
@@ -309,8 +315,10 @@ For more information on customizing Pawn, please see the help file (Readme.htm) 
 		["EnchantmentTitaniumWeaponChain"] = "^Titanium Weapon Chain$",
 		["Equip"] = "Equip:",
 		["ExpertiseRating"] = "^Equip: Increases your expertise rating by #%.$",
+		["ExpertiseRatingShort"] = "^%+?# Expertise Rating$",
 		["FeralAp"] = "^Equip: %+# Attack Power in Cat, Bear, and Dire Bear forms only%.$",
 		["FeralApMoonkin"] = "^Equip: Increases attack power by # in Cat, Bear, Dire Bear, and Moonkin forms only%.$",
+		["FeralApWrath"] = "^Increases attack power by # in Cat, Bear, Dire Bear, and Moonkin forms only%.$",
 		["FireResist"] = "^%+?# Fire Resistance$",
 		["FireSpellDamage"] = "^%+# Fire Spell Damage$",
 		["FireSpellDamage2"] = "^Equip: Increases damage done by Fire spells and effects by up to #%.$",
@@ -346,6 +354,7 @@ For more information on customizing Pawn, please see the help file (Readme.htm) 
 		["HitRatingShort"] = "^%+?# Hit Rating$",
 		["HolySpellDamage"] = "^%+# Holy Spell Damage$",
 		["HolySpellDamage2"] = "^Equip: Increases damage done by Holy spells and effects by up to #%.$",
+		["HolySpellDamage3"] = "^Equip: Increases the damage done by Holy spells and effects by up to #%.$",
 		["Hp5"] = "^Equip: Restores # health every 5 sec%.$",
 		["Hp52"] = "^Equip: Restores # health per 5 sec%.$",
 		["Hp53"] = "^Restores %+?# [hH]ealth [pP]er 5 [sS]ec%.?$",
@@ -362,8 +371,9 @@ For more information on customizing Pawn, please see the help file (Readme.htm) 
 		["MovementSpeed"] = "^%+# Speed$",
 		["Mp5"] = "^Equip: Restores # mana per 5 sec%.$",
 		["Mp52"] = "^%+?# mana every 5 sec%.$",
-		["Mp53"] = "^%+?# Mana [Pp]er 5 sec%.$",
+		["Mp53"] = "^%+?# [Mm]ana [Pp]er 5 sec%.$",
 		["Mp54"] = "^%+?# Mana every 5 seconds$",
+		["Mp55"] = "^UNUSED$",
 		["MultiStatHeading"] = "^Multiple Stats$",
 		["MultiStatSeparator1"] = "and",
 		["Multistrike"] = "^%+# Multistrike$",
@@ -382,6 +392,7 @@ For more information on customizing Pawn, please see the help file (Readme.htm) 
 		["PvPPower"] = "^%+?# PvP Power$",
 		["RaidFinder"] = "^Raid Finder$",
 		["Rap"] = "^Equip: %+# ranged Attack Power%.$",
+		["Rap2"] = "^Equip: Increases ranged attack power by #%.$",
 		["Requires2"] = "^UNUSED$",
 		["Resilience"] = "^%+?# PvP Resilience$",
 		["Resilience2"] = "^UNUSED$",
@@ -403,11 +414,15 @@ For more information on customizing Pawn, please see the help file (Readme.htm) 
 		["SpellCritRating"] = "^Equip: Increases your spell critical strike rating by #%.$",
 		["SpellCritRating2"] = "^Equip: Improves spell critical strike rating by #%.$",
 		["SpellCritRatingShort"] = "^%+?# Spell Critical Rating$",
+		["SpellCritRatingShort2"] = "^%+?# Spell Critical Strike Rating$",
 		["SpellDamage"] = "^%+# Damage and Healing Spells$",
 		["SpellDamage2"] = "^Equip: Increases damage and healing done by magical spells and effects by up to #%.$",
 		["SpellDamage3"] = "^%+# Healing and Spell Damage$",
 		["SpellDamage4"] = "^%+# Spell Damage$",
+		["SpellDamage5"] = "^UNUSED$",
+		["SpellDamage6"] = "^UNUSED$",
 		["SpellDamageAndHealing"] = "^Equip: Increases healing done by up to # and damage done by up to # for all magical spells and effects%.$",
+		["SpellDamageAndHealing2"] = "^UNUSED$",
 		["SpellDamageAndHealingEnchant"] = "^%+# Healing and %+# Spell Damage$",
 		["SpellDamageAndHealingShort"] = "^%+# Healing Spells and %+# Damage Spells$",
 		["SpellDamageAndHealingShort2"] = "^%+# Healing %+# Spell Damage$",
@@ -421,6 +436,8 @@ For more information on customizing Pawn, please see the help file (Readme.htm) 
 		["SpellPenetrationClassic"] = "^Equip: Decreases the magical resistances of your spell targets by #%.$",
 		["SpellPenetrationShort"] = "^%+?# Spell Penetration$",
 		["SpellPower"] = "^%+?# Spell Power$",
+		["SpellPower2"] = "^Equip: Increases spell power by #%.$",
+		["SpellPower3"] = "^UNUSED$",
 		["Spirit"] = "^%+?# Spirit$",
 		["Staff"] = "^Staff$",
 		["Stamina"] = "^%+?# Stamina$",
@@ -651,6 +668,7 @@ This command cannot be undone!]=],
 		["ScaleRename"] = "Rename",
 		["ScaleRenameTooltip"] = "Rename this scale.",
 		["ScaleSelectorHeader"] = "Select a scale:",
+		["ScaleSelectorNoneWarning"] = "Shift-click at least one for advice.",
 		["ScaleSelectorShowingSuggestionsFor"] = "Showing suggestions for",
 		["ScaleSelectorShowScale"] = "Show this scale in tooltips",
 		["ScaleSelectorShowScaleTooltip"] = [=[Enable this option to show this scale in item tooltips and have Pawn use it to suggest upgrades.  You can have more than one scale enabled on each character.

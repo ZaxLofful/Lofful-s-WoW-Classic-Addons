@@ -1,9 +1,9 @@
-if WOW_PROJECT_ID ~= (WOW_PROJECT_MAINLINE or 1) then -- Added in WotLK
+if WOW_PROJECT_ID == (WOW_PROJECT_CLASSIC or 2) then -- Added in WotLK
 	return
 end
 local mod	= DBM:NewMod("z628", "DBM-PvP")
 
-mod:SetRevision("20210519214524")
+mod:SetRevision("20230706084824")
 mod:SetZone(DBM_DISABLE_ZONE_DETECTION)
 mod:RegisterEvents(
 	"LOADING_SCREEN_DISABLED",

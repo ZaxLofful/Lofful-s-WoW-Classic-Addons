@@ -6,7 +6,7 @@
 	Generic Bar Frame Template
 ]]
 local _, Bartender4 = ...
-local Bar = CreateFrame("Button")
+local Bar = CreateFrame("Frame")
 local Bar_MT = {__index = Bar}
 
 local table_concat, table_insert, tostring, assert, pairs, min, max = table.concat, table.insert, tostring, assert, pairs, min, max
@@ -39,13 +39,14 @@ local defaults = {
 
 local Sticky = LibStub("LibSimpleSticky-1.0")
 local LibWin = LibStub("LibWindow-1.1")
+local LAB = LibStub("LibActionButton-1.0")
 local snapBars = { WorldFrame, UIParent }
 
 local barOnEnter, barOnLeave, barOnDragStart, barOnDragStop, barOnClick, barOnUpdateFunc, barOnAttributeChanged
 do
 	function barOnEnter(self)
 		if not self:GetParent().isMoving then
-			self:SetBackdropBorderColor(0.5, 0.5, 0, 1)
+			self:SetBackdropBorderColor(0.25, 1.0, 0.25, 1)
 		end
 	end
 
@@ -55,7 +56,13 @@ do
 
 	local function barReAnchorForSnap(self)
 		local x,y,anchor = nil, nil, self:GetAnchor()
-		x = (self.config.position.growHorizontal == "RIGHT") and self:GetLeft() or self:GetRight()
+		if self.config.position.growHorizontal == "RIGHT" then
+			x = self:GetLeft()
+		elseif self.config.position.growHorizontal == "LEFT" then
+			x = self:GetRight()
+		elseif self.config.position.growHorizontal == "BOTH" then
+			x = self:GetCenter()
+		end
 		y = (self.config.position.growVertical == "DOWN") and self:GetTop() or self:GetBottom()
 		self:ClearSetPoint(anchor, UIParent, "BOTTOMLEFT", x, y)
 		self:SetWidth(self.overlay:GetWidth())
@@ -64,7 +71,13 @@ do
 
 	local function barReAnchorNormal(self)
 		local x,y,anchor = nil, nil, self:GetAnchor()
-		x = (self.config.position.growHorizontal == "RIGHT") and self:GetLeft() or self:GetRight()
+		if self.config.position.growHorizontal == "RIGHT" then
+			x = self:GetLeft()
+		elseif self.config.position.growHorizontal == "LEFT" then
+			x = self:GetRight()
+		elseif self.config.position.growHorizontal == "BOTH" then
+			x = self:GetCenter()
+		end
 		y = (self.config.position.growVertical == "DOWN") and self:GetTop() or self:GetBottom()
 		self:ClearSetPoint(anchor, UIParent, "BOTTOMLEFT", x, y)
 		self:SetWidth(1)
@@ -164,8 +177,8 @@ function Bartender4.Bar:Create(id, config, name, level)
 		edgeSize = 16,
 		insets = {left = 5, right = 3, top = 3, bottom = 5}
 	})
-	overlay:SetBackdropColor(0, 1, 0, 0.5)
-	overlay:SetBackdropBorderColor(0.5, 0.5, 0, 0)
+	overlay:SetBackdropColor(0.25, 1.0, 0.25, 0.75)
+	overlay:SetBackdropBorderColor(0, 0, 0, 0)
 	overlay.Text = overlay:CreateFontString(nil, "ARTWORK")
 	overlay.Text:SetFontObject(GameFontNormal)
 	overlay.Text:SetText(name)
@@ -179,7 +192,7 @@ function Bartender4.Bar:Create(id, config, name, level)
 	overlay:SetScript("OnDragStop", barOnDragStop)
 	overlay:SetScript("OnClick", barOnClick)
 
-	overlay:SetFrameLevel(bar:GetFrameLevel() + 10)
+	overlay:SetFrameLevel(1000)
 	bar:AnchorOverlay()
 	overlay:Hide()
 
@@ -230,7 +243,13 @@ function Bar:ApplyConfig(config)
 end
 
 function Bar:GetAnchor()
-	return ((self.config.position.growVertical == "DOWN") and "TOP" or "BOTTOM") .. ((self.config.position.growHorizontal == "RIGHT") and "LEFT" or "RIGHT")
+	local anchor = (self.config.position.growVertical == "DOWN") and "TOP" or "BOTTOM"
+	if self.config.position.growHorizontal == "RIGHT" then
+		anchor = anchor .. "LEFT"
+	elseif self.config.position.growHorizontal == "LEFT" then
+		anchor = anchor .. "RIGHT"
+	end
+	return anchor
 end
 
 function Bar:AnchorOverlay()
@@ -313,6 +332,10 @@ function Bar:SetSize(width, height)
 	end
 end
 
+function Bar:GetSize()
+	return self.overlay:GetSize()
+end
+
 function Bar:GetConfigAlpha()
 	return self.config.alpha
 end
@@ -390,8 +413,10 @@ function Bar:SetFadeOutDelay(delay)
 end
 
 local function MouseIsOverBar(bar)
+	local LABSpellFlyout = LAB:GetSpellFlyoutFrame()
 	if MouseIsOver(bar.overlay)
-	or (SpellFlyout and SpellFlyout:IsShown() and SpellFlyout:GetParent() and SpellFlyout:GetParent():GetParent() == bar and MouseIsOver(SpellFlyout)) then
+	or (SpellFlyout and SpellFlyout:IsShown() and SpellFlyout:GetParent() and SpellFlyout:GetParent():GetParent() == bar and MouseIsOver(SpellFlyout))
+	or (LABSpellFlyout and LABSpellFlyout:IsShown() and LABSpellFlyout:GetParent() and LABSpellFlyout:GetParent():GetParent() == bar and MouseIsOver(LABSpellFlyout)) then
 		return true
 	end
 	return false

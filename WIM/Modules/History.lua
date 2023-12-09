@@ -9,6 +9,8 @@ local date = date;
 local time = time;
 local select = select;
 
+local DDM = WIM.libs.DropDownMenu;
+
 --set namespace
 setfenv(1, WIM);
 
@@ -279,7 +281,7 @@ function ChatHistory:OnEnable()
 end
 
 function ChatHistory:OnDisable()
-    if(db.modules.HistoryChat.enabled) then
+    if(modules.HistoryChat.enabled) then
         return;
     end
     for widget in Widgets("history") do
@@ -299,7 +301,6 @@ local function recordChannelChat(recordAs, ChannelType, ...)
         local history = getPlayerHistoryTable(recordAs);
         history.info.chat = true;
         history.info.channelNumber = channelNumber;
-        _G.test = history;
         table.insert(history, {
             event = ChannelType,
             channelName = recordAs,
@@ -383,7 +384,7 @@ end
 
 local function createHistoryViewer()
 	-- Changes for Patch 9.0.1 - Shadowlands, retail and classic
-	local win = CreateFrame("Frame", "WIM3_HistoryFrame", _G.UIParent, isTBC and "BackdropTemplate");
+	local win = CreateFrame("Frame", "WIM3_HistoryFrame", _G.UIParent, "BackdropTemplate");
 
     win:Hide();
     win.filter = {};
@@ -398,11 +399,7 @@ local function createHistoryViewer()
         tile = true, tileSize = 64, edgeSize = 64,
         insets = { left = 64, right = 64, top = 64, bottom = 64 }};
 
-	if not isTBC then
-		win:SetBackdrop(win.backdropInfo);
-	else
-		win:ApplyBackdrop();
-	end
+	win:ApplyBackdrop();
 
     -- set basic frame properties
     win:SetClampedToScreen(true);
@@ -411,7 +408,11 @@ local function createHistoryViewer()
     win:SetToplevel(true);
     win:EnableMouse(true);
     win:RegisterForDrag("LeftButton");
-    win:SetMinResize(600, 400);
+    if win.SetResizeBounds then -- WoW 10.0
+		win:SetResizeBounds(240,240)
+	else
+   		win:SetMinResize(600, 400);
+   	end
 
     -- set script events
     win:SetScript("OnDragStart", function(self) self:StartMoving(); end);
@@ -452,9 +453,10 @@ local function createHistoryViewer()
     win.nav:SetPoint("TOPLEFT", 18, -47);
     win.nav:SetPoint("BOTTOMLEFT", 18, 18);
     win.nav:SetWidth(200);
-    win.nav.user = CreateFrame("Frame", "WIM3_HistoryUserMenu", win.nav, "UIDropDownMenuTemplate");
+	win.nav.user = DDM.Create_DropDownMenu("WIM3_HistoryUserMenu", win.nav)
+	win.nav.user:SetParent(win.nav)
     win.nav.user:SetPoint("TOPLEFT", -15, 0);
-    _G.UIDropDownMenu_SetWidth(win.nav.user, win.nav:GetWidth() - 25);
+    DDM.UIDropDownMenu_SetWidth(win.nav.user, win.nav:GetWidth() - 25);
 
     win.nav.user.list = {};
     win.nav.user.getUserList = function(self)
@@ -481,7 +483,7 @@ local function createHistoryViewer()
             local self = win.nav.user;
             local list = self:getUserList();
             for i=1, #list do
-                local info = _G.UIDropDownMenu_CreateInfo();
+                local info = {};
                 info.text = list[i];
                 info.value = list[i];
                 info.func = function(self)
@@ -490,14 +492,14 @@ local function createHistoryViewer()
                         win.CONVO = "";
                         win.FILTER = "";
                         win.UpdateUserList();
-                        _G.UIDropDownMenu_SetSelectedValue(win.nav.user, self.value);
+                        DDM.UIDropDownMenu_SetSelectedValue(win.nav.user, self.value);
                     end;
-                _G.UIDropDownMenu_AddButton(info, _G.UIDROPDOWNMENU_MENU_LEVEL);
+                DDM.UIDropDownMenu_AddButton(info, DDM.UIDropDownMenu_MENU_LEVEL);
             end
         end
     win.nav.user:SetScript("OnShow", function(self)
-            _G.UIDropDownMenu_Initialize(self, self.init);
-            _G.UIDropDownMenu_SetSelectedValue(self, win.USER);
+            DDM.UIDropDownMenu_Initialize(self, self.init);
+            DDM.UIDropDownMenu_SetSelectedValue(self, win.USER);
         end);
     win.nav.filters = CreateFrame("Frame", nil, win.nav);
     win.nav.filters:SetPoint("BOTTOMLEFT");
@@ -615,7 +617,8 @@ local function createHistoryViewer()
 
                 button.SetUser = function(self, user)
                         local original, extra, color = user, "";
-                        local user, gmTag = string.match(original, "([^*]+)(*?)$");
+                        local gmTag
+                        user, gmTag = string.match(original, "([^*]+)(*?)$");
                         color = gmTag == "*" and constants.classes[L["Game Master"]].color or "ffffff";
                         if(string.match(original, "^*")) then
                             extra = " |TInterface\\AddOns\\WIM\\Skins\\Default\\minimap.blp:20:20:0:0|t";
@@ -662,10 +665,10 @@ local function createHistoryViewer()
                                         end
                                     end
                                 elseif(realm and history[realm]) then
-                                    for character, convos in pairs(history[realm]) do
+                                    for char, convos in pairs(history[realm]) do
                                         convos[self:GetParent().user] = nil;
                                         if(isEmptyTable(convos)) then
-                                            history[realm][character] = nil;
+                                            history[realm][char] = nil;
                                         end
                                     end
                                     if(isEmptyTable(history[realm])) then
@@ -770,7 +773,7 @@ local function createHistoryViewer()
                     end
                 end
             elseif(realm and history[realm]) then
-                for character, convos in pairs(history[realm]) do
+                for char, convos in pairs(history[realm]) do
                     for convo, tbl in pairs(convos) do
                         for i=1, #tbl do
                             if(searchResult(tbl[i].msg, self:GetText())) then
@@ -1063,7 +1066,7 @@ local function createHistoryViewer()
            		ShowHistoryViewer()
            	end
         elseif(realm and history[realm]) then
-            for character, tbl in pairs(history[realm]) do
+            for char, tbl in pairs(history[realm]) do
                 if(tbl[win.CONVO]) then
                     for i=1, #tbl[win.CONVO] do
                         table.insert(win.CONVOLIST, tbl[win.CONVO][i]);
@@ -1089,7 +1092,7 @@ local function createHistoryViewer()
                 addToTableUnique(win.USERLIST, convo..(t.info and t.info.gm and "*" or ""));
             end
         elseif(realm and (not character or character == "") and history[realm]) then
-            for character, tbl in pairs(history[realm]) do
+            for char, tbl in pairs(history[realm]) do
                 for convo, t in pairs(tbl) do
                     ChannelCache[convo] = t.info and t.info.channelNumber or nil;
                     convo = (t.info and t.info.chat and "*" or "")..convo

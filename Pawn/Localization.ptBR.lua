@@ -1,9 +1,9 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2021 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2023 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
--- 
+--
 -- Brazilian Portuguese resources
 ------------------------------------------------------------
 
@@ -95,6 +95,7 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["CritInfo"] = "Ataque crítico. Aumenta a chance de seus ataques e magias de cura acertem com maior potência.",
 		["DefenseInfo"] = "Defense skill.  Decreases the chance that you'll be hit by boss attacks.",
 		["DodgeInfo"] = "Dodge.  Increases the chance that you'll dodge attacks entirely.",
+		["DominationSocketInfo"] = "O valor de um soquete para um Fragmento de Dominação médio.",
 		["DpsInfo"] = "Dano por segundo da arma. (Se você quiser valorizar DPS diferentes para diferentes tipos de armas, veja a seção \"Atributos especiais de armas\".)",
 		--[[Translation missing --]]
 		["ExpertiseInfo"] = "Expertise. Negates your enemy's chances to dodge and parry.",
@@ -153,6 +154,7 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["SpellHitInfo"] = "Spell Hit.  Increases the chance that your damaging spells hit the target, especially bosses.",
 		--[[Translation missing --]]
 		["SpellPenetrationInfo"] = "Spell Penetration. Negates an enemy's resistances to your spells.",
+		["SpellPowerInfo"] = "",
 		["SpiritInfo"] = "Spirit.  Affects your out-of-combat mana regeneration.",
 		["StaminaInfo"] = "Vigor. Aumenta sua vida.",
 		["StrengthInfo"] = "Força. Aumenta o poder das habilidades de algumas classes.",
@@ -261,6 +263,9 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["Armor"] = "^%+?# Armadura$",
 		["Armor2"] = "^%+?# de Armadura$",
 		["ArmorPenetration"] = "^Equipado: Seus ataques ignoram # da Armadura do adversário%.$",
+		["ArmorPenetrationRating"] = "^Equipado: Aumenta em # a taxa de penetração em armadura%.$",
+		["ArmorPenetrationRating2"] = "^Equipado: Aumenta em # a penetração em armaduras%.$",
+		["ArmorPenetrationShort"] = "^%+?# Taxa de Penetração em Armadura$",
 		["Avoidance"] = "^%+# Evasiva$",
 		["Axe"] = "^Machado$",
 		["BagSlots"] = "^%d+ Compartimento .+$",
@@ -280,6 +285,7 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["CritPercent"] = "^Equipado: Aumenta em #%% a chance de realizar acertos críticos%.$",
 		["CritRating"] = "^Equipado: Aumenta em # a taxa de acerto crítico%.$",
 		["CritRating2"] = "^UNUSED$",
+		["CritRating3"] = "^UNUSED$",
 		["CritRatingShort"] = "^%+?# Taxa de Acerto Crítico$",
 		["Crossbow"] = "^Besta$",
 		["Dagger"] = "^Adaga$",
@@ -310,8 +316,10 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["EnchantmentTitaniumWeaponChain"] = "^Corrente de Arma de Titânico$",
 		["Equip"] = "Equipado:",
 		["ExpertiseRating"] = "^Equipado: Aumenta em # a taxa de aptidão%.$",
+		["ExpertiseRatingShort"] = "^%+?# Taxa de Aptidão$",
 		["FeralAp"] = "^Equipado: %+# de Poder de Ataque sob forma de Felino, Urso e Urso Hediondo%.$",
 		["FeralApMoonkin"] = "^Equipado: Aumenta em # o poder de ataque quando em forma de Felino, Urso, Urso Hediondo e Luniscante%.$",
+		["FeralApWrath"] = "^Aumenta em # o poder de ataque quando em forma de Felino, Urso, Urso Hediondo e Luniscante%.$",
 		["FireResist"] = "^%+?# de resistência a Fogo$",
 		["FireSpellDamage"] = "^%+# Dano Mágico de Fogo$",
 		["FireSpellDamage2"] = "^Equipado: Aumenta em até # o dano causado por feitiços e efeitos de Fogo%.$",
@@ -347,6 +355,7 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["HitRatingShort"] = "^%+?# Taxa de Acerto$",
 		["HolySpellDamage"] = "^%+# Dano Mágico Sagrados$",
 		["HolySpellDamage2"] = "^Equipado: Aumenta em até # o dano causado por feitiços e efeitos Sagrados%.$",
+		["HolySpellDamage3"] = "^UNUSED$",
 		["Hp5"] = "^Equipado: Restaura # pontos de vida a cada 5 s%.$",
 		["Hp52"] = "^Equipado: Recupera # pontos de vida a cada 5 s%.$",
 		["Hp53"] = "^Recupera %+?# [pP]ontos [dD]e [vV]ida [aA] [cC]ada 5 [sS]%.?$",
@@ -365,6 +374,7 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["Mp52"] = "^%+?# Mana a cada 5 s$",
 		["Mp53"] = "^UNUSED$",
 		["Mp54"] = "^UNUSED$",
+		["Mp55"] = "^UNUSED$",
 		["MultiStatHeading"] = "^Atributos Múltiplos$",
 		["MultiStatSeparator1"] = "e",
 		["Multistrike"] = "^%+# Golpes Múltiplos$",
@@ -383,6 +393,7 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["PvPPower"] = "^%+?# d?e? ?Poder JxJ$",
 		["RaidFinder"] = "^Localizador de Raides$",
 		["Rap"] = "^Equipado: %+# de Poder de Ataque de Longo Alcance%.$",
+		["Rap2"] = "^Equipado: Aumenta o poder de ataque de longo alcance em #%.$",
 		["Requires2"] = "^UNUSED$",
 		["Resilience"] = "^%+?# Resiliência JxJ$",
 		["Resilience2"] = "^%+?# de Resiliência JxJ$",
@@ -404,11 +415,15 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["SpellCritRating"] = "^Equipado: Aumenta em # a taxa de acerto crítico de seus feitiços%.$",
 		["SpellCritRating2"] = "^Equipado: Aumenta em # a taxa de acerto crítico de feitiços%.$",
 		["SpellCritRatingShort"] = "^%+?# Taxa de Acerto Crítico de Feitiço$",
+		["SpellCritRatingShort2"] = "^UNUSED$",
 		["SpellDamage"] = "^Feitiços de Cura e de Dano %+#$",
 		["SpellDamage2"] = "^Equipado: Aumenta em até # o dano causado e a cura realizada por feitiços e efeitos mágicos.$",
 		["SpellDamage3"] = "^UNUSED$",
 		["SpellDamage4"] = "^UNUSED$",
+		["SpellDamage5"] = "^%+# Dano Mágico e Cura$",
+		["SpellDamage6"] = "^UNUSED$",
 		["SpellDamageAndHealing"] = "^Equipado: Aumenta em # a cura realizada e em até # o dano causado por todos os feitiços e efeitos mágicos%.$",
+		["SpellDamageAndHealing2"] = "^UNUSED$",
 		["SpellDamageAndHealingEnchant"] = "^%+# Cura e %+# Dano Mágico$",
 		["SpellDamageAndHealingShort"] = "^%+# Feitiços de Cura e %+# Feitiços de Dano$",
 		["SpellDamageAndHealingShort2"] = "^UNUSED$",
@@ -422,6 +437,8 @@ Para mais informações sobre personalizar o Pawn, favor veja o arquivo de ajuda
 		["SpellPenetrationClassic"] = "^Equipado: Reduz em # as resistências mágicas dos alvos dos seus feitiços%.$",
 		["SpellPenetrationShort"] = "^%+?# Penetração de Feitiço$",
 		["SpellPower"] = "^%+?# d?e? ?Poder [mM]ágico$",
+		["SpellPower2"] = "^Equipado: Aumenta em # o poder mágico.$",
+		["SpellPower3"] = "^UNUSED$",
 		["Spirit"] = "^%+?# d?e? ?Espírito$",
 		["Staff"] = "^Cajado$",
 		["Stamina"] = "^%+?# d?e? ?Vigor$",
@@ -654,6 +671,7 @@ Este comando não pode ser desfeito!]=],
 		["ScaleRename"] = "Renomear",
 		["ScaleRenameTooltip"] = "Renomeia esta escala.",
 		["ScaleSelectorHeader"] = "Selecione uma escala:",
+		["ScaleSelectorNoneWarning"] = "Selecione pelo menos um.",
 		["ScaleSelectorShowingSuggestionsFor"] = "Mostrando sugestões para",
 		["ScaleSelectorShowScale"] = "Mostrar esta escala nas dicas de ferramentas",
 		["ScaleSelectorShowScaleTooltip"] = [=[Ative essa opção para mostrar essa escala nas dicas de ferramentas de itens e fazer com que o Pawn use-a para sugerir melhorias. Você pode ter mais de uma escala ativa em cada personagem.
@@ -756,7 +774,7 @@ PawnLocal.Specs =
 
 -- Special case: wands actually use different text on live versus classic.
 -- So, patch things up here.
-if VgerCore.IsClassic or VgerCore.IsBurningCrusade then
+if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath then
 
 	local TooltipParsing_Classic =
 	{

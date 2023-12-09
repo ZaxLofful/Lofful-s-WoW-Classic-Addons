@@ -21,13 +21,13 @@ local buttons = {};
 local frame;
 
 db_defaults.ClickControl = {
-    clickSensitivity = .2;  
+    clickSensitivity = .2;
 };
 
 
 local function getButtonDownCount()
     local count = 0;
-    for button, tbl in pairs(buttons) do
+    for _, tbl in pairs(buttons) do
         if(tbl.mouseDown) then
             count = count + 1;
         end
@@ -59,17 +59,17 @@ end
 
 function ClickControl:OnEnable()
     if(not isInitialized) then
-    
+
         _G.WorldFrame:HookScript("OnMouseDown", function(self, button)
-            if(ClickControl.enabled) then
+            if(db.enabled and ClickControl.enabled) then
                 local p = getButtonTable(button);
                 p.mouseDown = true;
                 p.clickStart = GetTime();
             end
         end);
-    
+
         _G.WorldFrame:HookScript("OnMouseUp", function(self, button)
-            if(ClickControl.enabled) then
+            if(db.enabled and ClickControl.enabled) then
                 local buttonCount = getButtonDownCount(); -- we need to know this cause we don't want to count moving.
                 local p = getButtonTable(button);
                 p.mouseDown = false;
@@ -80,30 +80,14 @@ function ClickControl:OnEnable()
                 cleanButtonTable(button);
             end
 	end);
-        
+
 	-- we only want to add hook once.
 	isInitialized = true;
     end
 end
 
 function ClickControl:OnDisable()
-    if(isInitialized) then
-    -- alert to reload UI.
-        _G.StaticPopupDialogs["WIM_CLICKCONTROL_DISABLE"] = {
-        	preferredIndex = STATICPOPUP_NUMDIALOGS,
-            text = L["The UI must be reloaded in order to disable this module fully. Reload UI now?"],
-            button1 = _G.TEXT(_G.YES),
-            button2 = _G.TEXT(_G.NO),
-            OnShow = function(self) end,
-            OnHide = function() end,
-            OnAccept = function() _G.ReloadUI(); end,
-            OnCancel = function() end,
-            timeout = 0,
-            whileDead = 1,
-            hideOnEscape = 1
-        };        
-        _G.StaticPopup_Show ("WIM_CLICKCONTROL_DISABLE", theLink);
-    end
+	-- no longer needs to be disabled, will no longer function if WIM is also disabled.
 end
 
 

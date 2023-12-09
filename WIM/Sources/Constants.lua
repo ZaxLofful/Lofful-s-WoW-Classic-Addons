@@ -24,7 +24,7 @@ constants.classListEng = classList;
 local GetNumSpecializationsForClassID, GetSpecializationInfoForClassID = _G.GetNumSpecializationsForClassID, _G.GetSpecializationInfoForClassID
 local function createSpecNameTable(classID)
 	local t = {}
-	if not isShadowlands then return t end
+	if not isModernApi then return t end
 	for spec = 1, GetNumSpecializationsForClassID(classID) do
 		local specID, name = GetSpecializationInfoForClassID(classID,spec)
 		t[spec] = name
@@ -92,6 +92,11 @@ classes[L["Demon Hunter"]]	= {
                               tag = "DEMONHUNTER",
                               talent = createSpecNameTable(12)
                          };
+classes[L["Evoker"]]	= {
+							color = "33937f",
+							tag = "EVOKER",
+							talent = createSpecNameTable(13)
+					   };
 classes[L["Game Master"]] = {
                               color = "00c0ff",
                               tag = "GM",
@@ -99,7 +104,6 @@ classes[L["Game Master"]] = {
                          };
 
 -- propigate female class types and update tags appropriately
-local i;
 for i=1, table.getn(classList) do
      if(L[classList[i]] ~= L[classList[i].."F"]) then
           classes[L[classList[i].."F"]] = {

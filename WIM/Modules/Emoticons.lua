@@ -20,11 +20,11 @@ local Emote = WIM.CreateModule("Emoticons", true);
 local LinkRepository = {}; -- used for emotes and link parsing.
 local tmpList = {};
 
--- Dri: keeping the special table as a helper for authors poking into WIM code to more easily add chars for parsing, 
+-- Dri: keeping the special table as a helper for authors poking into WIM code to more easily add chars for parsing,
 -- we could just as well construct a static specialstr for the replacement function manually and save us some string garbage.
 local special = {"%", ":", "-", "^", "$", ")", "(", "]", "]", "~", "@", "#", "&", "*", "_", "+", "=", ",", ".", "?", "/", "\\", "{", "}", "|", "`", ";", "\"", "'"};
 local specialrepl = "["
-for i,token in ipairs(special) do
+for _,token in ipairs(special) do
 	specialrepl = specialrepl.."%"..token
 end
 specialrepl = specialrepl.."]"
@@ -69,84 +69,100 @@ local function decodeColors(theMsg)
 end
 
 local function filterEmoticons(theMsg, smf)
+	-- sanitize string of any % characters
+	theMsg = string.gsub(theMsg, "%%", "%%%%");
 
     --safety check...
     if(not theMsg or theMsg == "") then
         return "";
     end
-    
+
     --check if special formatting is not wanted
     if(smf and (smf.noEscapedStrings or smf.noEmoticons)) then
         return theMsg;
     end
-	
+
 	--remove player hyperlink from message to circumvent misbehavior as of 8.1
 	local s,e = string.find(theMsg, ": ")
 	local playerLink
-	
+
 	if e then
 		playerLink = string.sub(theMsg, 1, e)
 		theMsg = string.sub(theMsg, e+1)
 	elseif string.find(theMsg, "^|K") then
 		return theMsg
 	end
-	
+
 	--safety check again...
     if(not theMsg or theMsg == "") then
         return playerLink or "";
     end
-	
+
     --accomodate WoW's built in symbols and inherrit WoW's options whether to display them or not.
     if ( 1 ) then
-	for tag in string.gmatch(theMsg, "%b{}") do
-	    local term = string.lower(string.gsub(tag, "[{}]", ""));
-	    if ( _G.ICON_TAG_LIST[term] and _G.ICON_LIST[_G.ICON_TAG_LIST[term]] ) then
-		theMsg = string.gsub(theMsg, tag, _G.ICON_LIST[_G.ICON_TAG_LIST[term]] .. "0|t");
-	    end
-	end
+		for tag in string.gmatch(theMsg, "%b{}") do
+			local term = string.lower(string.gsub(tag, "[{}]", ""));
+			if ( _G.ICON_TAG_LIST[term] and _G.ICON_LIST[_G.ICON_TAG_LIST[term]] ) then
+			theMsg = string.gsub(theMsg, tag, _G.ICON_LIST[_G.ICON_TAG_LIST[term]] .. "0|t");
+			end
+		end
     end
 
     local emoteTable = GetSelectedSkin().emoticons;
-        
+
     -- first as to not disrupt any links, lets remove them and put them back later.
-    local results, orig;
-    orig = theMsg;
+--	local orig = theMsg;--This doesn't appear to be used at all, what was intent here?
     -- clean out colors and wait to put back.
     local results;
     theMsg = encodeColors(theMsg);
+	repeat
+        theMsg, results = string.gsub(theMsg, "(|T[^|]+|t)", function(theLink)
+            table.insert(LinkRepository, theLink);
+            return "\001\004"..#LinkRepository;
+        end, 1);
+    until results == 0;
     repeat
         theMsg, results = string.gsub(theMsg, "(|K[^|]+|k[^|]+|k)", function(theLink)
             table.insert(LinkRepository, theLink);
             return "\001\004"..#LinkRepository;
         end, 1);
     until results == 0;
+	-- repeat
+    --     theMsg, results = string.gsub(theMsg, "(|A[^|]+|a)", function(theLink)
+    --         table.insert(LinkRepository, theLink);
+    --         return "\001\004"..#LinkRepository;
+    --     end, 1);
+    -- until results == 0;
     repeat
-        theMsg, results = string.gsub(theMsg, "(|H[^|]+|h[^|]+|h)", function(theLink)
+        theMsg, results = string.gsub(theMsg, "(|H[^|]+|h.-|h)", function(theLink)
             table.insert(LinkRepository, theLink);
             return "\001\004"..#LinkRepository;
         end, 1);
     until results == 0;
     --restore color
-    
+
     -- lets exchange emotes...
-    local emote, img;
+    local img;
     for emote,_ in pairs(emoteTable.definitions) do
         img = getEmoteFilePath(emote);
         if(img and img ~= "") then
             theMsg = string.gsub(theMsg, convertEmoteToPattern(emote), "|T"..img..":"..emoteTable.width..":"..emoteTable.height..":"..emoteTable.offset[1]..":"..emoteTable.offset[2].."|t");
         end
     end
-        
+
     -- put all the links back into the string...
     for i=#LinkRepository, 1, -1 do
         theMsg = string.gsub(theMsg, "\001\004"..i.."", LinkRepository[i]);
     end
-    
+
     -- clear table to be recycled by next process
     for key, _ in pairs(LinkRepository) do
         LinkRepository[key] = nil;
     end
-    
+
+	-- desanitize string of any % characters
+	theMsg = string.gsub(theMsg, "%%%%", "%%");
+
     return decodeColors((playerLink or "")..theMsg);
 end
 
@@ -210,16 +226,16 @@ end
 -- define context menu
 local emotesPerMenu = 14;
 
-local info = _G.UIDropDownMenu_CreateInfo();
+local info = {};
 info.text = "MENU_MSGBOX";
 local msgBoxMenu = AddContextMenu(info.text, info);
-    info = _G.UIDropDownMenu_CreateInfo();
+    info = {};
     info.text = WIM.L["Emoticons"];
     info.notCheckable = true;
     local emoticonsMenu = msgBoxMenu:AddSubItem(AddContextMenu("EMOTICON_LIST", info), 2);
 
 local function emoteMenuClicked(self)
-    _G.CloseDropDownMenus();
+    libs.DropDownMenu.CloseDropDownMenus();
     if(MSG_CONTEXT_MENU_EDITBOX) then
         MSG_CONTEXT_MENU_EDITBOX:Insert(self.value);
     end
@@ -238,13 +254,13 @@ local function generateEmoticonList(self, button)
             tbl[k] = nil;
         end
     end
-    
+
     loadTable(emoteTmpList, GetEmotes());
     local EMOTICON_MORE = 1;
     local info;
     for i=1, #emoteTmpList do
         if(i % emotesPerMenu == 0) then
-            local more = GetContextMenu("EMOTICON_MORE"..EMOTICON_MORE) or _G.UIDropDownMenu_CreateInfo();
+            local more = GetContextMenu("EMOTICON_MORE"..EMOTICON_MORE) or {};
             more.text = "|cff69ccf0"..WIM.L["More"].."|r";
             more.notCheckable = true;
             if(more.menuTable) then
@@ -258,7 +274,7 @@ local function generateEmoticonList(self, button)
             EMOTICON_MORE = EMOTICON_MORE + 1;
         end
 
-        info = GetContextMenu("EMOTICON_"..emoteTmpList[i]) or _G.UIDropDownMenu_CreateInfo();
+        info = GetContextMenu("EMOTICON_"..emoteTmpList[i]) or {};
         info.text = "|T"..getEmoteFilePath(emoteTmpList[i])..":16:16:0:0|t   "..emoteTmpList[i];
         info.tooltipTitle = info.text
         loadTable(tmpList, GetEmoteAlias(emoteTmpList[i]))
@@ -278,5 +294,5 @@ local function generateEmoticonList(self, button)
 end
 
 RegisterWidgetTrigger("msg_box", "whisper,chat,w2w", "OnMouseDown", generateEmoticonList);
-    
-    
+
+

@@ -6,8 +6,12 @@ local QuestieMap = QuestieLoader:ImportModule("QuestieMap")
 local QuestieDBMIntegration = QuestieLoader:ImportModule("QuestieDBMIntegration")
 ---@type QuestieDB
 local QuestieDB = QuestieLoader:ImportModule("QuestieDB")
----@type QuestieQuestBlacklist
-local QuestieQuestBlacklist = QuestieLoader:ImportModule("QuestieQuestBlacklist")
+---@type DailyQuests
+local DailyQuests = QuestieLoader:ImportModule("DailyQuests")
+---@type QuestieLink
+local QuestieLink = QuestieLoader:ImportModule("QuestieLink")
+---@type QuestieQuest
+local QuestieQuest = QuestieLoader:ImportModule("QuestieQuest")
 
 local HBDPins = LibStub("HereBeDragonsQuestie-Pins-2.0")
 
@@ -17,8 +21,8 @@ local _Qframe = {}
 
 ---@return IconFrame
 function QuestieFramePool.Qframe:New(frameId, OnEnter)
-    ---@class IconFrame
-    local newFrame = CreateFrame("Button", "QuestieFrame"..frameId)
+    ---@class IconFrame : Button
+    local newFrame = CreateFrame("Button", "QuestieFrame" .. frameId)
     newFrame.frameId = frameId;
 
     -- Add the frames to the ignore list of the Minimap Button Bag (MBB) addon
@@ -28,17 +32,17 @@ function QuestieFramePool.Qframe:New(frameId, OnEnter)
         tinsert(MBB_Ignore, newFrame:GetName())
     end
     if frameId > 5000 then
-        Questie:Debug(DEBUG_CRITICAL, "[QuestieFramePool] Over 5000 frames... maybe there is a leak?", frameId)
+        Questie:Debug(Questie.DEBUG_CRITICAL, "[QuestieFramePool] Over 5000 frames... maybe there is a leak?", frameId)
     end
 
-    newFrame.glow = CreateFrame("Button", "QuestieFrame"..frameId.."Glow", newFrame) -- glow frame
+    newFrame.glow = CreateFrame("Button", "QuestieFrame" .. frameId .. "Glow", newFrame) -- glow frame
     newFrame.glow:SetFrameStrata("FULLSCREEN");
-    newFrame.glow:SetWidth(18) -- Set these to whatever height/width is needed
+    newFrame.glow:SetWidth(18)                                                           -- Set these to whatever height/width is needed
     newFrame.glow:SetHeight(18)
 
 
     newFrame:SetFrameStrata("FULLSCREEN");
-    newFrame:SetWidth(16) -- Set these to whatever height/width is needed
+    newFrame:SetWidth(16)  -- Set these to whatever height/width is needed
     newFrame:SetHeight(16) -- for your Texture
     newFrame:SetPoint("CENTER", -8, -8)
     newFrame:EnableMouse(true)
@@ -57,24 +61,25 @@ function QuestieFramePool.Qframe:New(frameId, OnEnter)
     glowt:SetHeight(18)
     glowt:SetAllPoints(newFrame.glow)
 
-    ---@class IconTexture
+    ---@class IconTexture : Texture
     newFrame.texture = newTexture;
     newFrame.texture.OLDSetVertexColor = newFrame.texture.SetVertexColor;
     function newFrame.texture:SetVertexColor(r, g, b, a)
-        self:OLDSetVertexColor(r,g,b,a);
+        self:OLDSetVertexColor(r, g, b, a);
         --We save the colors to the texture object, this way we don't need to use GetVertexColor
         self.r = r or 1;
         self.g = g or 1;
         self.b = b or 1;
         self.a = a or 1;
     end
+
     --We save the colors to the texture object, this way we don't need to use GetVertexColor
-    newFrame.texture:SetVertexColor(1,1,1,1);
+    newFrame.texture:SetVertexColor(1, 1, 1, 1);
 
     newFrame.glowTexture = glowt
     newFrame.glowTexture.OLDSetVertexColor = newFrame.glowTexture.SetVertexColor;
     function newFrame.glowTexture:SetVertexColor(r, g, b, a)
-        self:OLDSetVertexColor(r,g,b,a);
+        self:OLDSetVertexColor(r, g, b, a);
         --We save the colors to the texture object, this way we don't need to use GetVertexColor
         self.r = r or 1;
         self.g = g or 1;
@@ -83,14 +88,14 @@ function QuestieFramePool.Qframe:New(frameId, OnEnter)
     end
 
     --We save the colors to the texture object, this way we don't need to use GetVertexColor
-    newFrame.glowTexture:SetVertexColor(1,1,1,1);
+    newFrame.glowTexture:SetVertexColor(1, 1, 1, 1);
 
-    newFrame.glowTexture:SetTexture(ICON_TYPE_GLOW)
+    newFrame.glowTexture:SetTexture(Questie.icons["glow"])
     newFrame.glow:Hide()
     newFrame.glow:SetPoint("CENTER", -9, -9) -- 2 pixels bigger than normal icon
     newFrame.glow:EnableMouse(false)
 
-    newFrame:SetScript("OnEnter", OnEnter); --Script Toolip
+    newFrame:SetScript("OnEnter", OnEnter);        --Script Toolip
     newFrame:SetScript("OnLeave", _Qframe.OnLeave) --Script Exit Tooltip
     newFrame:RegisterForClicks("RightButtonUp", "LeftButtonUp")
     newFrame:SetScript("OnClick", _Qframe.OnClick);
@@ -107,7 +112,7 @@ function QuestieFramePool.Qframe:New(frameId, OnEnter)
     newFrame.FadeOut = _Qframe.FadeOut
     newFrame.FadeIn = _Qframe.FadeIn
     newFrame.FakeHide = _Qframe.FakeHide
-    newFrame.FakeUnhide = _Qframe.FakeUnhide
+    newFrame.FakeShow = _Qframe.FakeShow
     newFrame.OnShow = _Qframe.OnShow
     newFrame.OnHide = _Qframe.OnHide
     newFrame.ShouldBeHidden = _Qframe.ShouldBeHidden
@@ -130,24 +135,25 @@ function _Qframe:OnLeave()
 
     --Reset highlighting if it exists.
     if self.data.lineFrames then
-        for k, lineFrame in pairs(self.data.lineFrames) do
+        for _, lineFrame in pairs(self.data.lineFrames) do
             local line = lineFrame.line
             line:SetColorTexture(line.dR, line.dG, line.dB, line.dA)
         end
     end
 
     if self.data.touchedPins then
-        for i=#self.data.touchedPins,1,-1 do
+        for i = #self.data.touchedPins, 1, -1 do
             local entry = self.data.touchedPins[i]
             local icon = entry.icon;
             icon.texture:SetVertexColor(unpack(entry.color));
         end
         self.data.touchedPins = nil;
     end
+    GameTooltip.ShownAsMapIcon = false
 end
 
 function _Qframe:OnClick(button)
-    if self and self.UiMapID and WorldMapFrame and WorldMapFrame:IsShown() then
+    if self and self.UiMapID and WorldMapFrame and WorldMapFrame:IsShown() and not IsModifierKeyDown() and not self.miniMapIcon then
         if button == "RightButton" then
             local currentMapParent = WorldMapFrame:GetMapID()
             if currentMapParent then
@@ -163,20 +169,47 @@ function _Qframe:OnClick(button)
                 WorldMapFrame:SetMapID(self.UiMapID);
             end
         end
-        if self.data.Type == "available" and IsShiftKeyDown() then
-            StaticPopupDialogs["QUESTIE_CONFIRMHIDE"]:SetQuest(self.data.QuestData.Id)
-            StaticPopup_Show ("QUESTIE_CONFIRMHIDE")
-        elseif self.data.Type == "manual" and IsShiftKeyDown() and not self.data.ManualTooltipData.disableShiftToRemove then
-            QuestieMap:UnloadManualFrames(self.data.id)
+    else
+        -- This will work in either the WorldMapFrame or the MiniMapFrame as long as there is an icon
+        if self and self.UiMapID and button == "LeftButton" then
+            if (not ChatEdit_GetActiveWindow()) then
+                if self.data.Type == "available" and IsShiftKeyDown() then
+                    StaticPopupDialogs["QUESTIE_CONFIRMHIDE"]:SetQuest(self.data.Id)
+                    StaticPopup_Show("QUESTIE_CONFIRMHIDE")
+                elseif self.data.Type == "manual" and IsShiftKeyDown() and not self.data.ManualTooltipData.disableShiftToRemove then
+                    QuestieMap:UnloadManualFrames(self.data.id)
+                end
+            else
+                if Questie.db.profile.trackerShowQuestLevel then
+                    ChatEdit_InsertLink(QuestieLink:GetQuestLinkString(self.data.QuestData.level, self.data.QuestData.name, self.data.Id))
+                else
+                    ChatEdit_InsertLink("[" .. self.data.QuestData.name .. " (" .. self.data.Id .. ")]")
+                end
+            end
         end
     end
+
+    -- TomTom integration
     if self and self.UiMapID and IsControlKeyDown() and TomTom and TomTom.AddWaypoint then
-        -- tomtom integration (needs more work, will come with tracker
-        if Questie.db.char._tom_waypoint and TomTom.RemoveWaypoint then -- remove old waypoint
-            TomTom:RemoveWaypoint(Questie.db.char._tom_waypoint)
+        local m = self.UiMapID
+        local x = self.x / 100
+        local y = self.y / 100
+        local title = self.data.Name
+        local add = true
+
+        -- Remove old waypoint if set
+        if Questie.db.char._tom_waypoint and TomTom.RemoveWaypoint then
+            local waypoint = Questie.db.char._tom_waypoint
+            TomTom:RemoveWaypoint(waypoint)
+            add = (waypoint[1] ~= m or waypoint[2] ~= x or waypoint[3] ~= y or waypoint.title ~= title or waypoint.from ~= "Questie")
         end
-        Questie.db.char._tom_waypoint = TomTom:AddWaypoint(self.UiMapID, self.x/100, self.y/100, {title = self.data.Name, crazy = true})
-    elseif self.miniMapIcon then
+
+        -- Add waypoint
+        Questie.db.char._tom_waypoint = add and TomTom:AddWaypoint(m, x, y, { title = title, crazy = true, from = "Questie" })
+    end
+
+    -- Make sure we don't break the map ping feature - this allows us to ping our own icons.
+    if self.miniMapIcon and button == "RightButton" and not IsModifierKeyDown() then
         local _, _, _, x, y = self:GetPoint()
         Minimap:PingLocation(x, y)
     end
@@ -186,25 +219,19 @@ function _Qframe:GlowUpdate()
     if self.glow and self.glow.IsShown and self.glow:IsShown() then
         --Due to this always being 1:1 we can assume that if one isn't correct, the other isn't either
         --We can also assume that both change at the same time so we only check one.
-        if(self.glow:GetWidth() ~= self:GetWidth() * 1.13) then ---self.glow:GetHeight() ~= self:GetHeight() * 1.13
+        if (self.glow:GetWidth() ~= self:GetWidth() * 1.13) then ---self.glow:GetHeight() ~= self:GetHeight() * 1.13
             self.glow:SetSize(self:GetWidth() * 1.13, self:GetHeight() * 1.13)
             self.glow:SetPoint("CENTER", self, 0, 0)
         end
         if self.data and self.data.ObjectiveData and self.data.ObjectiveData.Color and self.glowTexture then
             --Due to us now saving the alpha inside of the texture we don't need to check the main texture anymore.
             --The question is is it faster to get and compare or just set straight up?
-            if(self.glowTexture.r ~= self.data.ObjectiveData.Color[1] or self.glowTexture.g ~= self.data.ObjectiveData.Color[2] or self.glowTexture.b ~= self.data.ObjectiveData.Color[3] or self.texture.a ~= self.glowTexture.a) then
+            if (self.glowTexture.r ~= self.data.ObjectiveData.Color[1] or self.glowTexture.g ~= self.data.ObjectiveData.Color[2] or self.glowTexture.b ~= self.data.ObjectiveData.Color[3] or self.texture.a ~= self.glowTexture.a) then
                 self.glowTexture:SetVertexColor(self.data.ObjectiveData.Color[1], self.data.ObjectiveData.Color[2], self.data.ObjectiveData.Color[3], self.texture.a or 1)
             end
         end
     end
 end
-
---function _Qframe:BaseOnUpdate() -- why do this here when its called in QuestieMap.fadeLogicTimerShown?
---    if self.GlowUpdate then
---        self:GlowUpdate()
---    end
---end
 
 function _Qframe:BaseOnShow()
     local data = self.data
@@ -212,11 +239,11 @@ function _Qframe:BaseOnShow()
     if data and data.Type and data.Type == "complete" then
         self:SetFrameLevel(self:GetFrameLevel() + 1)
     end
-    if ((self.miniMapIcon and Questie.db.global.alwaysGlowMinimap) or ((not self.miniMapIcon) and Questie.db.global.alwaysGlowMap)) and
+    if ((self.miniMapIcon and Questie.db.profile.alwaysGlowMinimap) or ((not self.miniMapIcon) and Questie.db.profile.alwaysGlowMap)) and
         data and data.ObjectiveData and
         data.ObjectiveData.Color and
         (data.Type and (data.Type ~= "available" and data.Type ~= "complete")
-    ) then
+        ) then
         self.glow:SetWidth(self:GetWidth() * 1.13)
         self.glow:SetHeight(self:GetHeight() * 1.13)
         self.glow:SetPoint("CENTER", self, 0, 0)
@@ -240,19 +267,19 @@ function _Qframe:UpdateTexture(texture)
     local objectiveColor
     local alpha
 
-    if(self.miniMapIcon) then
-        globalScale = Questie.db.global.globalMiniMapScale;
-        objectiveColor = Questie.db.global.questMinimapObjectiveColors;
+    if (self.miniMapIcon) then
+        globalScale = Questie.db.profile.globalMiniMapScale;
+        objectiveColor = Questie.db.profile.questMinimapObjectiveColors;
         alpha = 0;
     else
-        globalScale = Questie.db.global.globalScale;
-        objectiveColor = Questie.db.global.questObjectiveColors;
+        globalScale = Questie.db.profile.globalScale;
+        objectiveColor = Questie.db.profile.questObjectiveColors;
         alpha = 1;
     end
 
     self.texture:SetTexture(texture)
-    self.data.Icon = texture;
-    local colors = {1, 1, 1}
+    --self.data.Icon = texture;
+    local colors = { 1, 1, 1 }
 
     if self.data.IconColor ~= nil and objectiveColor then
         colors = self.data.IconColor
@@ -260,7 +287,7 @@ function _Qframe:UpdateTexture(texture)
     self.texture:SetVertexColor(colors[1], colors[2], colors[3], alpha);
 
     if self.data.IconScale then
-        local scale = 16 * ((self.data:GetIconScale() or 1)*(globalScale or 0.7));
+        local scale = 16 * ((self.data:GetIconScale() or 1) * (globalScale or 0.7));
         self:SetWidth(scale)
         self:SetHeight(scale)
     else
@@ -276,7 +303,7 @@ function _Qframe:Unload()
     end
     self._needsUnload = nil
     self._loaded = nil
-    --Questie:Debug(DEBUG_SPAM, "[_Qframe:Unload]")
+    --Questie:Debug(Questie.DEBUG_SPAM, "[_Qframe:Unload]")
     self:SetScript("OnUpdate", nil)
     self:SetScript("OnShow", nil)
     self:SetScript("OnHide", nil)
@@ -303,21 +330,21 @@ function _Qframe:Unload()
     HBDPins:RemoveWorldMapIcon(Questie, self)
     QuestieDBMIntegration:UnregisterHudQuestIcon(tostring(self))
 
-    if(self.texture) then
+    if (self.texture) then
         self.texture:SetVertexColor(1, 1, 1, 1)
     end
     self.miniMapIcon = nil;
     self:SetScript("OnUpdate", nil)
 
     if self.fadeLogicTimer then
-      self.fadeLogicTimer:Cancel();
+        self.fadeLogicTimer:Cancel();
     end
     if self.glowLogicTimer then
-      self.glowLogicTimer:Cancel();
+        self.glowLogicTimer:Cancel();
     end
     --Unload potential waypoint frames that are used for pathing.
     if self.data and self.data.lineFrames then
-        for index, lineFrame in pairs(self.data.lineFrames) do
+        for _, lineFrame in pairs(self.data.lineFrames) do
             lineFrame:Unload();
         end
     end
@@ -341,11 +368,19 @@ function _Qframe:FadeOut()
         self.faded = true
         if self.texture then
             local r, g, b = self.texture:GetVertexColor()
-            self.texture:SetVertexColor(r, g, b, Questie.db.global.iconFadeLevel)
+            self.texture:SetVertexColor(r, g, b, Questie.db.profile.iconFadeLevel)
         end
         if self.glowTexture then
             local r, g, b = self.glowTexture:GetVertexColor()
-            self.glowTexture:SetVertexColor(r, g, b, Questie.db.global.iconFadeLevel)
+            self.glowTexture:SetVertexColor(r, g, b, Questie.db.profile.iconFadeLevel)
+        end
+        if self.data.lineFrames then
+            for _, lineFrame in pairs(self.data.lineFrames) do
+                local line = lineFrame.line
+                if line then
+                    line:SetColorTexture(line.dR, line.dG, line.dB, Questie.db.global.iconFadeLevel)
+                end
+            end
         end
     end
 end
@@ -361,9 +396,18 @@ function _Qframe:FadeIn()
             local r, g, b = self.glowTexture:GetVertexColor()
             self.glowTexture:SetVertexColor(r, g, b, 1)
         end
+        if self.data.lineFrames then
+            for _, lineFrame in pairs(self.data.lineFrames) do
+                local line = lineFrame.line
+                if line then
+                    line:SetColorTexture(line.dR, line.dG, line.dB, line.dA)
+                end
+            end
+        end
     end
 end
 
+--- This is needed because HBD will show the icons again after switching zones and stuff like that
 function _Qframe:FakeHide()
     if not self.hidden then
         self.shouldBeShowing = self:IsShown();
@@ -372,6 +416,11 @@ function _Qframe:FakeHide()
             self.shouldBeShowing = true;
         end
         self:Hide();
+        if self.data.lineFrames then
+            for _, line in pairs(self.data.lineFrames) do
+                line:Hide()
+            end
+        end
         self._hide = self.Hide;
         self.Hide = function()
             self.shouldBeShowing = false;
@@ -380,7 +429,8 @@ function _Qframe:FakeHide()
     end
 end
 
-function _Qframe:FakeUnhide()
+--- This is needed because HBD will show the icons again after switching zones and stuff like that
+function _Qframe:FakeShow()
     if self.hidden then
         self.hidden = false
         self.Show = self._show;
@@ -389,29 +439,60 @@ function _Qframe:FakeUnhide()
         self._hide = nil
         if self.shouldBeShowing then
             self:Show();
+            if self.data.lineFrames then
+                for _, line in pairs(self.data.lineFrames) do
+                    line:Show()
+                end
+            end
         end
     end
 end
 
----Checks wheather the frame/icon should be hidden or not
----@return boolean @True if the frame/icon should be hidden and :FakeHide should be called, false otherwise
+---Checks wheather the frame/icon should be hidden or not. Only for quest icons/frames.
+---@return boolean @True if the frame/icon should be hidden and :FakeHide() should be called, false otherwise
 function _Qframe:ShouldBeHidden()
-    local questieGlobalDB = Questie.db.global
-    if (not Questie.db.char.enabled)
-        or ((not questieGlobalDB.enableObjectives) and (self.data.Type == "monster" or self.data.Type == "object" or self.data.Type == "event" or self.data.Type == "item"))
-        or ((not questieGlobalDB.enableTurnins) and self.data.Type == "complete")
-        or ((not questieGlobalDB.enableAvailable) and self.data.Type == "available")
-        or ((not Questie.db.char.showRepeatableQuests) and QuestieDB:IsRepeatable(self.data.Id))
-        or ((not Questie.db.char.showEventQuests) and QuestieDB:IsActiveEventQuest(self.data.Id))
-        or ((not Questie.db.char.showDungeonQuests) and QuestieDB:IsDungeonQuest(self.data.Id))
-        or ((not Questie.db.char.showRaidQuests) and QuestieDB:IsRaidQuest(self.data.Id))
-        or ((not Questie.db.char.showPvPQuests) and QuestieDB:IsPvPQuest(self.data.Id))
-        or ((not Questie.db.char.showAQWarEffortQuests) and QuestieQuestBlacklist.AQWarEffortQuests[self.data.Id])
-        or ((not questieGlobalDB.enableMapIcons) and (not self.miniMapIcon))
-        or ((not questieGlobalDB.enableMiniMapIcons) and (self.miniMapIcon))
-        or (self.data.ObjectiveData and self.data.ObjectiveData.HideIcons)
-        or (self.data.QuestData and self.data.QuestData.HideIcons and self.data.Type ~= "complete") then
+    local profile = Questie.db.profile
+    local data = self.data
+    local iconType = data.Type -- v6.5.1 values: available, complete, manual, monster, object, item, event. This function is not called with manual.
+    local questId = data.Id
 
+    --investigate quest and cache results to minimize DB lookups
+    local repeatable = QuestieDB.IsRepeatable(questId)
+    local event = QuestieDB.IsActiveEventQuest(questId)
+    local dungeon = QuestieDB.IsDungeonQuest(questId)
+    local raid = QuestieDB.IsRaidQuest(questId)
+    local pvp = QuestieDB.IsPvPQuest(questId)
+    local normal = not (repeatable or event or dungeon or raid or pvp)
+    local rune = false
+    if Questie.IsSoD then
+        rune = QuestieDB.IsSoDRuneQuest(questId)
+    end
+
+    if (not profile.enabled) -- all quest icons disabled
+        or ((not profile.enableMapIcons) and (not self.miniMapIcon))
+        or ((not profile.enableMiniMapIcons) and (self.miniMapIcon))
+        or ((not profile.enableTurnins) and iconType == "complete")
+        or ((not profile.enableObjectives) and (iconType == "monster" or iconType == "object" or iconType == "event" or iconType == "item"))
+        or (profile.hideUnexploredMapIcons and not QuestieMap.utils:IsExplored(self.UiMapID, self.x, self.y)) -- Hides unexplored map icons
+        or (profile.hideUntrackedQuestsMapIcons and not QuestieQuest:ShouldShowQuestNotes(questId))           -- Hides untracked map icons
+        or (data.ObjectiveData and data.ObjectiveData.HideIcons)
+        or (data.QuestData and data.QuestData.HideIcons and iconType ~= "complete")
+        -- Hide only available quest icons of following quests. I.e. show objectives and complete icons always (when they are in questlog).
+        -- i.e. (iconType == "available")  ==  (iconType ~= "monster" and iconType ~= "object" and iconType ~= "event" and iconType ~= "item" and iconType ~= "complete"):
+        or (iconType == "available"
+            and ((not DailyQuests:IsActiveDailyQuest(questId)) -- hide not-today-dailies
+                or ((not profile.enableAvailable) and normal)
+                or ((not profile.showRepeatableQuests) and repeatable)
+                or ((not profile.showEventQuests) and event)
+                or ((not profile.showDungeonQuests) and dungeon)
+                or ((not profile.showRaidQuests) and raid)
+                or ((not profile.showPvPQuests) and pvp)
+                or ((not profile.showSoDRunes) and rune)
+            -- this quest group isn't loaded at all while disabled:
+            -- or ((not questieCharDB.showAQWarEffortQuests) and QuestieQuestBlacklist.AQWarEffortQuests[questId])
+            )
+        )
+    then
         return true
     end
 

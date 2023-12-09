@@ -66,6 +66,7 @@ L["Onyxia, hangs from the arches"] = true;
 
 --Alliance Nefarian buff NPC.
 L["Field Marshal Afrasiabi"] = true;
+L["Field Marshal Stonebridge"] = true;
 --Alliance Nefarian buff NPC first yell string (part of his first yell msg before before buff).
 L["the Lord of Blackrock is slain"] = true;
 --Alliance Nefarian buff NPC second yell string (part of his second yell msg before before buff).
@@ -153,6 +154,14 @@ L["hour"] = "hour"; --Hour (singular).
 L["hours"] = "hours"; --Hours (plural).
 L["day"] = "day"; --Day (singular).
 L["days"] = "days"; --Days (plural).
+L["secondMedium"] = "sec"; --Second (singular).
+L["secondsMedium"] = "secs"; --Seconds (plural).
+L["minuteMedium"] = "min"; --Minute (singular).
+L["minutesMedium"] = "mins"; --Minutes (plural).
+L["hourMedium"] = "hour"; --Hour (singular).
+L["hoursMedium"] = "hours"; --Hours (plural).
+L["dayMedium"] = "day"; --Day (singular).
+L["daysMedium"] = "days"; --Days (plural).
 L["secondShort"] = "s"; --Used in short timers like 1m30s (single letter only, usually the first letter of seconds).
 L["minuteShort"] = "m"; --Used in short timers like 1m30s (single letter only, usually the first letter of minutes).
 L["hourShort"] = "h"; --Used in short timers like 1h30m (single letter only, usually the first letter of hours).
@@ -190,10 +199,10 @@ L["North-West of Irontree Woods"] = "North-West of Irontree Woods";
 L["South of Irontree Woods"] = "South of Irontree Woods";
 
 L["worldMapBuffsMsg"] = "Type /buffs to view all your\ncharacters current world buffs.";
-L["cityMapLayerMsgHorde"] = "Currently on %s\nTarget any NPC in Orgrimmar\nto update your layer after changing zones.|r";
-L["cityMapLayerMsgAlliance"] = "Currently on %s\nTarget any NPC in Stormwind\nto update your layer after changing zones.|r";
-L["noLayerYetHorde"] = "Please target any NPC in Orgrimmar\nto find your current layer.";
-L["noLayerYetAlliance"] = "Please target any NPC in Stormwind\nto find your current layer.";
+L["cityMapLayerMsgHorde"] = "Currently on %s\nTarget any NPC\nto update your layer after changing zones.|r";
+L["cityMapLayerMsgAlliance"] = "Currently on %s\nTarget any NPC\nto update your layer after changing zones.|r";
+L["noLayerYetHorde"] = "Please target any NPC\nto find your current layer.";
+L["noLayerYetAlliance"] = "Please target any NPC\nto find your current layer.";
 L["Reset Data"] = "Reset Data"; --A button to Reset buffs window data.
 
 ---New translations to do---
@@ -219,8 +228,8 @@ L["showBuffsDesc"] = "Show your current world buffs for all your characters, thi
 ---General Options---
 L["generalHeaderDesc"] = "General Options";
 
-L["showWorldMapMarkersTitle"] = "City Map Timers";
-L["showWorldMapMarkersDesc"] = "Show timer icons on the Orgrimmar/Stormwind world map?";
+L["showWorldMapMarkersTitle"] = "World Map Timers";
+L["showWorldMapMarkersDesc"] = "Show timer icons on the Orgrimmar/Stormwind/Barrens world map?";
 
 L["receiveGuildDataOnlyTitle"] = "Guild Data Only";
 L["receiveGuildDataOnlyDesc"] = "This will make it so you don't get timer data from anyone outside the guild. You should only enable this if you think someone is spoofing wrong timer data on purpose because it will lower the accuracy of your timers with less people to pull data from. It will make it especially hard to get songflower timers becaus they are so short. Every single person in the guild needs this enabled for it to even work.";
@@ -250,7 +259,7 @@ L["showAllAltsTitle"] = "Show All Buff Stats";
 L["showAllAltsDesc"] = "Show all alts with buff stats in the buffs window even if they don't have an active buff?";
 
 L["minimapButtonTitle"] = "Show Minimap Button";
-L["minimapButtonDesc"] = "Show the NWB button the minimap?";
+L["minimapButtonDesc"] = "Show NWB button on the minimap?";
 
 ---Logon Messages---
 L["logonHeaderDesc"] = "Logon Messages";
@@ -721,7 +730,7 @@ L["Mind Control"] = "Mind Control";
 L["Gnomish Mind Control Cap"] = "Gnomish Mind Control Cap";
 
 
-L["tbcHeaderText"] = "The Burning Crusade Options";
+L["tbcHeaderText"] = "Expansion Options";
 L["tbcNoteText"] = "Note: All guild chat msgs are also disabled on TBC realms.";
 
 L["disableSoundsAboveMaxBuffLevelTitle"] = "Disable Sounds Above Level 64+";
@@ -795,3 +804,48 @@ L["dmfDamagePercentTooltip"] = "NWB detected this as %s damage.";
 
 L["guildLTitle"] = "Guild Layer Sharing";
 L["guildLDesc"] = "Share what layer you are on with your guild? You can see your guilds layer list with /wb guild";
+
+L["terokkarTimer"] = "Terokkar";
+L["terokkarWarning"] = "Terokkar Forest towers reset in %s";
+
+L["wintergraspTimer"] = "Wintergrasp";
+L["wintergraspWarning"] = "Wintergrasp starts in %s";
+
+L["Nazgrel"] = "Nazgrel";
+L["Hellfire Citadel is ours"] = "Hellfire Citadel is ours";
+L["The time for us to rise"] = "The time for us to rise";
+L["Force Commander Danath Trollbane"] = "Force Commander Danath Trollbane";
+L["The feast of corruption is no more"] = "The feast of corruption is no more";
+L["Hear me brothers"] = "Hear me brothers";
+
+L["terokkarChat10Title"] = "Terokkar 10 Minutes";
+L["terokkarChat10Desc"] = "Print a msg in chat when 10 minutes left on terokkar spirit towers.";
+
+L["terokkarMiddle10Title"] = "Terokkar 10 Minutes";
+L["terokkarMiddle10Desc"] = "Show a raid warning style msg in the middle of the screen when 10 minutes left on terokkar spirit towers.";
+
+L["showShatWorldmapMarkersTitle"] = "Dailies Worldmap";
+L["showShatWorldmapMarkersDesc"] = "Show dungeon daily markers on the Capital City world map?";
+
+L["disableBuffTimersMaxBuffLevelTitle"] = "Disable Minimap Buff Timers 64+";
+L["disableBuffTimersMaxBuffLevelDesc"] = "Hide world buff timers when you hover over the minimap icon for characters level 64+? You will only see the terokkar tower timers and dailies etc.";
+
+L["hideMinimapBuffTimersTitle"] = "Disable Minimap Buff Timers All Levels";
+L["hideMinimapBuffTimersDesc"] = "Hide world buff timers when you hover over the minimap icon for characters all levels? You will only see the terokkar tower timers and dailies etc.";
+
+L["guildTerok10Title"] = "Guild Terok/WG 10 Minutes";
+L["guildTerok10Desc"] = "Send a message to guild chat when there's 10 minutes left on terokkar towers if TBC or wintergrasp if wrath.";
+
+L["showShatWorldmapMarkersTerokTitle"] = "Towers/Wintergrasp Worldmap";
+L["showShatWorldmapMarkersTerokDesc"] = "Show terokkar tower or wintergrasp markers on the Capitcal City world map?";
+
+L["Completed PvP dailies"] = "Completed PvP dailies";
+L["Hellfire Towers"] = "Hellfire Towers";
+L["Terokkar Towers"] = "Terokkar Towers";
+L["Nagrand Halaa"] = "Nagrand Halaa";
+
+L["wintergraspChat10Title"] = "Wintergrasp 10 Minutes";
+L["wintergraspChat10Desc"] = "Print a msg in chat when 10 minutes left on Wintergrasp spirit towers.";
+
+L["wintergraspMiddle10Title"] = "Wintergrasp 10 Minutes";
+L["wintergraspMiddle10Desc"] = "Show a raid warning style msg in the middle of the screen when 10 minutes left on Wintergrasp spirit towers.";

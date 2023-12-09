@@ -107,7 +107,7 @@ function Talented:ApplyNextTalentPoint()
 				end
 				found = true
 				if self:ValidateTalentBranch(current, tab, index, cvalue + 1) then
-					self:LearnTalent(tab, index)
+					self:MatchedLearnTalent(tab, index) --Don't use self:LearnTalent; don't want to confirm learning
 					return
 				end
 			end
@@ -127,7 +127,7 @@ function Talented:CheckTalentPointsApplied()
 	for tab, tree in ipairs(self:GetTalentInfo(template.class)) do
 		local ttab = template[tab]
 		for index = 1, #tree do
-			local delta = ttab[index] - select(5, GetTalentInfo(tab, index, nil))
+			local delta = ttab[index] - select(5, self:MatchedGetTalentInfo(tab, index))
 			if delta > 0 then
 				failed = true
 				break

@@ -2,7 +2,9 @@
 -- Author: Resike
 -- License: GNU GPL v3, 29 June 2007 (see LICENSE.txt)
 
-local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
+local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+local IsWrathClassic = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
+local IsVanillaClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
 XPerlLocked = 1
 local conf
@@ -15,10 +17,12 @@ local xperlBlocked = 0
 local lastConfigMode
 local maxRevision
 
-local localGroups = LOCALIZED_CLASS_NAMES_MALE
-local WoWclassCount = 0
-for k, v in pairs(localGroups) do
-	WoWclassCount = WoWclassCount + 1
+local LOCALIZED_CLASS_NAMES_MALE = LOCALIZED_CLASS_NAMES_MALE
+local CLASS_COUNT = 0
+for k, v in pairs(LOCALIZED_CLASS_NAMES_MALE) do
+	if k ~= "Adventurer" then
+		CLASS_COUNT = CLASS_COUNT + 1
+	end
 end
 
 XPerl_Tooltip_Edge_9 = {
@@ -232,7 +236,7 @@ function XPerl_SetModuleRevision(rev)
 end
 local AddRevision = XPerl_SetModuleRevision
 
-XPerl_SetModuleRevision("$Revision: 8add5e2a4c89b26ff90f48a2e6618bb51dd712dd $")
+XPerl_SetModuleRevision("$Revision: 622ab1f8aebd021111f667b2de0adca45dd07d93 $")
 
 function XPerl_Notice(...)
 	if (DEFAULT_CHAT_FRAME) then
@@ -261,7 +265,7 @@ do
 		DisableOther("CT_PartyBuffs", true)
 	end
 
-	local name,_,_,enabled,loadable = GetAddOnInfo("XPerl_GrimReaper")
+	local name, _, _, enabled, loadable = GetAddOnInfo("XPerl_GrimReaper")
 	if (enabled) then
 		DisableAddOn("XPerl_GrimReaper")
 		XPerl_Notice("Disabled XPerl_GrimReaper. This has been replaced by a standalone version 'GrimReaper' available on the WoW Ace Updater or from files.wowace.com")
@@ -615,14 +619,14 @@ function XPerl_Globals_OnEvent(self, event, arg1, ...)
 		self:UnregisterEvent(event)
 		startupCheckSettings(self, event)
 		ZPerl_MinimapButton_Init(ZPerl_MinimapButton_Frame)
-		-- Load the player's layout, will be profile dependent later.
-		local layout = format("%s(%s)", GetRealmName(), UnitName("player"))
-		XPerl_LoadFrameLayout(layout)
 	elseif (event == "PLAYER_ENTERING_WORLD") then
 		self:UnregisterEvent(event)
 		self:UnregisterAllEvents()
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 		self:SetScript("OnEvent", onEventPostSetup)
+		-- Load the player's layout, will be profile dependent later.
+		local layout = format("%s(%s)", GetRealmName(), UnitName("player"))
+		XPerl_LoadFrameLayout(layout)
 		XPerl_Globals_OnEvent = nil
 	end
 end
@@ -699,22 +703,7 @@ end
 
 -- DefaultRaidClasses
 local function DefaultRaidClasses()
-	if IsClassic then
-		return {
-			{enable = true, name = "WARRIOR"},
-			--{enable = true, name = "DEATHKNIGHT"},
-			{enable = true, name = "ROGUE"},
-			{enable = true, name = "HUNTER"},
-			{enable = true, name = "MAGE"},
-			{enable = true, name = "WARLOCK"},
-			{enable = true, name = "PRIEST"},
-			{enable = true, name = "DRUID"},
-			{enable = true, name = "SHAMAN"},
-			{enable = true, name = "PALADIN"},
-			--{enable = true, name = "MONK"},
-			--{enable = true, name = "DEMONHUNTER"},
-		}
-	else
+	if IsRetail then
 		return {
 			{enable = true, name = "WARRIOR"},
 			{enable = true, name = "DEATHKNIGHT"},
@@ -728,6 +717,32 @@ local function DefaultRaidClasses()
 			{enable = true, name = "PALADIN"},
 			{enable = true, name = "MONK"},
 			{enable = true, name = "DEMONHUNTER"},
+			{enable = true, name = "EVOKER"}
+		}
+	elseif IsWrathClassic then
+		return {
+			{enable = true, name = "WARRIOR"},
+			{enable = true, name = "DEATHKNIGHT"},
+			{enable = true, name = "ROGUE"},
+			{enable = true, name = "HUNTER"},
+			{enable = true, name = "MAGE"},
+			{enable = true, name = "WARLOCK"},
+			{enable = true, name = "PRIEST"},
+			{enable = true, name = "DRUID"},
+			{enable = true, name = "SHAMAN"},
+			{enable = true, name = "PALADIN"},
+		}
+	else
+		return {
+			{enable = true, name = "WARRIOR"},
+			{enable = true, name = "ROGUE"},
+			{enable = true, name = "HUNTER"},
+			{enable = true, name = "MAGE"},
+			{enable = true, name = "WARLOCK"},
+			{enable = true, name = "PRIEST"},
+			{enable = true, name = "DRUID"},
+			{enable = true, name = "SHAMAN"},
+			{enable = true, name = "PALADIN"},
 		}
 	end
 end
@@ -740,10 +755,12 @@ local function ValidateClassNames(part)
 	-- This should never happen, but I'm sure someone will find a way to break it
 
 	local list
-	if IsClassic then
-		list = {WARRIOR = false, MAGE = false, ROGUE = false, DRUID = false, HUNTER = false, SHAMAN = false, PRIEST = false, WARLOCK = false, PALADIN = false}
+	if IsRetail then
+		list = {WARRIOR = false, MAGE = false, ROGUE = false, DRUID = false, HUNTER = false, SHAMAN = false, PRIEST = false, WARLOCK = false, PALADIN = false, DEATHKNIGHT = false, MONK = false, DEMONHUNTER = false, EVOKER = false}
+	elseif IsWrathClassic then
+		list = {WARRIOR = false, MAGE = false, ROGUE = false, DRUID = false, HUNTER = false, SHAMAN = false, PRIEST = false, WARLOCK = false, PALADIN = false, DEATHKNIGHT = false}
 	else
-		list = {WARRIOR = false, MAGE = false, ROGUE = false, DRUID = false, HUNTER = false, SHAMAN = false, PRIEST = false, WARLOCK = false, PALADIN = false, DEATHKNIGHT = false, MONK = false, DEMONHUNTER = false}
+		list = {WARRIOR = false, MAGE = false, ROGUE = false, DRUID = false, HUNTER = false, SHAMAN = false, PRIEST = false, WARLOCK = false, PALADIN = false}
 	end
 	local valid
 	if (part.class) then
@@ -753,12 +770,12 @@ local function ValidateClassNames(part)
 				classCount = classCount + 1
 			end
 		end
-		if (classCount == WoWclassCount) then
+		if (classCount == CLASS_COUNT) then
 			valid = true
 		end
 
 		if (valid) then
-			for i = 1, WoWclassCount do
+			for i = 1, CLASS_COUNT do
 				if (part.class[i]) then
 					list[part.class[i].name] = true
 				end

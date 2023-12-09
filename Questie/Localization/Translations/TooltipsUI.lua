@@ -12,7 +12,7 @@ local tooltipsUILocales = {
         ["zhCN"] = "你正在进行这项任务",
         ["zhTW"] = "你正在進行這項任務",
         ["esES"] = "Tienes esta misión",
-        ["frFR"] = "Vous avez cette quête",
+        ["frFR"] = "Vous effectuez cette quête",
     },
     ["You have not done this quest"] = {
         ["ptBR"] = "Você não fez esta missão",
@@ -21,10 +21,10 @@ local tooltipsUILocales = {
         ["koKR"] = "아직 완료하지 않은 퀘스트",
         ["esMX"] = "No has completado esta misión",
         ["enUS"] = true,
-        ["zhCN"] = "你并完成这项任务",
+        ["zhCN"] = "你并未完成这项任务",
         ["zhTW"] = "你並未完成這項任務",
         ["esES"] = "No has completado esta misión",
-        ["frFR"] = "Vous n'avez pas fait cette quête",
+        ["frFR"] = "Vous n'avez pas terminé cette quête",
     },
     ["Nearby"] = {
         ["ptBR"] = "Nas proximidades",
@@ -84,7 +84,7 @@ local tooltipsUILocales = {
         ["zhCN"] = "你的进度",
         ["zhTW"] = "你的進度",
         ["esES"] = "Progreso",
-        ["frFR"] = "Progrès",
+        ["frFR"] = "Progression",
     },
     ["You have completed this quest"] = {
         ["ptBR"] = "Você concluiu esta missão",
@@ -103,11 +103,11 @@ local tooltipsUILocales = {
         ["ruRU"] = "Начинает",
         ["deDE"] = "Gestarted von",
         ["koKR"] = "시작",
-        ["esMX"] = "Empezada por",
+        ["esMX"] = "Iniciada por",
         ["enUS"] = true,
         ["zhCN"] = "任务开始于",
-        ["zhTW"] = "任務始於",
-        ["esES"] = "Empezada por",
+        ["zhTW"] = "任務開始於",
+        ["esES"] = "Iniciada por",
         ["frFR"] = "Début",
     },
     ["Ended by"] = {
@@ -124,15 +124,15 @@ local tooltipsUILocales = {
     },
     ["Completed on:"] = {
         ["ptBR"] = "Concluído em:",
-        ["ruRU"] = "Выполнено в:",
+        ["ruRU"] = "Выполнено:",
         ["deDE"] = "Abgeschlossen am",
         ["koKR"] = "완료",
-        ["esMX"] = "Terminada el:",
+        ["esMX"] = "Completada el:",
         ["enUS"] = true,
         ["zhCN"] = "完成于:",
-        ["zhTW"] = "完成於:",
-        ["esES"] = "Terminada el:",
-        ["frFR"] = "Complété  le:",
+        ["zhTW"] = "已完成:",
+        ["esES"] = "Completada el:",
+        ["frFR"] = "Complété le:",
     }
 }
 

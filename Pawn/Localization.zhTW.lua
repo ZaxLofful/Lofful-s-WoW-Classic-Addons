@@ -1,9 +1,9 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2021 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2023 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
--- 
+--
 -- Chinese (Traditional) resources
 ------------------------------------------------------------
 
@@ -94,6 +94,7 @@ PawnLocal =
 		["CritInfo"] = "致命一擊: 影響近戰攻擊，遠程攻擊，法術。",
 		["DefenseInfo"] = "Defense skill.  Decreases the chance that you'll be hit by boss attacks.",
 		["DodgeInfo"] = "Dodge.  Increases the chance that you'll dodge attacks entirely.",
+		["DominationSocketInfo"] = "平均統治碎片的套接字值。",
 		["DpsInfo"] = [=[每秒武器傷害。
 若你想為不同武器的DPS估值, 請看 "特定武器屬性" 部份]=],
 		--[[Translation missing --]]
@@ -154,6 +155,7 @@ PawnLocal =
 		["SpellHitInfo"] = "Spell Hit.  Increases the chance that your damaging spells hit the target, especially bosses.",
 		--[[Translation missing --]]
 		["SpellPenetrationInfo"] = "Spell Penetration. Negates an enemy's resistances to your spells.",
+		["SpellPowerInfo"] = "",
 		["SpiritInfo"] = "Spirit.  Affects your out-of-combat mana regeneration.",
 		["StaminaInfo"] = "主要屬性, 耐力.",
 		["StrengthInfo"] = "主要屬性, 力量.",
@@ -262,6 +264,9 @@ PawnLocal =
 		["Armor"] = "^#點護甲$",
 		["Armor2"] = "^裝備: %+#點護甲值。$",
 		["ArmorPenetration"] = "^裝備: 你的攻擊無視目標#點護甲值。$",
+		["ArmorPenetrationRating"] = "^裝備: 提高#點護甲穿透等級。$",
+		["ArmorPenetrationRating2"] = "^裝備: 提高#點護甲穿透。$",
+		["ArmorPenetrationShort"] = "^%+?#護甲穿透等級$",
 		["Avoidance"] = "^%+#迴避$",
 		["Axe"] = "^斧$",
 		["BagSlots"] = "^%d+格容器$",
@@ -281,6 +286,7 @@ PawnLocal =
 		["CritPercent"] = "^裝備： 使你造成致命一擊的機率提高#%%。$",
 		["CritRating"] = "^裝備: 使你的致命一擊等級提高#點。$",
 		["CritRating2"] = "^UNUSED$",
+		["CritRating3"] = "^UNUSED$",
 		["CritRatingShort"] = "^%+?#致命一擊等級$",
 		["Crossbow"] = "^弩$",
 		["Dagger"] = "^匕首$",
@@ -311,8 +317,10 @@ PawnLocal =
 		["EnchantmentTitaniumWeaponChain"] = "^泰坦鋼武器鍊$",
 		["Equip"] = "裝備: ",
 		["ExpertiseRating"] = "^裝備: 提高#點熟練。$",
+		["ExpertiseRatingShort"] = "^%+?#熟練等級$",
 		["FeralAp"] = "^裝備： 在獵豹、熊或巨熊形態下的攻擊強度提高#點。$",
 		["FeralApMoonkin"] = "^裝備: 在獵豹、熊、巨熊和梟獸形態下的攻擊強度提高#點。$",
+		["FeralApWrath"] = "^使你在獵豹、熊、巨熊和梟獸形態下的攻擊強度提高#點。$",
 		["FireResist"] = "^%+?# 火焰抗性$",
 		["FireSpellDamage"] = "^%+# 火焰法術傷$",
 		["FireSpellDamage2"] = "^裝備： 提高火焰法術和效果所造成的傷害，最多#點。$",
@@ -349,6 +357,7 @@ PawnLocal =
 		["HitRatingShort"] = "^%+?#命中等級$",
 		["HolySpellDamage"] = "^%+# Holy Spell Damage$",
 		["HolySpellDamage2"] = "^裝備： 提高神聖法術和效果所造成的傷害，最多#點。$",
+		["HolySpellDamage3"] = "^裝備: 使神聖法術和效果所造成的傷害提高最多#點。$",
 		["Hp5"] = "^裝備: 每5秒恢復#生命力。$",
 		["Hp52"] = "^每5秒恢復#點?生命力。?$",
 		["Hp53"] = "^UNUSED$",
@@ -366,7 +375,8 @@ PawnLocal =
 		["Mp5"] = "^裝備： 每5秒恢復#點法力。$",
 		["Mp52"] = "^每5秒恢復#點法力。$",
 		["Mp53"] = "^UNUSED$",
-		["Mp54"] = "^UNUSED$",
+		["Mp54"] = "^裝備: 每5秒恢復#點法力。$",
+		["Mp55"] = "^UNUSED$",
 		["MultiStatHeading"] = "^多項統計$",
 		["MultiStatSeparator1"] = "和",
 		["Multistrike"] = "^%+#雙擊$",
@@ -385,6 +395,7 @@ PawnLocal =
 		["PvPPower"] = "^%+?#PvP強度$",
 		["RaidFinder"] = "^團隊搜尋器$",
 		["Rap"] = "^裝備： %+#遠程攻擊強度。$",
+		["Rap2"] = "^裝備: 提高#點遠程攻擊強度。$",
 		["Requires2"] = "^UNUSED$",
 		["Resilience"] = "^%+?#PvP韌性$",
 		["Resilience2"] = "^裝備: 提高#點韌性。$",
@@ -399,18 +410,22 @@ PawnLocal =
 		["ShadowSpellDamage3"] = "^UNUSED$",
 		["ShadowSpellDamage4"] = "^%+#暗影傷害$",
 		["Shield"] = "^盾牌$",
-		["SocketBonusPrefix"] = "插槽加成:",
+		["SocketBonusPrefix"] = "插槽加成：",
 		["Speed"] = "^速度 #$",
 		["Speed2"] = "^UNUSED$",
 		["SpellCrit"] = "^裝備： 使你的法術造成致命一擊的機率提高#%%。$",
 		["SpellCritRating"] = "^裝備: 使你的法術致命一擊等級提高#點。$",
 		["SpellCritRating2"] = "^裝備: 提高#點法術致命一擊。$",
 		["SpellCritRatingShort"] = "^%+?#法術致命一擊等級$",
+		["SpellCritRatingShort2"] = "^UNUSED$",
 		["SpellDamage"] = "^%+# 傷害及治療法術$",
 		["SpellDamage2"] = "^裝備： 提高法術和魔法效果所造成的傷害和治療效果，最多#點。$",
 		["SpellDamage3"] = "^裝備: 使所有法術和魔法效果所造成的傷害和治療效果提高最多#點。$",
 		["SpellDamage4"] = "^UNUSED$",
+		["SpellDamage5"] = "^%+#法術傷害和治療$",
+		["SpellDamage6"] = "^UNUSED$",
 		["SpellDamageAndHealing"] = "^果提高最多#點，法術傷害提高最多#點。$",
+		["SpellDamageAndHealing2"] = "^裝備: 使法術和魔法效果所造成的治療效果提高最多#點，法術傷害提高最多#點。$",
 		["SpellDamageAndHealingEnchant"] = "^%+#治療和%+#法術傷害",
 		["SpellDamageAndHealingShort"] = "^%+#治療法術和%+#傷害法術",
 		["SpellDamageAndHealingShort2"] = "^UNUSED$",
@@ -424,6 +439,8 @@ PawnLocal =
 		["SpellPenetrationClassic"] = "^裝備： 使你法術目標的魔法抗性降低#點。$",
 		["SpellPenetrationShort"] = "^%+?#法術穿透力$",
 		["SpellPower"] = "^%+?#法術能量$",
+		["SpellPower2"] = "^裝備： 提高#點法術能量。$",
+		["SpellPower3"] = "^UNUSED$",
 		["Spirit"] = "^%+?#精神$",
 		["Staff"] = "^法杖$",
 		["Stamina"] = "^%+?#耐力$",
@@ -670,6 +687,7 @@ WoW中所有的物件都有個ID，通常只有寫插件的人才需要這些資
 		["ScaleRename"] = "重新命名",
 		["ScaleRenameTooltip"] = "重新命名這個權重.",
 		["ScaleSelectorHeader"] = "選擇一個權重:",
+		["ScaleSelectorNoneWarning"] = "至少選擇一項。",
 		["ScaleSelectorShowingSuggestionsFor"] = "當前屬性權重的專精",
 		["ScaleSelectorShowScale"] = "在提示欄中顯示權重",
 		["ScaleSelectorShowScaleTooltip"] = "當選取時，此權重值將顯示在此角色的物品提示欄中。每個權重可以顯示在一個、多個，或無角色中。",
@@ -737,7 +755,7 @@ if VgerCore.IsClassic then
 	end
 end
 
-if VgerCore.IsBurningCrusade then
+if VgerCore.IsBurningCrusade or VgerCore.IsWrath then
 
 	local TooltipParsing_BurningCrusade =
 	{
@@ -763,7 +781,33 @@ if VgerCore.IsBurningCrusade then
 	local Key, NewString
 	for Key, NewString in pairs(TooltipParsing_BurningCrusade) do
 		PawnLocal.TooltipParsing[Key] = NewString
-	end	
+	end
+end
+
+if VgerCore.IsWrath then
+
+	local TooltipParsing_Wrath =
+	{
+		["Ap3"] = "^裝備: 提高#點攻擊強度。$",
+		["BlockRating"] = "^裝備: 提高#點格擋等級。$",
+		["CritRating"] = "^裝備: 提高#點致命一擊等級。$",
+		["CritRating2"] = "^裝備: 提高#點致命一擊等級。$",
+		["CritRating3"] = "^裝備: 提高#點致命一擊等級。$",
+		["CritRatingShort"] = "^裝備: 提高#點致命一擊等級。$",
+		["DefenseRating2"] = "^裝備: 提高#點防禦等級。$",
+		["ExpertiseRating"] = "^裝備: 提高#點熟練等級。$",
+		["HasteRating"] = "^裝備: 提高#點加速等級。$",
+		["HitRating"] = "^裝備: 提高#點命中等級。$",
+		["HitRating2"] = "^裝備: 提高#點命中等級。$",
+		["Hp55"] = "^每5秒恢復#生命力$",
+		["ResilienceRating"] = "^裝備: 提高#點韌性等級。$",
+		["SpellPower2"] = "^裝備: 提高#點法術能量。$",
+	}
+
+	local Key, NewString
+	for Key, NewString in pairs(TooltipParsing_Wrath) do
+		PawnLocal.TooltipParsing[Key] = NewString
+	end
 end
 
 PawnLocal.Specs =

@@ -1,18 +1,17 @@
-if not WeakAuras.IsCorrectVersion() then return end
+if not WeakAuras.IsLibsOK() then return end
 
-if not(GetLocale() == "itIT") then
+if (GAME_LOCALE or GetLocale()) ~= "itIT" then
   return
 end
 
 local L = WeakAuras.L
 
 -- WeakAuras/Templates
-	L[" Debuff"] = [=[Indebolimenti
-]=]
-	L["<70% Mana"] = "<70% Mana"
-	L[">70% Mana"] = ">70% Mana"
+	--[[Translation missing --]]
+	L["< 4 stacks"] = "< 4 stacks"
+	--[[Translation missing --]]
+	L["5 stacks"] = "5 stacks"
 	L["Abilities"] = "Abilità"
-	L["Ability"] = "Abilità"
 	L["Add Triggers"] = "Aggiungi Inneschi"
 	L["Always Active"] = "Sempre Attivo"
 	L["Always Show"] = "Mostra Sempre"
@@ -41,16 +40,8 @@ local L = WeakAuras.L
 	--[[Translation missing --]]
 	L["Basic Show On Ready"] = "Basic Show On Ready"
 	L["Bloodlust/Heroism"] = "Brama di Sangue/Eroismo"
-	--[[Translation missing --]]
-	L["Bonded Buff"] = "Bonded Buff"
-	--[[Translation missing --]]
-	L["Buff"] = "Buff"
 	L["buff"] = "buff"
-	--[[Translation missing --]]
-	L["Buff on Other"] = "Buff on Other"
 	L["Buffs"] = "Buffs"
-	--[[Translation missing --]]
-	L["Build Up"] = "Build Up"
 	L["Cancel"] = "Cancella"
 	L["Cast"] = "Lancia"
 	--[[Translation missing --]]
@@ -62,29 +53,17 @@ local L = WeakAuras.L
 	--[[Translation missing --]]
 	L["Charge Tracking"] = "Charge Tracking"
 	--[[Translation missing --]]
-	L["Combustion Ready"] = "Combustion Ready"
-	--[[Translation missing --]]
-	L["Conduits"] = "Conduits"
-	--[[Translation missing --]]
-	L["Cooldown"] = "Cooldown"
-	--[[Translation missing --]]
 	L["cooldown"] = "cooldown"
 	--[[Translation missing --]]
 	L["Cooldown Tracking"] = "Cooldown Tracking"
 	--[[Translation missing --]]
-	L["Create Auras"] = "Create Auras"
+	L["Cooldowns"] = "Cooldowns"
 	--[[Translation missing --]]
-	L["Debuff"] = "Debuff"
+	L["Create Auras"] = "Create Auras"
 	--[[Translation missing --]]
 	L["debuff"] = "debuff"
 	--[[Translation missing --]]
 	L["Debuffs"] = "Debuffs"
-	--[[Translation missing --]]
-	L["Empowered Buff"] = "Empowered Buff"
-	--[[Translation missing --]]
-	L["Fire"] = "Fire"
-	--[[Translation missing --]]
-	L["Frost"] = "Frost"
 	--[[Translation missing --]]
 	L["General"] = "General"
 	--[[Translation missing --]]
@@ -110,11 +89,9 @@ local L = WeakAuras.L
 	--[[Translation missing --]]
 	L["Keeps existing triggers intact"] = "Keeps existing triggers intact"
 	--[[Translation missing --]]
-	L["Legendaries"] = "Legendaries"
+	L["Max 3"] = "Max 3"
 	--[[Translation missing --]]
-	L["Meteor Ready"] = "Meteor Ready"
-	--[[Translation missing --]]
-	L["Nature"] = "Nature"
+	L["Max 4"] = "Max 4"
 	--[[Translation missing --]]
 	L["Next"] = "Next"
 	--[[Translation missing --]]
@@ -212,17 +189,7 @@ local L = WeakAuras.L
 	--[[Translation missing --]]
 	L["Show Totem and Charge Information"] = "Show Totem and Charge Information"
 	--[[Translation missing --]]
-	L["Slow"] = "Slow"
-	--[[Translation missing --]]
-	L["slow debuff"] = "slow debuff"
-	--[[Translation missing --]]
 	L["Stance"] = "Stance"
-	--[[Translation missing --]]
-	L["stun debuff"] = "stun debuff"
-	--[[Translation missing --]]
-	L["Stun Debuff"] = "Stun Debuff"
-	--[[Translation missing --]]
-	L["Totem"] = "Totem"
 	--[[Translation missing --]]
 	L["Track the charge and proc, highlight while proc is active, turns red when out of range, blue on insufficient resources."] = "Track the charge and proc, highlight while proc is active, turns red when out of range, blue on insufficient resources."
 	--[[Translation missing --]]

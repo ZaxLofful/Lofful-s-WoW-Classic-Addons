@@ -8,12 +8,14 @@ local _MP5 = {}
 local _, _, classId = UnitClass("player")
 
 -- Get MP5 from items
+---@return number
 function Data:GetMP5FromItems()
     local mp5 = _MP5:GetMP5ValueOnItems()
     mp5 = mp5 + Data:GetSetBonusValueMP5()
     return mp5
 end
 
+---@return number
 function _MP5:GetMP5ValueOnItems()
     local mp5 = 0
     for i = 1, 18 do
@@ -38,6 +40,29 @@ function _MP5:GetMP5ValueOnItems()
             if enchant and enchant == Data.enchantIds.RESILIENCE_OF_THE_SCOURGE then
                 mp5 = mp5 + 5
             end
+            -- Honor Hold/Thrallmar enchant
+            if enchant and enchant == Data.enchantIds.GLYPH_OF_RENEWAL then
+                mp5 = mp5 + 7
+            end
+            -- aldor enchant
+            if enchant and enchant == Data.enchantIds.INSCRIPTION_OF_FAITH then
+                mp5 = mp5 + 4
+            end
+            -- aldor enchant
+            if enchant and enchant == Data.enchantIds.RESTORE_MANA_PRIME then
+                mp5 = mp5 + 6
+            end
+            -- Check for socketed gems (TODO: check for socket bonus)
+            local gem1, gem2, gem3 = DataUtils:GetSocketedGemsFromItemLink(itemLink)
+            if gem1 then
+                mp5 = mp5 + _MP5:GetGemBonusMP5(gem1)
+            end
+            if gem2 then
+                mp5 = mp5 + _MP5:GetGemBonusMP5(gem2)
+            end
+            if gem3 then
+                mp5 = mp5 + _MP5:GetGemBonusMP5(gem3)
+            end
         end
     end
 
@@ -61,24 +86,22 @@ end
 
 local lastManaReg = 0
 
+---@return number
 function Data:GetMP5FromSpirit()
-    local base, _ = GetManaRegen() -- Returns mana reg per 1 second
-    if base < 1 then
-        base = lastManaReg
-    end
-    lastManaReg = base
-    return DataUtils:Round(base * 5, 1)
+    local _, intValue = UnitStat("player", 4)
+    local _, spiritValue = UnitStat("player", 5)
+    return DataUtils:Round((0.001 + (spiritValue * 0.009327 * (intValue^0.5))) * 5 * 0.6, 2)
 end
 
 -- Get mana regen while casting
+---@return number
 function Data:GetMP5WhileCasting()
     local _, casting = GetManaRegen() -- Returns mana reg per 1 second
     if casting < 1 then
-        casting = lastManaReg
+        casting = 0
     end
-    lastManaReg = casting
 
-    if ECS.IsTBC then
+    if ECS.IsWotlk then
         casting = (casting * 5) + _MP5:GetTalentBonus()
 
         return DataUtils:Round(casting, 2)
@@ -101,24 +124,35 @@ function Data:GetMP5WhileCasting()
     return DataUtils:Round(casting, 2)
 end
 
+function Data:GetMP5OutsideCasting()
+    local base, _ = GetManaRegen() -- Returns mana reg per 1 second
+    if base < 1 then
+        base = lastManaReg
+    end
+    lastManaReg = base
+    return DataUtils:Round(base * 5, 2)
+end
+
+---@return number
 function _MP5:GetTalentModifier()
     local mod = 0
 
     if classId == Data.PRIEST then
-        local _, _, _, _, points, _, _, _ = GetTalentInfo(1, 8)
+        local _, _, _, _, points, _, _, _ = GetTalentInfo(1, 9)
         mod = points * 0.05 -- 0-15% from Meditation
     elseif classId == Data.MAGE then
-        local _, _, _, _, points, _, _, _ = GetTalentInfo(1, 12)
+        local _, _, _, _, points, _, _, _ = GetTalentInfo(1, 15)
         mod = points * 0.05 -- 0-15% Arcane Meditation
-    elseif classId == Data.DRUID then
-        local _, _, _, _, reflectionPoints, _, _, _ = GetTalentInfo(3, 6)
+    elseif (not ECS.IsWotlk) and classId == Data.DRUID then
+        local _, _, _, _, reflectionPoints, _, _, _ = GetTalentInfo(3, 9)
         mod = reflectionPoints * 0.05 -- 0-15% from Reflection
     end
 
     return mod
 end
 
--- This is only relevant for the TBC client
+---This is only relevant for the TBC/Wotlk client
+---@return number
 function _MP5:GetTalentBonus()
     local bonus = 0
 
@@ -145,6 +179,7 @@ function _MP5:GetTalentBonus()
     return bonus
 end
 
+---@return number, number
 function Data:GetMP5FromBuffs()
     local mod = 0
     local bonus = 0
@@ -274,10 +309,12 @@ function Data:GetMP5FromBuffs()
     return mod, bonus
 end
 
+---@return boolean
 function _MP5:HasLightningShield(spellId)
     return spellId == 324 or spellId == 325 or spellId == 905 or spellId == 945 or spellId == 8134 or spellId == 10431 or spellId == 10432
 end
 
+---@return number
 function _MP5:GetBlessingOfWisdomModifier()
     local mod = 0
     if classId == Data.PALADIN then
@@ -285,4 +322,29 @@ function _MP5:GetBlessingOfWisdomModifier()
         mod = points * 0.1 -- 0-20% from Improved Blessing of Wisdom
     end
     return mod
+end
+
+---@return number
+function _MP5:GetGemBonusMP5(gemId)
+    for _, value in ipairs(Data.gemIds.FOUR_MP5_GEMS) do
+        if value == gemId then
+            return 4
+        end
+    end
+    for _, value in ipairs(Data.gemIds.THREE_MP5_GEMS) do
+        if value == gemId then
+            return 3
+        end
+    end
+    for _, value in ipairs(Data.gemIds.TWO_MP5_GEMS) do
+        if value == gemId then
+            return 2
+        end
+    end
+    for _, value in ipairs(Data.gemIds.ONE_MP5_GEMS) do
+        if value == gemId then
+            return 1
+        end
+    end
+    return 0
 end

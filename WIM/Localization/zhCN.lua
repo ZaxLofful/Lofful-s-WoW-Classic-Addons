@@ -130,6 +130,7 @@ WIM.AddLocale("zhCN", {
     ["Death Knight"] = LOCALIZED_CLASS_NAMES_MALE.DEATHKNIGHT,
     ["Monk"] = LOCALIZED_CLASS_NAMES_MALE.MONK,
     ["Demon Hunter"] = LOCALIZED_CLASS_NAMES_MALE.DEMONHUNTER,
+	["Evoker"] = LOCALIZED_CLASS_NAMES_MALE.EVOKER,
 
     -- Female Class Names --
     ["DruidF"] = LOCALIZED_CLASS_NAMES_FEMALE.DRUID,
@@ -144,6 +145,7 @@ WIM.AddLocale("zhCN", {
     ["Death KnightF"] = LOCALIZED_CLASS_NAMES_FEMALE.DEATHKNIGHT,
     ["MonkF"] = LOCALIZED_CLASS_NAMES_FEMALE.MONK,
     ["Demon HunterF"] = LOCALIZED_CLASS_NAMES_FEMALE.DEMONHUNTER,
+	["EvokerF"] = LOCALIZED_CLASS_NAMES_FEMALE.EVOKER,
 
     ["Game Master"] = "GM",
 
@@ -355,7 +357,7 @@ WIM.AddLocale("zhCN", {
     ["Ignore"] = "忽略",
     ["Block"] = "屏蔽",
     ["Filtering"] = "过滤器",
-    ["Filtering allows you to control which messages are handled as well as how they are handlef by WIM."] = "设置消息过滤规则。",
+    ["Filtering allows you to control which messages are handled as well as how they are handled by WIM."] = "设置消息过滤规则。",
     ["Enable Filtering"] = "开启过滤器",
     ["Protected"] = true,
     ["Action:"] = "动作：",

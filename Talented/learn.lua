@@ -6,7 +6,7 @@ local function ShowDialog(text, tab, index)
 		button1 = YES,
 		button2 = NO,
 		OnAccept = function(self)
-			LearnTalent(self.talent_tab, self.talent_index)
+			Talented:MatchedLearnTalent(self.talent_tab, self.talent_index)
 		end,
 		timeout = 0,
 		exclusive = 1,
@@ -27,7 +27,7 @@ function Talented:LearnTalent(tab, index)
 	local p = self.db.profile
 
 	if not p.confirmlearn then
-		LearnTalent(tab, index)
+		self:MatchedLearnTalent(tab, index)
 		return
 	end
 
@@ -53,4 +53,44 @@ function Talented:LearnTalent(tab, index)
 			talent.info.ranks),
 		tab, index)
 end
+
+local new2OldIdx
+function Talented:createNew2OldIdx()
+	if new2OldIdx then return end
+	new2OldIdx = {}
+	for tab=1,3 do
+	   local tierColumn = {}
+	   local maxTier=0
+	   for idx=GetNumTalents(tab),1,-1 do
+		  local _,_,tier,column = GetTalentInfo(tab,idx)
+		  tierColumn[tier] = tierColumn[tier] or {}
+		  tierColumn[tier][column] = idx
+		  maxTier = tier > maxTier and tier or maxTier
+	   end
+	   local oldIdx = 1
+	   new2OldIdx[tab] = {}
+	   for tier=1,maxTier do
+		  for column=1,4 do
+			 local wowIdx = tierColumn[tier][column]
+			 if wowIdx then
+				new2OldIdx[tab][oldIdx]=wowIdx
+				oldIdx = oldIdx + 1
+			 end
+		  end
+	   end
+	end
+end
+
+function Talented:GetNewIdx(tab, index)
+	return new2OldIdx[tab][index]
+end
+
+function Talented:MatchedLearnTalent(tab, index)
+	return LearnTalent(tab, new2OldIdx[tab][index])
+end
+
+function Talented:MatchedGetTalentInfo(tab, index, isInspect)
+	return GetTalentInfo(tab, new2OldIdx[tab][index], isInspect)
+end
+
 --[tab].talents[index].info

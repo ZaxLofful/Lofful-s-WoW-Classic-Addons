@@ -1,44 +1,33 @@
-# [3.4.2](https://github.com/WeakAuras/WeakAuras2/tree/3.4.2) (2021-05-27)
+# [5.8.7](https://github.com/WeakAuras/WeakAuras2/tree/5.8.7) (2023-12-03)
 
-[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/3.4.1...3.4.2)
+[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.8.6...5.8.7)
 
 ## Highlights
 
- - More work on nested groups.
-- Make more WeakAuras functions private.
-- BCC fixes and model updates. 
+ - Updates for Season of Discovery
+- New option to treat charged combo point as 7 combo points (thanks to @weswigham for initial idea+PR)
+- Bug fixes 
 
 ## Commits
 
-InfusOnWoW (13):
+InfusOnWoW (9):
 
-- Prepare another small part of WeakAurasOptions for nested
-- Prepare TriggerTemplates for nested
-- Make Private accessible for Templates
-- Prepare TriggerOptions for nested
-- Prepare another part of ActionOptions for nested
-- Prepare GetOverlayInfo for nested
-- Prepare SortDisplayButtons for nested
-- Prepare automatic frame level setting for nested
-- Slightly Simplify ProgressTexture Options code
-- Cast Trigger: Deprecate the old Spell Name check
-- Move Swing Timer remaining time check to the right place
-- Improve scam checks
-- Fix regression on dragging auras
+- Show an warning on trying to update an aura that can't be updated
+- Add an option to treat a charged combo point as 7 combo points
+- Add CHAT_MSG_LOOT type
+- Tweak frame levels again a bit
+- Improve error message for auras without a region type
+- AuraBar: Fix property names for gradient colors
+- Author Options: Also sort Sound list for the user
+- Drangonflying Load Option
+- Templates: Fix talent load option for Holy Word: Sanctify
 
-Stanzilla (3):
+Stanzilla (2):
 
-- Move SortDisplayButtons to private namespace (#3116)
-- Update WeakAurasModelPaths from wow.tools
-- Update WeakAurasModelPaths from wow.tools
+- Bump minor
+- Bump Classic TOC for SoD
 
-emptyrivers (1):
+mrbuds (1):
 
-- privatise DisplayToString
-
-mrbuds (3):
-
-- swing timer: do not reset swing on SPELL_EXTRA_ATTACKS
-- Swing Timer trigger, fix remaining time check fixes #3106
-- fix CorrectSpellName for linked spells on TBC
+- Classis SoD: include new spell ids in spell cache
 

@@ -175,10 +175,10 @@ local function getChatWindow(ChatName, chatType)
         Windows[ChatName].widgets.chat_info:SetActive(true);
         Windows[ChatName].chatList = Windows[ChatName].chatList or {};
 
-        if(chatType == "guild") then
-            Windows[ChatName].CHAT_listCount = _G.GetNumGuildMembers;
-            Windows[ChatName].CHAT_listFun = _G.GetGuildRosterInfo;
-	else
+        if(chatType == "guild" or chatType == "officer" or chatType == "party" or chatType == "raid") then
+            Windows[ChatName].CHAT_listCount = function () return #Windows[ChatName].chatList end
+            Windows[ChatName].CHAT_listFun = function (index) return Windows[ChatName].chatList[index] end
+		else
             Windows[ChatName].CHAT_listCount = nil;
             Windows[ChatName].CHAT_listFun = nil;
         end
@@ -220,7 +220,8 @@ RegisterWidgetTrigger("msg_box", "chat", "OnEnterPressed", function(self)
         end
         local msgCount = math.ceil(string.len(msg)/255);
         if(msgCount == 1) then
-	        _G.ChatThrottleLib:SendChatMessage("ALERT", "WIM", msg, TARGET, nil, NUMBER);
+			_G.SendChatMessage(msg, TARGET, nil, NUMBER);
+	        -- _G.ChatThrottleLib:SendChatMessage("ALERT", "WIM", msg, TARGET, nil, NUMBER);
         elseif(msgCount > 1) then
             SendSplitMessage("ALERT", "WIM", msg, TARGET, nil, NUMBER);
         end
@@ -251,9 +252,9 @@ function Guild:OnDisable()
     self:UnregisterChatEvent("CHAT_MSG_GUILD_ACHIEVEMENT");
 end
 
-function Guild:OnWindowDestroyed(self)
-    if(self.type == "chat" and self.chatType == "guild") then
-        local chatName = self.theUser;
+function Guild:OnWindowDestroyed(win)
+    if(win.type == "chat" and win.chatType == "guild") then
+        local chatName = win.theUser;
         Windows[chatName].chatType = nil;
         Windows[chatName].unreadCount = nil;
         Windows[chatName].chatLoaded = nil;
@@ -263,15 +264,10 @@ function Guild:OnWindowDestroyed(self)
     end
 end
 
-function Guild:OnWindowShow(self)
-    if(self.type == "chat" and self.chatType == "guild") then
+function Guild:OnWindowShow(win)
+    if(win.type == "chat" and win.chatType == "guild") then
 		-- H.Sch. - ReglohPri - this is deprecated -> GuildRoster() - changed to C_GuildInfo.GuildRoster()
-		if (select(4, _G.GetBuildInfo()) <= 19999) then
-			--for classic
-			_G.GuildRoster();
-		else
-			_G.C_GuildInfo.GuildRoster();
-		end
+		_G.C_GuildInfo.GuildRoster();
     end
 end
 
@@ -281,19 +277,20 @@ function Guild:GUILD_ROSTER_UPDATE()
         cleanChatList(self.guildWindow);
         local count = 0;
         for i=1, _G.GetNumGuildMembers() do
-	    local name, rank, rankIndex, level, class, zone, note, officernote, online, status, classFileName, achievementPoints, achievementRank, isMobile = _G.GetGuildRosterInfo(i);
-	    if(online) then
-		--_G.GuildControlSetRank(rankIndex);
-                local guildchat_listen, guildchat_speak, officerchat_listen, officerchat_speak, promote, demote,
-                        invite_member, remove_member, set_motd, edit_public_note, view_officer_note, edit_officer_note,
-                        modify_guild_info, _, withdraw_repair, withdraw_gold, create_guild_event = _G.C_GuildInfo.GuildControlGetRankFlags(rankIndex);
-        	if(guildchat_listen) then
+			local name, rank, rankIndex, level, class, zone, note, officernote, online, status, classFileName, achievementPoints, achievementRank, isMobile = _G.GetGuildRosterInfo(i);
+			if(online) then
+				--_G.GuildControlSetRank(rankIndex);
+				local guildchat_listen, guildchat_speak, officerchat_listen, officerchat_speak, promote, demote,
+						invite_member, remove_member, set_motd, edit_public_note, view_officer_note, edit_officer_note,
+						modify_guild_info, _, withdraw_repair, withdraw_gold, create_guild_event = _G.C_GuildInfo.GuildControlGetRankFlags(rankIndex);
+				if(guildchat_listen) then
 					name = _G.Ambiguate(name, "none")
-                    count = count + 1;
-                    table.insert(self.guildWindow.chatList, name);
-                end
-	    end
-	end
+					count = count + 1;
+					table.insert(self.guildWindow.chatList, name);
+				end
+			end
+		end
+
         self.guildWindow.widgets.chat_info:SetText(count);
     end
 end
@@ -360,9 +357,16 @@ function Officer:OnDisable()
     self:UnregisterChatEvent("CHAT_MSG_OFFICER");
 end
 
-function Officer:OnWindowDestroyed(self)
-    if(self.type == "chat" and self.chatType == "officer") then
-        local chatName = self.theUser;
+function Officer:OnWindowShow(win)
+    if(win.type == "chat" and win.chatType == "officer") then
+		Officer.officerWindow = win
+		_G.C_GuildInfo.GuildRoster();
+    end
+end
+
+function Officer:OnWindowDestroyed(win)
+    if(win.type == "chat" and win.chatType == "officer") then
+        local chatName = win.theUser;
         Windows[chatName].chatType = nil;
         Windows[chatName].unreadCount = nil;
         Windows[chatName].chatLoaded = nil;
@@ -458,9 +462,16 @@ function Party:OnDisable()
     self:UnregisterChatEvent("CHAT_MSG_PARTY_LEADER");
 end
 
-function Party:OnWindowDestroyed(self)
-    if(self.type == "chat" and self.chatType == "party") then
-        local chatName = self.theUser;
+function Party:OnWindowShow(win)
+    if(win.type == "chat" and win.chatType == "party") then
+		Party.partyWindow = win;
+		Party:GROUP_ROSTER_UPDATE();
+    end
+end
+
+function Party:OnWindowDestroyed(win)
+    if(win.type == "chat" and win.chatType == "party") then
+        local chatName = win.theUser;
         Windows[chatName].chatType = nil;
         Windows[chatName].unreadCount = nil;
         Windows[chatName].chatLoaded = nil;
@@ -543,7 +554,7 @@ function Party:CHAT_MSG_PARTY_LEADER(...)
     arg2 = _G.Ambiguate(arg2, "none")
     local win = getChatWindow(_G.PARTY, "party");
     local color = _G.ChatTypeInfo["PARTY_LEADER"] or _G.NORMAL_FONT_COLOR;
-    self.raidWindow = win;
+    self.partyWindow = win;
     if(not self.chatLoaded) then
         Party:GROUP_ROSTER_UPDATE();
     end
@@ -588,9 +599,16 @@ function Raid:OnDisable()
     self:UnregisterChatEvent("CHAT_MSG_RAID_WARNING");
 end
 
-function Raid:OnWindowDestroyed(self)
-    if(self.type == "chat" and self.chatType == "raid") then
-        local chatName = self.theUser;
+function Raid:OnWindowShow(win)
+    if(win.type == "chat" and win.chatType == "raid") then
+		win.raidWindow = win;
+		Raid:GROUP_ROSTER_UPDATE();
+    end
+end
+
+function Raid:OnWindowDestroyed(win)
+    if(win.type == "chat" and win.chatType == "raid") then
+        local chatName = win.theUser;
         Windows[chatName].chatType = nil;
         Windows[chatName].unreadCount = nil;
         Windows[chatName].chatLoaded = nil;
@@ -750,9 +768,9 @@ function Battleground:OnDisable()
     self:UnregisterChatEvent("CHAT_MSG_INSTANCE_CHAT_LEADER");
 end
 
-function Battleground:OnWindowDestroyed(self)
-    if(self.type == "chat" and self.chatType == "battleground") then
-        local chatName = self.theUser;
+function Battleground:OnWindowDestroyed(win)
+    if(win.type == "chat" and win.chatType == "battleground") then
+        local chatName = win.theUser;
         Windows[chatName].chatType = nil;
         Windows[chatName].unreadCount = nil;
         Windows[chatName].chatLoaded = nil;
@@ -872,9 +890,9 @@ function Say:OnDisable()
 	self:UnregisterChatEvent("CHAT_MSG_TEXT_EMOTE");
 end
 
-function Say:OnWindowDestroyed(self)
-    if(self.type == "chat" and self.chatType == "say") then
-        local chatName = self.theUser;
+function Say:OnWindowDestroyed(win)
+    if(win.type == "chat" and win.chatType == "say") then
+        local chatName = win.theUser;
         Windows[chatName].chatType = nil;
         Windows[chatName].unreadCount = nil;
         Windows[chatName].chatLoaded = nil;
@@ -1021,9 +1039,9 @@ function Channel:OnDisable()
     self:UnregisterChatEvent("CHAT_MSG_CHANNEL_NOTICE_USER");
 end
 
-function Channel:OnWindowDestroyed(self)
-    if(self.type == "chat" and self.chatType == "channel") then
-        local chatName = self.theUser;
+function Channel:OnWindowDestroyed(win)
+    if(win.type == "chat" and win.chatType == "channel") then
+        local chatName = win.theUser;
         Windows[chatName].chatType = nil;
         Windows[chatName].unreadCount = nil;
         Windows[chatName].chatLoaded = nil;
@@ -1111,7 +1129,7 @@ function Channel:CHAT_MSG_CHANNEL_CONTROLLER(eventController, arg1, arg2, arg3, 
     -- arg8 Channel Number
     -- arg9 Channel Name
     local isWorld = arg7 and arg7 > 0;
-    local channelName = string.split(" - ", arg9);
+    local channelName = string.split("-", arg9:gsub(' ', ''));
     local neverSuppress = db.chat[isWorld and "world" or "custom"].channelSettings[channelName] and db.chat[isWorld and "world" or "custom"].channelSettings[channelName].neverSuppress;
     --check options. do we want the specified channels.
     if(isWorld and not db.chat.world.enabled) then
@@ -1132,14 +1150,15 @@ function Channel:CHAT_MSG_CHANNEL(...)
     -- arg8 Channel Number
     -- arg9 Channel Name
     local isWorld = arg7 and arg7 > 0;
-    local channelName = string.split(" - ", arg9);
+    local channelName = string.split("-", arg9:gsub(' ', ''));
+
     --check options. do we want the specified channels.
     if(isWorld and not db.chat.world.enabled) then
         return;
     elseif(not isWorld and not db.chat.custom.enabled) then
         return;
     elseif(not db.chat[isWorld and "world" or "custom"].channelSettings[channelName] or not db.chat[isWorld and "world" or "custom"].channelSettings[channelName].monitor) then
-        return;
+		return;
     end
     arg2 = _G.Ambiguate(arg2, "none")
     local win = getChatWindow(channelName, "channel");
@@ -1204,7 +1223,7 @@ function ChatAlerts:PostEvent_ChatMessage(event, ...)
     event = event:gsub("CHAT_MSG_", "");
     if(event == "CHANNEL") then
         local isWorld = arg7 and arg7 > 0;
-        local channelName = string.split(" - ", arg9);
+        local channelName = string.split("-", arg9:gsub(' ', ''));
         local win = getChatWindow(channelName, "channel");
         local showAlert = db.chat[isWorld and "world" or "custom"].channelSettings[channelName] and db.chat[isWorld and "world" or "custom"].channelSettings[channelName].showAlerts;
         if(showAlert and win and not win:IsVisible() and win.unreadCount) then
@@ -1347,7 +1366,10 @@ local function loadChatOptions()
             button.bg = button:CreateTexture(nil, "BACKGROUND");
             button.bg:SetAllPoints();
             button.bg:SetColorTexture(1,1,1, ((#self.buttons+1) % 2)*.1);
-            button.bg:SetGradientAlpha("HORIZONTAL", 1,1,1,1, 0,0,0,0);
+			button.bg:SetGradient("HORIZONTAL",
+				{ r = 1, g = 1, b = 1, a = 1 },
+				{ r = 0, g = 0, b = 0, a = 0 }
+			);
             button.border = {};
 
             button.border.left = button:CreateTexture(nil, "OVERLAY");
@@ -1570,7 +1592,7 @@ end
 
 local function createUserList()
 	-- Changes for Patch 9.0.1 - Shadowlands, retail and classic
-	local win = _G.CreateFrame("Frame", "WIM3_ChatUserList", WIM.WindowParent, isTBC and "BackdropTemplate");
+	local win = _G.CreateFrame("Frame", "WIM3_ChatUserList", WIM.WindowParent, "BackdropTemplate");
 
     win:EnableMouse(true);
     win:Hide();
@@ -1581,11 +1603,7 @@ local function createUserList()
         tile = true, tileSize = 32, edgeSize = 32,
         insets = { left = 32, right = 32, top = 32, bottom = 32 }};
 
-	if not isTBC then
-		win:SetBackdrop(win.backdropInfo);
-	else
-		win:ApplyBackdrop();
-	end
+	win:ApplyBackdrop();
 
     win:SetWidth(200);
     win.title = _G.CreateFrame("Frame", win:GetName().."Title", win);
@@ -1674,6 +1692,7 @@ local function createUserList()
         self:SetParent(attachTo);
         self:SetParentWindow(attachTo.parentWindow);
         self.attachedTo = attachTo;
+		self:ClearAllPoints();
         self:SetPoint(point, attachTo, point2, offsetX, offsetY);
         self:Show();
         win:updateList();
@@ -1681,7 +1700,7 @@ local function createUserList()
 
     win.updateList = function(self)
         self = win;
-        if(self.listCount and self.listFun) then
+        if(self.listCount and self.listFun and self.listCount() > 0) then
             local count = self.listCount();
             local offset = _G.FauxScrollFrame_GetOffset(win.scroll);
             for i=1, USERLIST_BUTTON_COUNT do

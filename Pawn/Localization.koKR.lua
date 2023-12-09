@@ -1,9 +1,9 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2021 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2023 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
--- 
+--
 -- Korean resources
 ------------------------------------------------------------
 
@@ -95,6 +95,7 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["CritInfo"] = "치명타 및 극대화. 공격이나 치유 주문이 증가한 효과로 적중될 확률을 증가시킵니다.",
 		["DefenseInfo"] = "Defense skill.  Decreases the chance that you'll be hit by boss attacks.",
 		["DodgeInfo"] = "Dodge.  Increases the chance that you'll dodge attacks entirely.",
+		["DominationSocketInfo"] = "평균적인 지배 조각에 대한 소켓 값입니다.",
 		["DpsInfo"] = "초당 무기 공격력. (무기 유형 별로 DPS 값을 다르게 평가하려면 \"특별한 무기 능력치\" 항목을 참고하세요.)",
 		--[[Translation missing --]]
 		["ExpertiseInfo"] = "Expertise. Negates your enemy's chances to dodge and parry.",
@@ -153,6 +154,7 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["SpellHitInfo"] = "Spell Hit.  Increases the chance that your damaging spells hit the target, especially bosses.",
 		--[[Translation missing --]]
 		["SpellPenetrationInfo"] = "Spell Penetration. Negates an enemy's resistances to your spells.",
+		["SpellPowerInfo"] = "",
 		["SpiritInfo"] = "Spirit.  Affects your out-of-combat mana regeneration.",
 		["StaminaInfo"] = "체력. 생명력을 증가시킵니다.",
 		["StrengthInfo"] = "힘. 몇몇 직업의 전투력을 증가시킵니다.",
@@ -261,6 +263,9 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["Armor"] = "^방어도 %+?#$",
 		["Armor2"] = "^UNUSED$",
 		["ArmorPenetration"] = "^착용 효과: 공격 시 적의 방어도를 #만큼 무시합니다%.$",
+		["ArmorPenetrationRating"] = "^착용 효과: 방어구 관통력이 #만큼 증가합니다%.$",
+		["ArmorPenetrationRating2"] = "^착용 효과: 방어구 관통이 #만큼 증가합니다%.$",
+		["ArmorPenetrationShort"] = "^방어구 관통력 %+#$",
 		["Avoidance"] = "^광역회피 %+#$",
 		["Axe"] = "^도끼$",
 		["BagSlots"] = "^%d+칸.+$",
@@ -279,7 +284,8 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["Crit2"] = "^UNUSED$",
 		["CritPercent"] = "^착용 효과: 치명타를 적중시킬 확률이 #%%만큼 증가합니다%.$",
 		["CritRating"] = "^착용 효과: 치명타 적중도가 #만큼 증가합니다%.$",
-		["CritRating2"] = "^UNUSED$",
+		["CritRating2"] = "^착용 효과: 치명타 및 주문 극대화 적중도가 #만큼 증가합니다%.$",
+		["CritRating3"] = "^착용 효과: 치명타 및 극대화 적중도가 #만큼 증가합니다%.$",
 		["CritRatingShort"] = "^치명타 적중도 %+#$",
 		["Crossbow"] = "^석궁$",
 		["Dagger"] = "^단검$",
@@ -310,8 +316,10 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["EnchantmentTitaniumWeaponChain"] = "^티타늄 무기 사슬$",
 		["Equip"] = "착용 효과:",
 		["ExpertiseRating"] = "^착용 효과: 숙련도가 #만큼 증가합니다%.$",
+		["ExpertiseRatingShort"] = "^숙련 %+#$",
 		["FeralAp"] = "^착용 효과: 표범, 광포한 곰, 곰 변신 상태일 때 전투력이 #만큼 증가합니다%.$",
 		["FeralApMoonkin"] = "^착용 효과: 표범, 광포한 곰, 곰, 달빛야수 변신 상태일 때 전투력이 #만큼 증가합니다%.$",
+		["FeralApWrath"] = "^표범, 광포한 곰, 곰, 달빛야수 변신 상태일 때 전투력이 #만큼 증가합니다%.$",
 		["FireResist"] = "^화염 저항력 %+#$",
 		["FireSpellDamage"] = "^화염 주문 공격력 %+#$",
 		["FireSpellDamage2"] = "^착용 효과: 화염 계열의 주문과 효과의 공격력이 최대 #만큼 증가합니다%.$",
@@ -348,6 +356,7 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["HitRatingShort"] = "^적중도 %+#$",
 		["HolySpellDamage"] = "^%+# Holy Spell Damage$",
 		["HolySpellDamage2"] = "^착용 효과: 신성 계열의 주문과 효과의 공격력이 최대 #만큼 증가합니다%.$",
+		["HolySpellDamage3"] = "^UNUSED$",
 		["Hp5"] = "^착용 효과: 5초마다 # 생명력이 회복됩니다%.$",
 		["Hp52"] = "^착용 효과: 5초 마다 # 생명력을 회복합니다%.$",
 		["Hp53"] = "^5초당 생명력 %+?#$",
@@ -366,6 +375,7 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["Mp52"] = "^5초당 마나 회복량? %+#$",
 		["Mp53"] = "^UNUSED$",
 		["Mp54"] = "^UNUSED$",
+		["Mp55"] = "^UNUSED$",
 		["MultiStatHeading"] = "^다수의 능력치$",
 		["MultiStatSeparator1"] = "/",
 		["Multistrike"] = "^연속타격 %+#$",
@@ -384,6 +394,7 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["PvPPower"] = "^PvP 위력 %+?#$",
 		["RaidFinder"] = "^공격대 찾기$",
 		["Rap"] = "^착용 효과: 원거리 전투력 %+#$",
+		["Rap2"] = "^착용 효과: 원거리 전투력이 #만큼 증가합니다%.$",
 		["Requires2"] = "^최소 요구 레벨",
 		["Resilience"] = "^PvP 탄력 %+?#$",
 		["Resilience2"] = "^UNUSED$",
@@ -405,11 +416,15 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["SpellCritRating"] = "^착용 효과: 주문의 극대화 적중도가 #만큼 증가합니다%.$",
 		["SpellCritRating2"] = "^착용 효과: 주문 극대화 적중도가 #만큼 증가합니다%.$",
 		["SpellCritRatingShort"] = "^주문 극대화 적중도 %+#$",
+		["SpellCritRatingShort2"] = "^UNUSED$",
 		["SpellDamage"] = "^치유 및 주문 공격력 %+#$",
 		["SpellDamage2"] = "^착용 효과: 모든 주문 및 효과에 의한 피해와 치유량이 최대 #만큼 증가합니다%.$",
 		["SpellDamage3"] = "^착용 효과: 모든 주문 및 효과의 공격력과 치유량이 최대 #만큼 증가합니다%.$",
 		["SpellDamage4"] = "^UNUSED$",
+		["SpellDamage5"] = "^주문 공격력 및 치유량 %+#$",
+		["SpellDamage6"] = "^UNUSED$",
 		["SpellDamageAndHealing"] = "^착용 효과: 모든 주문 및 효과에 의한 치유량이 최대 #만큼, 공격력이 최대 #만큼 증가합니다%.$",
+		["SpellDamageAndHealing2"] = "^UNUSED$",
 		["SpellDamageAndHealingEnchant"] = "^UNUSED$",
 		["SpellDamageAndHealingShort"] = "^주문 치유량 %+# / 주문 공격력 %+#$",
 		["SpellDamageAndHealingShort2"] = "^UNUSED$",
@@ -423,6 +438,8 @@ Pawn 사용자 설정의 더 자세한 정보는, 애드온에 포함된 help �
 		["SpellPenetrationClassic"] = "^착용 효과: 자신의 주문에 대한 대상의 마법 저항력을 #만큼 감소시킵니다%.$",
 		["SpellPenetrationShort"] = "^주문 관통력 %+#$",
 		["SpellPower"] = "^주문력 %+?#$",
+		["SpellPower2"] = "^착용 효과: 주문력이 #만큼 증가합니다%.$",
+		["SpellPower3"] = "^UNUSED$",
 		["Spirit"] = "^정신력 %+?#$",
 		["Staff"] = "^지팡이$",
 		["Stamina"] = "^체력 %+?#$",
@@ -654,6 +671,7 @@ Pawn이 상점에 판매했거나, 파괴했거나, 다른 방법으로 더이�
 		["ScaleRename"] = "이름 변경",
 		["ScaleRenameTooltip"] = "이 능력치 비율의 이름을 변경합니다.",
 		["ScaleSelectorHeader"] = "능력치 비율 선택:",
+		["ScaleSelectorNoneWarning"] = "하나 이상 선택.",
 		["ScaleSelectorShowingSuggestionsFor"] = "다음에 대한 정보 표시: ",
 		["ScaleSelectorShowScale"] = "툴팁에 능력치 비율 표시",
 		["ScaleSelectorShowScaleTooltip"] = [=[이 옵션을 선택하면 이 캐릭터의 아이템 툴팁에 이 능력치 비율의 값을 표시합니다. 각 능력치 비율 별로 한 캐릭터, 여러 캐릭터, 또는 아무 캐릭터에도 표시하지 않게 설정할 수 있습니다.
@@ -690,7 +708,7 @@ Pawn이 상점에 판매했거나, 파괴했거나, 다른 방법으로 더이�
 
 -- Special case: wands actually use different text on live versus classic.
 -- So, patch things up here.
-if VgerCore.IsClassic or VgerCore.IsBurningCrusade then
+if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath then
 
 	local TooltipParsing_Classic =
 	{

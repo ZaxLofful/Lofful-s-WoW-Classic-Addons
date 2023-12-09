@@ -5,7 +5,7 @@
 GTFO Spell List - Battle for Azeroth
 ]]--
 
-if (not (GTFO.ClassicMode or GTFO.BurningCrusadeMode)) then
+if (not (GTFO.ClassicMode or GTFO.BurningCrusadeMode or GTFO.WrathMode)) then
 
 --- ******************************
 --- * Battle for Azeroth (World) *
@@ -399,6 +399,16 @@ GTFO.SpellID["314432"] = {
   sound = 1;
 };
 
+GTFO.SpellID["272455"] = {
+  --desc = "Conductive Blades (Warlord Zothix)";
+  sound = 1;
+};
+
+GTFO.SpellID["270685"] = {
+  --desc = "Resonance (Azerite Shard)";
+  sound = 1;
+};
+
 -- ***********************
 -- * Shrine of the Storm *
 -- ***********************
@@ -487,11 +497,6 @@ GTFO.SpellID["256552"] = {
 
 GTFO.SpellID["256546"] = {
   --desc = "Shark Tornado (Trothak)";
-  sound = 1;
-};
-
-GTFO.SpellID["257737"] = {
-  --desc = "Thundering Squall (Irontide Stormcaller)";
   sound = 1;
 };
 

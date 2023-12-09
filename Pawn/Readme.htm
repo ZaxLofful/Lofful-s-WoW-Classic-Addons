@@ -307,226 +307,49 @@ indeterminate or an upgrade. This can be used for auto-sell rules, such as <code
 </ul>
 
 <h2>Updates</h2>
-<h3>Version 2.5.15</h3>
+<h3>Version 2.8.7</h3>
 <ul>
-	<li>Added support for more types of Wrath items (Fiery Wrath, etc.).</li>
-	<li>Added "Thrown weapon" to the list of weapon types that you can add 
-	values to (or mark as unusable) on the Values tab for Classic Era and 
-	Burning Crusade Classic.</li>
-	<li>Classes that can't use thrown weapons have them marked as unusable in 
-	the default scales, so by default they won't show as potential upgrades.</li>
-	<li>Added support for more types of items with spell damage and healing on 
-	the same line of the tooltip, and more with MP5, on English Burning Crusade 
-	Classic.</li>
-	<li>Added support for more types of items with crit rating on Russian 
-	Burning Crusade Classic.</li>
-	<li>Fixed a couple of bugs causing health regeneration on items to not be 
-	recognized on French versions of the game.</li>
-	<li>Further improved the formatting of how some item IDs are displayed.</li>
+	<li>Classic: Added support for the Classic trade skill and crafting window: hovering over the item icon in that window should now work the same as if the item were already in your bags.</li>
 </ul>
-<h3>Version 2.5.14</h3>
+<h3>Version 2.8.6</h3>
 <ul>
-	<li>On Classic and Burning Crusade Classic, Pawn will no longer suggest mail 
-	as upgrades for hunters and shamans or plate for warriors and paladins 
-	before level 40.</li>
-	<li>Added support for additional types of items with shield block rating and 
-	dodge rating.</li>
-	<li>You can now use Enter and Escape to close the popups that appear when 
-	using the Scale tab (export, confirm delete, etc.).</li>
-	<li>Pawn will now claim that fewer items have "special effects" on the 
-	Compare tab if the "special effect" is something at the top of the item 
-	tooltip like "Mythic." (This doesn't affect item values or upgrade advice in 
-	any way, just the orange diamond on the Compare tab.)</li>
+	<li>Dragonflight: More new stat weight updates, updated for patch 10.2.0.</li>
 </ul>
-<h3>Version 2.5.13</h3>
+<h3>Version 2.8.5</h3>
 <ul>
-	<li>Fixed a problem where Pawn was suggesting random items instead of cut 
-	Golden Draenite gems. (The item values and upgrade advice were correct; it 
-	was just showing the wrong item name. I apologize to anyone who tried to 
-	shove a two-handed mace into a yellow gem socket.)</li>
-	<li>Fixed a problem where shamans were being treated as if they could 
-	dual-wield on Classic Era.</li>
+	<li>Dragonflight: New stat weights have been included for all classes and specs, including all evoker specs, based on the latest Ask Mr. Robot raid simulation data.</li>
 </ul>
-<h3>Version 2.5.12</h3>
+<h3>Version 2.8.4</h3>
 <ul>
-	<li>Added support for items with spell penetration in Classic Era. (They're 
-	already supported in Burning Crusade Classic.)</li>
-	<li>Added support for the handful of armor penetration items that will 
-	appear in later phases of Burning Crusade Classic.</li>
-	<li>Worked around a bug in the Russian and Latin American Spanish versions 
-	of Burning Crusade Classic that would cause Pawn to show errors if you had 
-	items with a healing enchantment or random property.</li>
+	<li>To keep things responsive, especially on the slower Classic versions of the game, Pawn has a new system that caps how much processing power it will allow bag addons to use when calculating which items get green upgrade arrows. Roughly speaking, if the game runs at 60 FPS for you, Pawn will block bag addons from reducing that by more than 2 FPS. (This change doesn't affect you if you aren't using a custom bag addon.)</li>
 </ul>
-<h3>Version 2.5.11</h3>
+<h3>Version 2.8.3</h3>
 <ul>
-	<li>Included several gem cuts that were missing from suggestions, including 
-	Runed and Teardrop—sorry, casters!</li>
-	<li>Fixed a problem where many of the gems suggested on Burning Crusade 
-	Classic were being suggested based on stats and colors that they had at 
-	different points in the game's history (Wrath or Cataclysm). You should see 
-	more sensible suggestions in the socketing advisor, and the values of 
-	socketed items may slightly increase.</li>
-	<li>Added support for "of Healing" and "of the Prophet" items on Burning 
-	Crusade Classic. (Thanks to neaves for tracking down the items and a 
-	suggested fix!)<ul>
-		<li>On Latin American Spanish and Russian, "of Healing" items currently 
-		don't show the spell damage granted. Once that bug is fixed, Pawn will 
-		need an additional change to handle those items properly.</li>
-	</ul>
-	</li>
-	<li>Fixed an error that would occur on Burning Crusade Classic when looking 
-	at an item that has sockets but no meta socket. (Thanks to ahakola for a 
-	suggestion and the many people who reported this.)</li>
-	<li>Fixed a minor issue with how some item IDs were displayed (a missing 
-	colon).</li>
+	<li>Wrath Classic: The new gems for Content Phase 3 (Cardinal Ruby, etc.) will now show 
+		up in recommendations, and will be taken into account when determining the 
+		value of sockets on high-level gear.</li>
 </ul>
-<h3>Version 2.5.10</h3>
+<h3>Version 2.8.2</h3>
 <ul>
-	<li>Meta gems are now supported. You can manually assign a weight per scale 
-	to the special meta gem effects such as 
-	"Minor&nbsp;Run&nbsp;Speed&nbsp;Increase"&nbsp;or&nbsp;"1%&nbsp;Spell&nbsp;Reflect"; the stat portion of a meta 
-	gem will be calculated for you. (A good starting point is 36× the value of 
-	your primary stat.)</li>
-	<li>Fixed a problem where Pawn wouldn't work at all on Italian Shadowlands.</li>
-	<li>Fixed a problem where feral attack power wasn't working on English 
-	Burning Crusade Classic.</li>
+	<li>Dragonflight: Dragonflight 10.1.0 has a game bug that was causing Pawn to show the wrong information on "currently equipped" tooltips. That bug is fixed in Dragonflight 10.1.5. Pawn will stop annotating "currently equipped" tooltips until 10.1.5 launches.</li>
+	<li>Dragonflight: Added support for the 10.1.5 PTR.</li>
+	<li>Dragonflight: Added support for Augmentation Evokers. If you're using Pawn in Automatic mode (the default), you don't need to do anything extra. If you're using Pawn in Manual mode, you'll need to import your own Augmentation scale or use (shift-click) the one that comes with Pawn. (Stat weights for Augmentation aren't available yet so it's a placeholder in this version of Pawn.)</li>
 </ul>
-<h3>Version 2.5.9</h3>
+<h3>Version 2.8.1</h3>
 <ul>
-	<li>On Burning Crusade Classic, when determining a socketed item's value, 
-	Pawn will now decide whether the item's value would be maximized by 
-	following the socket bonus, or ignoring the bonus and using all of the same 
-	type of gem.<ul>
-		<li>The socket bonus will also be taken into account for the advice 
-		given in the socketing advisor popup.</li>
-		<li>The socket bonus will also be shown on Pawn's Compare tab whenever 
-		the item's value would be maximized by following the socket bonus.</li>
-	</ul>
-	</li>
-	<li>Fixed a problem with wands that deal holy damage on all Russian versions 
-	of WoW.</li>
-	<li>Fixed a problem with some items that grant mana-per-5 on Russian Burning 
-	Crusade Classic.</li>
+	<li>Dragonflight: Fixed a problem that could occur when showing Pawn's version number on 10.1.0.</li>
 </ul>
-<h3>Version 2.5.8</h3>
+<h3>Version 2.8.0</h3>
 <ul>
-	<li>Pawn now includes colored sockets in the value of an item like it does 
-	for prismatic sockets. Colored sockets are assigned a value automatically 
-	based on the best gems that fit that socket's color of an appropriate 
-	quality level for the item. Like prismatic sockets, there's no way to 
-	manually override the value of a colored socket or to fine-tune the quality 
-	level of the gem used in the calculation.</li>
-	<li>Colored and meta sockets are now shown on Pawn's Compare tab.</li>
-	<li>The socketing advisor will now appear for socketed items in Burning 
-	Crusade Classic.</li>
-	<li>Added support for more items with spell hit rating on Burning Crusade 
-	Classic.</li>
+	<li>Updated for Dragonflight: Embers of Neltharion (10.1.0).</li>
 </ul>
-<h3>Version 2.5.7</h3>
-<ul>
-	<li>Added the Gems tab in Burning Crusade Classic.<ul>
-		<li>Gems with Haste are not currently visible, since they won't appear 
-		until Black Temple opens.</li>
-	</ul>
-	</li>
-	<li>The value of stamina in the Classic and Burning Crusade Classic default 
-	scales for DPS specs was too high and has been reduced to a more reasonable 
-	level.</li>
-	<li>Added support for some additional caster enchantments on English Classic 
-	and Burning Crusade Classic. (This was accidentally listed in the notes for 
-	2.5.6 in some places, but it's not fixed until 2.5.7.)</li>
-	<li>Simplified the look of some item IDs when the Show Item IDs option is 
-	enabled.</li>
-</ul>
-<h3>Version 2.5.6</h3>
-<ul>
-	<li>Fixed a few problems with items that give bonuses to a single type of 
-	magic damage in European Spanish Burning Crusade Classic.</li>
-</ul>
-<h3>Version 2.5.5</h3>
-<ul>
-	<li>Added support for items with feral attack power on Burning Crusade 
-	Classic.</li>
-	<li>Added support for more items with defense rating on Burning Crusade 
-	Classic.</li>
-	<li>Added support for more items with hit rating on Burning Crusade Classic.</li>
-	<li>Added support for more items with spell hit rating on Simplified Chinese 
-	Burning Crusade Classic.</li>
-	<li>Fixed problems with weapon damage in Traditional Chinese Burning Crusade 
-	Classic.</li>
-	<li>Fixed a problem with Outland items with melee and ranged crit rating on 
-	European Spanish Burning Crusade Classic.</li>
-	<li>Fixed a problem with items with school-specific spell damage on European 
-	Spanish Burning Crusade Classic.</li>
-</ul>
-<h3>Version 2.5.4</h3>
-<ul>
-	<li>Fixed the calculation of DPS of wands on Portuguese and Korean Burning 
-	Crusade Classic.</li>
-</ul>
-<h3>Version 2.5.3</h3>
-<ul>
-	<li>Added support for more Outland items with spell crit rating on Burning 
-	Crusade Classic.</li>
-	<li>Added support for more Outland items with the same amount of spell 
-	damage and healing on Burning Crusade Classic.</li>
-</ul>
-<h3>Version 2.5.2</h3>
-<ul>
-	<li>Fixed a problem where Pawn missed crit rating on some Outland items in 
-	Burning Crusade Classic.</li>
-	<li>Fixed a problem where Pawn couldn't determine the DPS of wands in French 
-	Burning Crusade Classic.</li>
-	<li>Fixed many problems where Pawn missed stats in European Spanish Burning 
-	Crusade Classic.</li>
-</ul>
-<h3>Version 2.5.1</h3>
-<ul>
-	<li>Added support for various items with hit rating and attack power that 
-	weren't being handled properly before.</li>
-	<li>Fixed a problem where items with different values of spell damage and 
-	healing on the same line of the tooltip were getting the two stats reversed, 
-	even though I literally <em>triple-checked</em> that before releasing Pawn 
-	2.5.</li>
-	<li>Minor updates to the German translation.</li>
-</ul>
-<h3>Version 2.5</h3>
-<p>Introducing: Pawn for the Burning Crusade 
-	Classic pre-patch.</p>
-<p><strong>Important:</strong> If you imported custom scales on Classic and are continuing 
-to Burning Crusade Classic, you'll need to update your 
-weights for all of the percentage-based stats when you get the pre-patch. If, for example, your value for 
-Crit is 10, an item that gives 1% crit would be worth 10 points on Classic, but 
-would be worth 80 in Burning Crusade Classic and the pre-patch, because that 
-item will change to have 8 crit <em>rating</em>. Pawn won't make any automatic 
-changes to your custom scales. But, if you're using the default stat weights 
-that come with Pawn, you don't need to do anything.</p>
-<ul>
-	<li>Added support for all Burning Crusade Classic languages: 
-	English, French, German, Korean, Portuguese, Russian, Latin American Spanish, 
-	European Spanish, Simplified Chinese, and Traditional Chinese.<ul>
-		<li>Known issue: The Spanish PTR currently has a bug where items are 
-		showing spell hit and spell crit as percentages instead of ratings. Pawn 
-		currently processes these items correctly, but once the bug is fixed, 
-		Pawn will need an additional adjustment to work again.</li>
-		<li>Known issue: The Russian PTR has the same problem with spell hit.</li>
-	</ul>
-	</li>
-	<li>Added support for new stats: Expertise Rating, Resilience Rating, Haste 
-	Rating, Spell Haste Rating, and Spell Penetration.</li>
-	<li>Added support for new combat ratings present on Classic gear: Hit 
-	Rating, Spell Hit Rating, Crit Rating, Spell Crit Rating, Dodge Rating, 
-	Parry Rating, Block Rating, and Defense Rating.</li>
-	<li>Added support for items that give different amounts of spell damage and 
-	healing on the same line (Amulet of Flowing Life, etc.).</li>
-	<li>The default stat weights on Burning Crusade Classic have been updated to 
-	accommodate the combat ratings change.</li>
-</ul>
+
 <h3>Older versions</h3>
 <p>See the <a href="Version%20history.htm">version history</a> document for 
 	information about older versions of Pawn.</p>
+
 <h2>The fine print</h2>
-<p>© 2006-2021 Travis Spomer. This mod is released under the Creative Commons
+<p>© 2006-2023 Travis Spomer. This mod is released under the Creative Commons
 <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/" target="_blank">
 Attribution-NonCommercial-NoDerivs 3.0</a> license. In short, this means 
 that you can use it, copy it, and share it, but you can't sell it or distribute 

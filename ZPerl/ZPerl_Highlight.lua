@@ -6,16 +6,25 @@ local playerClass, playerName, playerGUID
 local conf
 XPerl_RequestConfig(function(new)
 	conf = new
-end, "$Revision: 00a3cadfbbc8615840794db77581992f54190a2b $")
+end, "$Revision: 8c2ee354c22c703a5dd4fcc236c0c7d3bbfbc4c2 $")
 
-local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo
-local LCC = LibStub("LibClassicCasterino", true)
-if LCC then
-    UnitCastingInfo = function(unit) return LCC:UnitCastingInfo(unit); end
-    UnitChannelInfo = function(unit) return LCC:UnitChannelInfo(unit); end
-end
+local _, _, _, clientRevision = GetBuildInfo()
 
+local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
+local IsVanillaClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
+local UnitCastingInfo = UnitCastingInfo
+local UnitChannelInfo = UnitChannelInfo
+local LCC = IsVanillaClassic and LibStub("LibClassicCasterino", true)
+if LCC then
+	UnitCastingInfo = function(unit)
+		return LCC:UnitCastingInfo(unit)
+	end
+	UnitChannelInfo = function(unit)
+		return LCC:UnitChannelInfo(unit)
+	end
+end
 
 local _G = _G
 
@@ -192,11 +201,11 @@ end
 
 -- XPerl_Highlight:Add
 function xpHigh:Add(guid, highlightType, duration, source)
-	if (not strfind(guid, "-")) then
-		guid = self.lookup and self.lookup[guid]
-	end
 	if (not guid) then
 		return
+	end
+	if (not strfind(guid, "-")) then
+		guid = self.lookup and self.lookup[guid]
 	end
 
 	local a = self.list[guid]
@@ -264,11 +273,11 @@ end
 
 -- xpHigh:Remove
 function xpHigh:Remove(guid, highlightType)
-	if (not strfind(guid, "-")) then
-		guid = self.lookup and self.lookup[guid]
-	end
 	if (not guid) then
 		return
+	end
+	if (not strfind(guid, "-")) then
+		guid = self.lookup and self.lookup[guid]
 	end
 
 	local a = self.list[guid]
@@ -280,11 +289,11 @@ end
 
 -- xpHigh:HasEffect
 function xpHigh:HasEffect(guid, effect)
-	if (not strfind(guid, "-")) then
-		guid = self.lookup and self.lookup[guid]
-	end
 	if (not guid) then
 		return
+	end
+	if (not strfind(guid, "-")) then
+		guid = self.lookup and self.lookup[guid]
 	end
 
 	local list = self.list[guid]
@@ -384,7 +393,7 @@ function xpHigh:SetHighlight(frame, guid)
 					hotSparks = true
 				else
 					if (not r1 or t1 == "TARGET") then
-						if frame == XPerl_Player or frame == XPerl_Player_Pet or frame == XPerl_Target or frame == XPerl_TargetTarget or frame == XPerl_TargetTargetTarget or frame == XPerl_Focus or frame == XPerl_FocusTarget or frame == XPerl_partypet1 or frame == XPerl_partypet2 or frame == XPerl_partypet3 or frame == XPerl_partypet4 or frame == XPerl_partypet5 then
+						if frame == XPerl_Player or frame == XPerl_Player_Pet or frame == XPerl_Target or frame == XPerl_TargetTarget or frame == XPerl_TargetTargetTarget or frame == XPerl_Focus or frame == XPerl_FocusTarget or frame == XPerl_partypet1 or frame == XPerl_partypet2 or frame == XPerl_partypet3 or frame == XPerl_partypet4 or frame == XPerl_partypet5 or strmatch(frame:GetName(), "XPerl_Raid_GrpPetsUnitButton") then
 						else
 							t1 = k
 							r1, g1, b1 = colours[k].r, colours[k].g, colours[k].b
@@ -412,7 +421,7 @@ function xpHigh:SetHighlight(frame, guid)
 						g2 = min(g2 * 1.2, 1)
 						b2 = min(b2 * 1.2, 1)
 					end
-					frame.highlight.tex:SetGradient("HORIZONTAL", r1, g1, b1, r2, g2, b2)
+					frame.highlight.tex:SetGradient("HORIZONTAL", CreateColor(r1, g1, b1, 1), CreateColor(r2, g2, b2, 1))
 				else
 					frame.highlight.tex:SetVertexColor(r1, g1, b1)
 				end
@@ -944,9 +953,9 @@ end
 
 -- StartMendingAnimation
 function xpHigh:StartMendingAnimation(sourceFrame, targetFrame)
-    local oldMA = self.mendingAnimation
+	local oldMA = self.mendingAnimation
 
-    local ma = new()
+	local ma = new()
 	self.mendingAnimation = ma
 
 	local sx, sy = sourceFrame:GetCenter()
@@ -1317,7 +1326,7 @@ end
 -- xpHigh:ClearAll
 function xpHigh:ClearAll(clearType)
 	if (clearType == "SHIELD") then
-		for guid,s in pairs(self.shields) do
+		for guid, s in pairs(self.shields) do
 			self.shields[guid] = del(self.shields[guid])
 			self:Send(guid)
 		end

@@ -1,9 +1,9 @@
 ﻿-- Pawn by Vger-Azjol-Nerub
 -- www.vgermods.com
--- © 2006-2021 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
+-- © 2006-2023 Travis Spomer.  This mod is released under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 license.
 -- See Readme.htm for more information.
 
--- 
+--
 -- Spanish (European and Latin American) resources
 -- See special cases at the end of the file!
 ------------------------------------------------------------
@@ -106,6 +106,7 @@ Para más información sobre como personalizar Pawn, por favor lee el archivo (R
 		["DefenseInfo"] = "Defense skill.  Decreases the chance that you'll be hit by boss attacks.",
 		--[[Translation missing --]]
 		["DodgeInfo"] = "Dodge.  Increases the chance that you'll dodge attacks entirely.",
+		["DominationSocketInfo"] = "El valor de un conector para un Fragmento de Dominación promedio.",
 		["DpsInfo"] = "Daño por segundo del arma.  (Si quieres valorar el DPS de forma diferente para los distintos tipos de armas, mira la sección \"Atributos especiales de arma\".)",
 		--[[Translation missing --]]
 		["ExpertiseInfo"] = "Expertise. Negates your enemy's chances to dodge and parry.",
@@ -127,8 +128,7 @@ Para más información sobre como personalizar Pawn, por favor lee el archivo (R
 		["HealingInfo"] = "Spell healing.  Increases the power of your healing spells.",
 		--[[Translation missing --]]
 		["HitInfo"] = "Hit.  Increases the chance that your physical attacks hit the target, especially bosses.",
-		--[[Translation missing --]]
-		["HolySpellDamage"] = "Holy Damage",
+		["HolySpellDamage"] = "Daños de Sagrados",
 		--[[Translation missing --]]
 		["HolySpellDamageInfo"] = "Holy damage.  Increases the damage dealt by your holy spells.",
 		--[[Translation missing --]]
@@ -184,6 +184,7 @@ Para más información sobre como personalizar Pawn, por favor lee el archivo (R
 		["SpellHitInfo"] = "Spell Hit.  Increases the chance that your damaging spells hit the target, especially bosses.",
 		--[[Translation missing --]]
 		["SpellPenetrationInfo"] = "Spell Penetration. Negates an enemy's resistances to your spells.",
+		["SpellPowerInfo"] = "",
 		--[[Translation missing --]]
 		["SpiritInfo"] = "Spirit.  Affects your out-of-combat mana regeneration.",
 		["StaminaInfo"] = "Aguante.  Aumenta tu vida.",
@@ -285,7 +286,7 @@ Para más información sobre como personalizar Pawn, por favor lee el archivo (R
 		["AllStats"] = "^%+?# todas las estadísticas$",
 		["Ap"] = "^%+?# [Pp]oder de ataque$",
 		["Ap2"] = "^Equipar: Aumenta # p%. el poder de ataque%.$",
-		["Ap3"] = "^UNUSED$",
+		["Ap3"] = "^Equipar: Aumenta el poder de ataque # p%.$",
 		["ArcaneResist"] = "^%+?# resistencia a Arcano$",
 		["ArcaneSpellDamage"] = "^%+# daño con hechizos Arcano$",
 		["ArcaneSpellDamage2"] = "^Equipar: Aumenta hasta # p%. el daño que infligen los hechizos y efectos Arcanos%.$",
@@ -293,6 +294,9 @@ Para más información sobre como personalizar Pawn, por favor lee el archivo (R
 		["Armor"] = "^%+?# p%. de armadura$",
 		["Armor2"] = "^UNUSED$",
 		["ArmorPenetration"] = "^Equipar: Tus ataques ignoran # p%. de la armadura de tu oponente%.$",
+		["ArmorPenetrationRating"] = "^Equipar: Aumenta el índice de penetración de armadura # p%.$",
+		["ArmorPenetrationRating2"] = "^Equipar: Aumenta # p%. la penetración de armadura%.$",
+		["ArmorPenetrationShort"] = "^%+?# índice de penetración de armadura$",
 		["Avoidance"] = "^%+# eludir$",
 		["Axe"] = "^Hacha$",
 		["BagSlots"] = "^%d+ casillas .+$",
@@ -312,6 +316,7 @@ Para más información sobre como personalizar Pawn, por favor lee el archivo (R
 		["CritPercent"] = "^Equipar: Mejora un #%% tu probabilidad de conseguir un golpe crítico%.$",
 		["CritRating"] = "^Equipar: Aumenta tu índice de golpe crítico e?n? ?# p%.$",
 		["CritRating2"] = "^Equipar: Mejora el índice de golpe crítico en # p%.$",
+		["CritRating3"] = "^Equipar: Aumenta # p%. el golpe crítico%.$",
 		["CritRatingShort"] = "^%+?# índice de golpe crítico$",
 		["Crossbow"] = "^Ballesta$",
 		["Dagger"] = "^Daga$",
@@ -342,8 +347,10 @@ Para más información sobre como personalizar Pawn, por favor lee el archivo (R
 		["EnchantmentTitaniumWeaponChain"] = "^Cadena de Titanio$",
 		["Equip"] = "Equipar:",
 		["ExpertiseRating"] = "^Equipar: Aumenta tu índice de pericia [ue]n # ?p?%.$",
+		["ExpertiseRatingShort"] = "^%+?# índice de pericia$",
 		["FeralAp"] = "^Equipar: %+# p%. de poder de ataque solo en las formas felina, de oso y de oso temible%.$",
 		["FeralApMoonkin"] = "^Equipar: Aumenta e?n? ?# p%. el poder de ataque bajo formas felinas, de oso, de oso temible y de lechúcico lunar%.$",
+		["FeralApWrath"] = "^Aumenta e?n? ?# p%. el poder de ataque bajo formas felinas, de oso, de oso temible y de lechúcico lunar%.$",
 		["FireResist"] = "^%+?# resistencia a Fuego$",
 		["FireSpellDamage"] = "^%+# daño con hechizos de Fuego$",
 		["FireSpellDamage2"] = "^Equipar: Aumenta hasta # p%. el daño que infligen los hechizos y efectos de Fuego%.$",
@@ -379,6 +386,7 @@ Para más información sobre como personalizar Pawn, por favor lee el archivo (R
 		["HitRatingShort"] = "^%+?# índice de golpe$",
 		["HolySpellDamage"] = "^%+# daño con hechizos Sagrados$",
 		["HolySpellDamage2"] = "^Equipar: Aumenta hasta # p%. el daño que infligen los hechizos y efectos Sagrados%.$",
+		["HolySpellDamage3"] = "^UNUSED$",
 		["Hp5"] = "^# [sS]alud cada 5 s%.?$",
 		["Hp52"] = "^Equipar: Restaura # de vida cada 5 segundos%.$",
 		["Hp53"] = "^Restaura %+?# [vV]ida [cC]ada 5 [sS]egundos%.?$",
@@ -397,6 +405,7 @@ Para más información sobre como personalizar Pawn, por favor lee el archivo (R
 		["Mp52"] = "^%+?# maná cada 5 s$",
 		["Mp53"] = "^UNUSED$",
 		["Mp54"] = "^UNUSED$",
+		["Mp55"] = "^UNUSED$",
 		["MultiStatHeading"] = "^Estadisticas multiples$",
 		["MultiStatSeparator1"] = "y",
 		["Multistrike"] = "^%+# multigolpe$",
@@ -414,7 +423,8 @@ Para más información sobre como personalizar Pawn, por favor lee el archivo (R
 		["Polearm"] = "^Arma de asta$",
 		["PvPPower"] = "^%+?# poder JcJ$",
 		["RaidFinder"] = "^Buscador de bandas$",
-		["Rap"] = "^Equipar: Aumenta # p%. el poder de ataque a distancia%.$",
+		["Rap"] = "^Equipar: %+# p%. de poder de ataque a distancia%.$",
+		["Rap2"] = "^Equipar: Aumenta # p%. el poder de ataque a distancia%.$",
 		["Requires2"] = "^Necesitas ser de nivel %d+$",
 		["Resilience"] = "^%+?# temple JcJ$",
 		["Resilience2"] = "^UNUSED$",
@@ -436,11 +446,15 @@ Para más información sobre como personalizar Pawn, por favor lee el archivo (R
 		["SpellCritRating"] = "^Equipar: Aumenta tu índice de golpe crítico con hechizos e?n? ?# p%.$",
 		["SpellCritRating2"] = "^Equipar: Mejora # p%. el golpe crítico con hechizos%.$",
 		["SpellCritRatingShort"] = "^%+?# índice de golpe crítico con hechizos$",
+		["SpellCritRatingShort2"] = "^UNUSED$",
 		["SpellDamage"] = "^%+# de daño y Hechizos de curación$",
 		["SpellDamage2"] = "^Equipar: Aumenta hasta # p%. el daño y la sanación de los hechizos y efectos mágicos%.$",
 		["SpellDamage3"] = "^UNUSED$",
 		["SpellDamage4"] = "^UNUSED$",
+		["SpellDamage5"] = "^%+# daño y sanación con hechizos$",
+		["SpellDamage6"] = "^Equipar: Aumenta el daño y la sanación de los hechizos mágicos y los efectos hasta en # p%.$",
 		["SpellDamageAndHealing"] = "^Equipar: Aumenta hasta # p%. la sanación realizada y hasta # p%. todo el daño infligido con todos los hechizos y efectos mágicos%.$",
+		["SpellDamageAndHealing2"] = "^UNUSED$",
 		["SpellDamageAndHealingEnchant"] = "^BUG IN GAME$",
 		["SpellDamageAndHealingShort"] = "^BUG IN GAME$",
 		["SpellDamageAndHealingShort2"] = "^UNUSED$",
@@ -454,6 +468,8 @@ Para más información sobre como personalizar Pawn, por favor lee el archivo (R
 		["SpellPenetrationClassic"] = "^Equipar: Las resistencias mágicas de los objetivos de tus hechizos se reducen # p%.$",
 		["SpellPenetrationShort"] = "^%+?# penetración de hechizos$",
 		["SpellPower"] = "^%+?# poder con hechizos$",
+		["SpellPower2"] = "^Equipar: Aumenta el poder con hechizos # p%.$",
+		["SpellPower3"] = "^Equipar: Aumenta # p%. el poder de hechizos%.$",
 		["Spirit"] = "^%+?# d?e? ?[Ee]spíritu$",
 		["Staff"] = "^Bastón$",
 		["Stamina"] = "^%+?# d?e? ?[Aa]guante$",
@@ -695,6 +711,7 @@ This ¡el comando no se puede deshacer!]=],
 		["ScaleRename"] = "Renombrar",
 		["ScaleRenameTooltip"] = "Renombra ésta escala.",
 		["ScaleSelectorHeader"] = "Selecciona una escala:",
+		["ScaleSelectorNoneWarning"] = "Seleccione al menos uno.",
 		["ScaleSelectorShowingSuggestionsFor"] = "Mostrando sugerencias para",
 		["ScaleSelectorShowScale"] = "Muestra ésta escala en tooltips",
 		["ScaleSelectorShowScaleTooltip"] = [=[Cuando esta opción está activada, los valores de ésta escala se mostrarán en los tooltips de objetos de éste personaje.  Cada escala se puede mostrar para uno de tus personajes, varios personajes, o ningún personaje. 
@@ -802,6 +819,11 @@ if GetLocale() == "esES" then
 	PawnLocal.ThousandsSeparator = ""
 	PawnLocal.DecimalSeparator = ","
 
+	if VgerCore.IsWrath then
+		-- Wrath Classic on esES has an incorrect LARGE_NUMBER_SEPERATOR.
+		PawnLocal.ThousandsSeparator = ","
+	end
+
 	local TooltipParsing_All =
 	{
 		["Avoidance"] = "^%+# Evasión$",
@@ -847,7 +869,7 @@ if GetLocale() == "esES" then
 		end
 	end
 
-	if VgerCore.IsClassic or VgerCore.IsBurningCrusade then
+	if VgerCore.IsClassic or VgerCore.IsBurningCrusade or VgerCore.IsWrath then
 
 		local TooltipParsing_Classic =
 		{
@@ -866,7 +888,6 @@ if GetLocale() == "esES" then
 			["Healing2"] = "^Equipar: Aumenta la curación de los hechizos y los efectos hasta en # p%.$",
 			["Hit"] = "^Equipar: Mejora tu probabilidad de alcanzar el objetivo en un #%%%.$",
 			["Mp52"] = "^%+?# de maná cada 5 seg%.$",
-			["Rap"] = "^Equipar: %+# p%. de poder de ataque a distancia%.$",
 			["SpellCrit"] = "^Equipar: Mejora tu probabilidad de conseguir un golpe crítico en #%%% con los hechizos%.$",
 			["SpellHit"] = "^Equipar: Mejora tu probabilidad de alcanzar el objetivo con hechizos en un #%%%.$",
 			["WeaponDamage"] = "^# %- # Daño$",
@@ -886,6 +907,7 @@ if GetLocale() == "esES" then
 			["FireSpellDamage2"] = "^Equipar: Aumenta el daño causado por los hechizos de Fuego y los efectos hasta en # p%.$",
 			["FrostSpellDamage2"] = "^Equipar: Aumenta el daño causado por los hechizos de Escarcha y los efectos hasta en # p%.$",
 			["HolySpellDamage2"] = "^Equipar: Aumenta el daño causado por los hechizos Sagrados y los efectos hasta en # p%.$",
+			["HolySpellDamage3"] = "^Equipar: Aumenta el daño infligido por hechizos y efectos Sagrados hasta en # p%.$",
 			["NatureSpellDamage2"] = "^Equipar: Aumenta el daño causado por los hechizos de Naturaleza y los efectos hasta en # p%.$",
 			["ShadowSpellDamage2"] = "^Equipar: Aumenta el daño causado por los hechizos de Sombras y los efectos hasta en # p%.$",
 		}
@@ -896,17 +918,16 @@ if GetLocale() == "esES" then
 		end
 	end
 
-	if VgerCore.IsBurningCrusade then
-		
+	if VgerCore.IsBurningCrusade or VgerCore.IsWrath then
+
 		local TooltipParsing_BurningCrusade =
 		{
-			["Ap2"] = "^Equipar: Aumenta el poder de ataque en # p%.$",
+			["ArmorPenetrationRating2"] = "^Equipar: Aumenta la penetración de armadura # p%.$",
 			["SpellDamage2"] = "^Equipar: Aumenta el daño y la sanación de los hechizos mágicos y los efectos hasta en # p%.$",
 			["ArcaneSpellDamage"] = "^%+?# daño con hechizos Arcano$",
 			["FireSpellDamage"] = "^%+?# daño con hechizos de Fuego$",
 			["FrostSpellDamage"] = "^%+?# daño con hechizos de Escarcha$",
 			["NatureSpellDamage"] = "^%+?# daño con hechizos de Naturaleza$",
-			["ShadowSpellDamage"] = "^%+?# daño con hechizos de Sombras$",
 			["ShadowSpellDamage"] = "^%+?# daño con hechizos de las Sombras$",
 			["ShadowSpellDamage2"] = "^Equipar: Aumenta el daño causado por los hechizos de las Sombras y los efectos hasta en # p%.$",
 		}
@@ -917,19 +938,19 @@ if GetLocale() == "esES" then
 		end
 	end
 
-	if VgerCore.IsShadowlands or VgerCore.IsBurningCrusade then
+	if VgerCore.IsMainline or VgerCore.IsBurningCrusade or VgerCore.IsWrath then
 		PawnLocal.TooltipParsing.Block = "^%+?# bloqueo$"
 	end
 
-elseif GetLocale() == "esMX" then 
-	PawnUseThisLocalization() 
+elseif GetLocale() == "esMX" then
+	PawnUseThisLocalization()
 	PawnLocal.ThousandsSeparator = ","
 	PawnLocal.DecimalSeparator = "."
 
-	if VgerCore.IsBurningCrusade then
+	if VgerCore.IsBurningCrusade or VgerCore.IsWrath then
 		PawnLocal.TooltipParsing.Block = "^%+?# bloqueo$"
 	end
-end 
+end
 
 -- After using this localization or deciding that we don't need it, remove it from memory.
 PawnUseThisLocalization = nil

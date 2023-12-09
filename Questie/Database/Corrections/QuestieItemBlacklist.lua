@@ -1,6 +1,7 @@
 ---@class QuestieItemBlacklist
 local QuestieItemBlacklist = QuestieLoader:CreateModule("QuestieItemBlacklist")
 
+---@return table<ItemId, boolean>
 function QuestieItemBlacklist:Load()
     return {
         [765] = true, -- silverleaf
@@ -47,8 +48,11 @@ function QuestieItemBlacklist:Load()
         [8845] = true, -- ghost mushroom
         [8846] = true, -- gromsblood
         [8932] = true, -- Alterac Swiss
+        [8956] = true, -- Oil of Immolation
+        [9061] = true, -- Goblin Rocket Fuel
         [10561] = true, -- Mithril Casing
         [10593] = true, -- imperfect-draenethyst-fragment
+        [11178] = true, -- Large Radiant Shard
         [12207] = true, -- giant egg
         [12361] = true, -- blue sapphire
         [12363] = true, -- arcane crystal
@@ -58,16 +62,23 @@ function QuestieItemBlacklist:Load()
         [13422] = true, -- stonescale-eel
         [13444] = true, -- major mana potion
         [13446] = true, -- Major Healing Potion
+        [13461] = true, -- Greater Arcane Protection Potion
         [13463] = true, -- dreamfoil
         [13464] = true, -- golden sansam
         [13465] = true, -- mountain silversage
         [13466] = true, -- plaguebloom
         [13467] = true, -- icecap
         [13468] = true, -- black lotus
+        [13757] = true, -- Lightning Eel
         [14047] = true, -- runecloth
         [14048] = true, -- bolt of runecloth
+        [14227] = true, -- Ironweb Spider Silk
         [14344] = true, -- large brilliant shard
+        [14530] = true, -- Heavy Runecloth Bandage
+        [15992] = true, -- Dense Blasting Powder
         [18335] = true, -- Pristine Black Diamond
+        [19440] = true, -- Powerful Anti-Venom
+        [20452] = true, -- Smoked Desert Dumplings
 
         -- stranglethorn pages
         [2725] = true,
@@ -146,29 +157,29 @@ function QuestieItemBlacklist:Load()
         [20889] = true,
 
         --Tier 0.5 & Phase 5
-        [4265] = true, -- heavy-armor-kit
-        [15564] = true, -- rugged-armor-kit
-        [16671] = true, -- bindings-of-elements
-        [16673] = true, -- cord-of-elements
-        [16680] = true, -- beaststalkers-belt
-        [16681] = true, -- beaststalkers-bindings
-        [16683] = true, -- magisters-bindings
-        [16685] = true, -- magisters-belt
-        [16696] = true, -- devout-belt
-        [16697] = true, -- devout-bracers
-        [16702] = true, -- dreadmist-belt
-        [16703] = true, -- dreadmist-bracers
-        [16705] = true, -- dreadmist-wraps
-        [16710] = true, -- shadowcraft-bracers
-        [16713] = true, -- shadowcraft-belt
-        [16714] = true, -- wildheart-bracers
-        [16716] = true, -- wildheart-belt
-        [16722] = true, -- lightforge-bracers
-        [16723] = true, -- lightforge-belt
-        [16735] = true, -- bracers-of-valor
-        [16736] = true, -- belt-of-valor
-        [20520] = true, -- dark-rune
-        
+        [4265] = true, -- Heavy Armor Kit
+        [15564] = true, -- Rugged Armor Kit
+        [16671] = true, -- Bindings of Elements
+        [16673] = true, -- Cord of Elements
+        [16680] = true, -- Beaststalker's Belt
+        [16681] = true, -- Beaststalker's Bindings
+        [16683] = true, -- Magister's Bindings
+        [16685] = true, -- Magister's Belt
+        [16696] = true, -- Devout Belt
+        [16697] = true, -- Devout Bracers
+        [16702] = true, -- Dreadmist Belt
+        [16703] = true, -- Dreadmist Bracers
+        [16705] = true, -- Dreadmist Wraps
+        [16710] = true, -- Shadowcraft Bracers
+        [16713] = true, -- Shadowcraft Belt
+        [16714] = true, -- Wildheart Bracers
+        [16716] = true, -- Wildheart Belt
+        [16722] = true, -- Lightforge Bracers
+        [16723] = true, -- Lightforge Belt
+        [16735] = true, -- Bracers of Valor
+        [16736] = true, -- Belt of Valor
+        [20520] = true, -- Dark Rune
+
         -- Phase 6
         [12811] = true, -- righteous orb
         [22525] = true, -- crypt fiend parts
@@ -176,8 +187,10 @@ function QuestieItemBlacklist:Load()
         [22527] = true, -- core of elements
         [22528] = true, -- dark iron scraps
         [22529] = true, -- savage frond
-        
+
         -- TBC Phase 1
+        [21887] = true, -- Knothide Leather
+        [22445] = true, -- Arcane Dust
         [22572] = true, -- Mote of Air
         [22573] = true, -- Mote of Earth
         [22574] = true, -- Mote of Fire
@@ -185,10 +198,30 @@ function QuestieItemBlacklist:Load()
         [22576] = true, -- Mote of Mana
         [22577] = true, -- Mote of Shadow
         [22578] = true, -- Mote of Water
+        [22786] = true, -- Dreaming Glory
+        [22790] = true, -- Ancient Lichen
         [22829] = true, -- Super Healing Potion
         [22832] = true, -- Super Mana Potion
         [23445] = true, -- Fel Iron Bar
+        [23793] = true, -- Heavy Knothide Leather
         [24246] = true, -- Sanguine Hibiscus
-        [24401] = true, -- Unidentified Plant Parts  
+        [24368] = true, -- Coilfang Armaments
+        [24401] = true, -- Unidentified Plant Parts
+        [26042] = true, -- Oshu'gun Crystal Powder Sample
+        [26043] = true, -- Oshu'gun Crystal Powder Sample
+        [29425] = true, -- Mark of Kiljaeden
+        [29426] = true, -- Firewing Signet
+        [29460] = true, -- Ethereum Prison Key
+        [29739] = true, -- Arcane Tome
+        [29740] = true, -- Fel Armament
+        [30809] = true, -- Mark of Sargeras
+        [30810] = true, -- Sunfury Signet
+        [32569] = true, -- Apexis Shard
+        
+        -- Wrath of the Lich King : Phase 1
+        [33470] = true, -- Frostweave Cloth
+        [42780] = true, -- Relic of Ulduar
+        [43013] = true, -- Chilled Meat
+
     }
 end

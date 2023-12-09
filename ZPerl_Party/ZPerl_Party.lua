@@ -13,27 +13,77 @@ XPerl_RequestConfig(function(new)
 	for k, v in pairs(PartyFrames) do
 		v.conf = pconf
 	end
-end, "$Revision: 00a3cadfbbc8615840794db77581992f54190a2b $")
+end, "$Revision: d9b7338ec9f069d3cc6c46db144a6cbdf5583b15 $")
 
 local percD = "%d"..PERCENT_SYMBOL
 
+local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+local IsWrathClassic = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
 local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
+local IsVanillaClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
+local ceil = ceil
+local floor = floor
 local format = format
+local max = max
+local pairs = pairs
+local pcall = pcall
+local strfind = strfind
+local strmatch = strmatch
+local tonumber = tonumber
+local type = type
+local wipe = wipe
 
+local CheckInteractDistance = CheckInteractDistance
+local GetLootMethod = GetLootMethod
+local GetNumGroupMembers = GetNumGroupMembers
+local GetNumSubgroupMembers = GetNumSubgroupMembers
+local GetRaidRosterInfo = GetRaidRosterInfo
+local GetSpellInfo = GetSpellInfo
+local GetTime = GetTime
+local InCombatLockdown = InCombatLockdown
+local IsInInstance = IsInInstance
+local IsInRaid = IsInRaid
+local RegisterUnitWatch = RegisterUnitWatch
+local UnitAffectingCombat = UnitAffectingCombat
+local UnitClass = UnitClass
+local UnitExists = UnitExists
+local UnitFactionGroup = UnitFactionGroup
+local UnitGetIncomingHeals = UnitGetIncomingHeals
+local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
+local UnitGroupRolesAssigned = UnitGroupRolesAssigned
+local UnitGUID = UnitGUID
+local UnitHasIncomingResurrection = UnitHasIncomingResurrection
 local UnitHealth = UnitHealth
 local UnitHealthMax = UnitHealthMax
+local UnitInRange = UnitInRange
+local UnitIsAFK = UnitIsAFK
+local UnitIsCharmed = UnitIsCharmed
 local UnitIsConnected = UnitIsConnected
 local UnitIsDead = UnitIsDead
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
+local UnitIsDND = UnitIsDND
 local UnitIsGhost = UnitIsGhost
+local UnitIsGroupLeader = UnitIsGroupLeader
+local UnitIsMercenary = UnitIsMercenary
+local UnitIsPlayer = UnitIsPlayer
+local UnitIsPVP = UnitIsPVP
+local UnitIsPVPFreeForAll = UnitIsPVPFreeForAll
+local UnitIsUnit = UnitIsUnit
+local UnitIsVisible = UnitIsVisible
+local UnitName = UnitName
+local UnitPhaseReason = UnitPhaseReason
 local UnitPower = UnitPower
 local UnitPowerMax = UnitPowerMax
-local UnitName = UnitName
+local UnregisterUnitWatch = UnregisterUnitWatch
+
+local CombatFeedback_Initialize = CombatFeedback_Initialize
+local CombatFeedback_OnCombatEvent = CombatFeedback_OnCombatEvent
+local CombatFeedback_OnUpdate = CombatFeedback_OnUpdate
+
 local partyHeader
 local partyAnchor
 
-local GetNumSubgroupMembers = GetNumSubgroupMembers
 
 local XPerl_Party_HighlightCallback
 
@@ -86,8 +136,12 @@ function XPerl_Party_Events_OnLoad(self)
 
 	UIParent:UnregisterEvent("GROUP_ROSTER_UPDATE") -- IMPORTANT! Stops raid framerate lagging when members join/leave/zone
 
-	for i = 1, 4 do
-		XPerl_BlizzFrameDisable(_G["PartyMemberFrame"..i])
+	if IsRetail then
+		XPerl_BlizzFrameDisable(PartyFrame)
+	else
+		for i = 1, 4 do
+			XPerl_BlizzFrameDisable(_G["PartyMemberFrame"..i])
+		end
 	end
 
 	self:SetScript("OnEvent", XPerl_Party_OnEvent)
@@ -116,18 +170,14 @@ local function SetFrameArray(self, value)
 	for k, v in pairs(PartyFrames) do
 		if (v == self) then
 			PartyFrames[k] = nil
-			if (XPerl_PartyPetFrames) then
+			if (XPerl_Party_Pet_ClearFrame) then
 				local petid
 				if k == "player" then
 					petid = "pet"
 				else
 					petid = "partypet"..strmatch(k, "^party(%d)")
 				end
-				if (XPerl_PartyPetFrames[petid]) then
-					XPerl_PartyPetFrames[petid].partyid = nil
-					XPerl_PartyPetFrames[petid].ownerid = nil
-					XPerl_PartyPetFrames[petid] = nil
-				end
+				XPerl_Party_Pet_ClearFrame(petid)
 			end
 		end
 	end
@@ -136,17 +186,14 @@ local function SetFrameArray(self, value)
 	if (value) then
 		self.targetid = value.."target"
 		PartyFrames[value] = self
-		if (XPerl_PartyPetFrames and self.petFrame) then
-			--local petid = "partypet"..strmatch(value, "^party(%d)")
+		if (XPerl_Party_Pet_SetFrame) then
 			local petid
 			if value == "player" then
 				petid = "pet"
 			else
 				petid = "partypet"..strmatch(value, "^party(%d)")
 			end
-			XPerl_PartyPetFrames[petid] = self.petFrame
-			self.petFrame.partyid = petid
-			self.petFrame.ownerid = value
+			XPerl_Party_Pet_SetFrame(self:GetID(), petid, value)
 		end
 	end
 end
@@ -311,9 +358,20 @@ local function XPerl_Party_UpdateAbsorbPrediction(self)
 		self.statsFrame.expectedAbsorbs:Hide()
 	end
 end
+-- XPerl_Party_UpdateHotsPrediction
+local function XPerl_Party_UpdateHotsPrediction(self)
+	if not IsWrathClassic then
+		return
+	end
+	if pconf.hotPrediction then
+		XPerl_SetExpectedHots(self)
+	else
+		self.statsFrame.expectedHots:Hide()
+	end
+end
 
 local function XPerl_Party_UpdateResurrectionStatus(self)
-	if (UnitHasIncomingResurrection(self.partyid)) then
+	if UnitHasIncomingResurrection(self.partyid) then
 		if pconf.portrait then
 			self.portraitFrame.resurrect:Show()
 		else
@@ -347,6 +405,7 @@ local function XPerl_Party_UpdateHealth(self)
 
 	XPerl_Party_UpdateAbsorbPrediction(self)
 	XPerl_Party_UpdateHealPrediction(self)
+	XPerl_Party_UpdateHotsPrediction(self)
 	XPerl_Party_UpdateResurrectionStatus(self)
 
 	if (not UnitIsConnected(partyid)) then
@@ -396,6 +455,7 @@ end
 
 -- XPerl_Party_UpdatePlayerFlags(self)
 local function XPerl_Party_UpdatePlayerFlags(self)
+	local change
 	if (UnitIsAFK(self.partyid) and conf.showAFK) then
 		if (not self.afk) then
 			change = true
@@ -625,7 +685,7 @@ local function UpdateAssignedRoles(self)
 	local icon = self.nameFrame.roleIcon
 	local isTank, isHealer, isDamage
 	local inInstance, instanceType = IsInInstance()
-	if not IsClassic and instanceType == "party" then
+	if not IsVanillaClassic and instanceType == "party" then
 		-- No point getting it otherwise, as they can be wrong. Usually the values you had
 		-- from previous instance if you're running more than one with the same people
 
@@ -764,7 +824,7 @@ local function XPerl_Party_UpdatePVP(self)
 end
 
 -- XPerl_Party_UpdateCombat
-function XPerl_Party_UpdateCombat(self)
+local function XPerl_Party_UpdateCombat(self)
 	local partyid = self.partyid
 	if (UnitIsVisible(partyid)) then
 		if (UnitAffectingCombat(partyid)) then
@@ -814,11 +874,11 @@ local function XPerl_Party_UpdateMana(self)
 
 	--Begin 4.3 division by 0 work around to ensure we don't divide if max is 0
 	local percent
-	if Partymana > 0 and Partymanamax == 0 then--We have current mana but max mana failed.
-		Partymanamax = Partymana--Make max mana at least equal to current health
-		percent = 100--And percent 100% cause a number divided by itself is 1, duh.
+	if Partymana > 0 and Partymanamax == 0 then --We have current mana but max mana failed.
+		Partymanamax = Partymana --Make max mana at least equal to current health
+		percent = 1 --And percent 100% cause a number divided by itself is 1, duh.
 	elseif Partymana == 0 and Partymanamax == 0 then--Probably doesn't use mana or is oom?
-		percent = 0--So just automatically set percent to 0 and avoid division of 0/0 all together in this situation.
+		percent = 0 --So just automatically set percent to 0 and avoid division of 0/0 all together in this situation.
 	else
 		percent = Partymana / Partymanamax--Everything is dandy, so just do it right way.
 	end
@@ -854,20 +914,34 @@ local function XPerl_Party_UpdateMana(self)
 end
 
 -- XPerl_Party_UpdateRange
-local function XPerl_Party_UpdateRange(self, overrideUnit)
+local function XPerl_Party_Update_Range(self, overrideUnit)
 	local partyid = overrideUnit or self.partyid
-	if (partyid) then
-		if (not pconf.range30yard or CheckInteractDistance(partyid, 4) or not UnitIsConnected(partyid)) then
-			self.nameFrame.rangeIcon:Hide()
-		else
-			self.nameFrame.rangeIcon:Show()
-			self.nameFrame.rangeIcon:SetAlpha(1)
-		end
-		--[[if (UnitInVehicle(self.partyid) and pconf.range30yard) then -- Not sure if this is proper way to do it, so this pretty much forces anyone in a vehicle to show out of range.
-			self.nameFrame.rangeIcon:Show()
-			self.nameFrame.rangeIcon:SetAlpha(1)
-		end]]
+	if not partyid then
+		return
 	end
+	if not pconf.range30yard then
+		self.nameFrame.rangeIcon:Hide()
+		return
+	end
+	local inRange = false
+	if IsRetail then
+		local range, checkedRange = UnitInRange(partyid)
+		if not checkedRange then
+			inRange = true
+		end
+	else
+		inRange = CheckInteractDistance(partyid, 4)
+	end
+	if not UnitIsConnected(partyid) or inRange then
+		self.nameFrame.rangeIcon:Hide()
+	else
+		self.nameFrame.rangeIcon:Show()
+		self.nameFrame.rangeIcon:SetAlpha(1)
+	end
+	--[[if (UnitInVehicle(self.partyid) and pconf.range30yard) then -- Not sure if this is proper way to do it, so this pretty much forces anyone in a vehicle to show out of range.
+		self.nameFrame.rangeIcon:Show()
+		self.nameFrame.rangeIcon:SetAlpha(1)
+	end]]
 end
 
 -- XPerl_Party_SingleGroup
@@ -947,7 +1021,7 @@ end
 local function XPerl_Party_TargetUpdateHealth(self)
 	local tf = self.targetFrame
 	local targetid = self.targetid
-	local hp, hpMax, heal, absorb = UnitIsGhost(targetid) and 1 or (UnitIsDead(targetid) and 0 or UnitHealth(targetid)), UnitHealthMax(targetid), not IsClassic and UnitGetIncomingHeals(targetid), not IsClassic and UnitGetTotalAbsorbs(targetid)
+	local hp, hpMax, heal, absorb = UnitIsGhost(targetid) and 1 or (UnitIsDead(targetid) and 0 or UnitHealth(targetid)), UnitHealthMax(targetid), not IsVanillaClassic and UnitGetIncomingHeals(targetid), not IsClassic and UnitGetTotalAbsorbs(targetid)
 	tf.lastHP, tf.lastHPMax, tf.lastHeal, tf.lastAbsorb = hp, hpMax, heal, absorb
 	tf.lastUpdate = GetTime()
 
@@ -959,7 +1033,7 @@ local function XPerl_Party_TargetUpdateHealth(self)
 		percent = 0 -- So just automatically set percent to 0 and avoid division of 0/0 all together in this situation.
 	elseif hp > 0 and hpMax == 0 then -- We have current ho but max hp failed.
 		hpMax = hp -- Make max hp at least equal to current health
-		percent = 100 -- And percent 100% cause a number divided by itself is 1, duh.
+		percent = 1 -- And percent 100% cause a number divided by itself is 1, duh.
 	else
 		if hpMax > 0 then
 			percent = hp / hpMax--Everything is dandy, so just do it right way.
@@ -1055,12 +1129,12 @@ function XPerl_Party_OnUpdate(self, elapsed)
 
 		self.flagsCheck = self.flagsCheck + 1
 		if (self.flagsCheck > 25) then
-			self.flagsCheck = 0
 			XPerl_Party_UpdatePlayerFlags(self)
+			self.flagsCheck = 0
 		end
 
 		if (pconf.target.large and self.targetFrame:IsShown()) then
-			local hp, hpMax, heal, absorb = UnitIsGhost(targetid) and 1 or (UnitIsDead(targetid) and 0 or UnitHealth(targetid)), UnitHealthMax(targetid), not IsClassic and UnitGetIncomingHeals(targetid), not IsClassic and UnitGetTotalAbsorbs(targetid)
+			local hp, hpMax, heal, absorb = UnitIsGhost(targetid) and 1 or (UnitIsDead(targetid) and 0 or UnitHealth(targetid)), UnitHealthMax(targetid), not IsVanillaClassic and UnitGetIncomingHeals(targetid), not IsClassic and UnitGetTotalAbsorbs(targetid)
 			if (hp ~= self.targetFrame.lastHP or hpMax ~= self.targetFrame.lastHPMax or heal ~= self.targetFrame.lastHeal or absorb ~= self.targetFrame.lastAbsorb or GetTime() > self.targetFrame.lastUpdate + 5000) then
 				XPerl_Party_TargetUpdateHealth(self)
 			end
@@ -1068,11 +1142,16 @@ function XPerl_Party_OnUpdate(self, elapsed)
 
 		self.time = self.time + elapsed
 		if (self.time >= 0.2) then
-			self.time = 0
-			XPerl_Party_UpdateRange(self, partyid)
+			if pconf.range30yard then
+				XPerl_Party_Update_Range(self, partyid)
+			end
 
-			XPerl_UpdateSpellRange(self, partyid)
-			XPerl_UpdateSpellRange(self.targetFrame, targetid)
+			if conf.rangeFinder.enabled then
+				XPerl_UpdateSpellRange(self, partyid)
+				XPerl_UpdateSpellRange(self.targetFrame, targetid)
+			end
+
+			self.time = 0
 		end
 
 		--[=[if (checkRaidNextUpdate) then
@@ -1097,9 +1176,9 @@ end
 -- XPerl_Party_Target_OnUpdate
 function XPerl_Party_Target_OnUpdate(self, elapsed)
 	self.time = elapsed + (self.time or 0)
-	if (self.time >= 0.5) then
-		self.time = 0
+	if (self.time >= 0.2) then
 		XPerl_Party_UpdateTarget(self:GetParent())
+		self.time = 0
 	end
 end
 
@@ -1114,31 +1193,43 @@ end
 
 -- XPerl_Party_UpdateDisplay
 function XPerl_Party_UpdateDisplay(self, less)
-	if (self.conf and self.partyid and UnitExists(self.partyid)) then
-		self.afk, self.dnd = nil, nil
-		XPerl_Party_UpdateName(self)
-		XPerl_Party_TargetRaidIcon(self)
-		XPerl_Party_UpdateLeader(self)
-		XPerl_Party_UpdateClass(self)
-		UpdateAssignedRoles(self)
-		UpdatePhasingDisplays(self)
-
-		if (not less) then
-			XPerl_SetManaBarType(self)
-			XPerl_Party_UpdateMana(self)
-			XPerl_Party_UpdateHealth(self)
-			XPerl_Unit_UpdateLevel(self)
-		end
-
-		XPerl_Party_UpdatePlayerFlags(self)
-		XPerl_Party_UpdateCombat(self)
-		XPerl_Party_UpdatePVP(self)
-		XPerl_Unit_UpdatePortrait(self)
-		XPerl_Party_Buff_UpdateAll(self)
-		XPerl_Party_UpdateTarget(self)
-		XPerl_Unit_UpdateReadyState(self)
-		XPerl_UpdateSpellRange(self, self.partyid)
+	local partyid = self.partyid
+	if not partyid then
+		return
 	end
+	if not UnitExists(partyid) then
+		return
+	end
+
+	self.afk, self.dnd = nil, nil
+	XPerl_Party_UpdateName(self)
+	XPerl_Party_TargetRaidIcon(self)
+	XPerl_Party_UpdateLeader(self)
+	XPerl_Party_UpdateClass(self)
+	UpdateAssignedRoles(self)
+	UpdatePhasingDisplays(self)
+
+	if (not less) then
+		XPerl_SetManaBarType(self)
+		XPerl_Party_UpdateMana(self)
+		XPerl_Party_UpdateHealth(self)
+		XPerl_Unit_UpdateLevel(self)
+	end
+
+	XPerl_Party_UpdatePlayerFlags(self)
+	XPerl_Party_UpdateCombat(self)
+	XPerl_Party_UpdatePVP(self)
+	XPerl_Unit_UpdatePortrait(self)
+	XPerl_Party_Buff_UpdateAll(self)
+	XPerl_Party_UpdateTarget(self)
+	XPerl_Unit_UpdateReadyState(self)
+
+	if pconf.range30yard then
+		XPerl_Party_Update_Range(self)
+	else
+		self.nameFrame.rangeIcon:Hide()
+	end
+	XPerl_UpdateSpellRange(self, partyid)
 end
 
 -------------------
@@ -1321,7 +1412,7 @@ function XPerl_Party_GetUnitFrameByUnit(unitid)
 	return PartyFrames[unitid]
 end
 
-local rosterGuids
+local rosterGuids = { }
 -- XPerl_Party_GetUnitFrameByGUID
 function XPerl_Party_GetUnitFrameByGUID(guid)
 	local unitid = rosterGuids and rosterGuids[guid]
@@ -1333,7 +1424,7 @@ end
 local function BuildGuidMap()
 	if (GetNumSubgroupMembers() > 0) then
 		--rosterGuids = XPerl_GetReusableTable()
-		rosterGuids = { }
+		wipe(rosterGuids)
 		if partyHeader:GetAttribute("showPlayer") then
 			local guid = UnitGUID("player")
 			if (guid) then
@@ -1429,8 +1520,14 @@ function XPerl_Party_Events:UNIT_TARGET()
 end
 
 function XPerl_Party_Events:UNIT_HEAL_PREDICTION(unit)
-	if (pconf.healprediction and unit == self.partyid) then
+	if pconf.healprediction and unit == self.partyid then
 		XPerl_SetExpectedHealth(self)
+	end
+	if not IsWrathClassic then
+		return
+	end
+	if pconf.hotPrediction and unit == self.partyid then
+		XPerl_SetExpectedHots(self)
 	end
 end
 
@@ -1757,7 +1854,7 @@ function XPerl_Party_SetInitialAttributes()
 
 		--self:SetAttribute("initial-height", CalcHeight())
 		--self:SetAttribute("initial-width", CalcWidth())
-	end]]
+	end--]]
 
 	-- Fix Secure Header taint in combat
 	--[[local maxColumns = partyHeader:GetAttribute("maxColumns") or 1
@@ -1767,7 +1864,7 @@ function XPerl_Party_SetInitialAttributes()
 
 	partyHeader:Show()
 	partyHeader:SetAttribute("startingIndex", - maxUnits + 1)
-	partyHeader:SetAttribute("startingIndex", startingIndex)]]
+	partyHeader:SetAttribute("startingIndex", startingIndex)--]]
 
 	partyHeader:Hide()
 
@@ -1777,7 +1874,6 @@ end
 
 -- XPerl_Party_SetMainAttributes
 function XPerl_Party_SetMainAttributes()
-
 	partyAnchor:StopMovingOrSizing()
 
 	partyHeader:ClearAllPoints()

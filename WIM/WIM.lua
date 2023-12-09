@@ -15,13 +15,12 @@ setfenv(1, WIM);
 
 -- Core information
 addonTocName = "WIM";
-version = "3.9.1";
+version = "3.10.16";
 beta = false; -- flags current version as beta.
 debug = false; -- turn debugging on and off.
 useProtocol2 = true; -- test switch for new W2W Protocol. (Dev use only)
-local buildNumber = select(4, _G.GetBuildInfo())
-isShadowlands = buildNumber >= 90001;
-isTBC = buildNumber >= 20501
+local buildNumber = select(4, _G.GetBuildInfo());
+isModernApi = buildNumber >= 90001; -- Still needed for non synced invite API and for classID checks
 
 -- is Private Server?
 --[[isPrivateServer = not (string.match(_G.GetCVar("realmList"), "worldofwarcraft.com$")
@@ -63,6 +62,10 @@ local Events = {};
     workerFrame:RegisterEvent("VARIABLES_LOADED");
     workerFrame:RegisterEvent("ADDON_LOADED");
 
+-- import libraries.
+libs.SML = _G.LibStub:GetLibrary("LibSharedMedia-3.0");
+libs.ChatHandler = _G.LibStub:GetLibrary("LibChatHandler-1.0");
+libs.DropDownMenu = _G.LibStub:GetLibrary("LibDropDownMenu");
 
 -- called when WIM is first loaded into memory but after variables are loaded.
 local function initialize()
@@ -83,24 +86,14 @@ local function initialize()
         --querie guild roster
         if( _G.IsInGuild() ) then
 			-- H.Sch. - ReglohPri - this is deprecated -> GuildRoster() - changed to C_GuildInfo.GuildRoster()
-			if not isShadowlands then
-				--for classic
-				_G.GuildRoster();
-			else
-				_G.C_GuildInfo.GuildRoster();
-			end
+			_G.C_GuildInfo.GuildRoster();
         end
-
-    -- import libraries.
-    libs.SML = _G.LibStub:GetLibrary("LibSharedMedia-3.0");
-    libs.ChatHandler = _G.LibStub:GetLibrary("LibChatHandler-1.0");
 
     isInitialized = true;
 
     RegisterPrematureSkins();
 
     --enableModules
-    local moduleName, tData;
     for moduleName, tData in pairs(modules) do
         modules[moduleName].db = db;
         if(modules[moduleName].canDisable ~= false) then
@@ -142,67 +135,53 @@ local function initialize()
     dPrint("WIM initialized...");
 end
 
---Begin Compat wrappers for retail and classic to access same functions and expect same returns
---These should work in all files that use them since they are written to WIMs global namespace
---Retail kind of has these for now, but won't forever, and classic is not expected to make same API restructuring, so this ugly mess is probably required forever
+--Retail and Classic bnet apis are now mostly in sync, but i'm keeping wrappers so if they ever get out of sync again, it's easy to fix in these wrappers
 function GetBNGetFriendInfo(friendIndex)
-	if not isShadowlands then--Classic
-		return _G.BNGetFriendInfo(friendIndex)
-	else
-		local accountInfo = _G.C_BattleNet.GetFriendAccountInfo(friendIndex);
-		if accountInfo then
-			local wowProjectID = accountInfo.gameAccountInfo.wowProjectID or 0;
-			local clientProgram = accountInfo.gameAccountInfo.clientProgram ~= "" and accountInfo.gameAccountInfo.clientProgram or nil;
+	local accountInfo = _G.C_BattleNet.GetFriendAccountInfo(friendIndex);
+	if accountInfo then
+		local wowProjectID = accountInfo.gameAccountInfo.wowProjectID or 0;
+		local clientProgram = accountInfo.gameAccountInfo.clientProgram ~= "" and accountInfo.gameAccountInfo.clientProgram or nil;
 
-			return	accountInfo.bnetAccountID, accountInfo.accountName, accountInfo.battleTag, accountInfo.isBattleTagFriend,
-				accountInfo.gameAccountInfo.characterName, accountInfo.gameAccountInfo.gameAccountID, clientProgram,
-				accountInfo.gameAccountInfo.isOnline, accountInfo.lastOnlineTime, accountInfo.isAFK, accountInfo.isDND, accountInfo.customMessage, accountInfo.note, accountInfo.isFriend,
-				accountInfo.customMessageTime, wowProjectID, accountInfo.rafLinkType == _G.Enum.RafLinkType.Recruit, accountInfo.gameAccountInfo.canSummon, accountInfo.isFavorite, accountInfo.gameAccountInfo.isWowMobile;
-		end
+		return	accountInfo.bnetAccountID, accountInfo.accountName, accountInfo.battleTag, accountInfo.isBattleTagFriend,
+			accountInfo.gameAccountInfo.characterName, accountInfo.gameAccountInfo.gameAccountID, clientProgram,
+			accountInfo.gameAccountInfo.isOnline, accountInfo.lastOnlineTime, accountInfo.isAFK, accountInfo.isDND, accountInfo.customMessage, accountInfo.note, accountInfo.isFriend,
+			accountInfo.customMessageTime, wowProjectID, accountInfo.rafLinkType == _G.Enum.RafLinkType.Recruit, accountInfo.gameAccountInfo.canSummon, accountInfo.isFavorite, accountInfo.gameAccountInfo.isWowMobile;
 	end
 end
 
 function GetBNGetFriendInfoByID(id)
-	if not isShadowlands then--Classic/TBC
-		return _G.BNGetFriendInfoByID(id)
-	else--Retail
-		local accountInfo = _G.C_BattleNet.GetAccountInfoByID(id) or {};
-		if accountInfo and accountInfo.gameAccountInfo then
-			local wowProjectID = accountInfo.gameAccountInfo.wowProjectID or 0;
-			local clientProgram = accountInfo.gameAccountInfo.clientProgram ~= "" and accountInfo.gameAccountInfo.clientProgram or nil;
+	local accountInfo = _G.C_BattleNet.GetAccountInfoByID(id) or {};
+	if accountInfo and accountInfo.gameAccountInfo then
+		local wowProjectID = accountInfo.gameAccountInfo.wowProjectID or 0;
+		local clientProgram = accountInfo.gameAccountInfo.clientProgram ~= "" and accountInfo.gameAccountInfo.clientProgram or nil;
 
-			return	accountInfo.bnetAccountID, accountInfo.accountName, accountInfo.battleTag, accountInfo.isBattleTagFriend,
-				accountInfo.gameAccountInfo.characterName, accountInfo.gameAccountInfo.gameAccountID, clientProgram,
-				accountInfo.gameAccountInfo.isOnline, accountInfo.lastOnlineTime, accountInfo.isAFK, accountInfo.isDND, accountInfo.customMessage, accountInfo.note, accountInfo.isFriend,
-				accountInfo.customMessageTime, wowProjectID, accountInfo.rafLinkType == _G.Enum.RafLinkType.Recruit, accountInfo.gameAccountInfo.canSummon, accountInfo.isFavorite, accountInfo.gameAccountInfo.isWowMobile;
-		end
+		return	accountInfo.bnetAccountID, accountInfo.accountName, accountInfo.battleTag, accountInfo.isBattleTagFriend,
+			accountInfo.gameAccountInfo.characterName, accountInfo.gameAccountInfo.gameAccountID, clientProgram,
+			accountInfo.gameAccountInfo.isOnline, accountInfo.lastOnlineTime, accountInfo.isAFK, accountInfo.isDND, accountInfo.customMessage, accountInfo.note, accountInfo.isFriend,
+			accountInfo.customMessageTime, wowProjectID, accountInfo.rafLinkType == _G.Enum.RafLinkType.Recruit, accountInfo.gameAccountInfo.canSummon, accountInfo.isFavorite, accountInfo.gameAccountInfo.isWowMobile;
 	end
 end
 
 function GetBNGetGameAccountInfo(toonId)
-	if not isShadowlands then--Classic/TBC
-		return _G.BNGetGameAccountInfo(toonId)
-	else--Retail
-		local gameAccountInfo = _G.C_BattleNet.GetGameAccountInfoByID(toonId)
-		if gameAccountInfo then
-			local wowProjectID = gameAccountInfo.wowProjectID or 0;
-			local characterName = gameAccountInfo.characterName or "";
-			local realmName = gameAccountInfo.realmName or "";
-			local realmID = gameAccountInfo.realmID or 0;
-			local factionName = gameAccountInfo.factionName or "";
-			local raceName = gameAccountInfo.raceName or "";
-			local className = gameAccountInfo.className or "";
-			local areaName = gameAccountInfo.areaName or "";
-			local characterLevel = gameAccountInfo.characterLevel or "";
-			local richPresence = gameAccountInfo.richPresence or "";
-			local gameAccountID = gameAccountInfo.gameAccountID or 0;
-			local playerGuid = gameAccountInfo.playerGuid or 0;
-			return	gameAccountInfo.hasFocus, characterName, gameAccountInfo.clientProgram,
-				realmName, realmID, factionName, raceName, className, "", areaName, characterLevel,
-				richPresence, nil, nil,
-				gameAccountInfo.isOnline, gameAccountID, nil, gameAccountInfo.isGameAFK, gameAccountInfo.isGameBusy,
-				playerGuid, wowProjectID, gameAccountInfo.isWowMobile
-		end
+	local gameAccountInfo = _G.C_BattleNet.GetGameAccountInfoByID(toonId)
+	if gameAccountInfo then
+		local wowProjectID = gameAccountInfo.wowProjectID or 0;
+		local characterName = gameAccountInfo.characterName or "";
+		local realmName = gameAccountInfo.realmName or "";
+		local realmID = gameAccountInfo.realmID or 0;
+		local factionName = gameAccountInfo.factionName or "";
+		local raceName = gameAccountInfo.raceName or "";
+		local className = gameAccountInfo.className or "";
+		local areaName = gameAccountInfo.areaName or "";
+		local characterLevel = gameAccountInfo.characterLevel or "";
+		local richPresence = gameAccountInfo.richPresence or "";
+		local gameAccountID = gameAccountInfo.gameAccountID or 0;
+		local playerGuid = gameAccountInfo.playerGuid or 0;
+		return	gameAccountInfo.hasFocus, characterName, gameAccountInfo.clientProgram,
+			realmName, realmID, factionName, raceName, className, "", areaName, characterLevel,
+			richPresence, nil, nil,
+			gameAccountInfo.isOnline, gameAccountID, nil, gameAccountInfo.isGameAFK, gameAccountInfo.isGameBusy,
+			playerGuid, wowProjectID, gameAccountInfo.isWowMobile
 	end
 end
 --End Compat wrappers for retail and classic to access same functions and expect same returns
@@ -212,7 +191,6 @@ end
 local function onEnable()
     db.enabled = true;
 
-    local tEvent;
     for tEvent, _ in pairs(Events) do
         workerFrame:RegisterEvent(tEvent);
     end
@@ -253,7 +231,6 @@ end
 local function onDisable()
     db.enabled = false;
 
-    local tEvent;
     for tEvent, _ in pairs(Events) do
         workerFrame:UnregisterEvent(tEvent);
     end
@@ -359,9 +336,8 @@ end
 function CallModuleFunction(funName, ...)
     -- notify all enabled modules.
     dPrint("Calling Module Function: "..funName);
-    local module, tData, fun;
     for module, tData in pairs(WIM.modules) do
-        fun = tData[funName];
+        local fun = tData[funName];
         if(type(fun) == "function" and tData.enabled) then
                 dPrint(" +--"..module);
                 fun(tData, ...);
@@ -409,7 +385,6 @@ function WIM:CoreEventHandler(event, ...)
 
     -- Module Event Handlers
     if(db and db.enabled) then
-        local module, tData;
         for module, tData in pairs(modules) do
             fun = tData[event];
             if(type(fun) == "function" and tData.enabled) then

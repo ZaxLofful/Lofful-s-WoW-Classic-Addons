@@ -69,7 +69,7 @@ function Talented:UpdateCurrentTemplate()
 	local total = 0 
 	for tab, tree in ipairs(info) do
 		for index, info in ipairs(tree.talents) do
-			local rank = select(5, GetTalentInfo(tab, index))
+			local rank = select(5, self:MatchedGetTalentInfo(tab, index))
 			template[tab][index] = rank
 			total = total + rank
 		end

@@ -11,8 +11,10 @@ local Bar = Bartender4.Bar.prototype
 -- only available on 8.0
 if not StatusTrackingBarManager then return end
 
-local defaults = { profile = Bartender4:Merge({
+local defaults = { profile = Bartender4.Util:Merge({
 	enabled = false,
+	width = 571,
+	twentySections = true,
 }, Bartender4.Bar.defaults) }
 
 -- register module
@@ -30,25 +32,29 @@ function StatusBarMod:OnEnable()
 	if not self.bar then
 		self.bar = setmetatable(Bartender4.Bar:Create("Status", self.db.profile, L["Status Tracking Bar"], 1), {__index = StatusBar})
 		self.bar.content = CreateFrame("Frame", nil, self.bar)
-		self.bar.content:SetSize(804, 14)
+		self.bar.content:SetSize(self.db.profile.width, 14)
 		self.bar.content:Show()
 		self.bar.content.OnStatusBarsUpdated = function() end
 
-		self.bar.manager = CreateFrame("Frame", "BT4StatusBarTrackingManager", self.bar.content, "StatusTrackingBarManagerTemplate")
-		self.bar.manager:AddBarFromTemplate("FRAME", "ReputationStatusBarTemplate")
-		self.bar.manager:AddBarFromTemplate("FRAME", "HonorStatusBarTemplate")
-		self.bar.manager:AddBarFromTemplate("FRAME", "ArtifactStatusBarTemplate")
-		self.bar.manager:AddBarFromTemplate("FRAME", "ExpStatusBarTemplate")
-		self.bar.manager:AddBarFromTemplate("FRAME", "AzeriteBarTemplate")
-		self.bar.manager:SetBarSize(true)
+		self.bar.manager = StatusTrackingBarManager
+		self.bar.manager:SetParent(self.bar.content)
+		self.bar.manager:ClearAllPoints()
+		self.bar.manager:SetPoint("BOTTOMLEFT", self.bar.content, "BOTTOMLEFT")
+
+		-- add additional anchors to the textures to allow re-sizing the bars
+		if self.bar.manager.MainStatusTrackingBarContainer then
+			self.bar.manager.MainStatusTrackingBarContainer:SetWidth(self.db.profile.width)
+			self.bar.manager.SecondaryStatusTrackingBarContainer:SetWidth(self.db.profile.width)
+		else
+			self.bar.manager.BottomBarFrameTexture:SetPoint("BOTTOMRIGHT")
+			self.bar.manager.TopBarFrameTexture:SetPoint("BOTTOMRIGHT", self.bar.manager.BottomBarFrameTexture, "TOPRIGHT", 0, -3)
+		end
 		self.bar.manager:Show()
 		self.bar.manager:SetFrameLevel(2)
 	end
 	self.bar:Enable()
 	self:ToggleOptions()
 	self:ApplyConfig()
-	self:SecureHook(StatusTrackingBarManager, "SetTextLocked", "ManagerTextLock")
-	self:SecureHook(StatusTrackingBarManager, "UpdateBarsShown", "ManagerUpdateBars")
 end
 
 function StatusBarMod:ApplyConfig()
@@ -73,13 +79,22 @@ function StatusBar:ApplyConfig(config)
 	self:PerformLayout()
 end
 
-StatusBar.width = 812
-StatusBar.height = 26
-StatusBar.offsetX = 5
-StatusBar.offsetY = 10
+StatusBar.width = 571 + 8
+StatusBar.height = 34
+StatusBar.offsetX = 7
+StatusBar.offsetY = 2
 function StatusBar:PerformLayout()
+	self.manager:SetWidth(self.config.width)
+	self.manager.MainStatusTrackingBarContainer:SetWidth(self.config.width)
+	self.manager.SecondaryStatusTrackingBarContainer:SetWidth(self.config.width)
+
+	self.manager:UpdateBarsShown()
+
+	StatusBar.width = self.config.width + 8
 	self:SetSize(self.width, self.height)
+
 	local bar = self.content
+	bar:SetSize(self.config.width, self.height)
 	bar:ClearAllPoints()
 	bar:SetPoint("TOPLEFT", self, "TOPLEFT", self.offsetX, self.offsetY)
 end

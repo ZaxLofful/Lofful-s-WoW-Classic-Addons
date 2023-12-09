@@ -1,3 +1,156 @@
+**7.1.6**
+* Fix Death Knight runes for Wrath Classic.
+
+**7.1.5**
+* Fix tags.
+
+**7.1.4**
+* Fixes for Death Knight runes and Monk stagger special bars.
+
+**7.1.3**
+* Revamped player special power bar, the addon is no longer relying on the default frames.
+
+**7.1.2**
+* Fixed range checks on Retail, all range checks are defaulting to 40 yards for now.
+* Added a new spell/item range check for assistable/attackable targets.
+* Fixed some vehicle and vehicle combo point based checks for Wrath Classic.
+* Fixed some player frame related taints.
+* Some performance optimizations.
+
+**7.1.1**
+* Updated for 1.15.0.
+* Fixed alternate power bar taint.
+* Fixed Shaman's curse dispel in Wrath Classic.
+* Fixed vehcile swaps in Wrath Classic.
+* Removed only yours hit indicator settings.
+
+**7.1.0**
+* Updated for 10.2.0.
+* Updated for 3.4.3.
+* Updated libraries.
+
+**7.0.9**
+* Updated for 10.1.7.
+
+**7.0.8**
+* Updated for 10.1.5.
+* Updated for 3.4.2.
+* Updated for 1.14.4.
+
+**7.0.7**
+* Updated for 10.1.5.
+* Updated for 3.4.2.
+* Updated for 1.14.4.
+
+**7.0.7**
+* Updated for 10.1.0.
+* Fixed combo points not updating on the focus frame.
+* Fixed issues with old role icons and disable default raid frame settings.
+
+**7.0.6**
+* Updated for 10.0.5.
+* Temporary disabled Blizzard Default buff cooldowns.
+* Fix container error on Retail.
+* Fix master loot error.
+
+**7.0.5**
+* Fix for right click buff remove not working with `ActionButtonUseKeyDown` setting enabled.
+* Compact raid error fixes.
+* Druid combo error fix.
+
+**7.0.4**
+* Fix default buff cooldowns.
+
+**7.0.3**
+* Updated for 3.4.1.
+* Adde heal over times bar for Wrath Classic.
+* Totem frame fixes.
+* Various other fixes.
+
+**7.0.2**
+* Properly hiding party frames, to show/hide the default raid frames use the raid manager.
+* Fixed druid and monk special bars.
+* Fix for spell interrupt error.
+
+**7.0.1**
+* Fix for special power bars that were not showing up.
+
+**7.0.0**
+* Updated for 10.0.0.
+* Preparations for Evoker support.
+* Updated LibHealComm.
+
+**6.3.4**
+* Updated for 9.2.7.
+* Updated for 3.4.0.
+* Updated for 1.14.3.
+* Fix master looter errors.
+* Fied some issues with player role icon.
+* Fix focus casting issues on Classic.
+* Updated LibHealComm.
+
+**6.3.3**
+* Fix for highlighing issues on Retail.
+* Various party and raid pet optimizations for Classic.
+* Fix for raid pets sometimes not updating on Classic.
+* Updated libraries, and fixed Heal Communication issues on Classic.
+
+**6.3.2**
+* Fix for player not shown in raids.
+
+**6.3.1**
+* Fix for raid pets on Classic.
+
+**6.3.0**
+* Fixed raid pet health updates on Classic.
+* Fixed heal prediction for raid pet frames.
+* Fixed raid pet target highlight.
+* More optimisations for all target and pet frame updates.
+
+**6.2.9**
+* Updated for 1.14.1.
+* Fixed reseting settings.
+* Fixed pet happiness not beeing disableable.
+* Fixed some tooltips and their options.
+* Updated locales.
+
+**6.2.8**
+* Fixes issues from previous release.
+* Some party pet optimisations.
+
+**6.2.7**
+* Fixed heal prediction for party pet frames.
+* Fixed cast prediction on classic.
+* More fixes regarding party pet health on Classic.
+* Fix initial party pet detection.
+
+**6.2.6**
+* Updated for 9.1.5.
+* Updated for 1.14.0.
+* Attempt to fix party pet health on Classic.
+* Raid health percet fixes.
+
+**6.2.5**
+* Updated LibHealComm.
+* Party pet health fixes.
+
+**6.2.4**
+* Fixed 10y range finder in BCC.
+* Party pet related fixes.
+* LibHealComm workaround for non-english clients.
+
+**6.2.3**
+* Totem frame fix (again).
+* Bump LibHealComm.
+
+**6.2.2**
+* Totem frame fix.
+* Library updates and fixes.
+
+**6.2.1**
+* Classic combo fixes.
+* Aura duartion fixes.
+
 **6.2.0**
 * Updated LibHealComm.
 

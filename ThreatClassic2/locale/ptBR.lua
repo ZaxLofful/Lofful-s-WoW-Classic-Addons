@@ -2,7 +2,7 @@ local TC2, C, L, _ = unpack(select(2, ...))
 if TC2.locale ~= "ptBR" and TC2.locale ~= "ptPT" then return end
 
 -----------------------------
---	ptBR and ptPT clients
+-- ptBR and ptPT clients
 -----------------------------
 L.gui_threat = "Ameaça"
 L.gui_config = "Abrir Config"
@@ -95,7 +95,7 @@ L.font_shadow = "Dropshadow"
 L.warnings = "Avisos"
 L.warnings_flash = "Ativar tela piscando."
 L.warnings_sound = "Ativar sons"
-L.warnings_threshold = "Limite de aviso (agro = 100%)"
+L.warnings_threshold = "Limite de aviso (100% = agro)"
 L.warnings_minThreatAmount = "Ameaça mínima para acionar avisos"
 L.warnings_minThreatAmount_desc = "O valor depende da configuração 'Geral -> Escala dos valores da ameaça' e corresponde à ameaça exibida. Números maiores podem ser configurados com a caixa de entrada."
 

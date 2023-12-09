@@ -12,7 +12,7 @@ XPerl_RequestConfig(function(new)
 	if (XPerl_Player) then
 		XPerl_Player.conf = conf.player
 	end
-end, "$Revision: c90ca4d25353186d9a29477279287fe2f320a73c $")
+end, "$Revision: b65d3d02967cfeb25341ba85f9e22611f78c19dc $")
 
 local perc1F = "%.1f"..PERCENT_SYMBOL
 local percD = "%.0f"..PERCENT_SYMBOL
@@ -23,32 +23,81 @@ local function d(...)
 end
 --@end-debug@]===]
 
+local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+local IsWrathClassic = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
+local IsVanillaClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
 
+-- Upvalues
+local ceil = ceil
+local floor = floor
 local format = format
+local hooksecurefunc = hooksecurefunc
+local max = max
+local pairs = pairs
+local pcall = pcall
+local string = string
 
+local CreateFrame = CreateFrame
 local GetDifficultyColor = GetDifficultyColor or GetQuestDifficultyColor
+local GetLootMethod = GetLootMethod
 local GetNumGroupMembers = GetNumGroupMembers
+local GetPVPTimer = GetPVPTimer
+local GetRaidRosterInfo = GetRaidRosterInfo
+local GetShapeshiftForm = GetShapeshiftForm
+local GetSpecialization = GetSpecialization
+local GetSpellInfo = GetSpellInfo
+local GetWatchedFactionInfo = GetWatchedFactionInfo
+local GetXPExhaustion = GetXPExhaustion
+local InCombatLockdown = InCombatLockdown
+local IsInInstance = IsInInstance
+local IsInRaid = IsInRaid
+local IsPVPTimerRunning = IsPVPTimerRunning
+local IsResting = IsResting
+local UnitAffectingCombat = UnitAffectingCombat
+local UnitClass = UnitClass
+local UnitExists = UnitExists
+local UnitFactionGroup = UnitFactionGroup
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
+local UnitGUID = UnitGUID
+local UnitHasIncomingResurrection = UnitHasIncomingResurrection
+local UnitHasVehicleUI = UnitHasVehicleUI
 local UnitHealth = UnitHealth
+local UnitHealthMax = UnitHealthMax
+local UnitInParty = UnitInParty
+local UnitInRaid = UnitInRaid
 local UnitIsAFK = UnitIsAFK
 local UnitIsDead = UnitIsDead
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 local UnitIsGhost = UnitIsGhost
 local UnitIsGroupAssistant = UnitIsGroupAssistant
+local UnitIsGroupLeader = UnitIsGroupLeader
+local UnitIsMercenary = UnitIsMercenary
+local UnitIsPVP = UnitIsPVP
+local UnitIsPVPFreeForAll = UnitIsPVPFreeForAll
+local UnitIsUnit = UnitIsUnit
+local UnitLevel = UnitLevel
 local UnitName = UnitName
+local UnitOnTaxi = UnitOnTaxi
 local UnitPower = UnitPower
 local UnitPower = UnitPower
 local UnitPowerMax = UnitPowerMax
+local UnitPowerType = UnitPowerType
+local UnitXP = UnitXP
+local UnitXPMax = UnitXPMax
 
-local XPerl_Player_InitCP
+local CombatFeedback_Initialize = CombatFeedback_Initialize
+local CombatFeedback_OnCombatEvent = CombatFeedback_OnCombatEvent
+local CombatFeedback_OnUpdate = CombatFeedback_OnUpdate
 
 local XPerl_Player_InitDK
+local XPerl_Player_InitDruid
+local XPerl_Player_InitEvoker
 local XPerl_Player_InitMage
-local XPerl_Player_InitWarlock
-local XPerl_Player_InitPaladin
 local XPerl_Player_InitMonk
---local XPerl_Player_InitMoonkin
+local XPerl_Player_InitPaladin
+local XPerl_Player_InitRogue
+local XPerl_Player_InitWarlock
 
 local XPerl_PlayerStatus_OnUpdate
 local XPerl_Player_HighlightCallback
@@ -60,6 +109,7 @@ local XPerl_Player_HighlightCallback
 function XPerl_Player_OnLoad(self)
 	XPerl_SetChildMembers(self)
 	self.partyid = "player"
+	self.unit = self.partyid
 
 	XPerl_BlizzFrameDisable(PlayerFrame)
 
@@ -123,16 +173,18 @@ function XPerl_Player_OnLoad(self)
 
 	self.nameFrame.pvptimer:SetScript("OnUpdate", XPerl_Player_UpdatePVPTimerOnUpdate)
 
-	XPerl_Player_InitCP(self)
+	local _, playerClass = UnitClass("player")
+	XPerl_Player_InitDruid(self, playerClass)
 	if (playerClass == "DRUID") or (playerClass == "SHAMAN") or (playerClass == "PRIEST") then
 		XPerl_Player_DruidBarUpdate(self)
 	end
-
-	XPerl_Player_InitDK(self)
-	XPerl_Player_InitMage(self)
-	XPerl_Player_InitPaladin(self)
-	XPerl_Player_InitMonk(self)
-	XPerl_Player_InitWarlock(self)
+	XPerl_Player_InitDK(self, playerClass)
+	XPerl_Player_InitEvoker(self, playerClass)
+	XPerl_Player_InitMage(self, playerClass)
+	XPerl_Player_InitMonk(self, playerClass)
+	XPerl_Player_InitPaladin(self, playerClass)
+	XPerl_Player_InitRogue(self, playerClass)
+	XPerl_Player_InitWarlock(self, playerClass)
 
 	XPerl_RegisterHighlight(self.highlight, 3)
 
@@ -171,7 +223,8 @@ local function UpdateAssignedRoles(self)
 	local unit = self.partyid
 	local icon = self.nameFrame.roleIcon
 	local isTank, isHealer, isDamage
-	if (not IsClassic and instanceType == "party") then
+	local inInstance, instanceType = IsInInstance()
+	if (not IsVanillaClassic and instanceType == "party") then
 		-- No point getting it otherwise, as they can be wrong. Usually the values you had
 		-- from previous instance if you're running more than one with the same people
 
@@ -578,7 +631,7 @@ local function MakeDruidBar(self)
 end
 
 -- XPerl_Player_DruidBarUpdate
-local function XPerl_Player_DruidBarUpdate(self)
+function XPerl_Player_DruidBarUpdate(self)
 	local druidBar = self.statsFrame.druidBar
 	if (pconf.noDruidBar) then
 		if (druidBar) then
@@ -681,7 +734,7 @@ local function XPerl_Player_UpdateMana(self)
 	local percent
 	if playermana > 0 and playermanamax == 0 then -- We have current mana but max mana failed.
 		playermanamax = playermana -- Make max mana at least equal to current health
-		percent = 100 -- And percent 100% cause a number divided by itself is 1, duh.
+		percent = 1 -- And percent 100% cause a number divided by itself is 1, duh.
 	elseif playermana == 0 and playermanamax == 0 then -- Probably doesn't use mana or is oom?
 		percent = 0 -- So just automatically set percent to 0 and avoid division of 0/0 all together in this situation.
 	else
@@ -732,8 +785,20 @@ local function XPerl_Player_UpdateAbsorbPrediction(self)
 	end
 end
 
+-- XPerl_Player_UpdateHotsPrediction
+local function XPerl_Player_UpdateHotsPrediction(self)
+	if not IsWrathClassic then
+		return
+	end
+	if pconf.hotPrediction then
+		XPerl_SetExpectedHots(self)
+	else
+		self.statsFrame.expectedHots:Hide()
+	end
+end
+
 local function XPerl_Player_UpdateResurrectionStatus(self)
-	if (UnitHasIncomingResurrection(self.partyid)) then
+	if UnitHasIncomingResurrection(self.partyid) then
 		if pconf.portrait then
 			self.portraitFrame.resurrect:Show()
 		else
@@ -762,6 +827,7 @@ local function XPerl_Player_UpdateHealth(self)
 
 	XPerl_SetHealthBar(self, playerhealth, playerhealthmax)
 	XPerl_Player_UpdateAbsorbPrediction(self)
+	XPerl_Player_UpdateHotsPrediction(self)
 	XPerl_Player_UpdateHealPrediction(self)
 	XPerl_Player_UpdateResurrectionStatus(self)
 
@@ -944,14 +1010,22 @@ end
 function XPerl_Player_Events:PLAYER_ENTERING_WORLD(event, initialLogin, reloadingUI)
 	self.updateAFK = true
 
-	if (not IsClassic and UnitHasVehicleUI("player")) then
+	if (not IsVanillaClassic and UnitHasVehicleUI("player")) then
 		self.partyid = "vehicle"
+		self.unit = self.partyid
+		if self.runes and self.runes.child and self.runes.child.unit then
+			self.runes.child.unit = self.partyid
+		end
 		self:SetAttribute("unit", "vehicle")
 		if (XPerl_ArcaneBar_SetUnit) then
 			XPerl_ArcaneBar_SetUnit(self.nameFrame, "vehicle")
 		end
 	else
 		self.partyid = "player"
+		self.unit = self.partyid
+		if self.runes and self.runes.child and self.runes.child.unit then
+			self.runes.child.unit = self.partyid
+		end
 		self:SetAttribute("unit", "player")
 		if (XPerl_ArcaneBar_SetUnit) then
 			XPerl_ArcaneBar_SetUnit(self.nameFrame, "player")
@@ -1550,7 +1624,7 @@ function XPerl_Player_Events:VARIABLES_LOADED()
 		"PLAYER_FLAGS_CHANGED",
 		"UNIT_ENTERED_VEHICLE",
 		"UNIT_EXITING_VEHICLE",
-		--[["UNIT_PET",]]
+		--"UNIT_PET",
 		"PLAYER_TALENT_UPDATE",
 		"RAID_TARGET_UPDATE",
 		"UPDATE_SHAPESHIFT_FORM",
@@ -1634,7 +1708,12 @@ function XPerl_Player_Events:UNIT_POWER_FREQUENT(powerType)
 
 	if powerType == "COMBO_POINTS" then
 		if XPerl_Target_UpdateCombo then
-			XPerl_Target_UpdateCombo(XPerl_Target)
+			if UnitExists("target") and XPerl_Target:IsVisible() then
+				XPerl_Target_UpdateCombo(XPerl_Target)
+			end
+			if UnitExists("focus") and XPerl_Focus:IsVisible() then
+				XPerl_Target_UpdateCombo(XPerl_Focus)
+			end
 		end
 
 		if conf.target.combo.blizzard then
@@ -1789,7 +1868,7 @@ end
 
 -- PLAYER_CONTROL_LOST
 function XPerl_Player_Events:PLAYER_CONTROL_LOST()
-	if (pconf.fullScreen.enable and not UnitOnTaxi("player")) then
+	if pconf.fullScreen.enable and not UnitOnTaxi("player") then
 		isOutOfControl = true
 	end
 end
@@ -1804,9 +1883,19 @@ end
 
 -- UNIT_ENTERED_VEHICLE
 function XPerl_Player_Events:UNIT_ENTERED_VEHICLE(showVehicle)
-	if (showVehicle) then
+	if showVehicle then
 		self.partyid = "vehicle"
-		if (XPerl_ArcaneBar_SetUnit) then
+		self.unit = self.partyid
+		if pconf.showRunes and self.runes then
+			if self.runes.child then
+				self.runes.child.unit = self.partyid
+				self.runes.child:Setup()
+			end
+			if self.runes.child2 then
+				self.runes.child2:Hide()
+			end
+		end
+		if XPerl_ArcaneBar_SetUnit then
 			XPerl_ArcaneBar_SetUnit(self.nameFrame, "vehicle")
 		end
 		--[[if (not InCombatLockdown()) then
@@ -1819,9 +1908,26 @@ end
 
 -- UNIT_EXITING_VEHICLE
 function XPerl_Player_Events:UNIT_EXITING_VEHICLE()
-	if (self.partyid ~= "player") then
+	if self.partyid ~= "player" then
 		self.partyid = "player"
-		if (XPerl_ArcaneBar_SetUnit) then
+		self.unit = self.partyid
+		if pconf.showRunes and self.runes then
+			if self.runes.child then
+				self.runes.child.unit = self.partyid
+				self.runes.child:Setup()
+			end
+			if self.runes.child2 then
+				local _, playerClass = UnitClass(self.partyid)
+				if playerClass == self.runes.child2.requiredClass then
+					if playerClass == "MONK" and GetSpecialization() == self.runes.child2.requiredSpec then
+						self.runes.child2:Show()
+					elseif playerClass == "DEATHKNIGHT" then
+						self.runes.child2:Show()
+					end
+				end
+			end
+		end
+		if XPerl_ArcaneBar_SetUnit then
 			XPerl_ArcaneBar_SetUnit(self.nameFrame, "player")
 		end
 		--[[if (not InCombatLockdown()) then
@@ -1832,14 +1938,20 @@ function XPerl_Player_Events:UNIT_EXITING_VEHICLE()
 end
 
 -- UNIT_PET
-function XPerl_Player_Events:UNIT_PET()
-	self.partyid = (not IsClassic and UnitHasVehicleUI("player")) and "pet" or "player"
+--[[function XPerl_Player_Events:UNIT_PET()
+	self.partyid = (not IsVanillaClassic and UnitHasVehicleUI("player")) and "pet" or "player"
 	XPerl_Player_UpdateDisplay(self)
-end
+end--]]
 
 function XPerl_Player_Events:UNIT_HEAL_PREDICTION(unit)
-	if (pconf.healprediction and unit == self.partyid) then
+	if pconf.healprediction and unit == self.partyid then
 		XPerl_SetExpectedHealth(self)
+	end
+	if not IsWrathClassic then
+		return
+	end
+	if pconf.hotPrediction and unit == self.partyid then
+		XPerl_SetExpectedHots(self)
 	end
 end
 
@@ -1914,7 +2026,7 @@ local function MakeXPBar(self)
 end
 
 -- XPerl_Player_SetTotems
-function XPerl_Player_SetTotems(self, ...)
+function XPerl_Player_SetTotems()
 	if (pconf.totems and pconf.totems.enable) then
 		TotemFrame:SetParent(XPerl_Player)
 		TotemFrame:ClearAllPoints()
@@ -1922,14 +2034,18 @@ function XPerl_Player_SetTotems(self, ...)
 	else
 		TotemFrame:SetParent(PlayerFrame)
 		TotemFrame:ClearAllPoints()
-		TotemFrame:SetPoint("TOPLEFT", PlayerFrame, "BOTTOMLEFT", 99, 38)
+		if IsRetail then
+			TotemFrame:SetPoint("TOPRIGHT", PlayerFrame, "BOTTOMRIGHT", 0, 20)
+		else
+			TotemFrame:SetPoint("TOPLEFT", PlayerFrame, "BOTTOMLEFT", 99, 38)
+		end
 	end
 end
 
 -- XPerl_Player_Set_Bits()
 function XPerl_Player_Set_Bits(self)
 	if (XPerl_ArcaneBar_RegisterFrame and not self.nameFrame.castBar) then
-		XPerl_ArcaneBar_RegisterFrame(self.nameFrame, (not IsClassic and UnitHasVehicleUI("player")) and "vehicle" or "player")
+		XPerl_ArcaneBar_RegisterFrame(self.nameFrame, (not IsVanillaClassic and UnitHasVehicleUI("player")) and "vehicle" or "player")
 	end
 
 	if not InCombatLockdown() then
@@ -2075,9 +2191,44 @@ function XPerl_Player_Set_Bits(self)
 			}
 		end
 
-		if (not IsClassic and not self.totemHooked) then
-			hooksecurefunc("TotemFrame_Update", XPerl_Player_SetTotems)
-			self.totemHooked = true
+		if not IsVanillaClassic then
+			if (pconf.totems and pconf.totems.enable and not self.totemHooked) then
+				local moving
+				hooksecurefunc(TotemFrame, "SetPoint", function(self)
+					if not pconf.totems.enable then
+						return
+					end
+					if moving then
+						return
+					end
+					moving = true
+					self:SetMovable(true)
+					self:ClearAllPoints()
+					self:SetPoint("TOP", XPerl_Player, "BOTTOM", pconf.totems.offsetX, pconf.totems.offsetY)
+					self:SetMovable(false)
+					moving = nil
+				end)
+				local parenting
+				hooksecurefunc(TotemFrame, "SetParent", function(self)
+					if not pconf.totems.enable then
+						return
+					end
+					if parenting then
+						return
+					end
+					parenting = true
+					self:SetMovable(true)
+					self:SetParent(XPerl_Player)
+					self:ClearAllPoints()
+					self:SetPoint("TOP", XPerl_Player, "BOTTOM", pconf.totems.offsetX, pconf.totems.offsetY)
+					self:SetMovable(false)
+					parenting = nil
+				end)
+				self.totemHooked = true
+				XPerl_Player_SetTotems()
+			else
+				XPerl_Player_SetTotems()
+			end
 		end
 	end
 
@@ -2118,294 +2269,490 @@ local function MakeMoveable(frame)
 	end)
 end
 
--- XPerl_Player_InitCP
-function XPerl_Player_InitCP(self)
-	local _, class = UnitClass("player")
-	if (class == "DRUID") or (class == "ROGUE") then
-		if not ComboPointPlayerFrame then
-			return
-		end
-
-		self.runes = CreateFrame("Frame", "XPerl_Runes", self)
-		self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
-		self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
-		self.runes.child = ComboPointPlayerFrame
-		self.runes.unit = "player"
-
-		if pconf.lockRunes then
-			local moving
-			hooksecurefunc(ComboPointPlayerFrame, "SetPoint", function(self)
-				if moving then
-					return
-				end
-				if not pconf.showRunes then
-					return
-				end
-				if not pconf.lockRunes then
-					return
-				end
-				moving = true
-				self:SetMovable(true)
-				--self:SetUserPlaced(true)
-				self:ClearAllPoints()
-				self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, 2)
-				self:SetMovable(false)
-				moving = nil
-			end)
-		end
-
-		ComboPointPlayerFrame:SetParent(self.runes)
-		ComboPointPlayerFrame:ClearAllPoints()
-		ComboPointPlayerFrame:SetPoint("TOP", self.runes, "TOP", 0, 2)
+-- XPerl_Player_InitDruid
+function XPerl_Player_InitDruid(self, playerClass)
+	if not IsRetail or playerClass ~= "DRUID" or self.runes then
+		return
 	end
+
+	self.runes = CreateFrame("Frame", "XPerl_Runes", self)
+	self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
+	self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
+	self.runes.child = CreateFrame("Frame", "ZPerlDruidComboPointBarFrame", self.runes, "DruidComboPointBarTemplate")
+	--self.runes.child:SetTooltip(self.runes.child.tooltip1, self.runes.child.tooltip2)
+	self.runes.child.unit = "player"
+
+	if pconf.lockRunes then
+		local moving
+		hooksecurefunc(self.runes.child, "SetPoint", function(self)
+			if moving or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			moving = true
+			self:SetMovable(true)
+			--self:SetUserPlaced(true)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -6)
+			self:SetMovable(false)
+			moving = nil
+		end)
+		local parenting
+		hooksecurefunc(self.runes.child, "SetParent", function(self)
+			if parenting or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			parenting = true
+			self:SetMovable(true)
+			self:SetParent(XPerl_Player.runes)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -6)
+			self:SetMovable(false)
+			parenting = nil
+		end)
+	end
+
+	self.runes.child:SetParent(self.runes)
+	self.runes.child:ClearAllPoints()
+	self.runes.child:SetPoint("TOP", self.runes, "TOP", 0, -6)
+
+	self.runes.child:Setup()
+end
+
+-- XPerl_Player_InitRogue
+function XPerl_Player_InitRogue(self, playerClass)
+	if not IsRetail or playerClass ~= "ROGUE" or self.runes then
+		return
+	end
+
+	self.runes = CreateFrame("Frame", "XPerl_Runes", self)
+	self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
+	self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
+	self.runes.child = CreateFrame("Frame", "ZPerlRogueComboPointBarFrame", self.runes, "RogueComboPointBarTemplate")
+	--self.runes.child:SetTooltip(self.runes.child.tooltip1, self.runes.child.tooltip2)
+	self.runes.child.unit = "player"
+
+	if pconf.lockRunes then
+		local moving
+		hooksecurefunc(self.runes.child, "SetPoint", function(self)
+			if moving or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			moving = true
+			self:SetMovable(true)
+			--self:SetUserPlaced(true)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -8)
+			self:SetMovable(false)
+			moving = nil
+		end)
+		local parenting
+		hooksecurefunc(self.runes.child, "SetParent", function(self)
+			if parenting or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			parenting = true
+			self:SetMovable(true)
+			self:SetParent(XPerl_Player.runes)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -8)
+			self:SetMovable(false)
+			parenting = nil
+		end)
+	end
+
+	self.runes.child:SetParent(self.runes)
+	self.runes.child:ClearAllPoints()
+	self.runes.child:SetPoint("TOP", self.runes, "TOP", 0, -8)
+
+	self.runes.child:Setup()
 end
 
 -- XPerl_Player_InitWarlock
-function XPerl_Player_InitWarlock(self)
-	local _, class = UnitClass("player")
-	if (class == "WARLOCK" ) then
-
-		if not WarlockPowerFrame then
-			return
-		end
-
-		self.runes = CreateFrame("Frame", "XPerl_Runes", self)
-		self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
-		self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
-		self.runes.child = WarlockPowerFrame
-		self.runes.unit = "player"
-
-		if pconf.lockRunes then
-			local moving
-			hooksecurefunc(WarlockPowerFrame, "SetPoint", function(self)
-				if moving then
-					return
-				end
-				if not pconf.showRunes then
-					return
-				end
-				if not pconf.lockRunes then
-					return
-				end
-				moving = true
-				self:SetMovable(true)
-				--self:SetUserPlaced(true)
-				self:ClearAllPoints()
-				self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, 0)
-				self:SetMovable(false)
-				moving = nil
-			end)
-		end
-
-		WarlockPowerFrame:SetParent(self.runes)
-		WarlockPowerFrame:ClearAllPoints()
-		WarlockPowerFrame:SetPoint("TOP", self.runes, "TOP", 0, 0)
+function XPerl_Player_InitWarlock(self, playerClass)
+	if not IsRetail or playerClass ~= "WARLOCK" or self.runes then
+		return
 	end
+
+	self.runes = CreateFrame("Frame", "XPerl_Runes", self)
+	self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
+	self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
+	self.runes.child = CreateFrame("Frame", "ZPerlWarlockPowerFrame", self.runes, "WarlockPowerFrameTemplate")
+	--self.runes.child:SetTooltip(self.runes.child.tooltip1, self.runes.child.tooltip2)
+	self.runes.child.unit = "player"
+
+	if pconf.lockRunes then
+		local moving
+		hooksecurefunc(self.runes.child, "SetPoint", function(self)
+			if moving or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			moving = true
+			self:SetMovable(true)
+			--self:SetUserPlaced(true)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -2)
+			self:SetMovable(false)
+			moving = nil
+		end)
+		local parenting
+		hooksecurefunc(self.runes.child, "SetParent", function(self)
+			if parenting or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			parenting = true
+			self:SetMovable(true)
+			self:SetParent(XPerl_Player.runes)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -2)
+			self:SetMovable(false)
+			parenting = nil
+		end)
+	end
+
+	self.runes.child:SetParent(self.runes)
+	self.runes.child:ClearAllPoints()
+	self.runes.child:SetPoint("TOP", self.runes, "TOP", 0, -2)
+
+	self.runes.child:Setup()
 end
 
 -- XPerl_Player_InitPaladin
-function XPerl_Player_InitPaladin(self)
-	local _, class = UnitClass("player")
-	if (class == "PALADIN") then
-
-		if not PaladinPowerBarFrame then
-			return
-		end
-
-		self.runes = CreateFrame("Frame", "XPerl_Runes", self)
-		self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
-		self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
-		self.runes.child = PaladinPowerBarFrame
-		self.runes.unit = "player"
-
-		if pconf.lockRunes then
-			local moving
-			hooksecurefunc(PaladinPowerBarFrame, "SetPoint", function(self)
-				if moving then
-					return
-				end
-				if not pconf.showRunes then
-					return
-				end
-				if not pconf.lockRunes then
-					return
-				end
-				moving = true
-				self:SetMovable(true)
-				--self:SetUserPlaced(true)
-				self:ClearAllPoints()
-				self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, 6)
-				self:SetMovable(false)
-				moving = nil
-			end)
-		end
-
-		PaladinPowerBarFrame:SetParent(self.runes)
-		PaladinPowerBarFrame:ClearAllPoints()
-		PaladinPowerBarFrame:SetPoint("TOP", self.runes, "TOP", 0, 6)
+function XPerl_Player_InitPaladin(self, playerClass)
+	if not IsRetail or playerClass ~= "PALADIN" or self.runes then
+		return
 	end
+
+	self.runes = CreateFrame("Frame", "XPerl_Runes", self)
+	self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
+	self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
+	self.runes.child = CreateFrame("Frame", "ZPerlPaladinPowerBarFrame", self.runes, "PaladinPowerBarFrameTemplate")
+	--[[self.runes.child.tooltip1 = HOLY_POWER
+	self.runes.child.tooltip2 = HOLY_POWER_TOOLTIP
+	self.runes.child:SetTooltip(self.runes.child.tooltip1, self.runes.child.tooltip2)--]]
+	self.runes.child.unit = "player"
+
+	if pconf.lockRunes then
+		local moving
+		hooksecurefunc(self.runes.child, "SetPoint", function(self)
+			if moving or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			moving = true
+			self:SetMovable(true)
+			--self:SetUserPlaced(true)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, 3)
+			self:SetMovable(false)
+			moving = nil
+		end)
+		local parenting
+		hooksecurefunc(self.runes.child, "SetParent", function(self)
+			if parenting or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			parenting = true
+			self:SetMovable(true)
+			self:SetParent(XPerl_Player.runes)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, 3)
+			self:SetMovable(false)
+			parenting = nil
+		end)
+	end
+
+	self.runes.child:SetParent(self.runes)
+	self.runes.child:ClearAllPoints()
+	self.runes.child:SetPoint("TOP", self.runes, "TOP", 0, 3)
+
+	self.runes.child:Setup()
 end
 
 -- XPerl_Player_InitMonk
-function XPerl_Player_InitMonk(self)
-	local _, class = UnitClass("player")
-	if (class == "MONK") then
-		self.runes = CreateFrame("Frame", "XPerl_Runes", self)
-		self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
-		self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
-		self.runes.child = MonkHarmonyBarFrame
-		self.runes.child2 = MonkStaggerBar
-		self.runes.unit = "player"
+function XPerl_Player_InitMonk(self, playerClass)
+	if not IsRetail or playerClass ~= "MONK" or self.runes then
+		return
+	end
 
-		if pconf.lockRunes then
-			local moving
-			hooksecurefunc(MonkHarmonyBarFrame, "SetPoint", function(self)
-				if moving then
-					return
-				end
-				if not pconf.showRunes then
-					return
-				end
-				if not pconf.lockRunes then
-					return
-				end
-				moving = true
-				self:SetMovable(true)
-				--self:SetUserPlaced(true)
-				self:ClearAllPoints()
-				self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, 18)
-				self:SetMovable(false)
-				moving = nil
-			end)
-		end
+	self.runes = CreateFrame("Frame", "XPerl_Runes", self)
+	self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
+	self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
+	self.runes.child = CreateFrame("Frame", "ZPerlMonkHarmonyBarFrame", self.runes, "MonkHarmonyBarFrameTemplate")
+	--[[self.runes.child.tooltip1 = CHI_POWER
+	self.runes.child.tooltip2 = CHI_TOOLTIP
+	self.runes.child:SetTooltip(self.runes.child.tooltip1, self.runes.child.tooltip2)--]]
+	self.runes.child.unit = "player"
+	self.runes.child2 = CreateFrame("StatusBar", "ZPerlMonkStaggerBar", self.runes, "PlayerFrameAlternatePowerBarBaseTemplate, MonkStaggerBarTemplate")
 
-		MonkHarmonyBarFrame:SetParent(self.runes)
-		MonkHarmonyBarFrame:SetFrameLevel(0)
-		MonkHarmonyBarFrame:ClearAllPoints()
-		MonkHarmonyBarFrame:SetPoint("TOP", self.runes, "TOP", 0, 18)
-
-		if pconf.lockRunes then
-			local moving
-			hooksecurefunc(MonkStaggerBar, "SetPoint", function(self)
-				if moving then
-					return
-				end
-				if not pconf.showRunes then
-					return
-				end
-				if not pconf.lockRunes then
-					return
-				end
-				moving = true
-				self:SetMovable(true)
-				--self:SetUserPlaced(true)
-				self:ClearAllPoints()
-				self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, 0)
-				self:SetMovable(false)
-				moving = nil
-			end)
-		end
-
-		MonkStaggerBar:SetParent(self.runes)
-		MonkStaggerBar:ClearAllPoints()
-		MonkStaggerBar:SetPoint("TOP", self.runes, "TOP", 0, 0)
-		MonkStaggerBar:SetScript("OnMouseUp", nil)
-
-		MonkStaggerBar:HookScript("OnShow", function(self)
-			if XPerl_Player_Buffs_Position then
-				XPerl_Player_Buffs_Position(XPerl_Player)
+	if pconf.lockRunes then
+		local moving
+		hooksecurefunc(self.runes.child, "SetPoint", function(self)
+			if moving or not pconf.showRunes or not pconf.lockRunes then
+				return
 			end
+			moving = true
+			self:SetMovable(true)
+			--self:SetUserPlaced(true)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -5)
+			self:SetMovable(false)
+			moving = nil
 		end)
-		MonkStaggerBar:HookScript("OnHide", function(self)
-			if XPerl_Player_Buffs_Position then
-				XPerl_Player_Buffs_Position(XPerl_Player)
+		local parenting
+		hooksecurefunc(self.runes.child, "SetParent", function(self)
+			if parenting or not pconf.showRunes or not pconf.lockRunes then
+				return
 			end
+			parenting = true
+			self:SetMovable(true)
+			self:SetParent(XPerl_Player.runes)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -5)
+			self:SetMovable(false)
+			parenting = nil
 		end)
 	end
+
+	self.runes.child:SetParent(self.runes)
+	self.runes.child:SetFrameLevel(0)
+	self.runes.child:ClearAllPoints()
+	self.runes.child:SetPoint("TOP", self.runes, "TOP", 0, -5)
+
+	self.runes.child:Setup()
+
+	if pconf.lockRunes then
+		local moving
+		hooksecurefunc(self.runes.child2, "SetPoint", function(self)
+			if moving or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			moving = true
+			self:SetMovable(true)
+			--self:SetUserPlaced(true)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, 0)
+			self:SetMovable(false)
+			moving = nil
+		end)
+		local parenting
+		hooksecurefunc(self.runes.child2, "SetParent", function(self)
+			if parenting or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			parenting = true
+			self:SetMovable(true)
+			self:SetParent(XPerl_Player.runes)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, 0)
+			self:SetMovable(false)
+			parenting = nil
+		end)
+	end
+
+	self.runes.child2:SetParent(self.runes)
+	self.runes.child2:ClearAllPoints()
+	self.runes.child2:SetPoint("TOP", self.runes, "TOP", 0, 0)
+
+	self.runes.child2:Initialize()
+
+	self.runes.child2:HookScript("OnShow", function(self)
+		if XPerl_Player_Buffs_Position then
+			XPerl_Player_Buffs_Position(XPerl_Player)
+		end
+	end)
+	self.runes.child2:HookScript("OnHide", function(self)
+		if XPerl_Player_Buffs_Position then
+			XPerl_Player_Buffs_Position(XPerl_Player)
+		end
+	end)
 end
 
 --XPerl_Player_InitMage
-function XPerl_Player_InitMage(self)
-	local _, class = UnitClass("player")
-	if (class == "MAGE") then
-
-		if not MageArcaneChargesFrame then
-			return
-		end
-
-		self.runes = CreateFrame("Frame", "XPerl_Runes", self)
-		self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
-		self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
-		self.runes.child = MageArcaneChargesFrame
-		self.runes.unit = "player"
-
-		if pconf.lockRunes then
-			local moving
-			hooksecurefunc(MageArcaneChargesFrame, "SetPoint", function(self)
-				if moving then
-					return
-				end
-				if not pconf.showRunes then
-					return
-				end
-				if not pconf.lockRunes then
-					return
-				end
-				moving = true
-				self:SetMovable(true)
-				--self:SetUserPlaced(true)
-				self:ClearAllPoints()
-				self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, 0)
-				self:SetMovable(false)
-				moving = nil
-			end)
-		end
-
-		MageArcaneChargesFrame:SetParent(self.runes)
-		MageArcaneChargesFrame:ClearAllPoints()
-		MageArcaneChargesFrame:SetPoint("TOP", self.runes, "TOP", 0, 0)
+function XPerl_Player_InitMage(self, playerClass)
+	if not IsRetail or playerClass ~= "MAGE" or self.runes then
+		return
 	end
+
+	self.runes = CreateFrame("Frame", "XPerl_Runes", self)
+	self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
+	self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
+	self.runes.child = CreateFrame("Frame", "ZPerlMageArcaneChargesFrame", self.runes, "MageArcaneChargesFrameTemplate")
+	Mixin(self.runes.child, MagePowerBar)
+	--self.runes.child:SetTooltip(self.runes.child.tooltip1, self.runes.child.tooltip2)
+	self.runes.child.unit = "player"
+
+	if pconf.lockRunes then
+		local moving
+		hooksecurefunc(self.runes.child, "SetPoint", function(self)
+			if moving or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			moving = true
+			self:SetMovable(true)
+			--self:SetUserPlaced(true)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -7)
+			self:SetMovable(false)
+			moving = nil
+		end)
+		local parenting
+		hooksecurefunc(self.runes.child, "SetParent", function(self)
+			if parenting or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			parenting = true
+			self:SetMovable(true)
+			self:SetParent(XPerl_Player.runes)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -7)
+			self:SetMovable(false)
+			parenting = nil
+		end)
+	end
+
+	self.runes.child:SetParent(self.runes)
+	self.runes.child:ClearAllPoints()
+	self.runes.child:SetPoint("TOP", self.runes, "TOP", 0, -7)
+
+	self.runes.child:Setup()
 end
 
 --XPerl_Player_InitDK
-function XPerl_Player_InitDK(self)
-	local _, class = UnitClass("player")
-	if (class == "DEATHKNIGHT") then
+function XPerl_Player_InitDK(self, playerClass)
+	if playerClass ~= "DEATHKNIGHT" or self.runes then
+		return
+	end
 
-		if not RuneFrame then
-			return
-		end
-
+	if IsRetail then
 		self.runes = CreateFrame("Frame", "XPerl_Runes", self)
 		self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
 		self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
-		self.runes.child = RuneFrame
-		self.runes.unit = "player"
+		self.runes.child2 = CreateFrame("Frame", "ZPerlRuneFrame", self.runes, "RuneFrameTemplate")
+		self.runes.child2.requiredClass = playerClass
+		--[[Mixin(self.runes.child2, ClassPowerBar)
+		self.runes.child2.tooltip1 = COMBAT_TEXT_RUNE_DEATH
+		self.runes.child2.tooltip2 = RUNES_TOOLTIP
+		self.runes.child2:SetTooltip(self.runes.child.tooltip1, self.runes.child.tooltip2)--]]
 
 		if pconf.lockRunes then
 			local moving
-			hooksecurefunc(RuneFrame, "SetPoint", function(self)
-				if moving then
-					return
-				end
-				if not pconf.showRunes then
-					return
-				end
-				if not pconf.lockRunes then
+			hooksecurefunc(self.runes.child2, "SetPoint", function(self)
+				if moving or not pconf.showRunes or not pconf.lockRunes then
 					return
 				end
 				moving = true
 				self:SetMovable(true)
 				--self:SetUserPlaced(true)
 				self:ClearAllPoints()
-				self:SetPoint("TOP", XPerl_Player.runes, "TOP", 3, 0)
+				self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -6)
 				self:SetMovable(false)
 				moving = nil
 			end)
+			local parenting
+			hooksecurefunc(self.runes.child2, "SetParent", function(self)
+				if parenting or not pconf.showRunes or not pconf.lockRunes then
+					return
+				end
+				parenting = true
+				self:SetMovable(true)
+				self:SetParent(XPerl_Player.runes)
+				self:ClearAllPoints()
+				self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -6)
+				self:SetMovable(false)
+				parenting = nil
+			end)
 		end
 
-		RuneFrame:SetParent(self.runes)
-		RuneFrame:ClearAllPoints()
-		RuneFrame:SetPoint("TOP", self.runes, "TOP", 3, 0)
+		self.runes.child2:SetParent(self.runes)
+		self.runes.child2:ClearAllPoints()
+		self.runes.child2:SetPoint("TOP", self.runes, "TOP", 0, -6)
+	elseif IsWrathClassic then
+		self.runes = CreateFrame("Frame", "XPerl_Runes", self)
+		self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
+		self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
+		self.runes.child2 = RuneFrame
+		self.runes.child2.requiredClass = playerClass
+
+		if pconf.lockRunes then
+			local moving
+			hooksecurefunc(self.runes.child2, "SetPoint", function(self)
+				if moving or not pconf.showRunes or not pconf.lockRunes then
+					return
+				end
+				moving = true
+				self:SetMovable(true)
+				--self:SetUserPlaced(true)
+				self:ClearAllPoints()
+				self:SetPoint("TOP", XPerl_Player.runes, "TOP", 3, -3)
+				self:SetMovable(false)
+				moving = nil
+			end)
+			local parenting
+			hooksecurefunc(self.runes.child2, "SetParent", function(self)
+				if parenting or not pconf.showRunes or not pconf.lockRunes then
+					return
+				end
+				parenting = true
+				self:SetMovable(true)
+				self:SetParent(XPerl_Player.runes)
+				self:ClearAllPoints()
+				self:SetPoint("TOP", XPerl_Player.runes, "TOP", 3, -3)
+				self:SetMovable(false)
+				parenting = nil
+			end)
+		end
+
+		self.runes.child2:SetParent(self.runes)
+		self.runes.child2:ClearAllPoints()
+		self.runes.child2:SetPoint("TOP", self.runes, "TOP", 3, -3)
 	end
+end
+
+--XPerl_Player_InitEvoker
+function XPerl_Player_InitEvoker(self, playerClass)
+	if not IsRetail or playerClass ~= "EVOKER" or self.runes then
+		return
+	end
+
+	self.runes = CreateFrame("Frame", "XPerl_Runes", self)
+	self.runes:SetPoint("TOPLEFT", self.statsFrame, "BOTTOMLEFT", 0, 2)
+	self.runes:SetPoint("BOTTOMRIGHT", self.statsFrame, "BOTTOMRIGHT", 0, -22)
+	self.runes.child = CreateFrame("Frame", "ZPerlEssencePlayerFrame", self.runes, "EssencePlayerFrameTemplate")
+	--self.runes.child:SetTooltip(self.runes.child.tooltip1, self.runes.child.tooltip2)
+	self.runes.child.unit = "player"
+
+
+	if pconf.lockRunes then
+		local moving
+		hooksecurefunc(self.runes.child, "SetPoint", function(self)
+			if moving or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			moving = true
+			self:SetMovable(true)
+			--self:SetUserPlaced(true)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -2)
+			self:SetMovable(false)
+			moving = nil
+		end)
+		local parenting
+		hooksecurefunc(self.runes.child, "SetParent", function(self)
+			if parenting or not pconf.showRunes or not pconf.lockRunes then
+				return
+			end
+			parenting = true
+			self:SetMovable(true)
+			self:SetParent(XPerl_Player.runes)
+			self:ClearAllPoints()
+			self:SetPoint("TOP", XPerl_Player.runes, "TOP", 0, -2)
+			self:SetMovable(false)
+			parenting = nil
+		end)
+	end
+
+	self.runes.child:SetParent(self.runes)
+	self.runes.child:ClearAllPoints()
+	self.runes.child:SetPoint("TOP", self.runes, "TOP", 0, -2)
+
+	self.runes.child:Setup()
 end

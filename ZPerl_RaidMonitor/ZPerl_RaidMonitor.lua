@@ -11,8 +11,8 @@ local config = ZPerlRaidMonConfig
 local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo
 local LCC = LibStub("LibClassicCasterino", true)
 if LCC then
-    UnitCastingInfo = function(unit) return LCC:UnitCastingInfo(unit); end
-    UnitChannelInfo = function(unit) return LCC:UnitChannelInfo(unit); end
+	UnitCastingInfo = function(unit) return LCC:UnitCastingInfo(unit); end
+	UnitChannelInfo = function(unit) return LCC:UnitChannelInfo(unit); end
 end
 
 local IsClassic = WOW_PROJECT_ID >= WOW_PROJECT_CLASSIC
@@ -21,7 +21,7 @@ local GetNumGroupMembers = GetNumGroupMembers
 local GetNumSubgroupMembers = GetNumSubgroupMembers
 
 
-XPerl_SetModuleRevision("$Revision: 00a3cadfbbc8615840794db77581992f54190a2b $")
+XPerl_SetModuleRevision("$Revision: 50e769c4305c42360c08e4eba003ac2f06dc3d9a $")
 
 XPERL_RAIDMON_UNIT_WIDTH_MIN = 50
 XPERL_RAIDMON_UNIT_WIDTH_MAX = 150
@@ -422,9 +422,9 @@ function XPerl_RaidMonitor_Init(self)
 					local percent
 					if UnitIsDeadOrGhost(id) or (hp == 0 and hpMax == 0) then--They are dead
 						percent = 0
-					elseif hp > 0 and hpMax == 0 then--They have more then 1 HP so they have to be alive, so we need to fix hpmax being wrong.
-						hpMax = hp--Make max hp equal to current HP
-						percent = 100
+					elseif hp > 0 and hpMax == 0 then --They have more then 1 HP so they have to be alive, so we need to fix hpmax being wrong.
+						hpMax = hp --Make max hp equal to current HP
+						percent = 1
 					else
 						percent = hp / hpMax
 					end
@@ -442,9 +442,9 @@ function XPerl_RaidMonitor_Init(self)
 					local percent
 					if UnitIsDeadOrGhost(id) or (hp == 0 and hpMax == 0) then--They are dead
 						percent = 0
-					elseif hp > 0 and hpMax == 0 then--They have more then 1 HP so they have to be alive, so we need to fix hpmax being wrong.
-						hpMax = hp--Make max hp equal to current HP
-						percent = 100
+					elseif hp > 0 and hpMax == 0 then --They have more then 1 HP so they have to be alive, so we need to fix hpmax being wrong.
+						hpMax = hp --Make max hp equal to current HP
+						percent = 1
 					else
 						percent = hp / hpMax
 					end
@@ -459,9 +459,9 @@ function XPerl_RaidMonitor_Init(self)
 			local percent
 			if UnitIsDeadOrGhost("player") or (hp == 0 and hpMax == 0) then--They are dead
 				percent = 0
-			elseif hp > 0 and hpMax == 0 then--They have more then 1 HP so they have to be alive, so we need to fix hpmax being wrong.
-				hpMax = hp--Make max hp equal to current HP
-				percent = 100
+			elseif hp > 0 and hpMax == 0 then --They have more then 1 HP so they have to be alive, so we need to fix hpmax being wrong.
+				hpMax = hp --Make max hp equal to current HP
+				percent = 1
 			else
 				percent = hp / hpMax
 			end
@@ -606,7 +606,7 @@ function XPerl_RaidMonitor_Init(self)
 		self.area:SetAttribute("sortMethod", "NAME")
 		self.area:SetAttribute("sortDir", "ASC")
 		self.area:SetAttribute("groupBy", "CLASS")		-- For API version 20003
-		self.area:SetAttribute("groupingOrder", "PRIEST,DRUID,SHAMAN,PALADIN,MAGE,WARLOCK,HUNTER,ROGUE,WARRIOR,DEATHKNIGHT,MONK,DEMONHUNTER")
+		self.area:SetAttribute("groupingOrder", "PRIEST,DRUID,SHAMAN,PALADIN,MAGE,WARLOCK,HUNTER,ROGUE,WARRIOR,DEATHKNIGHT,MONK,DEMONHUNTER,EVOKER")
 
 		self:SetAttribute("type", "target")
 		self:SetAttribute("initial-height", config.UnitHeight)

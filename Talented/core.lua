@@ -287,6 +287,7 @@ function Talented:GetDefaultMode()
 end
 
 function Talented:OnEnable()
+	self:createNew2OldIdx()
 	self:RawHook("ToggleTalentFrame", true)
 	--Non-taint option that loads Talented's frame IN ADDITION to Blizzard's frame: self:SecureHook("ToggleTalentFrame")
 	self:SecureHook("UpdateMicroButtons")

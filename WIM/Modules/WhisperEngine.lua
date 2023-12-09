@@ -221,9 +221,9 @@ local function windowDestroyed(self)
     end
 end
 
-function WhisperEngine:OnWindowDestroyed(self)
-    if(self.type == "whisper") then
-        local user = self.theUser;
+function WhisperEngine:OnWindowDestroyed(win)
+    if(win.type == "whisper") then
+        local user = win.theUser;
         Windows[user] = nil;
     end
 end
@@ -235,56 +235,71 @@ end
 
 local splitMessage, splitMessageLinks = {}, {};
 function SendSplitMessage(PRIORITY, HEADER, theMsg, CHANNEL, EXTRA, to)
-        -- parse out links as to not split them incorrectly.
-        theMsg, results = string.gsub(theMsg, "(|H[^|]+|h[^|]+|h)", function(theLink)
-                table.insert(splitMessageLinks, theLink);
-                return "\001\002"..paddString(#splitMessageLinks, "0", string.len(theLink)-4).."\003\004";
-        end);
+    -- determine isBNET
+    local isBN, messageLimit = false, 255;
+    if(Windows[to] and Windows[to].isBN) then
+        isBN = true;
+        messageLimit = 800;
+    end
+	-- seperate escape sequences when chained without spaces
+	theMsg = string.gsub(theMsg, "|r|c", "|r |c");
+	theMsg = string.gsub(theMsg, "|t|T", "|t |T");
+	theMsg = string.gsub(theMsg, "|h|H", "|h |H");
 
-        -- split up each word.
-        SplitToTable(theMsg, "%s", splitMessage);
+	-- parse out links as to not split them incorrectly.
+	theMsg, results = string.gsub(theMsg, "(|H[^|]+|h.-|h|r)", function(theLink)
+		table.insert(splitMessageLinks, theLink);
+		return "\001\002"..paddString(#splitMessageLinks, "0", string.len(theLink)-4).."\003\004";
+	end);
 
-        --reconstruct message into chunks of no more than 255 characters.
-        local chunk = "";
-        for i=1, #splitMessage + 1 do
-                if(splitMessage[i] and string.len(chunk) + string.len(splitMessage[i]) <= 254) then
-                        chunk = chunk..splitMessage[i].." ";
-                else
-                        -- reinsert links of necessary
-                        chunk = string.gsub(chunk, "\001\002%d+\003\004", function(link)
-                                local index = _G.tonumber(string.match(link, "(%d+)"));
-                                return splitMessageLinks[index] or link;
-                        end);
-			if(Windows[to] and Windows[to].isBN) then
+	-- split up each word.
+	SplitToTable(theMsg, "%s", splitMessage);
+
+	--reconstruct message into chunks of no more than 255 characters.
+	local chunk = "";
+	for i=1, #splitMessage + 1 do
+		if(splitMessage[i] and string.len(chunk) + string.len(splitMessage[i]) < messageLimit) then
+			chunk = chunk..splitMessage[i].." ";
+		else
+			-- reinsert links of necessary
+			chunk = string.gsub(chunk, "\001\002%d+\003\004", function(link)
+				local index = _G.tonumber(string.match(link, "(%d+)"));
+				return splitMessageLinks[index] or link;
+			end);
+
+			if(isBN) then
 				_G.BNSendWhisper(Windows[to].bn.id, chunk);
 			else
-					_G.ChatThrottleLib:SendChatMessage(PRIORITY, HEADER, chunk, CHANNEL, EXTRA, to);
-                        end
+                _G.SendChatMessage(chunk, CHANNEL, EXTRA, to)
+				-- _G.ChatThrottleLib:SendChatMessage(PRIORITY, HEADER, chunk, CHANNEL, EXTRA, to);
+			end
 			chunk = (splitMessage[i] or "").." ";
-                end
-        end
+		end
+	end
 
-        -- clean up
-        for k, _ in pairs(splitMessage) do
-                splitMessage[k] = nil;
-        end
-        for k, _ in pairs(splitMessageLinks) do
-                splitMessageLinks[k] = nil;
-        end
+	-- clean up
+	for k, _ in pairs(splitMessage) do
+		splitMessage[k] = nil;
+	end
+	for k, _ in pairs(splitMessageLinks) do
+		splitMessageLinks[k] = nil;
+	end
 end
 
 
 RegisterWidgetTrigger("msg_box", "whisper", "OnEnterPressed", function(self)
         local obj = self:GetParent();
         local msg = PreSendFilterText(self:GetText());
-        local msgCount = math.ceil(string.len(msg)/255);
+		local messageLength = obj.isBN and 800 or 255;
+        local msgCount = math.ceil(string.len(msg)/messageLength);
         if(msgCount == 1) then
             Windows[obj.theUser].msgSent = true;
-	    if(obj.isBN) then
-		_G.BNSendWhisper(obj.bn.id, msg);
-	    else
-	        _G.ChatThrottleLib:SendChatMessage("ALERT", "WIM", msg, "WHISPER", nil, obj.theUser);
-	    end
+			if(obj.isBN) then
+				_G.BNSendWhisper(obj.bn.id, msg);
+			else
+				_G.SendChatMessage(msg, "WHISPER", nil, obj.theUser);
+				-- _G.ChatThrottleLib:SendChatMessage("ALERT", "WIM", msg, "WHISPER", nil, obj.theUser);
+			end
         elseif(msgCount > 1) then
             Windows[obj.theUser].msgSent = true;
             SendSplitMessage("ALERT", "WIM", msg, "WHISPER", nil, obj.theUser);
@@ -538,7 +553,7 @@ function WhisperEngine:CHAT_MSG_SYSTEM_CONTROLLER(eventItem, msg)
     user = FormatUserName(string.match(msg, ERR_FRIEND_ONLINE_SS));
     win = Windows[user];
     if(win) then
-		local msg = user.." ".._G.BN_TOAST_ONLINE
+		msg = user.." ".._G.BN_TOAST_ONLINE
         win:AddMessage(msg, db.displayColors.sysMsg.r, db.displayColors.sysMsg.g, db.displayColors.sysMsg.b);
         win.online = true;
         if(win and win:IsShown() and db.pop_rules.whisper[curState].supress) then
@@ -551,7 +566,7 @@ function WhisperEngine:CHAT_MSG_SYSTEM_CONTROLLER(eventItem, msg)
     user = FormatUserName(string.match(msg, ERR_FRIEND_OFFLINE_S));
     win = Windows[user];
     if(win) then
-		local msg = user.." ".._G.BN_TOAST_OFFLINE
+		msg = user.." ".._G.BN_TOAST_OFFLINE
         win:AddMessage(msg, db.displayColors.sysMsg.r, db.displayColors.sysMsg.g, db.displayColors.sysMsg.b);
         win.online = false;
         if(win and win:IsShown() and db.pop_rules.whisper[curState].supress) then
@@ -701,7 +716,7 @@ function CF_OpenChat(text, chatFrame, desiredCursorPosition)
 		if not string.find(target, "^|K") then
 			return
 		end
-	elseif not (chatType == "BN_WHISPER") or not target then
+	elseif chatType ~= "BN_WHISPER" or not target then
 		return
 	end
 
@@ -754,10 +769,10 @@ GetWhisperWindowByUser = getWhisperWindowByUser;
 
 
 -- define context menu
-local info = _G.UIDropDownMenu_CreateInfo();
+local info = {};
 info.text = "MENU_MSGBOX";
 local msgBoxMenu = AddContextMenu(info.text, info);
-        info = _G.UIDropDownMenu_CreateInfo();
+        info = {};
         info.text = WIM.L["Recently Sent Messages"];
         info.notCheckable = true;
         msgBoxMenu:AddSubItem(AddContextMenu("RECENT_LIST", info), 1);
@@ -768,7 +783,7 @@ local msgBoxMenu = AddContextMenu(info.text, info);
                 end
         end
         for i=1, maxRecent do
-            info = GetContextMenu("RECENT_LIST"..i) or _G.UIDropDownMenu_CreateInfo();
+            info = GetContextMenu("RECENT_LIST"..i) or {};
             info.txt = " ";
             info.hidden = true;
             info.notCheckable = true;
@@ -776,7 +791,7 @@ local msgBoxMenu = AddContextMenu(info.text, info);
         end
 
 local function recentMenuClick(self)
-        _G.CloseDropDownMenus();
+        libs.DropDownMenu.CloseDropDownMenus();
         if(MSG_CONTEXT_MENU_EDITBOX) then
                 if(_G.IsShiftKeyDown()) then
                         MSG_CONTEXT_MENU_EDITBOX:Insert(self.value);

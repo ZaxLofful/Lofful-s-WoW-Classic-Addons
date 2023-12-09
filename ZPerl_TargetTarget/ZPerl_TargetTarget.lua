@@ -56,7 +56,7 @@ XPerl_RequestConfig(function(new)
 	if XPerl_PetTarget then
 		XPerl_PetTarget.conf = conf.pettarget
 	end
-end, "$Revision: f59e7d739fe667c357cee87d003de6e802c8ae29 $")
+end, "$Revision: 622ab1f8aebd021111f667b2de0adca45dd07d93 $")
 
 local buffSetup
 
@@ -168,7 +168,7 @@ function ZPerl_TargetTarget_OnLoad(self)
 	end
 
 	self.targetname = ""
-	self.time, self.targethp, self.targetmana, self.lastUpdate = 0, 0, 0, 0
+	self.lastUpdate = 0
 
 	--XPerl_InitFadeFrame(self)
 	XPerl_RegisterHighlight(self.highlight, 2)
@@ -261,6 +261,16 @@ end
 -- XPerl_TargetTarget_UpdateDisplay
 function XPerl_TargetTarget_UpdateDisplay(self, force)
 	local partyid = self.partyid
+	if not partyid then
+		self.targethp = 0
+		self.targethpmax = 0
+		self.targetmanatype = 0
+		self.targetmana = 0
+		self.targetmanamax = 0
+		self.afk = false
+		self.guid = nil
+		return
+	end
 	--[[if not UnitExists(partyid) then
 		self.targethp = UnitIsGhost(partyid) and 1 or (UnitIsDead(partyid) and 0 or XPerl_Unit_GetHealth(self))
 		self.targetmana = UnitPower(partyid)
@@ -280,11 +290,13 @@ function XPerl_TargetTarget_UpdateDisplay(self, force)
 			XPerl_TargetTarget_UpdatePVP(self)
 
 			-- Save these, so we know whether to update the frame later
-			self.targethp = UnitIsGhost(partyid) and 1 or (UnitIsDead(partyid) and 0 or XPerl_Unit_GetHealth(self))
-			self.targetmanatype = UnitPowerType(partyid)
-			self.targetmana = UnitPower(partyid)
+			--self.targethp = UnitIsGhost(partyid) and 1 or (UnitIsDead(partyid) and 0 or XPerl_Unit_GetHealth(self))
+			--self.targethpmax = UnitHealthMax(partyid)
+			--self.targetmanatype = UnitPowerType(partyid)
+			--self.targetmana = UnitPower(partyid)
+			--self.targetmanamax = UnitPowerMax(partyid)
+			--self.afk = UnitIsAFK(partyid) and conf.showAFK
 			self.guid = UnitGUID(partyid)
-			self.afk = UnitIsAFK(partyid) and conf.showAFK
 
 			XPerl_SetUnitNameColor(self.nameFrame.text, partyid)
 
@@ -371,11 +383,13 @@ function XPerl_TargetTarget_OnUpdate(self, elapsed)
 
 	local newGuid = UnitGUID(partyid)
 	local newHP = UnitIsGhost(partyid) and 1 or (UnitIsDead(partyid) and 0 or XPerl_Unit_GetHealth(self))
+	local newHPMax = UnitHealthMax(partyid)
 	local newManaType = UnitPowerType(partyid)
 	local newMana = UnitPower(partyid)
+	local newManaMax = UnitPowerMax(partyid)
 	local newAFK = UnitIsAFK(partyid)
 
-	if (conf.showAFK and newAFK ~= self.afk) or (newHP ~= self.targethp) then
+	if (conf.showAFK and newAFK ~= self.afk) or (newHP ~= self.targethp) or (newHPMax ~= self.targethpmax) then
 		XPerl_Target_UpdateHealth(self)
 	end
 
@@ -384,7 +398,7 @@ function XPerl_TargetTarget_OnUpdate(self, elapsed)
 		XPerl_Target_SetMana(self)
 	end
 
-	if (newMana ~= self.targetmana) then
+	if (newMana ~= self.targetmana) or (newManaMax ~= self.targetmanamax) then
 		XPerl_Target_SetMana(self)
 	end
 
@@ -402,7 +416,7 @@ function XPerl_TargetTarget_OnUpdate(self, elapsed)
 	if (newGuid ~= self.guid) then
 		XPerl_TargetTarget_UpdateDisplay(self)
 	else
-		self.time = elapsed + self.time
+		self.time = elapsed + (self.time or 0)
 		if self.time >= 0.5 then
 			XPerl_TargetTarget_Update_Combat(self)
 			XPerl_TargetTarget_Update_Control(self)
@@ -414,7 +428,7 @@ function XPerl_TargetTarget_OnUpdate(self, elapsed)
 			--XPerl_TargetTarget_Buff_UpdateAll(self)
 			XPerl_SetUnitNameColor(self.nameFrame.text, partyid)
 			XPerl_UpdateSpellRange(self, partyid)
-			XPerl_Highlight:SetHighlight(self, UnitGUID(partyid))
+			--XPerl_Highlight:SetHighlight(self, UnitGUID(partyid))
 			self.time = 0
 		end
 	end
@@ -457,7 +471,7 @@ function XPerl_TargetTargetTarget_OnUpdate(self, elapsed)
 	if (newGuid ~= self.guid) then
 		XPerl_TargetTarget_UpdateDisplay(self)
 	else
-		self.time = elapsed + self.time
+		self.time = elapsed + (self.time or 0)
 		if self.time >= 0.5 then
 			XPerl_TargetTarget_Update_Combat(self)
 			XPerl_TargetTarget_Update_Control(self)
@@ -469,7 +483,7 @@ function XPerl_TargetTargetTarget_OnUpdate(self, elapsed)
 			--XPerl_TargetTarget_Buff_UpdateAll(self)
 			XPerl_SetUnitNameColor(self.nameFrame.text, partyid)
 			XPerl_UpdateSpellRange(self, partyid)
-			XPerl_Highlight:SetHighlight(self, UnitGUID(partyid))
+			--XPerl_Highlight:SetHighlight(self, UnitGUID(partyid))
 			self.time = 0
 		end
 	end
@@ -643,20 +657,23 @@ function XPerl_TargetTarget_Set_Bits()
 	if conf.targettargettarget.enable then
 		if not XPerl_TargetTargetTarget then
 			local ttt = CreateFrame("Button", "XPerl_TargetTargetTarget", UIParent, "ZPerl_TargetTarget_Template")
+			ttt:ClearAllPoints()
 			ttt:SetPoint("TOPLEFT", XPerl_TargetTarget.statsFrame, "TOPRIGHT", 5, 0)
 		end
 	end
 
 	if conf.focustarget.enable then
 		if not XPerl_FocusTarget then
-			local ttt = CreateFrame("Button", "XPerl_FocusTarget", UIParent, "ZPerl_TargetTarget_Template")
-			ttt:SetPoint("TOPLEFT", XPerl_Focus.levelFrame, "TOPRIGHT", 5, 0)
+			local ft = CreateFrame("Button", "XPerl_FocusTarget", UIParent, "ZPerl_TargetTarget_Template")
+			ft:ClearAllPoints()
+			ft:SetPoint("TOPLEFT", XPerl_Focus.levelFrame, "TOPRIGHT", 5, 0)
 		end
 	end
 
 	if conf.pettarget.enable and XPerl_Player_Pet then
 		if not XPerl_PetTarget then
 			local pt = CreateFrame("Button", "XPerl_PetTarget", XPerl_Player_Pet, "ZPerl_TargetTarget_Template")
+			pt:ClearAllPoints()
 			pt:SetPoint("BOTTOMLEFT", XPerl_Player_Pet.statsFrame, "BOTTOMRIGHT", 5, 0)
 		end
 		if (not InCombatLockdown()) then

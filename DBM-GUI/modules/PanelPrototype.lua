@@ -1,9 +1,53 @@
-local L		= DBM_GUI_L
-local CL	= DBM_CORE_L
+local isRetail = WOW_PROJECT_ID == (WOW_PROJECT_MAINLINE or 1)
+local isClassic = WOW_PROJECT_ID == (WOW_PROJECT_CLASSIC or 2)
 
-local setmetatable, select, type, tonumber, strsplit, mmax, tinsert, tremove = setmetatable, select, type, tonumber, strsplit, math.max, table.insert, table.remove
+local L		= DBM_GUI_L
+local CL	= DBM_COMMON_L
+
+local setmetatable, select, type, tonumber, strsplit, mmax, tinsert = setmetatable, select, type, tonumber, strsplit, math.max, table.insert
 local CreateFrame, GetCursorPosition, UIParent, GameTooltip, NORMAL_FONT_COLOR, GameFontNormal = CreateFrame, GetCursorPosition, UIParent, GameTooltip, NORMAL_FONT_COLOR, GameFontNormal
 local DBM, DBM_GUI = DBM, DBM_GUI
+local CreateTextureMarkup = CreateTextureMarkup
+
+--TODO, not 100% sure which ones use html and which don't so some might need true added or removed for 2nd arg
+local function parseDescription(name, usesHTML)
+	if not name then
+		return
+	end
+	local spellName = name
+	if name:find("%$spell:ej") then -- It is journal link :-)
+		name = name:gsub("%$spell:ej(%d+)", "$journal:%1")
+	end
+	if name:find("%$spell:") then
+		name = name:gsub("%$spell:(%-?%d+)", function(id)
+			local spellId = tonumber(id)
+			if spellId < 0 then
+			    return "$journal:" .. -spellId
+			end
+			spellName = DBM:GetSpellInfo(spellId)
+			if not spellName then
+				spellName = CL.UNKNOWN
+				DBM:Debug("Spell ID does not exist: " .. spellId)
+			end
+			--The HTML parser breaks if spell name has & in it if it's not encoded to html formating
+			if usesHTML and spellName:find("&") then
+				spellName = spellName:gsub("&", "&amp;")
+			end
+			return ("|cff71d5ff|Hspell:%d|h%s|h|r"):format(spellId, spellName)
+		end)
+	end
+	if name:find("%$journal:") then
+		name = name:gsub("%$journal:(%d+)", function(id)
+			spellName = DBM:EJ_GetSectionInfo(tonumber(id))
+			if not spellName then
+				DBM:Debug("Journal ID does not exist: " .. id)
+			end
+			local link = select(9, DBM:EJ_GetSectionInfo(tonumber(id))) or CL.UNKNOWN
+			return link:gsub("|h%[(.*)%]|h", "|h%1|h")
+		end)
+	end
+	return name, spellName
+end
 
 local PanelPrototype = {}
 setmetatable(PanelPrototype, {
@@ -30,18 +74,56 @@ function PanelPrototype:CreateCreatureModelFrame(width, height, creatureid, scal
 	return model
 end
 
+function PanelPrototype:CreateSpellDesc(text)
+	local test = CreateFrame("Frame", "DBM_GUI_Option_" .. self:GetNewID(), self.frame)
+	local textblock = self.frame:CreateFontString(test:GetName() .. "Text", "ARTWORK")
+	textblock:SetFontObject(GameFontNormal)
+	textblock:SetJustifyH("LEFT")
+	textblock:SetPoint("TOPLEFT", test)
+	test:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 15, -10)
+	test:SetSize(self.frame:GetWidth(), textblock:GetStringHeight())
+	test.mytype = "spelldesc"
+	test.autowidth = true
+	-- Description logic
+	if type(text) == "number" then
+		local spell = Spell:CreateFromSpellID(text)
+		textblock:SetText("Loading...")
+		spell:ContinueOnSpellLoad(function()
+			text = GetSpellDescription(spell:GetSpellID())
+			if text == "" then
+				text = L.NoDescription
+			end
+			textblock:SetText(text)
+			if DBM_GUI.currentViewing then
+				_G["DBM_GUI_OptionsFrame"]:DisplayFrame(DBM_GUI.currentViewing)
+			end
+		end)
+	else
+		if text == "" then
+			text = L.NoDescription
+		end
+		textblock:SetText(text)
+	end
+    --
+	self:SetLastObj(test)
+	return test
+end
+
 function PanelPrototype:CreateText(text, width, autoplaced, style, justify, myheight)
-	local textblock = self.frame:CreateFontString("DBM_GUI_Option_" .. self:GetNewID(), "ARTWORK")
-	textblock.mytype = "textblock"
-	textblock.myheight = myheight
+	local test = CreateFrame("Frame", "DBM_GUI_Option_" .. self:GetNewID(), self.frame)
+	local textblock = self.frame:CreateFontString(test:GetName() .. "Text", "ARTWORK")
 	textblock:SetFontObject(style or GameFontNormal)
-	textblock:SetText(text)
-	textblock:SetJustifyH(justify or "CENTER")
-	textblock.autowidth = not width
+	textblock:SetText(parseDescription(text))
+	textblock:SetJustifyH(justify or "LEFT")
+	textblock:SetPoint("TOPLEFT", test)
 	textblock:SetWidth(width or self.frame:GetWidth())
 	if autoplaced then
-		textblock:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 10, -5)
+		test:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 15, -5)
 	end
+	test:SetSize(width or self.frame:GetWidth(), textblock:GetStringHeight())
+	test.mytype = "textblock"
+	test.autowidth = not width
+	test.myheight = myheight
 	self:SetLastObj(textblock)
 	return textblock
 end
@@ -50,7 +132,7 @@ function PanelPrototype:CreateButton(title, width, height, onclick, font)
 	local button = CreateFrame("Button", "DBM_GUI_Option_" .. self:GetNewID(), self.frame, "UIPanelButtonTemplate")
 	button.mytype = "button"
 	button:SetSize(width or 100, height or 20)
-	button:SetText(title)
+	button:SetText(parseDescription(title, true))
 	if onclick then
 		button:SetScript("OnClick", onclick)
 	end
@@ -102,7 +184,7 @@ function PanelPrototype:CreateSlider(text, low, high, step, width)
 	slider:SetValueStep(step)
 	slider:SetWidth(width or 180)
 	local sliderText = _G[slider:GetName() .. "Text"]
-	sliderText:SetText(text)
+	sliderText:SetText(parseDescription(text, true))
 	slider:SetScript("OnValueChanged", function(_, value)
 		sliderText:SetFormattedText(text, value)
 	end)
@@ -110,8 +192,9 @@ function PanelPrototype:CreateSlider(text, low, high, step, width)
 	return slider
 end
 
-function PanelPrototype:CreateScrollingMessageFrame(width, height, insertmode, fading, fontobject)
+function PanelPrototype:CreateScrollingMessageFrame(width, height, _, fading, fontobject)
 	local scroll = CreateFrame("ScrollingMessageFrame", "DBM_GUI_Option_" .. self:GetNewID(), self.frame)
+	scroll.mytype = "scroll"
 	scroll:SetSize(width or 200, height or 150)
 	scroll:SetJustifyH("LEFT")
 	scroll:SetFading(fading or false)
@@ -131,7 +214,7 @@ function PanelPrototype:CreateScrollingMessageFrame(width, height, insertmode, f
 end
 
 function PanelPrototype:CreateEditBox(text, value, width, height)
-	local textbox = CreateFrame("EditBox", "DBM_GUI_Option_" .. self:GetNewID(), self.frame, DBM:IsShadowlands() and "BackdropTemplate,InputBoxTemplate" or "InputBoxTemplate")
+	local textbox = CreateFrame("EditBox", "DBM_GUI_Option_" .. self:GetNewID(), self.frame, "BackdropTemplate,InputBoxTemplate")
 	textbox.mytype = "textbox"
 	textbox:SetSize(width or 100, height or 20)
 	textbox:SetAutoFocus(false)
@@ -152,24 +235,23 @@ end
 function PanelPrototype:CreateLine(text)
 	local line = CreateFrame("Frame", "DBM_GUI_Option_" .. self:GetNewID(), self.frame)
 	line:SetSize(self.frame:GetWidth() - 20, 20)
-	line:SetPoint("TOPLEFT", 10, -12)
+	if select("#", self.frame:GetChildren()) == 2 then
+		line:SetPoint("TOPLEFT", self.frame, 10, -12)
+	else
+		line:SetPoint("TOPLEFT", select(-2, self.frame:GetChildren()) or self.frame, "BOTTOMLEFT", 0, -12)
+	end
 	line.myheight = 20
 	line.mytype = "line"
-	local linetext = line:CreateFontString(line:GetName() .. "Text", "ARTWORK", "GameFontNormal")
+	local linetext = line:CreateFontString("$parentText", "ARTWORK", "GameFontNormal")
 	linetext:SetPoint("TOPLEFT", line, "TOPLEFT")
 	linetext:SetJustifyH("LEFT")
 	linetext:SetHeight(18)
 	linetext:SetTextColor(0.67, 0.83, 0.48)
-	linetext:SetText(text or "")
+	linetext:SetText(text and parseDescription(text) or "")
 	local linebg = line:CreateTexture("$parentBG")
 	linebg:SetTexture(137056) -- "Interface\\Tooltips\\UI-Tooltip-Background"
 	linebg:SetSize(self.frame:GetWidth() - linetext:GetWidth() - 25, 2)
 	linebg:SetPoint("RIGHT", line, "RIGHT", 0, 0)
-	local x = self:GetLastObj()
-	if x.mytype == "checkbutton" or x.mytype == "line" then
-		line:ClearAllPoints()
-		line:SetPoint("TOPLEFT", x, "TOPLEFT", 0, -x.myheight)
-	end
 	self:SetLastObj(line)
 	return line
 end
@@ -180,10 +262,10 @@ do
 
 	local function MixinCountTable(baseTable)
 		local result = baseTable
-		for i = 1, #DBM.Counts do
+		for _, count in pairs(DBM:GetCountSounds()) do
 			tinsert(result, {
-				text	= DBM.Counts[i].text,
-				value	= DBM.Counts[i].path
+				text	= count.text,
+				value	= count.path
 			})
 		end
 		return result
@@ -196,26 +278,45 @@ do
 		{ text = "SA 2", value = 2 },
 		{ text = "SA 3", value = 3 },
 		{ text = "SA 4", value = 4 },
-		-- Inject DBMs custom media that's not available to LibSharedMedia because it uses SoundKit Id (which LSM doesn't support)
-		--{ text = "AirHorn (DBM)",			value = "Interface\\AddOns\\DBM-Core\\sounds\\AirHorn.ogg" },
-		{ text = "Algalon: Beware!",		value = "Interface\\AddOns\\DBM-Core\\sounds\\ClassicSupport\\UR_Algalon_BHole01.ogg" },
-		{ text = "BB Wolf: Run Away",		value = "Interface\\AddOns\\DBM-Core\\sounds\\ClassicSupport\\HoodWolfTransformPlayer01.ogg" },
-		{ text = "Illidan: Not Prepared",	value = "Interface\\AddOns\\DBM-Core\\sounds\\ClassicSupport\\BLACK_Illidan_04.ogg" },
-		{ text = "Illidan: Not Prepared2",	value = "Interface\\AddOns\\DBM-Core\\sounds\\ClassicSupport\\VO_703_Illidan_Stormrage_03.ogg" },
-		{ text = "Kil'Jaeden: Destruction",	value = "Interface\\AddOns\\DBM-Core\\sounds\\ClassicSupport\\KILJAEDEN02.ogg" },
-		{ text = "Loatheb: I see you",		value = "Interface\\AddOns\\DBM-Core\\sounds\\ClassicSupport\\LOA_NAXX_AGGRO02.ogg" },
-		{ text = "Night Elf Bell",			value = 6674 },
-		{ text = "PvP Flag",				value = 8174 }
+		-- Inject DBMs custom media that's not available to LibSharedMedia because I haven't added it yet
+		--{ text = "AirHorn (DBM)", value = "Interface\\AddOns\\DBM-Core\\sounds\\AirHorn.ogg" },
+		{ text = "Algalon: Beware!", value = isRetail and 543587 or "Interface\\AddOns\\DBM-Core\\sounds\\ClassicSupport\\UR_Algalon_BHole01.ogg" },
+		{ text = "BB Wolf: Run Away", value = not isClassic and 552035 or "Interface\\AddOns\\DBM-Core\\sounds\\ClassicSupport\\HoodWolfTransformPlayer01.ogg" },
+		{ text = "Illidan: Not Prepared", value = not isClassic and 552503 or "Interface\\AddOns\\DBM-Core\\sounds\\ClassicSupport\\BLACK_Illidan_04.ogg" },
+		{ text = "Illidan: Not Prepared2", value = isRetail and 1412178 or "Interface\\AddOns\\DBM-Core\\sounds\\ClassicSupport\\VO_703_Illidan_Stormrage_03.ogg" },
+		{ text = "Kil'Jaeden: Destruction", value = not isClassic and 553193 or "Interface\\AddOns\\DBM-Core\\sounds\\ClassicSupport\\KILJAEDEN02.ogg" },
+		{ text = "Loatheb: I see you", value = 554236 },
+		{ text = "Night Elf Bell", value = 566558 },
+		{ text = "PvP Flag", value = 569200 },
 	})
+	if isRetail then
+		tinsert(sounds, { text = "Blizzard Raid Emote", value = 876098 })
+		tinsert(sounds, { text = "C'Thun: You Will Die!", value = 546633 })
+		tinsert(sounds, { text = "Headless Horseman: Laugh", value = 551703 })
+		tinsert(sounds, { text = "Kaz'rogal: Marked", value = 553050 })
+		tinsert(sounds, { text = "Lady Malande: Flee", value = 553566 })
+		tinsert(sounds, { text = "Milhouse: Light You Up", value = 555337 })
+		tinsert(sounds, { text = "Void Reaver: Marked", value = 563787 })
+		tinsert(sounds, { text = "Yogg Saron: Laugh", value = 564859 })
+	end
+
+	local function RGBPercToHex(r, g, b)
+		r = r <= 1 and r >= 0 and r or 0
+		g = g <= 1 and g >= 0 and g or 0
+		b = b <= 1 and b >= 0 and b or 0
+		return string.format("%02x%02x%02x", r*255, g*255, b*255)
+	end
+
 	local tcolors = {
-		{ text = L.CBTGeneric, value = 0 },
-		{ text = L.CBTAdd, value = 1 },
-		{ text = L.CBTAOE, value = 2 },
-		{ text = L.CBTTargeted, value = 3 },
-		{ text = L.CBTInterrupt, value = 4 },
-		{ text = L.CBTRole, value = 5 },
-		{ text = L.CBTPhase, value = 6 },
-		{ text = L.CBTImportant, value = 7 }
+		{ text = "|cff"..RGBPercToHex(DBT.Options.EndColorR or 1, DBT.Options.StartColorG or 1, DBT.Options.StartColorB or 1)..L.ColorDropGeneric.."|r", value = 0 },
+		{ text = "|cff"..RGBPercToHex(DBT.Options.EndColorAR or 1, DBT.Options.EndColorAG or 1, DBT.Options.EndColorAB or 1)..L.ColorDrop1.."|r", value = 1 },
+		{ text = "|cff"..RGBPercToHex(DBT.Options.EndColorAER or 1, DBT.Options.EndColorAEG or 1, DBT.Options.StartColorAEB or 1)..L.ColorDrop2.."|r", value = 2 },
+		{ text = "|cff"..RGBPercToHex(DBT.Options.EndColorDR or 1, DBT.Options.EndColorDG or 1, DBT.Options.EndColorDB or 1)..L.ColorDrop3.."|r", value = 3 },
+		{ text = "|cff"..RGBPercToHex(DBT.Options.EndColorIR or 1, DBT.Options.EndColorIG or 1, DBT.Options.EndColorIB or 1)..L.ColorDrop4.."|r", value = 4 },
+		{ text = "|cff"..RGBPercToHex(DBT.Options.EndColorRR or 1, DBT.Options.EndColorRG or 1, DBT.Options.EndColorRB or 1)..L.ColorDrop5.."|r", value = 5 },
+		{ text = "|cff"..RGBPercToHex(DBT.Options.EndColorPR or 1, DBT.Options.EndColorPG or 1, DBT.Options.EndColorPB or 1)..L.ColorDrop6.."|r", value = 6 },
+		{ text = "|cff"..RGBPercToHex(DBT.Options.EndColorUIR or 1, DBT.Options.EndColorUIG or 1, DBT.Options.EndColorUIB or 1)..L.CDDImportant1.."|r", value = 7 },
+		{ text = "|cff"..RGBPercToHex(DBT.Options.EndColorI2R or 1, DBT.Options.EndColorI2G or 1, DBT.Options.EndColorI2B or 1)..L.CDDImportant2.."|r", value = 8 }
 	}
 	local cvoice = MixinCountTable({
 		{ text = L.None, value = 0 },
@@ -249,37 +350,7 @@ do
 			button.myheight = 0
 			button.SetPointOld(...)
 		end
-		local noteSpellName = name
-		if name:find("%$spell:ej") then -- It is journal link :-)
-			name = name:gsub("%$spell:ej(%d+)", "$journal:%1")
-		end
-		if name:find("%$spell:") then
-			if not isTimer and modvar then
-				noteSpellName = DBM:GetSpellInfo(string.match(name, "spell:(%d+)"))
-			end
-			name = name:gsub("%$spell:(%d+)", function(id)
-				local spellId = tonumber(id)
-				local spellName = DBM:GetSpellInfo(spellId)
-				if not spellName then
-					spellName = CL.UNKNOWN
-					DBM:Debug("Spell ID does not exist: " .. spellId)
-				end
-				return ("|cff71d5ff|Hspell:%d|h%s|h|r"):format(spellId, spellName)
-			end)
-		end
-		if name:find("%$journal:") then
-			if not isTimer and modvar then
-				noteSpellName = DBM:EJ_GetSectionInfo(string.match(name, "journal:(%d+)"))
-			end
-			name = name:gsub("%$journal:(%d+)", function(id)
-				local check = DBM:EJ_GetSectionInfo(tonumber(id))
-				if not check then
-					DBM:Debug("Journal ID does not exist: " .. id)
-				end
-				local link = select(9, DBM:EJ_GetSectionInfo(tonumber(id))) or CL.UNKNOWN
-				return link:gsub("|h%[(.*)%]|h", "|h%1|h")
-			end)
-		end
+		local desc, noteSpellName = parseDescription(name, true)
 		local frame, frame2, textPad
 		if modvar then -- Special warning, has modvar for sound and note
 			if isTimer then
@@ -310,21 +381,25 @@ do
 					frame2:SetSize(25, 25)
 					frame2:SetText("|TInterface/FriendsFrame/UI-FriendsFrame-Note.blp:14:0:2:-1|t")
 					frame2.mytype = "button"
-					frame2:SetScript("OnClick", function(self)
+					frame2:SetScript("OnClick", function()
 						DBM:ShowNoteEditor(mod, modvar, noteSpellName)
 					end)
 					textPad = 2
 				end
 			end
 			frame.myheight = 0
-			frame2.myheight = 0
+			if frame2 then
+				frame2.myheight = 0
+			else
+				textPad = 37
+			end
 		end
 		local buttonText
-		if name then -- Switch all checkbutton frame to SimpleHTML frame (auto wrap)
+		if desc then -- Switch all checkbutton frame to SimpleHTML frame (auto wrap)
 			buttonText = CreateFrame("SimpleHTML", "$parentText", button)
-			buttonText:SetFontObject("GameFontNormal")
+			buttonText:SetFontObject("p", "GameFontNormal")
 			buttonText:SetHyperlinksEnabled(true)
-			buttonText:SetScript("OnHyperlinkEnter", function(self, data, link)
+			buttonText:SetScript("OnHyperlinkEnter", function(self, data)
 				GameTooltip:SetOwner(self, "ANCHOR_NONE")
 				local linkType = strsplit(":", data)
 				if linkType == "http" then
@@ -335,15 +410,15 @@ do
 				else -- "journal:contentType:contentID:difficulty"
 					local _, contentType, contentID = strsplit(":", data)
 					if contentType == "2" then
-						local name, description = DBM:EJ_GetSectionInfo(tonumber(contentID))
-						GameTooltip:AddLine(name or CL.UNKNOWN, 255, 255, 255, 0)
+						local spellName, spellDesc = DBM:EJ_GetSectionInfo(tonumber(contentID))
+						GameTooltip:AddLine(spellName or CL.UNKNOWN, 255, 255, 255, 0)
 						GameTooltip:AddLine(" ")
-						GameTooltip:AddLine(description or CL.UNKNOWN, NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 1)
+						GameTooltip:AddLine(spellDesc or CL.UNKNOWN, NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 1)
 					end
 				end
 				GameTooltip:Show()
 				currActiveButton = self:GetParent()
-				updateFrame:SetScript("OnUpdate", function(self, elapsed)
+				updateFrame:SetScript("OnUpdate", function()
 					local inHitBox = GetCursorPosition() - currActiveButton:GetCenter() < -100
 					if currActiveButton.fakeHighlight and not inHitBox then
 						currActiveButton:UnlockHighlight()
@@ -354,6 +429,7 @@ do
 					end
 					local x, y = GetCursorPosition()
 					local scale = UIParent:GetEffectiveScale()
+					GameTooltip:ClearAllPoints()
 					GameTooltip:SetPoint("BOTTOMLEFT", nil, "BOTTOMLEFT", (x / scale) + 5, (y / scale) + 2)
 				end)
 				if GetCursorPosition() - self:GetParent():GetCenter() < -100 then
@@ -361,7 +437,7 @@ do
 					self:GetParent():LockHighlight()
 				end
 			end)
-			buttonText:SetScript("OnHyperlinkLeave", function(self, data, link)
+			buttonText:SetScript("OnHyperlinkLeave", function(self)
 				GameTooltip:Hide()
 				updateFrame:SetScript("OnUpdate", nil)
 				if self:GetParent().fakeHighlight then
@@ -370,46 +446,50 @@ do
 				end
 			end)
 			buttonText:SetHeight(25)
-			name = "<html><body><p>" .. name .. "</p></body></html>"
+			desc = "<html><body><p>" .. desc .. "</p></body></html>"
 		else
 			buttonText = button:CreateFontString("$parentText", "ARTWORK", "GameFontNormal")
 			buttonText:SetPoint("LEFT", button, "RIGHT", 0, 1)
 		end
-		buttonText.text = name or CL.UNKNOWN
-		buttonText.widthPad = frame and frame:GetWidth() + frame2:GetWidth() or 0
-		buttonText:SetWidth(self.frame:GetWidth() - buttonText.widthPad)
+		button.textObj = buttonText
+		button.text = desc or CL.UNKNOWN
+		if frame2 then
+			button.widthPad = frame and frame:GetWidth() + frame2:GetWidth() or 0
+		else
+			button.widthPad = frame and frame:GetWidth() or 0
+		end
+		buttonText:SetWidth(self.frame:GetWidth() - button.widthPad)
 		if textLeft then
 			buttonText:ClearAllPoints()
 			buttonText:SetPoint("RIGHT", frame2 or frame or button, "LEFT")
-			buttonText:SetJustifyH("RIGHT")
+			buttonText:SetJustifyH("p", "RIGHT")
 		else
-			buttonText:SetJustifyH("LEFT")
+			buttonText:SetJustifyH("p", "LEFT")
 			buttonText:SetPoint("TOPLEFT", frame2 or frame or button, "TOPRIGHT", textPad or 0, -4)
-			button.myheight = mmax(buttonText:GetContentHeight() + 12, button.myheight)
 		end
-		buttonText:SetText(buttonText.text)
+		buttonText:SetText(button.text)
 		button.myheight = mmax(buttonText:GetContentHeight() + 12, 25)
 		if dbmvar and DBM.Options[dbmvar] ~= nil then
 			button:SetScript("OnShow", function(self)
-				button:SetChecked(DBM.Options[dbmvar])
+				self:SetChecked(DBM.Options[dbmvar])
 			end)
-			button:SetScript("OnClick", function(self)
+			button:SetScript("OnClick", function()
 				DBM.Options[dbmvar] = not DBM.Options[dbmvar]
 			end)
 		end
 		if dbtvar then
 			button:SetScript("OnShow", function(self)
-				button:SetChecked(DBT.Options[dbtvar])
+				self:SetChecked(DBT.Options[dbtvar])
 			end)
-			button:SetScript("OnClick", function(self)
+			button:SetScript("OnClick", function()
 				DBT:SetOption(dbtvar, not DBT.Options[dbtvar])
 			end)
 		end
 		if globalvar and _G[globalvar] ~= nil then
 			button:SetScript("OnShow", function(self)
-				button:SetChecked(_G[globalvar])
+				self:SetChecked(_G[globalvar])
 			end)
-			button:SetScript("OnClick", function(self)
+			button:SetScript("OnClick", function()
 				_G[globalvar] = not _G[globalvar]
 			end)
 		end
@@ -419,28 +499,90 @@ do
 end
 
 function PanelPrototype:CreateArea(name)
-	local area = CreateFrame("Frame", "DBM_GUI_Option_" .. self:GetNewID(), self.frame, DBM:IsShadowlands() and "BackdropTemplate,OptionsBoxTemplate" or "OptionsBoxTemplate")
+	local area = CreateFrame("Frame", "DBM_GUI_Option_" .. self:GetNewID(), self.frame, "TooltipBorderBackdropTemplate")
 	area.mytype = "area"
-	area:SetBackdropColor(0.15, 0.15, 0.15, 0.5)
+	area:SetBackdropColor(0.15, 0.15, 0.15, 0.2)
 	area:SetBackdropBorderColor(0.4, 0.4, 0.4)
-	_G[area:GetName() .. "Title"]:SetText(name)
+	local title = area:CreateFontString("$parentTitle", "BACKGROUND", "GameFontHighlightSmall")
+	title:SetPoint("BOTTOMLEFT", area, "TOPLEFT", 5, 0)
+	title:SetText(parseDescription(name))
 	if select("#", self.frame:GetChildren()) == 1 then
 		area:SetPoint("TOPLEFT", self.frame, 5, -20)
 	else
 		area:SetPoint("TOPLEFT", select(-2, self.frame:GetChildren()) or self.frame, "BOTTOMLEFT", 0, -20)
 	end
 	self:SetLastObj(area)
-	self.areas = self.areas or {}
-	tinsert(self.areas, {
+	return setmetatable({
 		frame	= area,
 		parent	= self
-	})
-	return setmetatable(self.areas[#self.areas], {
+	}, {
 		__index = PanelPrototype
 	})
 end
 
-function DBM_GUI:CreateNewPanel(frameName, frameType, showSub, sortID, displayName)
+local function handleWAKeyHyperlink(self, link)
+	local _, linkType, arg1, arg2 = strsplit(":", link)
+	if linkType == "DBM" and arg1 == "wacopy" then
+		DBM:ShowUpdateReminder(nil, nil, DBM_CORE_L.COPY_WA_DIALOG, arg2)
+	end
+end
+
+function PanelPrototype:CreateAbility(titleText, icon, spellID)
+	local area = CreateFrame("Frame", "DBM_GUI_Option_" .. self:GetNewID(), self.frame, "TooltipBorderBackdropTemplate")
+	area.mytype = "ability"
+	area.hidden = not DBM.Options.AutoExpandSpellGroups
+	area:SetBackdropColor(0.15, 0.15, 0.15, 0.2)
+	area:SetBackdropBorderColor(0.4, 0.4, 0.4)
+	area:SetHyperlinksEnabled(true)
+	area:SetScript("OnHyperlinkClick", handleWAKeyHyperlink)
+	if select("#", self.frame:GetChildren()) == 1 then
+		area:SetPoint("TOPLEFT", self.frame, 5, -20)
+	else
+		area:SetPoint("TOPLEFT", select(-2, self.frame:GetChildren()) or self.frame, "BOTTOMLEFT", 0, -20)
+	end
+	local title = area:CreateFontString("$parentTitle", "BACKGROUND", "GameFontHighlightSmall")
+	local key = ""
+	if DBM.Options.ShowWAKeys and spellID then
+		key = DBM_CORE_L.WEAKAURA_KEY:format(spellID)
+	end
+	if icon then
+		local markup = CreateTextureMarkup(icon, 0, 0, 16, 16, 0, 0, 0, 0, 0, 0)
+		title:SetText(markup .. titleText .. key)
+	else
+		title:SetText(titleText .. key)
+	end
+	title:ClearAllPoints()
+	title:SetPoint("BOTTOMLEFT", area, "TOPLEFT", 20, 0)
+	title:SetFontObject("GameFontWhite")
+	-- Button
+	local button = CreateFrame("Button", area:GetName() .. "Button", area, "OptionsListButtonTemplate")
+	button:ClearAllPoints()
+	button:SetPoint("LEFT", title, -15, 0)
+	button:Show()
+	button:SetSize(18, 18)
+	button:SetNormalFontObject(GameFontWhite)
+	button:SetHighlightFontObject(GameFontWhite)
+	button.toggle:SetNormalTexture(area.hidden and 130838 or 130821) -- "Interface\\Buttons\\UI-PlusButton-UP", "Interface\\Buttons\\UI-MinusButton-UP"
+	button.toggle:SetPushedTexture(area.hidden and 130836 or 130820) -- "Interface\\Buttons\\UI-PlusButton-DOWN", "Interface\\Buttons\\UI-MinusButton-DOWN"
+	button.toggle:Show()
+	button.highlight:Hide()
+	button.toggleFunc = function()
+		area.hidden = not area.hidden
+		button.toggle:SetNormalTexture(area.hidden and 130838 or 130821) -- "Interface\\Buttons\\UI-PlusButton-UP", "Interface\\Buttons\\UI-MinusButton-UP"
+		button.toggle:SetPushedTexture(area.hidden and 130836 or 130820) -- "Interface\\Buttons\\UI-PlusButton-DOWN", "Interface\\Buttons\\UI-MinusButton-DOWN"
+		_G["DBM_GUI_OptionsFrame"]:DisplayFrame(DBM_GUI.currentViewing)
+	end
+	--
+	self:SetLastObj(area)
+	return setmetatable({
+		frame	= area,
+		parent	= self
+	}, {
+		__index = PanelPrototype
+	})
+end
+
+function DBM_GUI:CreateNewPanel(frameName, frameType, showSub, _, displayName)
 	local panel = CreateFrame("Frame", "DBM_GUI_Option_" .. self:GetNewID(), _G["DBM_GUI_OptionsFramePanelContainer"])
 	panel.mytype = "panel"
 	panel.ID = self:GetCurrentID()
@@ -449,6 +591,7 @@ function DBM_GUI:CreateNewPanel(frameName, frameType, showSub, sortID, displayNa
 	panel:SetPoint("TOPLEFT", "DBM_GUI_OptionsFramePanelContainer", "TOPLEFT")
 	panel.displayName = displayName or frameName
 	panel.showSub = showSub or showSub == nil
+	panel.modid = frameName
 	panel:Hide()
 	if frameType == "option" then
 		frameType = 2

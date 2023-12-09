@@ -12,9 +12,10 @@ local RAID_CLASS_COLORS = _G["RAID_CLASS_COLORS"]
 -- ----------------------------------------------------------------------------
 -- AddOn namespace.
 -- ----------------------------------------------------------------------------
-local addonname = ...
+local addonname, private = ...
 local AtlasLoot = _G.AtlasLoot
-local data = AtlasLoot.ItemDB:Add(addonname, 1, 2)
+if AtlasLoot:GameVersion_LT(AtlasLoot.BC_VERSION_NUM) then return end
+local data = AtlasLoot.ItemDB:Add(addonname, 1, AtlasLoot.BC_VERSION_NUM)
 
 local GetColorSkill = AtlasLoot.Data.Profession.GetColorSkillRankNoSpell
 
@@ -33,8 +34,11 @@ local QUEST_EXTRA_ITTYPE = data:AddExtraItemTableType("Quest")
 local PRICE_EXTRA_ITTYPE = data:AddExtraItemTableType("Price")
 
 local PROF_CONTENT = data:AddContentType(ALIL["Professions"], ATLASLOOT_PRIMPROFESSION_COLOR)
+local PROF_GATH_CONTENT = data:AddContentType(ALIL["Gathering Professions"], ATLASLOOT_PRIMPROFESSION_COLOR)
 local PROF_SEC_CONTENT = data:AddContentType(AL["Secondary Professions"], ATLASLOOT_SECPROFESSION_COLOR)
 local PROF_CLASS_CONTENT = data:AddContentType(AL["Class Professions"], ATLASLOOT_CLASSPROFESSION_COLOR)
+
+local SPLIT_FORMAT = "%s - %s"
 
 local GEM_FORMAT1 = ALIL["Gems"].." - %s"
 local GEM_FORMAT2 = ALIL["Gems"].." - %s & %s"
@@ -44,9 +48,7 @@ data["AlchemyBC"] = {
 	ContentType = PROF_CONTENT,
 	LoadDifficulty = NORMAL_DIFF,
 	TableType = PROF_ITTYPE,
-	CorrespondingFields = {
-		[1] = "Alchemy",
-	},
+	CorrespondingFields = private.ALCHEMY_LINK,
 	items = {
 		{
 			name = AL["Flasks"],
@@ -169,9 +171,7 @@ data["BlacksmithingBC"] = {
 	ContentType = PROF_CONTENT,
 	LoadDifficulty = NORMAL_DIFF,
 	TableType = PROF_ITTYPE,
-	CorrespondingFields = {
-		[1] = "Blacksmithing",
-	},
+	CorrespondingFields = private.BLACKSMITHING_LINK,
 	items = {
 		{
 			name = AL["Weapons"].." - "..ALIL["Daggers"],
@@ -254,6 +254,30 @@ data["BlacksmithingBC"] = {
 			}
 		},
 		{
+			name = AL["Armor"].." - "..ALIL["Head"],
+			[MAIL_DIFF] = {
+				{ 1, 29663 }, -- Storm Helm (365)
+				{ 2, 29551 }, -- Fel Iron Chain Coif (310)
+			},
+			[PLATE_DIFF] = {
+				{ 1, 38479 }, -- Iceguard Helm (375)
+				{ 2, 38476 }, -- Wildguard Helm (375)
+				{ 3, 29668 }, -- Oathkeeper's Helm (365)
+				{ 4, 29664 }, -- Helm of the Stalwart Defender (365)
+				{ 5, 29643 }, -- Ragesteel Helm (365)
+				{ 6, 29621 }, -- Felsteel Helm (365)
+				{ 7, 29615 }, -- Flamebane Helm (355)
+			},
+		},
+		{
+			name = AL["Armor"].." - "..ALIL["Shoulder"],
+			[PLATE_DIFF] = {
+				{ 1, 41135 }, -- Dawnsteel Shoulders (375)
+				{ 2, 41133 }, -- Swiftsteel Shoulders (375)
+				{ 3, 42662 }, -- Ragesteel Shoulders (365)
+			},
+		},
+		{
 			name = AL["Armor"].." - "..ALIL["Chest"],
 			[MAIL_DIFF] = {
 				{ 1, 36256 }, -- Embrace of the Twisting Nether (385)
@@ -312,22 +336,6 @@ data["BlacksmithingBC"] = {
 			},
 		},
 		{
-			name = AL["Armor"].." - "..ALIL["Head"],
-			[MAIL_DIFF] = {
-				{ 1, 29663 }, -- Storm Helm (365)
-				{ 2, 29551 }, -- Fel Iron Chain Coif (310)
-			},
-			[PLATE_DIFF] = {
-				{ 1, 38479 }, -- Iceguard Helm (375)
-				{ 2, 38476 }, -- Wildguard Helm (375)
-				{ 3, 29668 }, -- Oathkeeper's Helm (365)
-				{ 4, 29664 }, -- Helm of the Stalwart Defender (365)
-				{ 5, 29643 }, -- Ragesteel Helm (365)
-				{ 6, 29621 }, -- Felsteel Helm (365)
-				{ 7, 29615 }, -- Flamebane Helm (355)
-			},
-		},
-		{
 			name = AL["Armor"].." - "..ALIL["Legs"],
 			[MAIL_DIFF] = {
 				{ 1, 36124 }, -- Windforged Leggings (280)
@@ -341,14 +349,6 @@ data["BlacksmithingBC"] = {
 				{ 6, 29629 }, -- Khorium Pants (360)
 				{ 7, 29549 }, -- Fel Iron Plate Pants (325)
 				{ 9, 36122 }, -- Earthforged Leggings (280)
-			},
-		},
-		{
-			name = AL["Armor"].." - "..ALIL["Shoulder"],
-			[PLATE_DIFF] = {
-				{ 1, 41135 }, -- Dawnsteel Shoulders (375)
-				{ 2, 41133 }, -- Swiftsteel Shoulders (375)
-				{ 3, 42662 }, -- Ragesteel Shoulders (365)
 			},
 		},
 		{
@@ -377,6 +377,75 @@ data["BlacksmithingBC"] = {
 			},
 		},
 		{
+			name = ALIL["Armorsmith"],
+			[MAIL_DIFF] = {
+				{ 1, 36256 },	-- Embrace of the Twisting Nether
+				{ 2, 34530 },	-- Twisting Nether Chain Shirt
+				{ 3, 34529 },	-- Nether Chain Shirt
+				{ 4, 36130 },	-- Stormforged Hauberk
+				{ 5, 36124 },	-- Windforged Leggings
+			},
+			[PLATE_DIFF] = {
+				{ 1, 55186 },	-- Chestplate of Conquest
+				{ 2, 55187 },	-- Legplates of Conquest
+				{ 3, 36257 },	-- Bulwark of the Ancient Kings
+				{ 4, 34534 },	-- Bulwark of Kings
+				{ 5, 34533 },	-- Breastplate of Kings
+				{ 6, 36129 },	-- Heavy Earthforged Breastplate
+				{ 7, 36122 },	-- Earthforged Leggings
+			},
+		},
+		{
+			name = ALIL["Weaponsmith"],
+			[NORMAL_DIFF] = {
+				{ 1, 55185 },	-- Saronite Mindcrusher
+				{ 2, 55184 },	-- Corroded Saronite Woundbringer
+				{ 3, 55183 },	-- Corroded Saronite Edge
+				{ 4, 36126 },	-- Light Skyforged Axe
+				{ 5, 36128 },	-- Light Emberforged Hammer
+				{ 6, 36125 },	-- Light Earthforged Blade
+			},
+		},
+		{
+			name = ALIL["Axesmith"],
+			[NORMAL_DIFF] = {
+				{ 1, 36260 },	-- Wicked Edge of the Planes
+				{ 2, 36261 },	-- Bloodmoon
+				{ 3, 34542 },	-- Black Planar Edge
+				{ 4, 34544 },	-- Mooncleaver
+				{ 5, 34541 },	-- The Planar Edge
+				{ 6, 34543 },	-- Lunar Crescent
+				{ 7, 36134 },	-- Stormforged Axe
+				{ 8, 36135 },	-- Skyforged Great Axe
+			},
+		},
+		{
+			name = ALIL["Hammersmith"],
+			[NORMAL_DIFF] = {
+				{ 1, 36262 },	-- Dragonstrike
+				{ 2, 36263 },	-- Stormherald
+				{ 3, 34546 },	-- Dragonmaw
+				{ 4, 34548 },	-- Deep Thunder
+				{ 5, 34545 },	-- Drakefist Hammer
+				{ 6, 34547 },	-- Thunder
+				{ 7, 36136 },	-- Lavaforged Warhammer
+				{ 8, 36137 },	-- Great Earthforged Hammer
+			},
+		},
+		{
+			name = ALIL["Swordsmith"],
+			[NORMAL_DIFF] = {
+				{ 1, 36258 },	-- Blazefury
+				{ 2, 36259 },	-- Lionheart Executioner
+				{ 3, 34537 },	-- Blazeguard
+				{ 4, 34540 },	-- Lionheart Champion
+				{ 5, 34535 },	-- Fireguard
+				{ 6, 34538 },	-- Lionheart Blade
+				{ 7, 36131 },	-- Windforged Rapier
+				{ 8, 36133 },	-- Stoneforged Claymore
+			},
+		},
+		{
 			name = AL["Misc"],
 			[NORMAL_DIFF] = {
 				{ 1, 32657 }, -- Eternium Rod (375)
@@ -402,9 +471,7 @@ data["EnchantingBC"] = {
 	ContentType = PROF_CONTENT,
 	LoadDifficulty = NORMAL_DIFF,
 	TableType = PROF_ITTYPE,
-	CorrespondingFields = {
-		[1] = "Enchanting",
-	},
+	CorrespondingFields = private.ENCHANTING_LINK,
 	items = {
 		{
 			name = ALIL["Weapon"].." - "..AL["Enhancements"],
@@ -441,6 +508,11 @@ data["EnchantingBC"] = {
 				{ 5, 34003 }, -- Enchant Cloak - Spell Penetration (325)
 				{ 6, 34004 }, -- Enchant Cloak - Greater Agility (320)
 				{ 7, 27961 }, -- Enchant Cloak - Major Armor (320)
+				{ 8, 25086 }, -- Enchant Cloak - Dodge (320)
+				{ 9, 25081 }, -- Enchant Cloak - Greater Fire Resistance (320)
+				{ 10, 25082 }, --Enchant Cloak - Greater Nature Resistance (320)
+				{ 11, 25084 }, --Enchant Cloak - Subtlety (320)
+				{ 12, 25083 }, --Enchant Cloak - Stealth (320)
 			}
 		},
 		{
@@ -450,9 +522,9 @@ data["EnchantingBC"] = {
 				{ 2, 33992 }, -- Enchant Chest - Major Resilience (345)
 				{ 3, 27960 }, -- Enchant Chest - Exceptional Stats (345)
 				{ 4, 33990 }, -- Enchant Chest - Major Spirit (330)
-				{ 5, 27958 }, -- Enchant Chest - Exceptional Mana (325)
-				{ 6, 27957 }, -- Enchant Chest - Exceptional Health (325)
-				{ 7, 33991 }, -- Enchant Chest - Restore Mana Prime (310)
+				--{ 5, 27958 }, -- Enchant Chest - Exceptional Mana (325) (Never added to the retail game)
+				{ 5, 27957 }, -- Enchant Chest - Exceptional Health (325)
+				{ 6, 33991 }, -- Enchant Chest - Restore Mana Prime (310)
 			}
 		},
 		{
@@ -475,6 +547,8 @@ data["EnchantingBC"] = {
 				{ 4, 33995 }, -- Enchant Gloves - Major Strength (350)
 				{ 5, 33996 }, -- Enchant Gloves - Assault (320)
 				{ 6, 33993 }, -- Enchant Gloves - Blasting (315)
+				{ 7, 25080 }, -- Enchant Gloves - Superior Agility (320)
+				{ 8, 25072 }, -- Enchant Gloves - Threat (320)
 			}
 		},
 		{
@@ -519,8 +593,8 @@ data["EnchantingBC"] = {
 				{ 5, 45765 }, -- Void Shatter (375)
 				{ 6, 28022 }, -- Large Prismatic Shard (335)
 				{ 7, 42615 }, -- Small Prismatic Shard (315)
-				{ 9, 42613 }, -- Nexus Transformation (295)
-				{ 10, 28021 }, -- Arcane Dust (undefined)
+				{ 8, 42613 }, -- Nexus Transformation (295)
+				--{ 10, 28021 }, -- Arcane Dust (undefined) (Never added to the retail game)
 				{ 16, 32667 }, -- Runed Eternium Rod (375)
 				{ 17, 32665 }, -- Runed Adamantite Rod (350)
 				{ 18, 32664 }, -- Runed Fel Iron Rod (310)
@@ -536,9 +610,7 @@ data["EngineeringBC"] = {
 	ContentType = PROF_CONTENT,
 	LoadDifficulty = NORMAL_DIFF,
 	TableType = PROF_ITTYPE,
-	CorrespondingFields = {
-		[1] = "Engineering",
-	},
+	CorrespondingFields = private.ENGINEERING_LINK,
 	items = {
 		{
 			name = AL["Armor"],
@@ -603,6 +675,8 @@ data["EngineeringBC"] = {
 			[NORMAL_DIFF] = {
 				{ 1, 30563 }, -- Goblin Rocket Launcher (360)
 				{ 2, 30569 }, -- Gnomish Poultryizer (360)
+				{ 16, 36955 }, -- Ultrasafe Transporter - Toshley's Station (350)
+				{ 17, 36954 }, -- Dimensional Ripper - Area 52 (350)
 			}
 		},
 		{
@@ -678,16 +752,18 @@ data["EngineeringBC"] = {
 				{ 2, 44155 }, -- Flying Machine (375)
 				{ 4, 30349 }, -- Khorium Toolbox (350)
 				{ 5, 30348 }, -- Fel Iron Toolbox (325)
-				{ 7, 36955 }, -- Ultrasafe Transporter - Toshley's Station (350)
-				{ 8, 36954 }, -- Dimensional Ripper - Area 52 (350)
-				{ 10, 30573 }, -- Gnomish Tonk Controller (undefined)
-				{ 11, 30561 }, -- Goblin Tonk Controller (undefined)
-				{ 13, 30552 }, -- Mana Potion Injector (345)
-				{ 14, 30551 }, -- Healing Potion Injector (330)
+				{ 7, 30552 }, -- Mana Potion Injector (345)
+				{ 8, 30551 }, -- Healing Potion Injector (330)
+				{ 10, 23078 }, -- Goblin Jumper Cables XL (265) (got updated from classic-era and is not a trinket anymore)
+				{ 11, 9273 },  -- Goblin Jumper Cables (165) (got updated from classic-era and is not a trinket anymore)
 				{ 16, 30548 }, -- Zapthrottle Mote Extractor (305)
 				{ 18, 44391 }, -- Field Repair Bot 110G (360)
-				{ 20, 30549 }, -- Critter Enlarger (undefined)
-				{ 22, 30547 }, -- Elemental Seaforium Charge (350)
+				{ 20, 30547 }, -- Elemental Seaforium Charge (350)
+
+				-- The following Items were in the Beta but never made it into the game
+				--{ 10, 30573 }, -- Gnomish Tonk Controller (undefined)
+				--{ 11, 30561 }, -- Goblin Tonk Controller (undefined)
+				--{ 20, 30549 }, -- Critter Enlarger (undefined)
 			}
 		},
 	}
@@ -698,9 +774,7 @@ data["TailoringBC"] = {
 	ContentType = PROF_CONTENT,
 	LoadDifficulty = NORMAL_DIFF,
 	TableType = PROF_ITTYPE,
-	CorrespondingFields = {
-		[1] = "Tailoring",
-	},
+	CorrespondingFields = private.TAILORING_LINK,
 	items = {
 		{
 			name = AL["Armor"].." - "..ALIL["Cloak"],
@@ -713,6 +787,24 @@ data["TailoringBC"] = {
 				{ 6, 31441 }, -- White Remedy Cape (350)
 				{ 7, 31440 }, -- Cloak of Eternity (350)
 				{ 8, 31438 }, -- Cloak of the Black Void (350)
+			}
+		},
+		{
+			name = AL["Armor"].." - "..ALIL["Head"],
+			[NORMAL_DIFF] = {
+				{ 1, 31456 }, -- Battlecast Hood (375)
+				{ 2, 31455 }, -- Spellstrike Hood (375)
+				{ 3, 31454 }, -- Whitemend Hood (375)
+			}
+		},
+		{
+			name = AL["Armor"].." - "..ALIL["Shoulder"],
+			[NORMAL_DIFF] = {
+				{ 1, 41206 }, -- Mantle of Nimble Thought (375)
+				{ 2, 41208 }, -- Swiftheal Mantle (375)
+				{ 3, 26780 }, -- Soulcloth Shoulders (365)
+				{ 4, 26761 }, -- Primal Mooncloth Shoulders (365)
+				{ 5, 26756 }, -- Frozen Shadoweave Shoulders (355)
 			}
 		},
 		{
@@ -762,14 +854,6 @@ data["TailoringBC"] = {
 			}
 		},
 		{
-			name = AL["Armor"].." - "..ALIL["Head"],
-			[NORMAL_DIFF] = {
-				{ 1, 31456 }, -- Battlecast Hood (375)
-				{ 2, 31455 }, -- Spellstrike Hood (375)
-				{ 3, 31454 }, -- Whitemend Hood (375)
-			}
-		},
-		{
 			name = AL["Armor"].." - "..ALIL["Legs"],
 			[NORMAL_DIFF] = {
 				{ 1, 40023 }, -- Soulguard Leggings (375)
@@ -780,16 +864,6 @@ data["TailoringBC"] = {
 				{ 6, 26775 }, -- Imbued Netherweave Pants (340)
 				{ 7, 26771 }, -- Netherweave Pants (335)
 				{ 16, 50647 }, -- Haliscan Pantaloons (245)
-			}
-		},
-		{
-			name = AL["Armor"].." - "..ALIL["Shoulder"],
-			[NORMAL_DIFF] = {
-				{ 1, 41206 }, -- Mantle of Nimble Thought (375)
-				{ 2, 41208 }, -- Swiftheal Mantle (375)
-				{ 3, 26780 }, -- Soulcloth Shoulders (365)
-				{ 4, 26761 }, -- Primal Mooncloth Shoulders (365)
-				{ 5, 26756 }, -- Frozen Shadoweave Shoulders (355)
 			}
 		},
 		{
@@ -836,20 +910,25 @@ data["TailoringBC"] = {
 			}
 		},
 		{
-			name = AL["Misc"],
+			name = AL["Enhancements"],
 			[NORMAL_DIFF] = {
 				{ 1, 31433 }, -- Golden Spellthread (375)
 				{ 2, 31431 }, -- Silver Spellthread (335)
-				{ 4, 36686 }, -- Shadowcloth (350)
-				{ 6, 26751 }, -- Primal Mooncloth (350)
-				{ 8, 26750 }, -- Bolt of Soulcloth (345)
-				{ 9, 26747 }, -- Bolt of Imbued Netherweave (325)
-				{ 10, 26745 }, -- Bolt of Netherweave (305)
 				{ 16, 31432 }, -- Runic Spellthread (375)
 				{ 17, 31430 }, -- Mystic Spellthread (335)
-				{ 19, 31373 }, -- Spellcloth (350)
-				{ 23, 31461 }, -- Heavy Netherweave Net (undefined)
-				{ 24, 31460 }, -- Netherweave Net (300)
+			}
+		},
+		{
+			name = AL["Misc"],
+			[NORMAL_DIFF] = {
+				{ 1, 36686 }, -- Shadowcloth (350)
+				{ 2, 26751 }, -- Primal Mooncloth (350)
+				{ 4, 26750 }, -- Bolt of Soulcloth (345)
+				{ 6, 26747 }, -- Bolt of Imbued Netherweave (325)
+				{ 7, 26745 }, -- Bolt of Netherweave (305)
+				{ 16, 31373 }, -- Spellcloth (350)
+				--{ 23, 31461 }, -- Heavy Netherweave Net (undefined)
+				{ 21, 31460 }, -- Netherweave Net (300)
 			}
 		},
 	}
@@ -860,9 +939,7 @@ data["LeatherworkingBC"] = {
 	ContentType = PROF_CONTENT,
 	LoadDifficulty = NORMAL_DIFF,
 	TableType = PROF_ITTYPE,
-	CorrespondingFields = {
-		[1] = "Leatherworking",
-	},
+	CorrespondingFields = private.LEATHERWORKING_LINK,
 	items = {
 		{
 			name = AL["Armor"].." - "..ALIL["Cloak"],
@@ -1098,6 +1175,7 @@ data["JewelcraftingBC"] = {
 	ContentType = PROF_CONTENT,
 	LoadDifficulty = NORMAL_DIFF,
 	TableType = PROF_ITTYPE,
+	CorrespondingFields = private.JEWELCRAFTING_LINK,
 	items = {
 		{
 			name = AL["Armor"].." - "..ALIL["Head"],
@@ -1384,21 +1462,84 @@ data["JewelcraftingBC"] = {
 		{
 			name = format(GEM_FORMAT1, ALIL["Purple"]),
 			[NORMAL_DIFF] = {
-				{ 1, 39462 }, -- Infused Nightseye (350)
-				{ 2, 39458 }, -- Infused Shadow Draenite (325)
-				{ 4, 39463 }, -- Balanced Nightseye (350)
-				{ 5, 39455 }, -- Balanced Shadow Draenite (325)
-				{ 7, 31102 }, -- Sovereign Nightseye (350)
-				{ 8, 28936 }, -- Sovereign Shadow Draenite (325)
-				{ 10, 46803 }, -- Regal Nightseye (350)
-				{ 16, 31103 }, -- Shifting Nightseye (350)
-				{ 17, 28933 }, -- Shifting Shadow Draenite (315)
-				{ 19, 31105 }, -- Royal Nightseye (350)
-				{ 20, 28927 }, -- Royal Shadow Draenite (305)
-				{ 22, 31104 }, -- Glowing Nightseye (350)
-				{ 23, 28925 }, -- Glowing Shadow Draenite (300)
+				{ 1, 39728 }, -- Shifting Shadowsong Amethyst (375)
+				{ 2, 31103 }, -- Shifting Nightseye (350)
+				{ 3, 28933 }, -- Shifting Shadow Draenite (315)
+				{ 5, 39727 }, -- Sovereign Shadowsong Amethyst (375)
+				{ 6, 31102 }, -- Sovereign Nightseye (350)
+				{ 7, 28936 }, -- Sovereign Shadow Draenite (325)
+				{ 9, 39729 }, -- Balanced Shadowsong Amethyst (375)
+				{ 10, 39463 }, -- Balanced Nightseye (350)
+				{ 11, 39455 }, -- Balanced Shadow Draenite (325)
+				{ 13, 39730 }, -- Infused Shadowsong Amethyst (375)
+				{ 14, 39462 }, -- Infused Nightseye (350)
+				{ 15, 39458 }, -- Infused Shadow Draenite (325)
+				{ 16, 39731 }, -- Glowing Nightseye (375)
+				{ 17, 31104 }, -- Glowing Nightseye (350)
+				{ 18, 28925 }, -- Glowing Shadow Draenite (300)
+				{ 20, 39732 }, -- Royal Shadowsong Amethyst (375)
+				{ 21, 31105 }, -- Royal Nightseye (350)
+				{ 22, 28927 }, -- Royal Shadow Draenite (305)
+				{ 24, 48789 }, -- Purified Shadowsong Amethyst (375)
 				{ 25, 41429 }, -- Purified Shadow Pearl (350)
 				{ 26, 41420 }, -- Purified Jaggal Pearl (325)
+				{ 28, 46803 }, -- Regal Nightseye (350)
+			}
+		},
+		{
+			name = format(SPLIT_FORMAT, AL["Raw Gems"], AL["Classic"]),
+			TableType = NORMAL_ITTYPE,
+			[NORMAL_DIFF] = {
+				{ 1, 12363 }, -- Arcane Crystal
+				{ 2, 12800 }, --  Azerothian Diamond
+				{ 3, 12364 }, --  Huge Emerald
+				{ 4, 12361 }, --  Blue Sapphire
+				{ 5, 12799 }, --  Large Opal
+				{ 6, 7910 }, --  Star Ruby
+				{ 7, 11382 }, --  Blood of the Mountain
+				{ 8, 19774 }, --  Souldarite
+				{ 9, 7909 }, --  Aquamarine
+				{ 10, 23158 }, --  Solid Aquamarine
+				{ 11, 23159 }, --  Sparkling Aquamarine
+				{ 12, 13926 }, --  Golden Pearl
+				{ 13, 3864 }, --  Citrine
+				{ 14, 7971 }, --  Black Pearl
+				{ 15, 1529 }, --  Jade
+				{ 16, 1705 }, --  Lesser Moonstone
+				{ 17, 1206 }, --  Moss Agate
+				{ 18, 5500 }, --  Iridescent Pearl
+				{ 19, 1210 }, --  Shadowgem
+				{ 20, 5498 }, --  Small Lustrous Pearl
+				{ 21, 818 }, --  Tigerseye
+				{ 22, 774 }, --  Malachite
+			}
+		},
+		{
+			name = AL["Raw Gems"],
+			TableType = NORMAL_ITTYPE,
+			[NORMAL_DIFF] = {
+				{ 1, 25867 }, --  Earthstorm Diamond
+				{ 2, 25868 }, --  Skyfire Diamond
+				{ 5, 32228 }, -- Empyrean Sapphire
+				{ 6, 23438 }, --  Star of Elune
+				{ 7, 23117 }, --  Azure Moonstone
+				{ 9, 32249 }, --  Seaspray Emerald
+				{ 10, 23437 }, --  Talasite
+				{ 11, 23079 }, --  Deep Peridot
+				{ 13, 32231 }, --  Pyrestone
+				{ 14, 23439 }, --  Noble Topaz
+				{ 15, 21929 }, --  Flame Spessarite
+				{ 16, 24479 }, --  Shadow Pearl
+				{ 17, 24478 }, --  Jaggal Pearl
+				{ 20, 32230 }, --  Shadowsong Amethyst
+				{ 21, 23441 }, --  Nightseye
+				{ 22, 23107 }, --  Shadow Draenite
+				{ 24, 32227 }, --  Crimson Spinel
+				{ 25, 23436 }, --  Living Ruby
+				{ 26, 23077 }, --  Blood Garnet
+				{ 28, 32229 }, --  Lionseye
+				{ 29, 23440 }, --  Dawnstone
+				{ 30, 23112 }, --  Golden Draenite
 			}
 		},
 		{
@@ -1423,12 +1564,10 @@ data["JewelcraftingBC"] = {
 
 data["MiningBC"] = {
 	name = ALIL["Mining"],
-	ContentType = PROF_CONTENT,
+	ContentType = PROF_GATH_CONTENT,
 	LoadDifficulty = NORMAL_DIFF,
 	TableType = PROF_ITTYPE,
-	CorrespondingFields = {
-		[1] = "Mining",
-	},
+	CorrespondingFields = private.MINING_LINK,
 	items = {
 		{
 			name = AL["Smelting"],
@@ -1449,12 +1588,10 @@ data["MiningBC"] = {
 
 data["HerbalismBC"] = {
 	name = ALIL["Herbalism"],
-	ContentType = PROF_CONTENT,
+	ContentType = PROF_GATH_CONTENT,
 	LoadDifficulty = NORMAL_DIFF,
 	TableType = NORMAL_ITTYPE,
-	CorrespondingFields = {
-		[1] = "Herbalism",
-	},
+	CorrespondingFields = private.HERBALISM_LINK,
 	items = {
 		{
 			name = AL["Master"],
@@ -1471,58 +1608,6 @@ data["HerbalismBC"] = {
 				{ 17,  22575 }, -- Mote of Life
 			}
 		},
-		{
-			name = AL["Artisan"],
-			[NORMAL_DIFF] = {
-				{ 1,  13467 }, -- Icecap
-				{ 2,  13466 }, -- Plaguebloom
-				{ 3,  13465 }, -- Mountain Silversage
-				{ 4,  13463 }, -- Dreamfoil
-				{ 5,  13464 }, -- Golden Sansam
-				{ 6, 8846 }, -- Gromsblood
-				{ 7, 8845 }, -- Ghost Mushroom
-				{ 8, 8839 }, -- Blindweed
-				{ 9, 8838 }, -- Sungrass
-				{ 16,  13468 }, -- Black Lotus
-				{ 18,  19727 }, -- Blood Scythe
-				{ 19,  19726 }, -- Bloodvine
-			}
-		},
-		{
-			name = AL["Expert"],
-			[NORMAL_DIFF] = {
-				{ 1, 8836 }, -- Arthas' Tears
-				{ 2, 8831, 8153 }, -- Purple Lotus
-				{ 3, 4625 }, -- Firebloom
-				{ 4, 3819 }, -- Wintersbite
-				{ 5, 3358 }, -- Khadgar's Whisker
-				{ 6, 3821 }, -- Goldthorn
-				{ 7, 3818 }, -- Fadeleaf
-				--{ 17, 8153 }, -- Wildvine
-			}
-		},
-		{
-			name = AL["Journeyman"],
-			[NORMAL_DIFF] = {
-				{ 1, 3357 }, -- Liferoot
-				{ 2, 3356 }, -- Kingsblood
-				{ 3, 3369 }, -- Grave Moss
-				{ 4, 3355 }, -- Wild Steelbloom
-				{ 5, 2453 }, -- Bruiseweed
-				{ 6, 3820 }, -- Stranglekelp
-			}
-		},
-		{
-			name = AL["Apprentice"],
-			[NORMAL_DIFF] = {
-				{ 1,  2450, 2452 }, -- Briarthorn
-				{ 2,  785, 2452 }, -- Mageroyal
-				{ 3,  2449 }, -- Earthroot
-				{ 4,  765 }, -- Silverleaf
-				{ 5,  2447 }, -- Peacebloom
-				--{ 16,  2452 }, -- Swiftthistle
-			}
-		},
 	}
 }
 
@@ -1531,9 +1616,7 @@ data["CookingBC"] = {
 	ContentType = PROF_SEC_CONTENT,
 	LoadDifficulty = NORMAL_DIFF,
 	TableType = PROF_ITTYPE,
-	CorrespondingFields = {
-		[1] = "Cooking",
-	},
+	CorrespondingFields = private.COOKING_LINK,
 	items = {
 		{
 			name = ALIL["Agility"].." + "..ALIL["Spirit"],
@@ -1588,15 +1671,15 @@ data["CookingBC"] = {
 			},
 		},
 		{
-			name = ALIL["Hit"],
+			name = ALIL["Stamina"].." + "..ALIL["Mana Per 5 Sec."],
 			[NORMAL_DIFF] = {
-				{ 1, 43765 }, -- Spicy Hot Talbuk (325)
+				{ 1, 33292 }, -- Blackened Sporefish (310)
 			},
 		},
 		{
-			name = ALIL["Mana Per 5 Sec."],
+			name = ALIL["Hit"].." + "..ALIL["Spirit"],
 			[NORMAL_DIFF] = {
-				{ 1, 33292 }, -- Blackened Sporefish (310)
+				{ 1, 43765 }, -- Spicy Hot Talbuk (325)
 			},
 		},
 		{
@@ -1621,9 +1704,21 @@ data["CookingBC"] = {
 			},
 		},
 		{
+			name = AL["Misc"],
+			[NORMAL_DIFF] = {
+				{ 1, 46684 }, -- Charred Bear Kabobs (250)
+				{ 2, 46688 }, -- Juicy Bear Burger (250)
+				{ 4, 28267 }, -- Crunchy Spider Surprise (60)
+				{ 5, 33278 }, -- Bat Bites (50)
+				{ 16, 33277 }, -- Roasted Moongraze Tenderloin (1)
+				{ 17, 33276 }, --Lynx Steak (1)
+			},
+		},
+		{
 			name = AL["Special"],
 			[NORMAL_DIFF] = {
 				{ 1, 43779 }, -- Delicious Chocolate Cake (1)
+				{ 3, 45695 }, -- Captain Rumsey's Lager (100)
 				{ 16, 43758 }, -- Stormchops (300)
 			},
 		},
@@ -1635,9 +1730,7 @@ data["FirstAidBC"] = {
 	ContentType = PROF_SEC_CONTENT,
 	LoadDifficulty = NORMAL_DIFF,
 	TableType = PROF_ITTYPE,
-	CorrespondingFields = {
-		[1] = "FirstAid",
-	},
+	CorrespondingFields = private.FIRSTAID_LINK,
 	items = {
 		{
 			name = ALIL["First Aid"],
@@ -1649,14 +1742,67 @@ data["FirstAidBC"] = {
 	}
 }
 
+data["FishingBC"] = {
+	name = ALIL["Fishing"],
+	ContentType = PROF_SEC_CONTENT,
+	LoadDifficulty = NORMAL_DIFF,
+	TableType = NORMAL_ITTYPE,
+	CorrespondingFields = private.FISHING_LINK,
+	items = {
+		{
+			name = ALIL["Fishing"],
+			[NORMAL_DIFF] = {
+				{ 1, 6533 }, --  Aquadynamic Fish Attractor
+				{ 2, 34861 }, -- Sharpened Fish Hook
+				{ 3, 6532 }, --  Bright Baubles
+				{ 4, 7307 }, --  Flesh Eating Worm
+				{ 5, 6811 }, --  Aquadynamic Fish Lens
+				{ 6, 6530 }, --  Nightcrawlers
+				{ 16, 34109 }, -- Weather-Beaten Journal
+				{ 18, 19971 }, -- High Test Eternium Fishing Line
+				{ 19, 34836 }, -- Spun Truesilver Fishing Line
+				{ 27, 27532 }, -- Master Fishing - The Art of Angling
+				{ 28, 16082 }, -- Artisan Fishing - The Way of the Lure
+				{ 29, 16083 }, -- Expert Fishing - The Bass and You
+				{ 30, 46054 }, -- Journeyman Fishing - Fishing for Dummies
+			}
+		},
+		{
+			name = ALIL["Fishing Pole"],
+			[NORMAL_DIFF] = {
+				{ 1, 19970 }, -- Arcanite Fishing Pole
+				{ 2, 19022 }, -- Nat Pagle's Extreme Angler FC-5000
+				{ 3, 25978 }, -- Seth's Graphite Fishing Pole
+				{ 4, 6367 }, -- Big Iron Fishing Pole
+				{ 5, 6366 }, -- Darkwood Fishing Pole
+				{ 6, 6365 }, -- Strong Fishing Pole
+				{ 7, 12225 }, -- Blump Family Fishing Pole
+				{ 8, 6256 }, -- Fishing Pole
+			}
+		},
+		{
+			name = AL["Fishes"],
+			[NORMAL_DIFF] = {
+				{ 1, 33823 }, -- Bloodfin Catfish
+				{ 2, 33824 }, -- Crescent-Tail Skullfish
+				{ 3, 27422 }, -- Barbed Gill Trout
+				{ 4, 27435 }, -- Figluster's Mudfish
+				{ 5, 27439 }, -- Furious Crawdad
+				{ 6, 27438 }, -- Golden Darter
+				{ 7, 27437 }, -- Icefin Bluefish
+				{ 8, 27425 }, -- Spotted Feltail
+				{ 9, 27429 }, -- Zangarian Sporefish
+			}
+		},
+	}
+}
+
 data["RoguePoisonsBC"] = {
 	name = format("|c%s%s|r", RAID_CLASS_COLORS["ROGUE"].colorStr, ALIL["ROGUE"]),
 	ContentType = PROF_CLASS_CONTENT,
 	LoadDifficulty = NORMAL_DIFF,
 	TableType = PROF_ITTYPE,
-	CorrespondingFields = {
-		[1] = "RoguePoisons",
-	},
+	CorrespondingFields = private.ROGUE_POISONS_LINK,
 	items = {
 		{
 			name = ALIL["Poisons"],

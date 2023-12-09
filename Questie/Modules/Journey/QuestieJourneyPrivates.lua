@@ -22,7 +22,7 @@ function _QuestieJourney:ShowJourneyTooltip()
     local button = self -- ACE is doing something stupid here. Don't add "self" as parameter, when you use it as "_QuestieJourney.ShowJourneyTooltip" as callback
 
     local qid = button:GetUserData('id')
-    local quest = QuestieDB:GetQuest(tonumber(qid))
+    local quest = QuestieDB.GetQuest(tonumber(qid))
     if quest then
         GameTooltip:SetOwner(_G["QuestieJourneyFrame"].frame:GetParent(), "ANCHOR_CURSOR")
         GameTooltip:AddLine("[".. quest.level .."] ".. quest.name)
@@ -36,11 +36,6 @@ function _QuestieJourney:HideJourneyTooltip()
     if GameTooltip:IsShown() then
         GameTooltip:Hide()
     end
-end
-
-function _QuestieJourney:JumpToQuest()
-    QuestieSearchResults:JumpToQuest(self)
-    _QuestieJourney:HideJourneyTooltip()
 end
 
 function _QuestieJourney:CreateObjectiveText(desc)

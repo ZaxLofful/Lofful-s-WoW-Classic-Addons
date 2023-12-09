@@ -1,7 +1,7 @@
 --[[
     This file is part of Decursive.
 
-    Decursive (v 2.7.8.2) add-on for World of Warcraft UI
+    Decursive (v 2.7.10) add-on for World of Warcraft UI
     Copyright (C) 2006-2019 John Wellesz (Decursive AT 2072productions.com) ( http://www.2072productions.com/to/decursive.php )
 
     Decursive is free software: you can redistribute it and/or modify
@@ -77,7 +77,7 @@ T._LoadedFiles["esES.lua"] = false;
 local L = LibStub("AceLocale-3.0"):NewLocale("Decursive", "esES");
 
 if not L then
-    T._LoadedFiles["esES.lua"] = "2.7.8.2";
+    T._LoadedFiles["esES.lua"] = "2.7.10";
     return;
 end;
 
@@ -168,6 +168,7 @@ L["NEW_VERSION_ALERT"] = [=[Se ha detectado una nueva versión de Decursive: |cF
 ¡Vaya a |cFFFF0000WoWAce.com|r para conseguirla! --------]=]
 L["NORMAL"] = "Normal"
 L["NOSPELL"] = "No hay hechizo disponible"
+L["NOTICE_FRAME_TEMPLATE"] = "|cFFFF0000Decursive - Aviso|r %s"
 L["OPT_ABOLISHCHECK_DESC"] = "seleccionar si las unidades con un hechizo 'Suprimir' activo se muestran y curan"
 L["OPT_ABOUT"] = "Acerca de"
 L["OPT_ADD_A_CUSTOM_SPELL"] = "Agregar un hechizo / objeto personalizado"
@@ -263,6 +264,7 @@ L["OPT_HIDEMFS_GROUP"] = "en solitario o en grupo"
 L["OPT_HIDEMFS_GROUP_DESC"] = "Oculta la ventana de MUF cuando no estés en una banda."
 L["OPT_HIDEMFS_NEVER"] = "Nunca ocultar automáticamente"
 L["OPT_HIDEMFS_NEVER_DESC"] = "Nunca oculta automáticamente la ventana de MUF."
+L["OPT_HIDEMFS_RAID"] = "en banda"
 L["OPT_HIDEMFS_SOLO"] = "en solitario"
 L["OPT_HIDEMFS_SOLO_DESC"] = "Oculta la ventana de MUF cuando no forme parte de ningún tipo de grupo."
 L["OPT_HIDEMUFSHANDLE"] = "Ocultar el handle de MUF"
@@ -412,4 +414,4 @@ L["UNSTABLERELEASE"] = "Versión de lanzamiento inestable"
 
 
 
-T._LoadedFiles["esES.lua"] = "2.7.8.2";
+T._LoadedFiles["esES.lua"] = "2.7.10";

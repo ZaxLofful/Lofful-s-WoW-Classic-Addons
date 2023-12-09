@@ -1,7 +1,9 @@
 local L = LibStub("AceLocale-3.0"):GetLocale("Talented")
 local Talented = Talented
+local isVanilla = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+local isTBC     = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
 
-Talented.max_talent_points = 61 --Level 70 is max
+Talented.max_talent_points = isTBC and 61 or 51 --Level 70 for TBC, L60 for Vanilla
 
 Talented.defaults = {
 	profile = {

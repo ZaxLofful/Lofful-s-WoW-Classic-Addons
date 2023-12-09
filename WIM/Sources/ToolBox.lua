@@ -55,7 +55,6 @@ end
 -- a simple function to add an item to a table checking for duplicates.
 -- this is ok, since the table is never too large to slow things down.
 function WIM.addToTableUnique(tbl, item, prioritize)
-    local i;
     for i=1,table.getn(tbl) do
         if(tbl[i] == item) then
             return false;
@@ -71,7 +70,6 @@ end
 
 -- remove item from table. Return true if removed, false otherwise.
 function WIM.removeFromTable(tbl, item)
-    local i;
     for i=1,table.getn(tbl) do
         if(tbl[i] == item) then
             table.remove(tbl, i);
@@ -111,7 +109,10 @@ function WIM.GetNameAndServer(user)
 		realm = string.gsub(realm, "[A-Z]", " %1")
 		realm = string.gsub(realm, "' ", "'")
 		realm = string.gsub(realm, "^[a-z]", string.upper)
+	else
+		name = user
 	end
+
 	return name, realm
 end
 
@@ -203,7 +204,7 @@ end
 
 -- pass rgb as signle arg hex, or triple arg rgb percent.
 -- entering ! before a hex, will return a solid color.
-function WIM.getGradientFromColor(...)
+function WIM.getGradientFromColor_Legacy(...)
     local h, s, v, s1, v1, s2, v2;
     if(select("#", ...) == 0) then
         return 0, 0, 0, 0, 0, 0;
@@ -223,11 +224,17 @@ function WIM.getGradientFromColor(...)
     v1 = math.max(0, v-.57/2);
     s2 = math.max(0, s-.29/2);
     v2 = math.min(1, s+.57/2);
-    
+
     local r1, g1, b1 = WIM.HSVPerctoRGBPerc(h, s1, v1);
     local r2, g2, b2 = WIM.HSVPerctoRGBPerc(h, s2, v2);
-    
+
     return r1, g1, b1, r2, g2, b2;
+end
+
+function WIM.getGradientFromColor(...)
+	local r1, g1, b1, r2, g2, b2 = WIM.getGradientFromColor_Legacy(...)
+
+	return { r = r1, g = g1, b = b1, a = 1 }, { r = r2, g = g2, b = b2, a = 1 }
 end
 
 
@@ -249,7 +256,7 @@ function WIM.paddString(str, paddingChar, minLength, paddRight)
 end
 
 function WIM.gSplit(splitBy, str)
-    local index, splitBy, str = 0, splitBy, str;
+	local index = 0
     return function()
         index = index + 1;
         return select(index, string.split(splitBy, str));
@@ -274,6 +281,19 @@ function WIM.SplitToTable(str, inSplitPattern, outResults )
 end
 
 
+--------------------------------------
+--         Macro Functions          --
+--------------------------------------
+function WIM.SendToFocused (msg, typeFilter) -- typeFilter: whiser | chat | null
+	local focus = (WIM.EditBoxInFocus or WIM._EditBoxInFocus)
+	local win = focus and focus:GetParent()
+
+	if (focus and (not typeFilter or typeFilter == win.type)) then
+		focus:SetText(msg)
+		focus:GetScript("OnEnterPressed")(focus)
+		focus:SetFocus()
+	end
+end
 
 --------------------------------------
 --      Debugging Functions         --

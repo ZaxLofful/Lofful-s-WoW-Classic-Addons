@@ -128,6 +128,28 @@ local cascadeDirection = {
         {50, -25},      -- Down & Right
 };
 
+local GameClients = { -- thank you MysticalOS
+    ["BSAp"] = nil, --Battle.net Mobile "Interface\\FriendsFrame\\Battlenet-Battleneticon"
+    ["WoW"] = nil, --World of Warcraft
+    ["S2"] = 'sc2', --Starcraft 2 "Interface\\FriendsFrame\\Battlenet-Sc2icon"
+    ["D3"] = 'd3', --Diablo 3 "Interface\\FriendsFrame\\Battlenet-D3icon"
+    ["WTCG"] = 'hs', --Hearthstone "Interface\\FriendsFrame\\Battlenet-WTCGicon"
+    ["App"] = nil, --Battle.net Client
+    ["Hero"] = 'hots', --Heroes of the Storm "Interface\\FriendsFrame\\Battlenet-HotSicon"
+    ["Pro"] = 'ow', --Overwatch "Interface\\FriendsFrame\\Battlenet-Overwatchicon"
+    ["CLNT"] = nil, --Battle.net Client alternate (Unused?)
+    ["S1"] = 'sc1', --Starcraft 1
+    ["DST2"] = 'dsty2', --Destiny 2
+    ["VIPR"] = 'vipr', --COD
+    ["ODIN"] = 'vipr', --COD MW
+    ["LAZR"] = 'vipr', --COD MW2
+    ["ZEUS"] = 'vipr', --COD BOCW
+    ["W3"] = nil, --Warcraft 3 Reforged
+    ["RTRO"] = nil, --Blizzard Arcane
+    ["WLBY"] = nil, --Crash 4
+    ["OSI"] = 'd3' --Diablo 2
+}
+
 windowsByAge = {};
 
 nextColor = {};
@@ -140,16 +162,33 @@ local StringModifiers = {}; -- registered functions which will be used to format
 
 -- Window's Parent (Container for all Windows)
 WindowParent = _G.CreateFrame("Frame", "WIM_UIParent", _G.UIParent);
-                WindowParent:SetFrameStrata("BACKGROUND");
-                WindowParent:SetPoint("BOTTOMLEFT", _G.UIParent, "BOTTOMLEFT", 0, 0);
-                WindowParent:SetScript("OnShow", function(self)
-                                WindowParent:SetWidth(_G.UIParent:GetWidth());
-                                WindowParent:SetHeight(_G.UIParent:GetHeight());
-                end);
-                -- WindowParent.test = WindowParent:CreateTexture("BACKGROUND");
-                -- WindowParent.test:SetColorTexture(1,1,1,.5)
-                -- WindowParent.test:SetAllPoints();
-                WindowParent:Hide();
+	WindowParent:SetFrameStrata("BACKGROUND");
+	WindowParent:SetPoint("BOTTOMLEFT", _G.UIParent, "BOTTOMLEFT", 0, 0);
+	WindowParent:SetScript("OnShow", function(self)
+					WindowParent:SetWidth(_G.UIParent:GetWidth());
+					WindowParent:SetHeight(_G.UIParent:GetHeight());
+	end);
+	-- WindowParent.test = WindowParent:CreateTexture("BACKGROUND");
+	-- WindowParent.test:SetColorTexture(1,1,1,.5)
+	-- WindowParent.test:SetAllPoints();
+	WindowParent:Hide();
+
+	WindowParent:SetScript("OnUpdate", function (self, elapsed)
+
+		-- EditBoxInFocus & _EditBoxInFocus Management
+		-- if new edit box is focused, reset timer
+		if (EditBoxInFocus and self._editBoxInFocusElapsed) then
+			self._editBoxInFocusElapsed = nil
+
+		-- if no edit box is in focus, but one is stored in temp history, reset after 100ms
+		elseif (not EditBoxInFocus and _EditBoxInFocus) then
+			self._editBoxInFocusElapsed = (self._editBoxInFocusElapsed or 0) + elapsed
+			if (self._editBoxInFocusElapsed > .1) then
+				_EditBoxInFocus = nil
+				self._editBoxInFocusElapsed = nil
+			end
+		end
+	end);
 
 
 -- the following table defines a list of actions to be taken when
@@ -158,7 +197,6 @@ WindowParent = _G.CreateFrame("Frame", "WIM_UIParent", _G.UIParent);
 local Widget_Triggers = {};
 
 local function getFormatByName(format)
-	local i;
 	for i=1, #FormattingCalls do
 		if(FormattingCalls[i].name == format) then
 			return FormattingCalls[i].fun;
@@ -202,7 +240,6 @@ end
 local windowListByLevel_Recycle = {};
 local function getActiveWindowListByLevel()
 	-- first remove items from previously used list.
-	local i;
 	for i=1,#windowListByLevel_Recycle do
 		table.remove(windowListByLevel_Recycle, 1);
 	end
@@ -223,7 +260,6 @@ function getWindowAtCursorPosition(excludeObj)
 	-- can optionaly exclude an object
 	local x,y = _G.GetCursorPosition();
 	local windows = getActiveWindowListByLevel();
-	local i;
 	for i=1,#windows do
 		if(excludeObj ~= windows[i]) then
 			local x1, y1 = windows[i]:GetLeft()*windows[i]:GetEffectiveScale(), windows[i]:GetTop()*windows[i]:GetEffectiveScale();
@@ -310,16 +346,16 @@ helperFrame:SetWidth(1);
 helperFrame:SetHeight(1);
 helperFrame.ResetState = function(self)
         helperFrame:ClearAllPoints();
-	helperFrame:SetParent(UIPanel);
+		helperFrame:SetParent(UIPanel);
         helperFrame:SetWidth(1);
         helperFrame:SetHeight(1);
         helperFrame:SetPoint("TOPLEFT", WindowParent, "TOPLEFT", 0, 0);
-	helperFrame.isAttached = false;
+		helperFrame.isAttached = false;
         helperFrame.attachedTo = nil;
     end
 helperFrame:SetPoint("TOPLEFT", WindowParent, "TOPLEFT", 0, 0);
 helperFrame:SetScript("OnUpdate", function(self)
-                if(IsShiftKeyDown()) then
+        if(IsShiftKeyDown()) then
 			local obj = GetMouseFocus();
 			if(obj and (obj.isWimWindow or obj.parentWindow)) then
 				local win;
@@ -328,37 +364,41 @@ helperFrame:SetScript("OnUpdate", function(self)
 				else
 					win = obj.parentWindow;
 				end
-                                if(win == WIM.DemoWindow) then
-                                        return;
-                                end
+
+				if(win == WIM.DemoWindow) then
+					return;
+				end
+
 				if(not win.isMoving) then
-                                                resizeFrame:Attach(win);
-                                end
+					resizeFrame:Attach(win);
+				end
+
 				if(win.isMoving and not (win.tabStrip and win.tabStrip:IsVisible())) then
-				        local mWin = getWindowAtCursorPosition(win);
-                                        if(mWin) then
-                                                if(self.isAttached) then
-                                                                if(mWin ~= self.attachedTo) then
-                                                                                self:ResetState();
-                                                                end
-                                                else
-                                                                if(mWin ~= WIM.DemoWindow) then
-                                                                                -- attach to window
-                                                                                local skinTable = GetSelectedSkin().tab_strip;
-                                                                                self.parentWindow = mWin;
-                                                                                self.attachedTo = mWin;
-                                                                                mWin.helperFrame = self;
-                                                                                self:SetParent(mWin);
-                                                                                SetWidgetRect(self, skinTable);
-                                                                                self:SetHeight(self.flash:GetHeight());
-                                                                                self.isAttached = true;
-                                                                end
-                                                end
-                                        else
-                                                if(self.isAttached) then
-                                                                self:ResetState();
-                                                end
-                                        end
+					local mWin = getWindowAtCursorPosition(win);
+
+					if(mWin) then
+						if(self.isAttached) then
+							if(mWin ~= self.attachedTo) then
+											self:ResetState();
+							end
+						else
+							if(mWin ~= WIM.DemoWindow) then
+								-- attach to window
+								local skinTable = GetSelectedSkin().tab_strip;
+								self.parentWindow = mWin;
+								self.attachedTo = mWin;
+								mWin.helperFrame = self;
+								self:SetParent(mWin);
+								SetWidgetRect(self, skinTable);
+								self:SetHeight(self.flash:GetHeight());
+								self.isAttached = true;
+							end
+						end
+					else
+						if(self.isAttached) then
+							self:ResetState();
+						end
+					end
 				else
 					if(self.isAttached) then
 						self:ResetState();
@@ -370,18 +410,19 @@ helperFrame:SetScript("OnUpdate", function(self)
 					self:ResetState();
 				end
 			end
-                else
+		else
 		    resizeFrame:Reset();
-                    if(self.isAttached) then
-                        self:ResetState();
-                    end
-                end
-                if(self.isAttached) then
-                    self.flash:Show();
-                else
-                    self.flash:Hide();
-                end
-            end);
+			if(self.isAttached) then
+				self:ResetState();
+			end
+		end
+
+		if(self.isAttached) then
+			self.flash:Show();
+		else
+			self.flash:Hide();
+		end
+	end);
 helperFrame:Show();
 
 
@@ -717,7 +758,6 @@ end
 
 
 local function setAllChildrenParentWindow(parent, child)
-	local i;
 	if(child ~= parent) then
 		child.parentWindow = parent;
 	end
@@ -910,49 +950,29 @@ local function instantiateWindow(obj)
                 local chat_type = self.chatType == "battleground" and "INSTANCE_CHAT" or string.upper(self.chatType);
                 local color = _G.ChatTypeInfo[chat_type]; -- Drii: ticket 344
                 icon:SetTexCoord(0,1,0,1);
-                icon:SetGradient("VERTICAL", color.r, color.g, color.b, color.r, color.g, color.b);
+				icon:SetGradient("VERTICAL",
+					{ r = color.r, g = color.g, b = color.b, a = 1},
+					{ r = color.r, g = color.g, b = color.b, a = 1 }
+				);
                 if(GetSelectedSkin().message_window.widgets.from.use_class_color) then
                                 self.widgets.from:SetTextColor(color.r, color.g, color.b);
                 end
         else
                 local classTag = obj.class;
-                icon:SetGradient("VERTICAL", 1, 1, 1, 1, 1, 1);
-                if(self.bn and self.bn.client == _G.BNET_CLIENT_SC2) then
-                                classTag = "sc2";--"Interface\\FriendsFrame\\Battlenet-Sc2icon"
-                                icon:SetTexture(GetSelectedSkin().message_window.widgets.client_icon.texture);
-                                icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.client_icon[classTag]));
-                elseif(self.bn and self.bn.client == _G.BNET_CLIENT_SC) then
-                                classTag = "sc1";--"Interface\\FriendsFrame\\Battlenet-SCicon"
-                                icon:SetTexture(GetSelectedSkin().message_window.widgets.client_icon.texture);
-                                icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.client_icon[classTag]));
-                elseif(self.bn and self.bn.client == _G.BNET_CLIENT_DESTINY2) then
-                                classTag = "dsty2";--"Interface\\FriendsFrame\\Battlenet-SCicon"
-                                icon:SetTexture(GetSelectedSkin().message_window.widgets.client_icon.texture);
-                                icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.client_icon[classTag]));
-                elseif(self.bn and self.bn.client == _G.BNET_CLIENT_COD) then
-                                classTag = "vipr";--"Interface\\FriendsFrame\\Battlenet-SCicon"
-                                icon:SetTexture(GetSelectedSkin().message_window.widgets.client_icon.texture);
-                                icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.client_icon[classTag]));
-                elseif(self.bn and self.bn.client == _G.BNET_CLIENT_D3) then
-                                classTag = "d3";--"Interface\\FriendsFrame\\Battlenet-D3icon"
-                                icon:SetTexture(GetSelectedSkin().message_window.widgets.client_icon.texture);
-                                icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.client_icon[classTag]));
-                elseif(self.bn and self.bn.client == _G.BNET_CLIENT_WTCG) then
-                                classTag = "hs";--"Interface\\FriendsFrame\\Battlenet-WTCGicon"
-                                icon:SetTexture(GetSelectedSkin().message_window.widgets.client_icon.texture);
-                                icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.client_icon[classTag]));
-                elseif(self.bn and self.bn.client == _G.BNET_CLIENT_HEROES) then
-                                classTag = "hots";--"Interface\\FriendsFrame\\Battlenet-HotSicon"
-                                icon:SetTexture(GetSelectedSkin().message_window.widgets.client_icon.texture);
-                                icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.client_icon[classTag]));
-                elseif(self.bn and self.bn.client == _G.BNET_CLIENT_OVERWATCH) then
-                                classTag = "ow";--"Interface\\FriendsFrame\\Battlenet-Overwatchicon"
-                                icon:SetTexture(GetSelectedSkin().message_window.widgets.client_icon.texture);
-                                icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.client_icon[classTag]));
-                elseif(self.bn and (self.bn.client == _G.BNET_CLIENT_APP or self.bn.client == _G.BNET_CLIENT_CLNT or self.bn.client == "BSAp")) then--Battle.net Desktop/Mobile Apps
-                                classTag = "bnd";--"Interface\\FriendsFrame\\Battlenet-Battleneticon"
-                                icon:SetTexture(GetSelectedSkin().message_window.widgets.client_icon.texture);
-                                icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.client_icon[classTag]));
+				icon:SetGradient("VERTICAL",
+					{ r = 1, g = 1, b = 1, a = 1 },
+					{ r = 1, g = 1, b = 1, a = 1 }
+				);
+
+				if (self.bn and self.bn.client and (not obj.class or obj.class == "")) then
+					local client = GameClients[self.bn.client];
+					if (client) then
+						icon:SetTexture(GetSelectedSkin().message_window.widgets.client_icon.texture);
+						icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.client_icon[client]));
+					else
+						icon:SetTexture(GetSelectedSkin().message_window.widgets.client_icon.texture);
+                		icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.client_icon['bnd']));
+					end
                 elseif(self.class == "") then
                 	classTag = "blank"
                 	icon:SetTexture(GetSelectedSkin().message_window.widgets.class_icon.texture);
@@ -970,7 +990,7 @@ local function instantiateWindow(obj)
                 if(constants.classes[self.class]) then
                         self.classColor = constants.classes[self.class].color;
                         if(GetSelectedSkin().message_window.widgets.from.use_class_color) then
-                                        self.widgets.from:SetTextColor(RGBHexToPercent(constants.classes[self.class].color));
+                            self.widgets.from:SetTextColor(RGBHexToPercent(constants.classes[self.class].color));
                         end
                 end
           end
@@ -981,15 +1001,15 @@ local function instantiateWindow(obj)
     end
 
     obj.WhoCallback = function(result)
-	if(result and result.Online and result.Name == obj.theUser) then
-		obj.class = result.Class;
-		obj.level = result.Level;
-		obj.race = result.Race;
-		obj.guild = result.Guild;
-		obj.location = result.Zone;
-		obj:UpdateIcon();
-		obj:UpdateCharDetails();
-	end
+        if(result and result.Online and result.Name == obj.theUser) then
+            obj.class = result.Class;
+            obj.level = result.Level;
+            obj.race = result.Race;
+            obj.guild = result.Guild;
+            obj.location = result.Zone;
+            obj:UpdateIcon();
+            obj:UpdateCharDetails();
+        end
     end
 
     obj.SendWho = function(self)
@@ -1010,34 +1030,34 @@ local function instantiateWindow(obj)
                 -- get information of BN user from friends data.
                 local id = self.theUser and _G.BNet_GetBNetIDAccount(self.theUser) or nil;
                 if(id) then
-                				local _, _, _, _, _, bnetIDGameAccount = GetBNGetFriendInfoByID(id)
-                                local hasFocus, toonName, client, realmName, realmID, faction, race, class, guild, zoneName, level, gameText, broadcastText, broadcastTime = GetBNGetGameAccountInfo(bnetIDGameAccount or 0);
-                                self.class = class or "";
-                                self.level = level or "";
-                                self.race = race or "";
-                                self.guild = guild or "";
-                                self.location = client == _G.BNET_CLIENT_WOW and zoneName or gameText;
-                                self.bn.class = class;
-                                self.bn.level = level;
-                                self.bn.race = race;
-                                self.bn.guild = guild;
-                                self.bn.location = client == _G.BNET_CLIENT_WOW and zoneName or gameText;
-                                self.bn.gameText = gameText;
-                                self.bn.toonName = toonName;
-                                self.bn.client = client;
-                                self.bn.realmName = realmName;
-                                self.bn.faction = faction;
-                                self.bn.broadcastText = broadcastText;
-                                self.bn.broadcastTime = broadcastTime;
-                                self.bn.hasFocus = hasFocus;
-                                self.bn.id = id;
-                                -- self.widgets.from:SetText(self.theUser.." - "..toonName);
-                                self:UpdateIcon();
-                                if (client == _G.BNET_CLIENT_WOW) then
-                                  self:UpdateCharDetails();
-                                end
+					local _, _, _, _, _, bnetIDGameAccount = GetBNGetFriendInfoByID(id)
+					local hasFocus, toonName, client, realmName, realmID, faction, race, class, guild, zoneName, level, gameText, broadcastText, broadcastTime = GetBNGetGameAccountInfo(bnetIDGameAccount or 0);
+					self.class = class or "";
+					self.level = level or "";
+					self.race = race or "";
+					self.guild = guild or "";
+					self.location = client == _G.BNET_CLIENT_WOW and zoneName or gameText;
+					self.bn.class = class;
+					self.bn.level = level;
+					self.bn.race = race;
+					self.bn.guild = guild;
+					self.bn.location = client == _G.BNET_CLIENT_WOW and zoneName or gameText;
+					self.bn.gameText = gameText;
+					self.bn.toonName = toonName;
+					self.bn.client = client;
+					self.bn.realmName = realmName;
+					self.bn.faction = faction;
+					self.bn.broadcastText = broadcastText;
+					self.bn.broadcastTime = broadcastTime;
+					self.bn.hasFocus = hasFocus;
+					self.bn.id = id;
+					-- self.widgets.from:SetText(self.theUser.." - "..toonName);
+					self:UpdateIcon();
+					if (client == _G.BNET_CLIENT_WOW) then
+						self:UpdateCharDetails();
+					end
                 else
-                                self:AddMessage(_G.BN_UNABLE_TO_RESOLVE_NAME, db.displayColors.errorMsg.r, db.displayColors.errorMsg.g, db.displayColors.errorMsg.b);
+					self:AddMessage(_G.BN_UNABLE_TO_RESOLVE_NAME, db.displayColors.errorMsg.r, db.displayColors.errorMsg.g, db.displayColors.errorMsg.b);
                 end
         else
         		--Check if sending unit is in your party, then check guild
@@ -1045,16 +1065,16 @@ local function instantiateWindow(obj)
         			for i = 1, _G.GetNumGroupMembers() do
         				local unitId = "raid"..i
         				local name = _G.GetUnitName(unitId, true)
-                                        if self.theUser == name then
-                                                self.WhoCallback({
-                                                        Name = name,
-                                                        Online = true,
-                                                        Guild = self.guild or "",
-                                                        Class = UnitClass(unitId) or "",
-                                                        Level = UnitLevel(unitId) or "",
-                                                        Race = UnitRace(unitId) or "",
-                                                        Zone = self.zone  or ""
-                                                });
+						if self.theUser == name then
+							self.WhoCallback({
+								Name = name,
+								Online = true,
+								Guild = self.guild or "",
+								Class = UnitClass(unitId) or "",
+								Level = UnitLevel(unitId) or "",
+								Race = UnitRace(unitId) or "",
+								Zone = self.zone  or ""
+							});
         					break
         				end
         			end
@@ -1062,37 +1082,37 @@ local function instantiateWindow(obj)
         			for i = 1, _G.GetNumSubgroupMembers() do
         				local unitId = "party"..i
         				local name = _G.GetUnitName(unitId, true)
-                                        if self.theUser == name then
-                                                self.WhoCallback({
-                                                        Name = name,
-                                                        Online = true,
-                                                        Guild = self.guild or "",
-                                                        Class = UnitClass(unitId) or "",
-                                                        Level = UnitLevel(unitId) or "",
-                                                        Race = UnitRace(unitId) or "",
-                                                        Zone = self.zone  or ""
-                                                });
+						if self.theUser == name then
+							self.WhoCallback({
+								Name = name,
+								Online = true,
+								Guild = self.guild or "",
+								Class = UnitClass(unitId) or "",
+								Level = UnitLevel(unitId) or "",
+								Race = UnitRace(unitId) or "",
+								Zone = self.zone  or ""
+							});
         					break
         				end
         			end
         		end
         		if _G.IsInGuild() then
-                                        local lookupName = Ambiguate(self.theUser, "none");
-                                        local playerGuildIndex = lists.guild[lookupName];
-                                        if (playerGuildIndex) then
-                                                local name, rank, rankIndex, level, class, zone = _G.GetGuildRosterInfo(playerGuildIndex)
-                                                if name and lookupName:lower() == Ambiguate(name, "none"):lower() then --no name, means during our scan someone left guild and we hit an index that no longer returns player name, or the index is outdated and names do not match
-                                                        self.WhoCallback({
-                                                                Name = self.theUser,
-                                                                Online = true,
-                                                                Guild = select(1, GetGuildInfo("player")) or "",
-                                                                Class = class or "",
-                                                                Level = level or "",
-                                                                Race = self.race or "",
-                                                                Zone = zone  or ""
-                                                        });
-                                                end
-                                        end
+					local lookupName = Ambiguate(self.theUser, "none");
+					local playerGuildIndex = lists.guild[lookupName];
+					if (playerGuildIndex) then
+						local name, rank, rankIndex, level, class, zone = _G.GetGuildRosterInfo(playerGuildIndex)
+						if name and lookupName:lower() == Ambiguate(name, "none"):lower() then --no name, means during our scan someone left guild and we hit an index that no longer returns player name, or the index is outdated and names do not match
+							self.WhoCallback({
+								Name = self.theUser,
+								Online = true,
+								Guild = select(1, GetGuildInfo("player")) or "",
+								Class = class or "",
+								Level = level or "",
+								Race = self.race or "",
+								Zone = zone  or ""
+							});
+						end
+					end
         		end
         end
     end
@@ -1186,9 +1206,9 @@ local function instantiateWindow(obj)
 
 	self.widgets.from:SetAlpha(1);
 	self.widgets.char_info:SetAlpha(1);
-	self.widgets.close:SetAlpha(db.windowAlpha);
-	self.widgets.scroll_up:SetAlpha(db.windowAlpha);
-	self.widgets.scroll_down:SetAlpha(db.windowAlpha);
+	self.widgets.close:SetAlpha(db.windowAlpha / 100);
+	self.widgets.scroll_up:SetAlpha(db.windowAlpha / 100);
+	self.widgets.scroll_down:SetAlpha(db.windowAlpha / 100);
 
         if(not self.customSize) then
                 self:SetWidth(db.winSize.width);
@@ -1198,7 +1218,6 @@ local function instantiateWindow(obj)
         local minWidth, minHeight = GetSelectedSkin().message_window.min_width, GetSelectedSkin().message_window.min_height;
 
 	-- process registered widgets
-	local widgetName, widgetObj;
 	for widgetName, widgetObj in pairs(obj.widgets) do
 		if(type(widgetObj.UpdateProps) == "function") then
 			widgetObj:UpdateProps();
@@ -1214,7 +1233,11 @@ local function instantiateWindow(obj)
                         end
                 end
 	end
-        self:SetMinResize(minWidth, minHeight);
+		if self.SetResizeBounds then -- WoW 10.0
+			self:SetResizeBounds(minWidth, minHeight);
+		else
+        	self:SetMinResize(minWidth, minHeight);
+        end
         self:SetWidth(_G.math.max(minWidth, self:GetWidth()));
         self:SetHeight(_G.math.max(minHeight, self:GetHeight()));
         self.initialized = true;
@@ -1235,8 +1258,8 @@ local function instantiateWindow(obj)
 			self:Hide_Normal();
 			self:ResetAnimation();
 		else
-                        self.widgets.chat_display:SetParent("UIParent");
-                        self.widgets.chat_display:Hide();
+			self.widgets.chat_display:SetParent(_G.UIParent);
+			self.widgets.chat_display:Hide();
 			local a = self.animation;
 			obj:SetClampedToScreen(false);
 			a.initLeft = self:SafeGetLeft();
@@ -1277,7 +1300,6 @@ local function instantiateWindow(obj)
     end
 
     -- enforce that all core widgets have parentWindow set.
-	local w;
 	for _, w in pairs(obj.widgets) do
 		w.parentWindow = obj;
 	end
@@ -1328,12 +1350,12 @@ local function loadWindowDefaults(obj)
 	obj.race = "";
 	obj.class = "";
 	obj.location = "";
-        obj.demoSave = nil;
-        obj.classColor = "ffffff";
+	obj.demoSave = nil;
+	obj.classColor = "ffffff";
 
-        obj.isGM = lists.gm[obj.theUser];
+	obj.isGM = lists.gm[obj.theUser];
 
-        obj:UpdateIcon();
+	obj:UpdateIcon();
 	obj.isNew = true;
 
 	obj:SetScale(1);
@@ -1362,7 +1384,6 @@ local function loadWindowDefaults(obj)
 	loadHandlers(obj);
 
 	-- process registered widgets
-	local widgetName, widgetObj;
 	for widgetName, widgetObj in pairs(obj.widgets) do
 		if(type(widgetObj.SetDefaults) == "function") then
 			widgetObj:SetDefaults();
@@ -1384,7 +1405,6 @@ local function createWindow(userName, wtype)
     -- end
     local func = function ()
                         if(WindowSoupBowl.available > 0) then
-                            local i;
                             for i=1,#WindowSoupBowl.windows do
                                 if(WindowSoupBowl.windows[i].inUse == false) then
                                     return WindowSoupBowl.windows[i].obj, i;
@@ -1591,6 +1611,21 @@ function HideAllWindows(type)
 			WindowSoupBowl.windows[i].obj:Hide(true);
 		end
 	end
+end
+
+function GetWindowsShown(type)
+	type = type and string.lower(type) or nil;
+	local windows = {};
+	for i=1, #WindowSoupBowl.windows do
+		if(WindowSoupBowl.windows[i].inUse and WindowSoupBowl.windows[i].obj.type == (type or WindowSoupBowl.windows[i].obj.type)) then
+			local obj = WindowSoupBowl.windows[i] and WindowSoupBowl.windows[i].obj;
+			if (obj:IsShown()) then
+				table.insert(windows, obj);
+			end
+		end
+	end
+
+	return windows;
 end
 
 local showAllTbl = {};
@@ -1909,12 +1944,19 @@ RegisterWidgetTrigger("chat_display", "whisper,chat,w2w", "OnHyperlinkClick", fu
 	local t,n,i = string.split(":", link)
 	if n == myself then
 		return
-        end
-        if link == "garrmission:weakauras" then
-                _G.SetItemRef(link, text, button, self);
-        else
-                _G.SetItemRef(link, text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""), button, self);
-        end
+    end
+
+	if t == 'player' then
+		_G.ChatFrame_OnHyperlinkShow(_G.DEFAULT_CHAT_FRAME, link, text, button);
+		return;
+	end
+
+	_G.ChatFrame_OnHyperlinkShow(self, link, text, button);
+	-- if link == "garrmission:weakauras" then
+	-- 		_G.SetItemRef(link, text, button, self);
+	-- else
+	-- 		_G.SetItemRef(link, text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""), button, self);
+	-- end
 end);
 --RegisterWidgetTrigger("chat_display", "whisper,chat,w2w","OnMessageScrollChanged", function(self) updateScrollBars(self:GetParent()); end);
 
@@ -1989,11 +2031,12 @@ RegisterWidgetTrigger("msg_box", "whisper,chat,w2w", "OnEditFocusGained", functi
                                 -- _G.ACTIVE_CHAT_EDIT_BOX = self; -- preserve linking abilities.
                 end);
 RegisterWidgetTrigger("msg_box", "whisper,chat,w2w", "OnEditFocusLost", function(self)
+								_EditBoxInFocus = EditBoxInFocus -- temporary reference
                                 EditBoxInFocus = nil;
                                 -- _G.ACTIVE_CHAT_EDIT_BOX = nil;
                 end);
 RegisterWidgetTrigger("msg_box", "whisper,chat,w2w", "OnMouseUp", function(self, button)
-                                _G.CloseDropDownMenus();
+                                libs.DropDownMenu.CloseDropDownMenus();
                                 if(button == "RightButton") then
                                                 PopContextMenu("MENU_MSGBOX", self);
                                 else
@@ -2014,7 +2057,7 @@ RegisterWidgetTrigger("msg_box", "whisper,w2w", "OnTabPressed", function(self)
                 		local nextWhisperTarget = _G.ChatEdit_GetNextTellTarget(whisperTarget,chatType)
 
                 		if nextWhisperTarget ~= "" then
-                			local win = GetWhisperWindowByUser(nextWhisperTarget);
+                			win = GetWhisperWindowByUser(nextWhisperTarget);
                 			chatType = win.isBN and "BN_WHISPER" or "WHISPER"
                 			win:Hide();
                 			win:Pop(true); -- force popup
@@ -2131,11 +2174,34 @@ escapeFrame:Show();
 
 
 -- define context menu
-local info = _G.UIDropDownMenu_CreateInfo();
+local info = {};
 info.text = "MENU_MSGBOX";
 local msgBoxMenu = AddContextMenu(info.text, info);
-                local info = _G.UIDropDownMenu_CreateInfo();
+                info = {};
                 info.text = _G.CANCEL;
                 info.notCheckable = true;
-                info.func = function() _G.CloseDropDownMenus(); end
+                info.func = function() libs.DropDownMenu.CloseDropDownMenus(); end
                 msgBoxMenu:AddSubItem(AddContextMenu("MENU_CANCEL", info));
+
+
+local function toggleWindows (type)
+	type = string.trim(string.lower(type));
+
+	if (type == "all" or type == "whisper" or type == "chat") then
+		if (type == "all") then
+			type = nil
+		end
+
+		if (table.getn(GetWindowsShown(type)) > 0) then
+			HideAllWindows(type)
+		else
+			ShowAllWindows(type)
+		end
+	else
+		_G.DEFAULT_CHAT_FRAME:AddMessage("|cff69ccf0"..L["Usage"]..":|r  ".."/wim toggle {all | whisper | chat}");
+	end
+end
+
+WIM.ToggleWindows = toggleWindows;
+
+WIM.RegisterSlashCommand("toggle", toggleWindows, L["Hide or show {all, whisper, chat} windows."]);

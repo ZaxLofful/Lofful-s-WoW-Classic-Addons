@@ -28,7 +28,7 @@ local L = BVP.L
 -- BVP.debug = 9 -- to debug before saved variables are loaded
 
 BVP.slashCmdName = "bvp"
-BVP.addonHash = "3ee9c6b"
+BVP.addonHash = "c43a2a1"
 BVP.savedVarName = "betterVendorPriceSaved"
 
 -- default value
@@ -74,17 +74,14 @@ function BVP.Slash(arg) -- can't be a : because used directly as slash command
   if cmd == "v" then
     -- version
     BVP:PrintDefault("BetterVendorPrice " .. BVP.manifestVersion ..
-                       " (3ee9c6b) by MooreaTv (moorea@ymail.com)")
+                       " (c43a2a1) by MooreaTv (moorea@ymail.com)")
   elseif cmd == "b" then
     local subText = L["Please submit on discord or on https://|cFF99E5FFbit.ly/vendorbug|r  or email"]
     BVP:PrintDefault(L["Better Vendor Price bug report open: "] .. subText)
     -- base molib will add version and date/timne
-    BVP:BugReport(subText, "3ee9c6b\n\n" .. L["Bug report from slash command"])
+    BVP:BugReport(subText, "c43a2a1\n\n" .. L["Bug report from slash command"])
   elseif cmd == "c" then
-    -- Show config panel
-    -- InterfaceOptionsList_DisplayPanel(BVP.optionsPanel)
-    InterfaceOptionsFrame:Show() -- onshow will clear the category if not already displayed
-    InterfaceOptionsFrame_OpenToCategory(BVP.optionsPanel) -- gets our name selected
+    BVP:ShowConfigPanel(BVP.optionsPanel)
   elseif BVP:StartsWith(arg, "debug") then
     -- debug
     if rest == "on" then
@@ -121,7 +118,7 @@ function BVP:CreateOptionsPanel()
   BVP.optionsPanel = p
   p:addText(L["Better Vendor Price options"], "GameFontNormalLarge"):Place()
   p:addText(L["These options let you control the behavior of BetterVendorPrice"] .. " " .. BVP.manifestVersion ..
-              " 3ee9c6b"):Place()
+              " c43a2a1"):Place()
   p:addText(L["Get Auction House DataBase (|cFF99E5FFAHDB|r) v0.12 or newer to see auction information on the toolip!"])
     :Place(0, 16)
 
@@ -207,6 +204,10 @@ function BVP:CreateOptionsPanel()
 end
 
 function BVP.ToolTipHook(t)
+  if t.GetItem == nil then
+    BVP:Debug(1, "No GetItem for %", t:GetName())
+    return
+  end
   local name, link = t:GetItem()
   if not link then
     BVP:Debug(1, "No item link for % on %", name, t:GetName())
@@ -302,8 +303,13 @@ function BVP.ToolTipHook(t)
   return true
 end
 
-GameTooltip:HookScript("OnTooltipSetItem", BVP.ToolTipHook)
-ItemRefTooltip:HookScript("OnTooltipSetItem", BVP.ToolTipHook)
+if TooltipDataProcessor ~= nil then
+  -- Dragonflight "revamp"
+  TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, BVP.ToolTipHook)
+else
+  GameTooltip:HookScript("OnTooltipSetItem", BVP.ToolTipHook)
+  ItemRefTooltip:HookScript("OnTooltipSetItem", BVP.ToolTipHook)
+end
 
 --
 BVP:Debug("bvp main file loaded")

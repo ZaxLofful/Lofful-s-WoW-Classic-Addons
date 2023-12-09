@@ -86,6 +86,7 @@ L["Onyxia, hangs from the arches"] = "看看強大的聯盟吧";
 
 --Alliance Nefarian buff NPC.
 L["Field Marshal Afrasiabi"] = "艾法希比元帥";
+L["Field Marshal Stonebridge"] = "戰場元帥石橋";
 --Alliance Nefarian buff NPC first yell string (part of his first yell msg before before buff).
 L["the Lord of Blackrock is slain"] = "聯盟的人民們";
 --Alliance Nefarian buff NPC second yell string (part of his second yell msg before before buff).
@@ -636,10 +637,10 @@ L["ignoreKillDataDesc"] = "忽略任何NPC被殺死的資料。";
 L["noOverwriteTitle"] = "不要覆蓋計時器";
 L["noOverwriteDesc"] = "你可以開啟此選項，所以當你已經有一個計時器時，將不會再覆蓋新的計時，直到你的計時器結束。";
 
-L["layerMsg1"] = "你在一個Layer區域。";
-L["layerMsg2"] = "點擊這裡以觀看正確的計時器。";
-L["layerMsg3"] = "點擊任何NPC以取得鏡像資料。";
-L["layerMsg4"] = "點擊任何在 %s 的NPC以取得鏡像資料。"; --Target any NPC in Orgrimmar to see your current layer.
+L["layerMsg1"] = "你在一個有鏡像的區域。";
+L["layerMsg2"] = "點一下這裡來檢視目前已有的世界增益。";
+L["layerMsg3"] = "點選任何 NPC 得知目前所在的鏡像。";
+L["layerMsg4"] = "點選%s的任何 NPC 得知目前所在的鏡像。"; --Target any NPC in Orgrimmar to see your current layer.
 --NOTE: Darkmoon Faire buff type is now a character specific setting, changing buff type will only change it for this character.
 L["note"] = "註記:";
 L["dmfConfigWarning"] = "暗月馬戲團的增益種類特定設定，更改增益類型只會對此腳色進行修改。";
@@ -683,10 +684,10 @@ L["zgGotBuffSummonDesc"] = "在取得贊達拉增益後，自動接受招喚。"
 L["buffHelperDelayTitle"] = "設定增益助手運作秒數";
 L["buffHelperDelayDesc"] = "你取得增益後增益助手運作多少秒? 你可以設定這個選項，他只會在你取得增益後運作多少秒。";
 
-L["showNaxxWorldmapMarkersTitle"] = "世界地圖－納克薩瑪斯";
+L["showNaxxWorldmapMarkersTitle"] = "世界地圖NAXX";
 L["showNaxxWorldmapMarkersDesc"] = "在世界地圖上顯示納克薩馬斯記號？";
 
-L["showNaxxMinimapMarkersTitle"] = "小地圖－納克薩瑪斯";
+L["showNaxxMinimapMarkersTitle"] = "小地圖顯示NAXX";
 L["showNaxxMinimapMarkersDesc"] = "在小地圖顯示納克薩瑪斯記號？這在你出團死在副本裡的時候，將顯示返回naxx的方向。";
 
 L["bigWigsSupportTitle"] = "BigWigs 支援";
@@ -730,7 +731,7 @@ L["disableSoundsAboveMaxBuffLevelDesc"] = "在於TCB領域時為63級以上角�
 L["disableSoundsAllLevelsTitle"] = "所有級別角色關閉音效";
 L["disableSoundsAllLevelsDesc"] = "為 TBC 領域的所有級別的角色，關閉世界增益音效。";
 
-L["disableMiddleAboveMaxBuffLevelTitle"] = "64級以上關閉螢幕提示";
+L["disableMiddleAboveMaxBuffLevelTitle"] = "在64級以上關閉螢幕提示";
 L["disableMiddleAboveMaxBuffLevelDesc"] = "在於TCB領域時為63級以上角色，關閉世界增益螢幕提示。";
 
 L["disableMiddleAllLevelsTitle"] = "所有級別角色關閉螢幕提示";
@@ -754,24 +755,24 @@ L["disableLogonAboveMaxBuffLevelDesc"] = "當您在 TBC 領域登錄 63 級以�
 L["disableLogonAllLevelsTitle"] = "所有級別角色關閉登入計時器";
 L["disableLogonAllLevelsDesc"] = "為 TBC 領域的所有級別的角色，關閉登入計時器。";
 
-L["Flask of Fortification"] = "Flask of Fortification";
-L["Flask of Pure Death"] = "Flask of Pure Death";
-L["Flask of Relentless Assault"] = "Flask of Relentless Assault";
-L["Flask of Blinding Light"] = "Flask of Blinding Light";
-L["Flask of Mighty Restoration"] = "Flask of Mighty Restoration";
-L["Flask of Chromatic Wonder"] = "Flask of Chromatic Wonder";
-L["Fortification of Shattrath"] = "Fortification of Shattrath";
-L["Pure Death of Shattrath"] = "Pure Death of Shattrath";
-L["Relentless Assault of Shattrath"] = "Relentless Assault of Shattrath";
-L["Blinding Light of Shattrath"] = "Blinding Light of Shattrath";
-L["Mighty Restoration of Shattrath"] = "Mighty Restoration of Shattrath";
-L["Supreme Power of Shattrath"] = "Supreme Power of Shattrath";
-L["Unstable Flask of the Beast"] = "Unstable Flask of the Beast";
-L["Unstable Flask of the Sorcerer"] = "Unstable Flask of the Sorcerer";
-L["Unstable Flask of the Bandit"] = "Unstable Flask of the Bandit";
-L["Unstable Flask of the Elder"] = "Unstable Flask of the Elder";
-L["Unstable Flask of the Physician"] = "Unstable Flask of the Physician";
-L["Unstable Flask of the Soldier"] = "Unstable Flask of the Soldier";
+L["Flask of Fortification"] = "防禦精煉藥劑";
+L["Flask of Pure Death"] = "純淨死亡精煉藥劑";
+L["Flask of Relentless Assault"] = "強襲精煉藥劑";
+L["Flask of Blinding Light"] = "盲目之光精煉藥劑";
+L["Flask of Mighty Restoration"] = "法力恢復精煉藥劑";
+L["Flask of Chromatic Wonder"] = "炫彩驚奇精煉藥劑";
+L["Fortification of Shattrath"] = "撒塔斯防禦精煉藥劑";
+L["Pure Death of Shattrath"] = "撒塔斯純淨死亡精煉藥劑";
+L["Relentless Assault of Shattrath"] = "撒塔斯強襲精煉藥劑";
+L["Blinding Light of Shattrath"] = "撒塔斯盲目之光精煉藥劑";
+L["Mighty Restoration of Shattrath"] = "撒塔斯法力恢復精煉藥劑";
+L["Supreme Power of Shattrath"] = "撒塔斯炫彩驚奇精煉藥劑";
+L["Unstable Flask of the Beast"] = "野獸的不穩定精煉藥劑";
+L["Unstable Flask of the Sorcerer"] = "巫師的不穩定精煉藥劑";
+L["Unstable Flask of the Bandit"] = "強盜的不穩定精煉藥劑";
+L["Unstable Flask of the Elder"] = "長者的不穩定精煉藥劑";
+L["Unstable Flask of the Physician"] = "醫師的不穩定精煉藥劑";
+L["Unstable Flask of the Soldier"] = "士兵的不穩定精煉藥劑";
 
 L["Chronoboon Displacer"] = "時光祝福置換器";
 
@@ -795,4 +796,33 @@ L["none"] = "無";
 L["dmfDamagePercent"] = "這個新的暗夜增益是 %s%% 傷害。";
 L["dmfDamagePercentTooltip"] = "NWB檢測到這個 %s 傷害。";
 L["guildLTitle"] = "分享公會鏡像"
-L["guildLDesc"] = "跟你的公會分享你在哪個鏡像? 輸入 /wb guild 指令，你可以看到妳的公會鏡像列表。";										 
+L["guildLDesc"] = "跟你的公會分享你在哪個鏡像? 輸入 /wb guild 指令，你可以看到妳的公會鏡像列表。";		
+L["terokkarTimer"] = "泰洛卡";
+L["terokkarWarning"] = "泰洛卡森林靈魂尖塔重置再 %s";
+
+L["Nazgrel"] = "納茲格雷爾";
+L["Hellfire Citadel is ours"] = "地獄火堡壘是我們的";
+L["The time for us to rise"] = "我們崛起的時刻到了";
+L["Force Commander Danath Trollbane"] = "Force Commander Danath Trollbane";
+L["The feast of corruption is no more"] = "The feast of corruption is no more";
+L["Hear me brothers"] = "Hear me brothers";
+
+L["terokkarChat10Title"] = "泰洛卡10分鐘";
+L["terokkarChat10Desc"] = "在泰洛卡靈魂尖塔還剩 10 分鐘時，在聊天視窗顯示訊息。";
+
+L["terokkarMiddle10Title"] = "泰洛卡10分鐘";
+L["terokkarMiddle10Desc"] = "在泰洛卡靈魂尖塔還剩 10 分鐘時，顯示一個團隊警告式樣的訊息在螢幕中間。";
+
+L["showShatWorldmapMarkersTitle"] = "顯示每日副本";
+L["showShatWorldmapMarkersDesc"] = "在世界地圖上顯示每日副本?"; 
+L["disableBuffTimersMaxBuffLevelTitle"] = "64級以上關閉小地圖增益計時器";
+L["disableBuffTimersMaxBuffLevelDesc"] = "是否在64級以上角色的小地圖圖標上時隱藏世界增益計時器？你只會看到泰羅卡塔的計時器和每日任務等。";
+
+L["hideMinimapBuffTimersTitle"] = "關閉所有等級的小地圖增益計時器";
+L["hideMinimapBuffTimersDesc"] = "是否在所有角色的小地圖圖標上時隱藏世界增益計時器？你只會看到泰羅卡塔的計時器和每日任務等。";
+
+L["guildTerok10Title"] = "泰洛卡10分公會提醒";
+L["guildTerok10Desc"] = "在泰洛卡靈魂尖塔還剩 10 分鐘時，傳送公會訊息。";
+
+L["showShatWorldmapMarkersTerokTitle"] = "在薩塔斯世界地圖顯示泰洛卡計時器";
+L["showShatWorldmapMarkersTerokDesc"] = "是否在在薩塔斯世界地圖上顯示泰洛卡計時器圖標?";
