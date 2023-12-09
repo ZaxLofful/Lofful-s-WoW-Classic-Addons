@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-﻿## Interface: 20501
-=======
 ﻿## Interface: 11403
->>>>>>> classic_hardcore
 ## Title: Pawn
 ## Version: 2.8.7
 ## Notes: Pawn helps you compare items and find upgrades.

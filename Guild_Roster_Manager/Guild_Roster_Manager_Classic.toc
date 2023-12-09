@@ -1,9 +1,5 @@
 
-<<<<<<< HEAD:Guild_Roster_Manager/Guild_Roster_Manager.toc
-## Interface: 20501
-=======
 ## Interface: 11500
->>>>>>> classic_hardcore:Guild_Roster_Manager/Guild_Roster_Manager_Classic.toc
 ## Author: Arkaan
 ## Version: 1.9902
 ## Title: Guild Roster Manager

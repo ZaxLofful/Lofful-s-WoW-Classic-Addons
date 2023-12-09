@@ -1,23 +1,4 @@
 --[[
-<<<<<<< HEAD
-Copyright 2008-2021 João Cardoso
-Scrap is distributed under the terms of the GNU General Public License (Version 3).
-As a special exception, the copyright holders of this addon do not give permission to
-redistribute and/or modify it.
-
-This addon is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with the addon. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
-
-This file is part of Scrap.
---]]
-
-local Spotlight = Scrap:NewModule('Spotlight')
-=======
 Copyright 2008-2023 João Cardoso
 All Rights Reserved
 --]]
@@ -25,7 +6,6 @@ All Rights Reserved
 if BagBrother then return end
 local Spotlight = Scrap:NewModule('Spotlight')
 local C = LibStub('C_Everywhere').Container
->>>>>>> classic_hardcore
 local R,G,B = GetItemQualityColor(0)
 
 
@@ -35,9 +15,6 @@ function Spotlight:OnEnable()
 	self.Glows, self.Icons = {}, {}
 	self:RegisterSignal('LIST_CHANGED', 'UpdateAll')
 
-<<<<<<< HEAD
-	hooksecurefunc('ContainerFrame_Update', function(frame)
-=======
 	if ContainerFrame_Update then
 		hooksecurefunc('ContainerFrame_Update', function(frame) self:UpdateContainer(frame) end)
 	else
@@ -51,42 +28,10 @@ end
 
 function Spotlight:UpdateAll()
 	self:IterateFrames('ContainerFrame', function(frame)
->>>>>>> classic_hardcore
 		self:UpdateContainer(frame)
 	end)
 end
 
-<<<<<<< HEAD
-function Spotlight:UpdateAll()
-	local i = 1
-	local frame = _G['ContainerFrame' .. i]
-
-	while frame do
-		if frame:IsShown() then
-			self:UpdateContainer(frame)
-		end
-
-		i = i + 1
-		frame = _G['ContainerFrame' .. i]
-	end
-end
-
-function Spotlight:UpdateContainer(frame)
-	local bag = frame:GetID()
-  local name = frame:GetName()
-  local size = frame.size
-
-	for slot = 1, size do
-    local button = _G[name .. 'Item' .. (size - slot + 1)]
-		local id = GetContainerItemID(bag, slot)
-
-		local isJunk = id and Scrap:IsJunk(id, bag, slot)
-		local glow = self.Glows[button] or self:NewGlow(button)
-		local icon = self.Icons[button] or self:NewIcon(button)
-
-		glow:SetShown(isJunk and Scrap.sets.glow)
-		icon:SetShown(isJunk and Scrap.sets.icons)
-=======
 function Spotlight:UpdateContainer(frame)
 	self:IterateFrames(frame:GetName() .. 'Item', function(button)
 		self:UpdateButton(frame, button)
@@ -119,7 +64,6 @@ function Spotlight:IterateFrames(namePrefix, call)
 
 		i = i + 1
 		frame = _G[namePrefix .. i]
->>>>>>> classic_hardcore
 	end
 end
 

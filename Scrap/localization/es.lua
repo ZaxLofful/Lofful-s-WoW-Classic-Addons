@@ -1,18 +1,6 @@
 local L = LibStub('AceLocale-3.0'):NewLocale('Scrap', 'esES') or LibStub('AceLocale-3.0'):NewLocale('Scrap', 'esMX')
 if not L then return end
 
-<<<<<<< HEAD
-L.Add = 'Añadir a la Lista de Basura'
-L.Added = 'Añadido a la Lista de Basura: %s'
-L.AutoSell = 'Auto Vender'
-L.AutoSellTip = 'Si está habilitado, Scrap venderá automáticamente toda tu basura cuando visites a un mercader.'
-L.Junk = 'Basura'
-L.Remove = 'Eliminar de la Lista de Basura'
-L.Removed = 'Eliminado de la Lista de Basura: %s'
-L.SellJunk = 'Vender Basura'
-L.SoldJunk = 'Has vendido tu basura por %s'
-L.Repaired = 'Has reparado tu equipamento por %s'
-=======
 -- main
 L.Add = 'Añadir a la Lista de Basura'
 L.DestroyCheapest = 'Destruir Basura Más Barata'
@@ -71,4 +59,3 @@ L.Tutorial_Welcome = 'Bienvenido a |cffffd200Scrap|r, la solución inteligente d
 L.Tutorial_Button = 'Scrap venderá automáticamente toda tu basura cada vez que visites a un mercader. Pero puedes venderla manualmente, es muy simple: |cffffd200Click|r en el botón Scrap.|n|n|cffffd200Click derecho|r en el botón para ver opciones adicionales.'
 L.Tutorial_Drag = '¿Qué pasa si quieres decirle a Scrap cuales items vender o no? es muy simple: |cffffd200Arrastra|r los items de tus bolsas al botón Scrap.|n|nAlternativamente, puedes establecer un |cffffd200Keybinding|r en las opciones de |cffffd200Menú de juego|r. Presiónalo mientras colocas el item.'
 L.Tutorial_Visualizer = 'Para ver qué items has especificado como basura o no, abre el visualizador en la pestaña |cffffd200Scrap|r.|n|nTen en cuenta que solo mostrará los items que tienes |cffffd200especificados|r, no todos los items del juego.'
->>>>>>> classic_hardcore

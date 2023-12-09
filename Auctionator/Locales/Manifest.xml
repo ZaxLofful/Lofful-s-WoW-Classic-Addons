@@ -1,12 +1,4 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
-<<<<<<< HEAD
-  <Script file="enUS.lua" />
-  <Script file="deDE.lua" />
-  <Script file="ruRU.lua" />
-  <Script file="frFR.lua" />
-  <Script file="svSE.lua" />
-  <Script file="esES.lua" />
-=======
   <Script file="Main.lua" />
   <Script file="enUS.lua" />
   <Script file="frFR.lua" />
@@ -15,14 +7,9 @@
   <Script file="ptBR.lua" />
   <Script file="esES.lua" />
   <Script file="esMX.lua" />
->>>>>>> classic_hardcore
   <Script file="zhTW.lua" />
   <Script file="zhCN.lua" />
   <Script file="koKR.lua" />
   <Script file="itIT.lua" />
-<<<<<<< HEAD
-</Ui>
-=======
 -->
 </Ui>
->>>>>>> classic_hardcore

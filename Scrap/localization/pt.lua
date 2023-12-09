@@ -1,23 +1,6 @@
 local L = LibStub('AceLocale-3.0'):NewLocale('Scrap', 'ptBR')
 if not L then return end
 
-<<<<<<< HEAD
-L.Add = 'Definir como Lixo'
-L.Added = 'Definido como lixo: %s'
-L.AdvancedOptions = 'Opções Avançadas'
-L.AutoSell = 'Vender Automaticamente'
-L.AutoSellTip = 'Se activado, Scrap venderá automaticamente todo o seu lixo quando visitar um comerciante.'
-L.Junk = 'Lixo'
-L.Loading = 'Carregando...'
-L.NotJunk = 'Útil'
-L.Description = 'Estas opções permitem-lhe levar a sua configuração a outro nível. The trash shall not pass!'
-L.Remove = 'Definir como Útil'
-L.Removed = 'Definido como útil: %s'
-L.SafeMode = 'Modo Seguro'
-L.SellJunk = 'Vender Lixo'
-L.SoldJunk = 'Vendeu seu lixo por %s'
-L.Repaired = 'Reparou seu equipamento por %s'
-=======
 -- main
 L.Add = 'Definir como Lixo'
 L.DestroyCheapest = 'Destruir Lixo Mais Barato'
@@ -76,4 +59,3 @@ L.Tutorial_Button = 'O Scrap venderá automaticamente todo o seu lixo sempre que
 L.Tutorial_Drag = 'E se você quiser dizer ao Scrap quais itens vender ou não? Basta arrastá-lo da sua mochila para o botão do Scrap.'
 L.Tutorial_Visualizer = 'Para ver quais itens você especificou como lixo ou não, abra a aba do Visualizador de Scrap. Note que ele só exibirá os itens que você especificou, não todos os itens no jogo.'
 L.Tutorial_Bye = 'Boa sorte em suas jornadas, e que os épicos estejam com você. O lixo não passará!'
->>>>>>> classic_hardcore

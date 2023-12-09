@@ -1,9 +1,5 @@
 --[[
-<<<<<<< HEAD
-2019 João Cardoso
-=======
 2019-2022 João Cardoso
->>>>>>> classic_hardcore
 
 A library heavily inspired in AceAddon-3.0, with small behavior changes
 and additional features that I needed and were incompatible with Ace.

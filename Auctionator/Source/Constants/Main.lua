@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-Auctionator.Constants = {}
-=======
 Auctionator.Constants = {
   History = {
     NUMBER_OF_LINES = 20
@@ -55,4 +52,3 @@ Auctionator.Constants = {
   AfterAHCut = 0.95,
   IsClassic = WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE,
 }
->>>>>>> classic_hardcore

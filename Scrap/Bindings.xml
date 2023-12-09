@@ -1,7 +1,4 @@
 <Bindings>
-<<<<<<< HEAD
-	<Binding name="SCRAP_SELL" header="SCRAP" category="ADDONS">
-=======
 	<Binding name="SCRAP_TOGGLE" category="SCRAP">
 		local item = GameTooltip:IsVisible() and select(2, GameTooltip:GetItem())
 		if item then
@@ -15,21 +12,8 @@
 		Scrap:DestroyJunk()
 	</Binding>
 	<Binding name="SCRAP_SELL" category="SCRAP">
->>>>>>> classic_hardcore
 		if MerchantFrame:IsShown() and LoadAddOn('Scrap_Merchant') then
 			Scrap.Merchant:Sell()
 		end
 	</Binding>
-<<<<<<< HEAD
-	<Binding name="SCRAP_DESTROY" category="ADDONS">
-		Scrap:DestroyJunk()
-	</Binding>
-	<Binding name="SCRAP_TOGGLE" category="ADDONS">
-		local item = GameTooltip:IsVisible() and select(2, GameTooltip:GetItem())
-		if item then
-  		Scrap:ToggleJunk(tonumber(item:match('item:(%d+)')))
-  	end
-	</Binding>
-=======
->>>>>>> classic_hardcore
 </Bindings>

@@ -1,8 +1,5 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
-<<<<<<< HEAD
-	<Button name="ScrapVisualizerTabTemplate" inherits="TabButtonTemplate" virtual="true">
-=======
 	<Button name="ScrapVisualizerTabTemplate" virtual="true">
 		<Size x="115" y="32"/>
 		<Layers>
@@ -68,7 +65,6 @@
 				<Anchor point="TOPRIGHT" x="2" y="-5"/>
 			</Anchors>
 		</HighlightTexture>
->>>>>>> classic_hardcore
 		<Scripts>
 			<OnClick>
 				self:GetParent():SetTab(self:GetID())
@@ -80,30 +76,6 @@
 		<Size x="295" y="17"/>
 		<Layers>
 			<Layer level="BACKGROUND">
-<<<<<<< HEAD
-				<Texture parentKey="stripe">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="1" y="0"/>
-						<Anchor point="BOTTOMRIGHT" x="-1" y="0"/>
-					</Anchors>
-					<Color a=".08" r="1" g="1" b="1"/>
-				</Texture>
-			</Layer>
-
-			<Layer level="BORDER">
-				<Texture parentKey="icon">
-					<Size>
-						<AbsDimension x="15" y="15"/>
-					</Size>
-					<Anchors>
-						<Anchor point="RIGHT" x="-20" y="0"/>
-					</Anchors>
-				</Texture>
-				<FontString parentKey="text" inherits="GameFontHighlightLeft">
-					<Size>
-						<AbsDimension x="210" y="11"/>
-					</Size>
-=======
 				<Texture parentKey="Stripe" setAllPoints="true">
 					<Color a=".08" r="1" g="1" b="1"/>
 				</Texture>
@@ -117,7 +89,6 @@
 				</Texture>
 				<FontString parentKey="Text" inherits="GameFontHighlightLeft">
 					<Size x="210" y="11"/>
->>>>>>> classic_hardcore
 					<Anchors>
 						<Anchor point="LEFT" x="11" y="0"/>
 					</Anchors>
@@ -140,19 +111,11 @@
 		<HighlightTexture file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD"/>
 	</Button>
 
-<<<<<<< HEAD
-	<Frame name="ScrapVisualizerTemplate" inherits="ButtonFrameTemplate" virtual="true" hidden="true">
-	  <Frames>
-			<Button parentKey='Tab1' name="$parentTab1" inherits="ScrapVisualizerTabTemplate" id="1">
-				<Anchors>
-					<Anchor point="TOPLEFT" x="70" y="-30"/>
-=======
 	<Frame name="ScrapVisualizer" inherits="ButtonFrameTemplate" parent="MerchantFrame" hidden="true">
 	  <Frames>
 			<Button parentKey='Tab1' name="$parentTab1" inherits="ScrapVisualizerTabTemplate" id="1">
 				<Anchors>
 					<Anchor point="TOPLEFT" x="70" y="-28"/>
->>>>>>> classic_hardcore
 				</Anchors>
 			</Button>
 			<Button parentKey='Tab2' name="$parentTab2" inherits="ScrapVisualizerTabTemplate" id="2">
@@ -163,11 +126,7 @@
 
 			<ScrollFrame parentKey='Scroll' name="$parentScroll" inherits="HybridScrollFrameTemplate">
 				<Anchors>
-<<<<<<< HEAD
-					<Anchor point="TOPLEFT" relativeTo="$parentInset" x="4" y="-4"/>
-=======
 					<Anchor point="TOPLEFT" relativeTo="$parentInset" x="3" y="-4"/>
->>>>>>> classic_hardcore
 					<Anchor point="BOTTOM" relativeTo="$parentInset" x="-9" y="4"/>
 				</Anchors>
 				<Frames>
@@ -182,19 +141,11 @@
 
 			<Frame parentKey="Spinner" inherits="LoadingSpinnerTemplate">
 				<Anchors>
-<<<<<<< HEAD
-					<Anchor point="CENTER" relativeTo="$parentInset"/>
-				</Anchors>
-			</Frame>
-
-			<Button parentKey="Button" name="$parentButton" inherits="MagicButtonTemplate">
-=======
 					<Anchor point="BOTTOM" relativeTo="$parentInset"/>
 				</Anchors>
 			</Frame>
 
 			<Button parentKey="ToggleButton" name="$parentButton" inherits="MagicButtonTemplate">
->>>>>>> classic_hardcore
 				<Anchors>
 					<Anchor point="BOTTOMRIGHT"/>
 				</Anchors>
@@ -204,8 +155,6 @@
 					</OnClick>
 				</Scripts>
 			</Button>
-<<<<<<< HEAD
-=======
 			<Button parentKey="ForgetButton" name="$parentButton" inherits="MagicButtonTemplate">
 				<Anchors>
 					<Anchor point="BOTTOMLEFT"/>
@@ -216,7 +165,6 @@
 					</OnClick>
 				</Scripts>
 			</Button>
->>>>>>> classic_hardcore
 		</Frames>
 	</Frame>
 </Ui>

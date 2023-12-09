@@ -1,9 +1,5 @@
 --[[
-<<<<<<< HEAD
-Copyright 2013-2021 João Cardoso
-=======
 Copyright 2013-2023 João Cardoso
->>>>>>> classic_hardcore
 SecureTabs is distributed under the terms of the GNU General Public License (or the Lesser GPL).
 This file is part of SecureTabs.
 
@@ -21,11 +17,7 @@ You should have received a copy of the GNU General Public License
 along with SecureTabs. If not, see <http://www.gnu.org/licenses/>.
 --]]
 
-<<<<<<< HEAD
-local Lib, old = LibStub:NewLibrary('SecureTabs-2.0', 2)
-=======
 local Lib, old = LibStub:NewLibrary('SecureTabs-2.0', 10)
->>>>>>> classic_hardcore
 if not Lib then
 	return
 elseif not old then
@@ -36,10 +28,7 @@ end
 
 Lib.tabs = Lib.tabs or {}
 Lib.covers = Lib.covers or {}
-<<<<<<< HEAD
-=======
 Lib.template = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE and 'PanelTabButtonTemplate' or 'CharacterFrameTabButtonTemplate'
->>>>>>> classic_hardcore
 
 
 --[[ Main API ]]--
@@ -49,24 +38,15 @@ function Lib:Add(panel, frame, label)
 	local id = #secureTabs
 	local anchor = id > 0 and 'SecureTab' .. (id-1) or 'Tab' .. panel.numTabs
 
-<<<<<<< HEAD
-	local tab = CreateFrame('Button', '$parentSecureTab' .. id, panel, 'CharacterFrameTabButtonTemplate')
-	tab:SetPoint('LEFT', panel:GetName() .. anchor, 'RIGHT', -16, 0)
-=======
 	local tab = CreateFrame('Button', '$parentSecureTab' .. id, panel, self.template)
 	tab:SetPoint('LEFT', panel:GetName() .. anchor, 'RIGHT', WOW_PROJECT_ID == WOW_PROJECT_MAINLINE and 3 or -16, 0)
->>>>>>> classic_hardcore
 	tab:SetScript('OnClick', function(tab) self:Select(tab) end)
 	tab:SetText(label)
 	tab.frame = frame
 	tinsert(secureTabs, tab)
 	PanelTemplates_DeselectTab(tab)
 
-<<<<<<< HEAD
-	local cover = self.covers[panel] or CreateFrame('Button', '$parentCoverTab', panel, 'CharacterFrameTabButtonTemplate')
-=======
 	local cover = self.covers[panel] or CreateFrame('Button', '$parentCoverTab', panel, self.template)
->>>>>>> classic_hardcore
 	cover:SetScript('OnClick', function(tab) self:Uncover(panel) end)
 	PanelTemplates_DeselectTab(cover)
 
@@ -117,10 +97,6 @@ function Lib:Update(panel, selection)
 				frame:SetAllPoints(true)
 				frame:SetFrameLevel(panel:GetFrameLevel() + 20)
 
-<<<<<<< HEAD
-				if frame.CloseButton then -- this could cause taint, must solve?
-					frame.CloseButton:SetScript('OnClick',  function() panel:Hide() end)
-=======
 				if frame.CloseButton then
 					frame.CloseButton:SetScript('OnClick', function()
 						local original = frame:GetParent() and frame:GetParent().CloseButton
@@ -130,7 +106,6 @@ function Lib:Update(panel, selection)
 
 						HideUIPanel(frame) -- safest hiding method
 					end)
->>>>>>> classic_hardcore
 				end
 			end
 		end
@@ -140,17 +115,6 @@ function Lib:Update(panel, selection)
 		local cover = self.covers[panel]
 		local tab = _G[panel:GetName() .. 'Tab'.. panel.selectedTab]
 
-<<<<<<< HEAD
-		local tabname = tab:GetName()
-		local leftDisabled = tab.LeftDisabled or _G[tabname..'LeftDisabled']
-		local middleDisabled = tab.MiddleDisabled or _G[tabname..'MiddleDisabled']
-		local rightDisabled = tab.RightDisabled or _G[tabname..'RightDisabled']
-
-		cover:SetShown(selection)
-		leftDisabled:SetShown(not selection)
-		middleDisabled:SetShown(not selection)
-		rightDisabled:SetShown(not selection)
-=======
 		local name = tab:GetName()
 		local left = tab.LeftActive or _G[name..'LeftDisabled']
 		local middle = tab.MiddleActive or _G[name..'MiddleDisabled']
@@ -160,7 +124,6 @@ function Lib:Update(panel, selection)
 		left:SetShown(not selection)
 		middle:SetShown(not selection)
 		right:SetShown(not selection)
->>>>>>> classic_hardcore
 
  		if selection then
 			cover:SetParent(tab)
