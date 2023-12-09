@@ -36,9 +36,13 @@ function Scrap:OnEnable()
 	self:RegisterSignal('SETS_CHANGED', 'OnSettings')
 	self:OnSettings()
 
-	CreateFrame('Frame', nil, SettingsPanel or InterfaceOptionsFrame):SetScript('OnShow', function()
+	if (Scrap.sets.tutorial or 0) < 1 then
 		LoadAddOn('Scrap_Config')
-	end)
+	else
+		(SettingsPanel or InterfaceOptionsFrame):HookScript('OnShow', function()
+			LoadAddOn('Scrap_Config')
+		end)
+	end
 end
 
 function Scrap:OnSettings()
@@ -120,10 +124,8 @@ function Scrap:DestroyCheapest()
 end
 
 function Scrap:DestroyJunk()
-	LibStub('Sushi-3.1').Popup {
-		id = 'DeleteScrap',
-		text = L.ConfirmDelete, button1 = OKAY, button2 = CANCEL,
-		hideOnEscape = 1, showAlert = 1,
+	LibStub('Sushi-3.2').Popup {
+		text = L.ConfirmDelete, showAlert = true, button1 = OKAY, button2 = CANCEL,
 		OnAccept = function()
 			for bag, slot in self:IterateJunk() do
 				C.PickupContainerItem(bag, slot)

@@ -159,7 +159,7 @@ function Visualizer.Scroll:update()
 			button:Show()
 
 			if focus == button then
-				button:GetScript('OnEnter')(button)
+				ExecuteFrameScript(button, 'OnEnter')
 			end
 
 			if mod(index, 2) == 0 then

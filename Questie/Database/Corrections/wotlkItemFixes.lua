@@ -145,6 +145,12 @@ function QuestieWotlkItemFixes:Load()
         [33123] = {
             [itemKeys.npcDrops] = {},
         },
+        [33284] = {
+            [itemKeys.class] = 12,
+        },
+        [33290] = {
+            [itemKeys.class] = 12,
+        },
         [33330] = {
             [itemKeys.npcDrops] = {23954},
         },
@@ -156,9 +162,6 @@ function QuestieWotlkItemFixes:Load()
         },
         [33558] = {
             [itemKeys.npcDrops] = {23967},
-        },
-        [33628] = {
-            [itemKeys.objectDrops] = {186659,186660,186661},
         },
         [33634] = {
             [itemKeys.class] = itemClasses.QUEST,
@@ -289,6 +292,9 @@ function QuestieWotlkItemFixes:Load()
         [36727] = {
             [itemKeys.npcDrops] = {},
         },
+        [36731] = {
+            [itemKeys.npcDrops] = {},
+        },
         [36733] = {
             [itemKeys.objectDrops] = {188539},
         },
@@ -301,8 +307,10 @@ function QuestieWotlkItemFixes:Load()
         [36768] = {
             [itemKeys.npcDrops] = {26358,26359},
         },
+        [36771] = {
+            [itemKeys.class] = 12,
+        },
         [36772] = {
-            [itemKeys.npcDrops] = {26359},
             [itemKeys.objectDrops] = {190510},
         },
         [36852] = {
@@ -318,6 +326,12 @@ function QuestieWotlkItemFixes:Load()
             [itemKeys.npcDrops] = {},
         },
         [37173] = {
+            [itemKeys.class] = 12,
+        },
+        [37250] = {
+            [itemKeys.objectDrops] = {188666},
+        },
+        [37265] = {
             [itemKeys.class] = 12,
         },
         [37303] = {
@@ -338,7 +352,16 @@ function QuestieWotlkItemFixes:Load()
         [37580] = {
             [itemKeys.npcDrops] = {},
         },
+        [37708] = {
+            [itemKeys.class] = 12,
+        },
+        [37661] = {
+            [itemKeys.class] = 12,
+        },
         [37727] = {
+            [itemKeys.npcDrops] = {},
+        },
+        [37879] = {
             [itemKeys.npcDrops] = {},
         },
         [37888] = {
@@ -346,9 +369,6 @@ function QuestieWotlkItemFixes:Load()
         },
         [38303] = {
             [itemKeys.npcDrops] = {26620,26639,27431},
-        },
-        [38305] = {
-            [itemKeys.npcDrops] = {28006},
         },
         [38326] = {
             [itemKeys.npcDrops] = {},
@@ -615,15 +635,15 @@ function QuestieWotlkItemFixes:Load()
             [itemKeys.name] = 'Defiler\'s Medallion',
             [itemKeys.relatedQuests] = {78752},
             [itemKeys.class] = 12,
-            [itemKeys.npcDrops] = {23954,26723,26861,26632,29306,27978,28923,29120,29311,31134,35451,36502,36658,36954},
-            [itemKeys.objectDrops] = {193597,193603},
+            [itemKeys.npcDrops] = {23954,26723,26861,26632,29306,27978,28923,29120,29311,31134,35451,36502,36658},
+            [itemKeys.objectDrops] = {193597,193603,202336},
         },
         [211207] = {
             [itemKeys.name] = 'Mysterious Artifact',
             [itemKeys.relatedQuests] = {78753},
             [itemKeys.class] = 12,
-            [itemKeys.npcDrops] = {23954,26723,26861,26632,29306,27978,28923,29120,29311,31134,35451,36502,36658,36954},
-            [itemKeys.objectDrops] = {193597,193603},
+            [itemKeys.npcDrops] = {23954,26723,26861,26632,29306,27978,28923,29120,29311,31134,35451,36502,36658},
+            [itemKeys.objectDrops] = {193597,193603,202336},
         },
     }
 end

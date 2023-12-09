@@ -73,7 +73,7 @@ local function showRealDate(curseDate)
 end
 
 DBM = {
-	Revision = parseCurseDate("20231130014136"),
+	Revision = parseCurseDate("20231202062357"),
 }
 
 local fakeBWVersion, fakeBWHash = 303, "479937c"--303.0
@@ -85,8 +85,8 @@ if isRetail then
 	DBM.ReleaseRevision = releaseDate(2023, 11, 27) -- the date of the latest stable version that is available, optionally pass hours, minutes, and seconds for multiple releases in one day
 	PForceDisable = 8--When this is incremented, trigger force disable regardless of major patch
 elseif isClassic then
-	DBM.DisplayVersion = "1.15.1"
-	DBM.ReleaseRevision = releaseDate(2023, 11, 29) -- the date of the latest stable version that is available, optionally pass hours, minutes, and seconds for multiple releases in one day
+	DBM.DisplayVersion = "1.15.2"
+	DBM.ReleaseRevision = releaseDate(2023, 12, 1) -- the date of the latest stable version that is available, optionally pass hours, minutes, and seconds for multiple releases in one day
 	PForceDisable = 4--When this is incremented, trigger force disable regardless of major patch
 elseif isBCC then
 	DBM.DisplayVersion = "2.6.0 alpha"--When TBC returns (and it will one day). It'll probably be game version 2.6
@@ -7477,7 +7477,7 @@ do
 	local rangeCache = {}
 	local rangeUpdated = {}
 
-	function bossModPrototype:CheckBossDistance(cidOrGuid, onlyBoss, itemId, distance, defaultReturn)
+	function bossModPrototype:CheckBossDistance(cidOrGuid, onlyBoss, _, distance, defaultReturn)--itemId
 		if not DBM.Options.DontShowFarWarnings then return true end--Global disable.
 		cidOrGuid = cidOrGuid or self.creatureId
 		local uId
@@ -7487,19 +7487,19 @@ do
 			uId = DBM:GetUnitIdFromGUID(cidOrGuid, onlyBoss)
 		end
 		if uId then
-			if not UnitIsFriend("player", uId) then--API only allowed on hostile unit
-				itemId = itemId or 32698
-				local inRange = IsItemInRange(itemId, uId)
-				if inRange then--IsItemInRange was a success
-					return inRange
-				else--IsItemInRange doesn't work on all bosses/npcs, but tank checks do
-					DBM:Debug("CheckBossDistance failed on IsItemInRange due to bad check/unitId: "..cidOrGuid, 2)
-					return self:CheckTankDistance(cidOrGuid, distance, onlyBoss, defaultReturn)--Return tank distance check fallback
-				end
-			else--Non hostile, immediately forward to very gimped TankDistance check (43 yards within tank target)
+			--if not UnitIsFriend("player", uId) then--API only allowed on hostile unit
+			--	itemId = itemId or 32698
+			--	local inRange = IsItemInRange(itemId, uId)
+			--	if inRange then--IsItemInRange was a success
+			--		return inRange
+			--	else--IsItemInRange doesn't work on all bosses/npcs, but tank checks do
+			--		DBM:Debug("CheckBossDistance failed on IsItemInRange due to bad check/unitId: "..cidOrGuid, 2)
+			--		return self:CheckTankDistance(cidOrGuid, distance, onlyBoss, defaultReturn)--Return tank distance check fallback
+			--	end
+			--else--Non hostile, immediately forward to very gimped TankDistance check (43 yards within tank target)
 				DBM:Debug("CheckBossDistance failed on IsItemInRange due to friendly unit: "..cidOrGuid, 2)
 				return self:CheckTankDistance(cidOrGuid, distance, onlyBoss, defaultReturn)--Return tank distance check fallback
-			end
+			--end
 		end
 		DBM:Debug("CheckBossDistance failed on uId for: "..cidOrGuid, 2)
 		return (defaultReturn == nil) or defaultReturn--When we simply can't figure anything out, return true and allow warnings using this filter to fire

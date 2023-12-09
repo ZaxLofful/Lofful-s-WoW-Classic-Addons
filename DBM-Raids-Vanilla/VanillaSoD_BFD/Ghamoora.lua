@@ -1,9 +1,11 @@
 local mod	= DBM:NewMod("GhamooraSoD", "DBM-Raids-Vanilla", 8)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20231130013209")
+mod:SetRevision("20231202060752")
 mod:SetCreatureID(201722)
 mod:SetEncounterID(2697)--2761 is likely 5 man version in instance type 201
+mod:SetHotfixNoticeRev(20231201000000)
+--mod:SetMinSyncRevision(20231115000000)
 
 mod:RegisterCombat("combat")
 

@@ -428,7 +428,7 @@ end
 -- Quest Item Button can be switched on and appear in the tracker.
 ---@param text string
 function QuestieTracker:QuestItemLooted(text)
-    local playerLoot = strmatch(text, "You receive ")
+    local playerLoot = strmatch(text, "You receive ") or strmatch(text, "You create")
     local itemId = tonumber(string.match(text, "item:(%d+)"))
 
     if playerLoot and itemId then
@@ -1373,7 +1373,7 @@ function QuestieTracker:Update()
                         line.label:SetPoint("TOPLEFT", line, "TOPLEFT", questMarginLeft, 0)
 
                         -- Set Achievement Title
-                        if Questie.db.profile.enableTooltipsQuestID or Questie.IsSoD then
+                        if Questie.db.profile.enableTooltipsQuestID then
                             line.label:SetText("|cFFFFFF00" .. achieve.Name .. " (" .. achieve.Id .. ")|r")
                         else
                             line.label:SetText("|cFFFFFF00" .. achieve.Name .. "|r")
