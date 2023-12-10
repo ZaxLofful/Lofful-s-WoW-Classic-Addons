@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod("TwilightLordKelrisSoD", "DBM-Raids-Vanilla", 8)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20231209081342")
+mod:SetRevision("20231209212515")
 mod:SetCreatureID(209678)
 mod:SetEncounterID(2825)--2766 is likely 5 man version in instance type 201
 mod:SetHotfixNoticeRev(20231201000000)
@@ -29,7 +29,7 @@ local specWarnShadowyChains		= mod:NewSpecialWarningInterrupt(425265, "HasInterr
 
 local timerShadowyChainsCD		= mod:NewCDTimer(11.3, 425265, nil, nil, nil, 4)--Remove interrupt icon since timer is used for stage 2 as well, CD affected by spell lockouts, so if shadow school locked out from pain kick, delayed
 --local timerSleepCD				= mod:NewCDTimer(40, 423135, nil, nil, nil, 3)
-local timerDreamEater			= mod:NewFadesTimer(15, 425460, nil, nil, nil, 5, nil, DBM_COMMON_L.DEADLY_ICON)
+local timerDreamEater			= mod:NewBuffFadesTimer(15, 425460, nil, nil, nil, 5, nil, DBM_COMMON_L.DEADLY_ICON)
 
 function mod:OnCombatStart(delay)
 	self:SetStage(1)
