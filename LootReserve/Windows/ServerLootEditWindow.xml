@@ -218,9 +218,10 @@
 										end
 										local itemID = self:GetParent():GetParent():GetParent().Item;
 										local tokenID = LootReserve.Data:GetToken(itemID);
-										local conditions = LootReserve.ItemConditions:Make(tokenID or itemID, true);
+										local conditions = LootReserve.ItemConditions:Get(tokenID or itemID, true);
 										local newLimit = tonumber(self:GetText()) and math.min(LootReserve.Constants.MAX_RESERVES_PER_ITEM, tonumber(self:GetText()));
-										if conditions.Limit ~= newLimit then
+										if newLimit or conditions then
+											local conditions = LootReserve.ItemConditions:Make(tokenID or itemID, true);
 											conditions.Limit = newLimit;
 											LootReserve.ItemConditions:Save(tokenID or itemID, true);
 										end
@@ -577,9 +578,10 @@
 										local name, link, texture = item:GetNameLinkTexture();
 										table.insert(menu,
 										{
-											text = format("|T%d:0|t %s", texture, (link or "|cFFFF0000Loading...|r"):gsub("[%[%]]", "")),
-											arg1 = item:GetID(),
-											func = SelectItem,
+											text            = format("|T%d:0|t %s", texture, (link or "|cFFFF0000Loading...|r"):gsub("[%[%]]", "")),
+											arg1            = item:GetID(),
+											func            = SelectItem,
+											tooltipOnButton = item:GetString(),
 										});
 									end
 								end
@@ -599,7 +601,11 @@
 									LootReserve.Server.PendingLootTextEdit = true;
 									C_Timer.After(0.1, function()
 										LootReserve.Server.PendingLootTextEdit = false;
-										UpdateText();
+										if LootReserveServerLootEditWindow:IsShown() then
+											UpdateText();
+										else
+											CloseMenus();
+										end
 									end);
 								end
 							end
@@ -740,6 +746,9 @@
 				LootReserve.Server.LootEdit:UpdateLootList();
 			</OnShow>
 			<OnHide>
+				if LootReserve.ItemSearch.FullCache and not LootReserve.ItemSearch.FullCache:IsComplete() then
+					LootReserve.ItemSearch.FullCache:SetSpeed(LootReserve.ItemSearch.DefaultSpeed);
+				end
 				CloseMenus();
 				PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE);
 			</OnHide>

@@ -1,7 +1,7 @@
-## Interface: 11404
+## Interface: 11500
 
-## Version: 2023-08-23
-## X-Min-Allowed-Version: 2023-06-20
+## Version: 2023-12-09
+## X-Min-Allowed-Version: 2023-12-09
 
 ## X-Curse-Project-ID: 390790
 ## X-Wago-ID: WL6JpyGv
