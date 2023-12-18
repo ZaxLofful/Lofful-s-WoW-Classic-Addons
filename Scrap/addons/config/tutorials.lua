@@ -14,7 +14,7 @@ function Tutorials:OnEnable()
 
 		{
 			text = L.Tutorial_Welcome,
-			image = 'Interface/Addons/Scrap/art/scrap-enabled',
+			image = 'Interface/Addons/Scrap/art/scrap-big',
 			imageW = 128, imageH = 128,
 			point = 'CENTER',
 		},
@@ -49,7 +49,7 @@ function Tutorials:OnEnable()
 		},
 		{
 			text = L.Tutorial_Bye,
-			image = 'Interface/Addons/Scrap/art/scrap-enabled',
+			image = 'Interface/Addons/Scrap/art/scrap-big',
 			imageW = 128, imageH = 128,
 			point = 'CENTER',
 		},

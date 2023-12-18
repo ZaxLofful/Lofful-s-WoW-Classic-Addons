@@ -1,28 +1,24 @@
 # <DBM Mod> Azeroth (Classic)
 
-## [1.15.4](https://github.com/DeadlyBossMods/DBM-Classic/tree/1.15.4) (2023-12-09)
-[Full Changelog](https://github.com/DeadlyBossMods/DBM-Classic/compare/1.15.2...1.15.4) [Previous Releases](https://github.com/DeadlyBossMods/DBM-Classic/releases)
+## [1.15.5](https://github.com/DeadlyBossMods/DBM-Classic/tree/1.15.5) (2023-12-12)
+[Full Changelog](https://github.com/DeadlyBossMods/DBM-Classic/compare/1.15.4...1.15.5) [Previous Releases](https://github.com/DeadlyBossMods/DBM-Classic/releases)
 
-- prep new classic era tag  
-- Fix https://github.com/DeadlyBossMods/DBM-Classic/issues/779  
-- bump retail alpha  
-- give retail a new tag as well  
-- Bump alpha  
-- Prep new classic era/SoD update  
-- Update freezing arrow now that it no longer can be interrupted on Sarevess. It'll warn if you're standing in trap with GTFO alert and when players (or add) are frozen by it.  
-- Rework staging on Lorgus Jett now that the add mechanics are figured out. also added an adds remaining alert for it  
-- Eliminate bad timer on Gelihast (murlocs is health based, not timer) and improve detection to be faster and more robust. Also fixed broken detection of tank strikes in stage 2 and 3  
-- Massively improve Baron and Ghamoora mods Improved Kelris mod with a personal dream timer and better P2 detection and shadowcrawsh announces  
-- DBT: Don't ever make bars that are huge by intent small (#325)  
-- Update localization.es.lua (#326)  
-- Update localization.ru.lua (#323)  
-- Add option to make timers start enlarged without ugly \"Bar7\" hacks (#324)  
-- SoD auto combat log for BFD; Fixes https://github.com/DeadlyBossMods/DBM-Classic/issues/778  
-- Staging on gelihast, and notes changed jett to only auto mark lighting shield totems, other two aren't as high prio, but lightning shield needs emphasis  
-- At least add the first bosses bomb cleanup unused on akumai  
-- Update localization.ru.lua (#322)  
-- Fix unregistered spell.  
-- Update koKR (#321)  
+- Prep classic version for tag  
 - bump alpha  
 - prep new retail tag  
-- bump alpha  
+- Update commonlocal.cn.lua (#333)  
+- Update koKR (#331)  
+- Fix some of the bigger problems for LuaLS. (#332) This unlocks amazing LuaLS features like auto-complete and jump-to-definition for all fields in DBM, mods, timers, warnings etc :)  The main problem was that the DBM the DBM global was registered in a way it didn't understand (and hence it only saw about half the fields). Also, we had some cases of functions being tagged as optional for no good reason triggering a lot of nil check warnings.  It currently still reports around 600 problems or so, but a lot of these are just it being unhappy about us setting random fields in Frame objects which I guess we should disable.  
+- Re-enable item checks on hostile creatures in boss distance check code  
+- Add support for loading mods by MapID (#330)  
+- Fix ismythic check with recent change  
+- Allow anyone to set icons specifically in dungeons, instead of just party leader. This should solve many cases where no icons are set because person who was leader had no boss mod installed. Should make things like auto marking trio in waycrest more reliable  
+- Fix one failure condition for final scan not running and causing fallback filter target to work, is if by the time scan finished, bosses target went invalid, thus causing final scan to never schedule.  
+- hard wipe GUID period even if not elected icon setter (even though by code logic, if not elected, it would never get set in first place)  
+- Update localization.es.lua (#327)  
+- Update localization.tw.lua (#329)  
+- Temporarily revert last. It's far too spammy at present.  
+- Core: WBA: add SoD Boon of Blackfathom (#328)  
+- Update localization.es.lua (#39)  
+- Update localization.mx.lua (#38)  
+- bump classic alpha  

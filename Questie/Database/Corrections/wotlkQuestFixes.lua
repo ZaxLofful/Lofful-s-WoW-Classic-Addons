@@ -242,17 +242,17 @@ function QuestieWotlkQuestFixes:Load()
         [6185] = {
             [questKeys.triggerEnd] = {"The Blightcaller Uncovered", {[zoneIDs.EASTERN_PLAGUELANDS]={{23.4,67.8}}}},
         },
-        [6961] = {
-            [questKeys.exclusiveTo] = {6962},
+        [6963] = {
+            [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
         },
-        [7022] = {
-            [questKeys.exclusiveTo] = {7025},
+        [6983] = {
+            [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
         },
         [7023] = {
-            [questKeys.exclusiveTo] = {7025},
+            [questKeys.startedBy] = {{13435,23010}},
         },
-        [7024] = {
-            [questKeys.exclusiveTo] = {6962},
+        [7042] = {
+            [questKeys.startedBy] = {{13433}},
         },
         [7641] = {
             [questKeys.preQuestSingle] = {7638,7670},
@@ -1139,6 +1139,10 @@ function QuestieWotlkQuestFixes:Load()
         [11989] = {
             [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Use the Dull Carving Knife near Drakuru"),0,{{"monster", 26423}}}},
         },
+        [11991] = {
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Drink Drakuru's Elixir after gathering 5 Frozen Mojo"),0,{{"object", 188287}}}},
+            [questKeys.requiredSourceItems] = {35797,35799},
+        },
         [11995] = {
             [questKeys.exclusiveTo] = {12439},
         },
@@ -1147,6 +1151,7 @@ function QuestieWotlkQuestFixes:Load()
         },
         [12007] = {
             [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Drink Drakuru's Elixir after gathering Zim'bo's Mojo"),0,{{"object", 400047}}}},
+            [questKeys.requiredSourceItems] = {35797,35836},
         },
         [12014] = {
             [questKeys.sourceItemId] = 35837,
@@ -1242,6 +1247,10 @@ function QuestieWotlkQuestFixes:Load()
         [12067] = {
             [questKeys.startedBy] = {{26762},nil,{36756}},
         },
+        [12068] = {
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Drink Drakuru's Elixir after gathering 5 Sacred Mojo"),0,{{"object", 400058}}}},
+            [questKeys.requiredSourceItems] = {35797,36758},
+        },
         [12069] = {
             [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Free Roanauk Icemist"),0,{{"object", 188463}}}},
         },
@@ -1335,11 +1344,15 @@ function QuestieWotlkQuestFixes:Load()
         [12127] = {
             [questKeys.objectives] = {{{26283}},nil,{{36846}}},
         },
+        [12129] = {
+            [questKeys.sourceItemId] = 36849,
+        },
         [12132] = {
             [questKeys.preQuestSingle] = {},
             [questKeys.preQuestGroup] = {12125,12126,12127},
         },
         [12137] = {
+            [questKeys.sourceItemId] = 36859,
             [questKeys.extraObjectives] = {
                 {nil, Questie.ICON_TYPE_TALK, l10n("Speak with Gan'jo to return to life"),0,{{"monster", 26924}}},
                 {nil, Questie.ICON_TYPE_OBJECT, l10n("Use the Snow of Eternal Slumber on ancient Drakkari spirits"),0,{{"monster", 26811},{"monster", 26812}}},
@@ -1477,8 +1490,8 @@ function QuestieWotlkQuestFixes:Load()
             [questKeys.objectives] = {nil,nil,nil,nil,{{{27315,27336,27345,27341},27315,"Helpless Villager Rescued"}}},
         },
         [12238] = {
-            [questKeys.sourceItemId] = 35797,
-            [questKeys.requiredSourceItems] = {},
+            [questKeys.requiredSourceItems] = {35797,38303},
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Drink Drakuru's Elixir after gathering 5 Enduring Mojo"),0,{{"object", 190629}}}},
         },
         [12241] = {
             [questKeys.preQuestGroup] = {12229,12231},
@@ -1761,7 +1774,6 @@ function QuestieWotlkQuestFixes:Load()
             [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_OBJECT, l10n("Plant the Argent Crusade Banner"), 0, {{"object", 190522}}}},
         },
         [12503] = {
-            [questKeys.preQuestSingle] = {12795},
             [questKeys.objectives] = {nil,nil,nil,nil,{{{28023,28026,28246,28669,28022},28022,"Scourge at The Argent Stand destroyed"}}},
         },
         [12506] = {
@@ -1769,6 +1781,9 @@ function QuestieWotlkQuestFixes:Load()
         },
         [12509] = {
             [questKeys.parentQuest] = 12501,
+        },
+        [12510] = {
+            [questKeys.sourceItemId] = 38323,
         },
         [12512] = {
             [questKeys.objectives] = {nil,nil,nil,nil,{{{28133,28136},28133},{{28141,28142},28141},{{28143,28148},28143}}},
@@ -2029,10 +2044,9 @@ function QuestieWotlkQuestFixes:Load()
             [questKeys.childQuests] = {12663,12664},
             [questKeys.exclusiveTo] = {},
             [questKeys.nextQuestInChain] = 12669,
-            [questKeys.extraObjectives] = {
-                {nil, Questie.ICON_TYPE_TALK, l10n("Complete Overlord Drakuru's task"), 0, {{"monster", 28503}}},
-                {{[zoneIDs.ZUL_DRAK]={{28.38,44.85}}}, Questie.ICON_TYPE_EVENT, l10n("Infiltrate Voltarus using Ensorcelled Choker"),},
-            },
+            [questKeys.requiredSourceItems] = {41390,38699},
+            [questKeys.objectives] = {{{28503,"Overlord Drakuru's task complete"}}},
+            [questKeys.extraObjectives] = {{{[zoneIDs.ZUL_DRAK]={{28.38,44.85}}}, Questie.ICON_TYPE_EVENT, l10n("Infiltrate Voltarus using Ensorcelled Choker")}},
         },
         [12662] = {
             [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_OBJECT, l10n("Use Heb'Jin's Drum to summon Heb'Jin"), 0, {{"object", 190695}}}},
@@ -2041,13 +2055,13 @@ function QuestieWotlkQuestFixes:Load()
             [questKeys.preQuestSingle] = {12649},
             [questKeys.exclusiveTo] = {12664,12648},
             [questKeys.parentQuest] = 12661,
-            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_TALK, l10n("Speak to Gorebag and take the tour of Zul'Drak"), 0, {{"monster", 28666}}}},
+            [questKeys.objectives] = {{{28666,"Tour of Zul'Drak complete"}}},
         },
         [12664] = {
             [questKeys.preQuestSingle] = {12648},
             [questKeys.exclusiveTo] = {12663,12649},
             [questKeys.parentQuest] = 12661,
-            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_TALK, l10n("Speak to Gorebag and take the tour of Zul'Drak"), 0, {{"monster", 28666}}}},
+            [questKeys.objectives] = {{{28666,"Tour of Zul'Drak complete"}}},
         },
         [12665] = {
             [questKeys.triggerEnd] = {"Quetz'lun's fate revealed.",{[zoneIDs.ZUL_DRAK]={{75.75,58.39,},},},},
@@ -2056,32 +2070,28 @@ function QuestieWotlkQuestFixes:Load()
             [questKeys.objectives] = {nil,nil,nil,nil,{{{28747,28748},28747,"Trolls killed near a Soul Font"}}},
         },
         [12669] = {
-            [questKeys.extraObjectives] = {
-                {nil, Questie.ICON_TYPE_TALK, l10n("Complete Overlord Drakuru's task"), 0, {{"monster", 28503}}},
-            },
+            [questKeys.objectives] = {{{28503,"Drakuru's task complete"},{28739,"Blight Cauldrons diluted"}}},
+            [questKeys.requiredSourceItems] = {39154,38699,41390},
         },
         [12671] = {
             [questKeys.triggerEnd] = {"Reconnaissance Flight",{[zoneIDs.SHOLAZAR_BASIN]={{50.04,61.43,},},},},
         },
         [12673] = {
             [questKeys.objectives] = {nil,{{190716}}},
-            [questKeys.extraObjectives] = {
-                {nil, Questie.ICON_TYPE_EVENT, l10n("Use Scepter of Suggestion to mind control Blight Geist"), 0, {{"monster", 28750}}},
-            },
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Use Scepter of Suggestion to mind control Blight Geist"), 0, {{"monster", 28750}}}},
         },
         [12674] = {
             [questKeys.objectives] = {{{28752,"High Priest Mu'funu hexed at death"},{28754,"High Priestess Tua-Tua hexed at death"},{28756,"High Priest Hawinni hexed at death"}}},
         },
         [12676] = {
-            [questKeys.objectives] = {nil,{{190731},{192767},{190948}}},
-            [questKeys.extraObjectives] = {
-                {nil, Questie.ICON_TYPE_TALK, l10n("Complete Overlord Drakuru's task"), 0, {{"monster", 28503}}},
-            },
+            [questKeys.requiredSourceItems] = {39165,41390,38699},
+            [questKeys.objectives] = {nil,{{190731,"Scourgewagons destroyed"}},nil,nil,{{{28503},28503,"Drakuru's task complete"}}},
+            [questKeys.triggerEnd] = {"Learn Drakuru's secret",{[zoneIDs.ZUL_DRAK]={{27.07,46.16}}}},
         },
         [12677] = {
-            [questKeys.extraObjectives] = {
-                {nil, Questie.ICON_TYPE_TALK, l10n("Complete Overlord Drakuru's task"), 0, {{"monster", 28503}}},
-            },
+            [questKeys.sourceItemId] = 38699,
+            [questKeys.requiredSourceItems] = {41390,38699},
+            [questKeys.objectives] = {{{28503,"Drakuru's task complete"}},nil,{{39159}}},
         },
         [12680] = {
             [questKeys.objectives] = {nil,nil,nil,nil,{{{28605,28606,28607},28605,"Horse Successfully Stolen"}}},
@@ -2109,8 +2119,10 @@ function QuestieWotlkQuestFixes:Load()
             [questKeys.triggerEnd] = {"Escort Engineer Helice out of Swindlegrin's Dig",{[zoneIDs.SHOLAZAR_BASIN]={{37.26,50.56,},},},},
         },
         [12690] = {
+            [questKeys.exclusiveTo] = {12710},
+            [questKeys.requiredSourceItems] = {39238,38699},
             [questKeys.objectives] = {{{28844,"Drakkari Skullcrushers Slain"},{28873,"Drakkari Chieftain Lured"},},nil,nil,nil,},
-            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_OBJECT, l10n("Use Scepter of Command"), 0, {{"monster", 28843}}}},
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Use Scepter of Command"), 0, {{"monster", 28843}}}},
         },
         [12692] = {
             [questKeys.requiredMinRep] = {1104,9000},
@@ -2159,14 +2171,21 @@ function QuestieWotlkQuestFixes:Load()
             },
         },
         [12710] = {
+            [questKeys.sourceItemId] = 38699,
+            [questKeys.requiredSourceItems] = {38699,39319},
+            [questKeys.objectives] = {{{28948,"Drakuru's upper chamber explored"}}},
             [questKeys.extraObjectives] = {
-                {{[zoneIDs.ZUL_DRAK]={{28.38,44.85}}}, Questie.ICON_TYPE_EVENT, l10n("Take the teleporter to Drakuru's upper chamber"),},
+                {nil, Questie.ICON_TYPE_EVENT, l10n("Open the coffin"), 0, {{"object", 190948}}},
+                {{[zoneIDs.ZUL_DRAK]={{28.38,44.85}}}, Questie.ICON_TYPE_EVENT, l10n("Take the teleporter to Drakuru's upper chamber")},
             },
         },
         [12713] = {
-            [questKeys.objectives] = {nil,nil,nil,nil,{{{28503,28998},28503,}}},
+            [questKeys.objectives] = {nil,nil,{{40425,"Overlord Drakuru Defeated"}}},
             [questKeys.extraObjectives] = {
-                {{[zoneIDs.ZUL_DRAK]={{28.38,44.85}}}, Questie.ICON_TYPE_EVENT, l10n("Infiltrate Voltarus using Ensorcelled Choker"),},
+                {nil, Questie.ICON_TYPE_EVENT, l10n("Use the Scepter of Domination to control it"), 0, {{"monster", 28931}}},
+                {nil, Questie.ICON_TYPE_EVENT, l10n("Go on top of the ziggurat with Drakuru"), 0, {{"monster", 28503}}},
+                {nil, Questie.ICON_TYPE_EVENT, l10n("Defeat Drakuru"), 0, {{"monster", 28998}}},
+                {nil, Questie.ICON_TYPE_OBJECT, l10n("After defeating Drakuru, go back down using this portal"), 0, {{"object", 202357}}},
             },
         },
         [12720] = {
@@ -2247,11 +2266,23 @@ function QuestieWotlkQuestFixes:Load()
             ---[questKeys.objectives] = {nil,nil,{{39748}},nil,{{{28079,28078},28078,"Frenzyheart Attacker"}}},
             [questKeys.extraObjectives] = {{{[zoneIDs.SHOLAZAR_BASIN]={{65.60,59.48}}}, Questie.ICON_TYPE_EVENT, l10n("Charge the Dormant Polished Crystal at the exposed Lifeblood Pillar"),}},
         },
+        [12771] = {
+            [questKeys.preQuestSingle] = {12753},
+        },
         [12772] = {
             [questKeys.startedBy] = {{18927,19148,19171,19172,19173,20102}},
         },
+        [12773] = {
+            [questKeys.preQuestSingle] = {12772},
+        },
+        [12774] = {
+            [questKeys.preQuestSingle] = {12775},
+        },
         [12775] = {
             [questKeys.startedBy] = {{18927,19148,19171,19172,19173,20102}},
+        },
+        [12776] = {
+            [questKeys.preQuestSingle] = {12777},
         },
         [12777] = {
             [questKeys.startedBy] = {{18927,19148,19171,19172,19173,20102}},
@@ -2268,6 +2299,18 @@ function QuestieWotlkQuestFixes:Load()
         [12784] = {
             [questKeys.startedBy] = {{19169,19175,19176,19177,19178,20102}},
         },
+        [12785] = {
+            [questKeys.preQuestSingle] = {12783},
+        },
+        [12786] = {
+            [questKeys.preQuestSingle] = {12784},
+        },
+        [12787] = {
+            [questKeys.preQuestSingle] = {12752},
+        },
+        [12788] = {
+            [questKeys.preQuestSingle] = {12782},
+        },
         [12797] = {
             [questKeys.extraObjectives] = {{{[zoneIDs.UN_GORO_CRATER]={{50.54,7.74,}}}, Questie.ICON_TYPE_EVENT, l10n("Travel through the Waygate"),}},
         },
@@ -2276,6 +2319,10 @@ function QuestieWotlkQuestFixes:Load()
                 {nil, Questie.ICON_TYPE_TALK, l10n("Talk to Highlord Darion Mograine"), 0, {{"monster", 29173}}},
                 {{[zoneIDs.PLAGUELANDS_THE_SCARLET_ENCLAVE]={{38.8,38.4}}}, Questie.ICON_TYPE_EVENT, l10n("The Light of Dawn Uncovered"),},
             },
+        },
+        [12802] = {
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Drink Drakuru's Elixir after gathering 5 Desperate Mojo"),0,{{"object", 188358}}}},
+            [questKeys.requiredSourceItems] = {35797,36739,36743},
         },
         [12803] = {
             [questKeys.requiredSpell] = 54197,
@@ -2292,11 +2339,17 @@ function QuestieWotlkQuestFixes:Load()
         [12808] = {
             [questKeys.startedBy] = {{18927,19148,19171,19172,19173,20102}},
         },
+        [12809] = {
+            [questKeys.preQuestSingle] = {12808},
+        },
         [12810] = {
             [questKeys.objectives] = {{{29392,}}},
         },
         [12811] = {
             [questKeys.startedBy] = {{19169,19175,19176,19177,19178,20102}},
+        },
+        [12812] = {
+            [questKeys.preQuestSingle] = {12811},
         },
         [12813] = {
             [questKeys.objectives] = {nil,nil,nil,nil,{{{29329,29330,29333,29338},29398}}},
@@ -2417,9 +2470,12 @@ function QuestieWotlkQuestFixes:Load()
                 {nil, Questie.ICON_TYPE_TALK, l10n("Mount Frostbite to track scent"), 0, {{"monster", 29857}}},
             },
         },
+        [12916] = {
+            [questKeys.objectives] = {nil,{{400059,"Scourge Enclosure Blown Up"}}},
+        },
         [12919] = {
             [questKeys.extraObjectives] = {
-                {nil, Questie.ICON_TYPE_TALK, l10n("Slay Scourge while riding Gymer"), 0, {{"monster", 29647}}},
+                {nil, Questie.ICON_TYPE_TALK, l10n("Let Gymer know you're ready"), 0, {{"monster", 29647}}},
                 {{[zoneIDs.ZUL_DRAK]={{26.71,57.29}}}, Questie.ICON_TYPE_EVENT, l10n("Slay Scourge while riding Gymer"),},
             },
         },
@@ -2440,23 +2496,23 @@ function QuestieWotlkQuestFixes:Load()
         [12930] = {
             [questKeys.exclusiveTo] = {12929},
         },
-        [12932] = {
-            [questKeys.objectives] = {{{30014}}},
-            [questKeys.exclusiveTo] = {12954},
-            [questKeys.nextQuestInChain] = 9977, -- This is the version of the quest you get if you have NOT completed 9977
-            [questKeys.triggerEnd] = {"Yggdras Defeated",{[zoneIDs.ZUL_DRAK]={{47.93,56.85,},},},},
+        [12932] = { -- This is the version of the quest you get if you have NOT completed 9977
+            [questKeys.objectives] = {{{30014,"Yggdras Defeated"}}},
+            [questKeys.exclusiveTo] = {12954,9977},
+            [questKeys.nextQuestInChain] = 12933,
         },
         [12933] = {
-            [questKeys.triggerEnd] = {"Stinkbeard Defeated",{[zoneIDs.ZUL_DRAK]={{47.94,56.61,},},},},
+            [questKeys.objectives] = {{{30017,"Stinkbeard Defeated"}}},
+            [questKeys.preQuestSingle] = {12932,12954},
         },
         [12934] = {
-            [questKeys.triggerEnd] = {"Elemental Lord Defeated",{[zoneIDs.ZUL_DRAK]={{48.01,56.72,},},},},
+            [questKeys.objectives] = {nil,nil,nil,nil,{{{30019,30024,30025,30026},30019,"Elemental Lord Defeated"}}},
         },
         [12935] = {
-            [questKeys.triggerEnd] = {"Orinoko Tuskbreaker Defeated",{[zoneIDs.ZUL_DRAK]={{48,56.72,},},},},
+            [questKeys.objectives] = {{{30020,"Orinoko Tuskbreaker Defeated"}}},
         },
         [12936] = {
-            [questKeys.triggerEnd] = {"Korrak the Bloodrager Defeated",{[zoneIDs.ZUL_DRAK]={{48.04,56.75,},},},},
+            [questKeys.objectives] = {{{30023,"Korrak the Bloodrager Defeated"}}},
         },
         [12939] = {
             [questKeys.objectives] = {{{30037,}}},
@@ -2498,7 +2554,7 @@ function QuestieWotlkQuestFixes:Load()
             [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
         },
         [12948] = {
-            [questKeys.triggerEnd] = {"Vladof the Butcher Defeated",{[zoneIDs.ZUL_DRAK]={{47.98,56.74,},},},},
+            [questKeys.objectives] = {{{30022,"Vladof the Butcher Defeated"}}},
         },
         [12950] = {
             [questKeys.startedBy] = {nil,{400032}},
@@ -2511,10 +2567,10 @@ function QuestieWotlkQuestFixes:Load()
             },
         },
         [12954] = {
-            [questKeys.objectives] = {{{30014}}},
+            [questKeys.objectives] = {{{30014,"Yggdras Defeated"}}},
             [questKeys.preQuestSingle] = {9977},
             [questKeys.exclusiveTo] = {12932},
-            [questKeys.triggerEnd] = {"Yggdras Defeated",{[zoneIDs.ZUL_DRAK]={{47.93,56.85,},},},},
+            [questKeys.nextQuestInChain] = 12933,
         },
         [12957] = {
             [questKeys.objectives] = {{{29384},{29369}}},
@@ -2809,7 +2865,6 @@ function QuestieWotlkQuestFixes:Load()
         },
         [13098] = {
             [questKeys.preQuestSingle] = {},
-            [questKeys.nextQuestInChain] = 13099,
         },
         [13106] = {
             [questKeys.preQuestSingle] = {12896,12897},
@@ -5600,69 +5655,153 @@ function QuestieWotlkQuestFixes:Load()
         [24815] = {
             [questKeys.requiredMinRep] = {1156,3000},
         },
-        [24819] = {
+        [24819] = { -- A Change of Heart - Destruction friendly - ormus
             [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
             [questKeys.requiredMinRep] = {1156,3000},
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24815,24811},
+            [questKeys.exclusiveTo] = {24825,24826,24827,24828,25239},
         },
-        [24820] = {
+        [24820] = { -- A Change of Heart - Vengeance friendly - ormus
             [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
             [questKeys.requiredMinRep] = {1156,3000},
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24815,24810},
+            [questKeys.exclusiveTo] = {24825,24826,24827,24828,25239},
         },
-        [24821] = {
+        [24821] = { -- A Change of Heart - Courage friendly - ormus
             [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
             [questKeys.requiredMinRep] = {1156,3000},
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24815,24808},
+            [questKeys.exclusiveTo] = {24825,24826,24827,24828,25239},
         },
-        [24822] = {
+        [24822] = { -- A Change of Heart - Wisdom friendly - ormus
             [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
             [questKeys.requiredMinRep] = {1156,3000},
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24815,24809},
+            [questKeys.exclusiveTo] = {24825,24826,24827,24828,25239},
         },
-        [24836] = {
-            [questKeys.startedBy] = {{38316}},
+        [24823] = { -- Path of Destruction - honored to revered
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24828,24811},
         },
-        [24837] = {
-            [questKeys.startedBy] = {{38316}},
+        [24825] = { -- Path of Wisdom - friendly to honored
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24815,24809},
         },
-        [24838] = {
-            [questKeys.startedBy] = {{38316}},
+        [24826] = { -- Path of Vengeance - friendly to honored
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24815,24810},
         },
-        [24839] = {
-            [questKeys.startedBy] = {{38316}},
+        [24827] = { -- Path of Courage - friendly to honored
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24815,24808},
         },
-        [24840] = {
-            [questKeys.startedBy] = {{38316}},
+        [24828] = { -- Path of Destruction - friendly to honored
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24815,24811},
         },
-        [24841] = {
-            [questKeys.startedBy] = {{38316}},
+        [24829] = { -- Path of Destruction - revered to exalted
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24823,24811},
         },
-        [24842] = {
-            [questKeys.startedBy] = {{38316}},
+        [24830] = { -- Path of Wisdom - honored to revered
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24825,24809},
         },
-        [24843] = {
-            [questKeys.startedBy] = {{38316}},
+        [24831] = { -- Path of Wisdom - revered to exalted
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24830,24809},
         },
-        [24844] = {
-            [questKeys.startedBy] = {{38316}},
+        [24832] = { -- Path of Vengeance - honored to revered
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24826,24810},
         },
-        [24845] = {
-            [questKeys.startedBy] = {{38316}},
+        [24833] = { -- Path of Vengeance - revered to exalted
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24832,24810},
         },
-        [24846] = {
-            [questKeys.startedBy] = {{38316}},
+        [24834] = { -- Path of Courage - honored to revered
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24827,24808},
         },
-        [24847] = {
-            [questKeys.startedBy] = {{38316}},
+        [24835] = { -- Path of Courage - revered to exalted
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24834,24808},
         },
-        [25246] = {
+        [24836] = { -- A Change of Heart - Destruction honored - ormus
             [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
+            [questKeys.preQuestGroup] = {24828,24811},
+            [questKeys.exclusiveTo] = {24823,24830,24832,24834,25240},
         },
-        [25247] = {
+        [24837] = { -- A Change of Heart - wisdom honored - ormus
             [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
+            [questKeys.preQuestGroup] = {24825,24809},
+            [questKeys.exclusiveTo] = {24823,24830,24832,24834,25240},
         },
-        [25248] = {
+        [24838] = { -- A Change of Heart - vengeance honored - ormus
             [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
+            [questKeys.preQuestGroup] = {24826,24810},
+            [questKeys.exclusiveTo] = {24823,24830,24832,24834,25240},
         },
-        [25249] = {
+        [24839] = { -- A Change of Heart - courage honored - ormus
             [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
+            [questKeys.preQuestGroup] = {24827,24808},
+            [questKeys.exclusiveTo] = {24823,24830,24832,24834,25240},
+        },
+        [24840] = { -- A Change of Heart - Destruction revered - ormus
+            [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
+            [questKeys.preQuestGroup] = {24823,24811},
+            [questKeys.exclusiveTo] = {24829,24831,24833,24835,25242},
+        },
+        [24841] = { -- A Change of Heart - Wisdom revered - ormus
+            [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
+            [questKeys.preQuestGroup] = {24830,24809},
+            [questKeys.exclusiveTo] = {24829,24831,24833,24835,25242},
+        },
+        [24842] = { -- A Change of Heart - Vengeance revered - ormus
+            [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
+            [questKeys.preQuestGroup] = {24832,24810},
+            [questKeys.exclusiveTo] = {24829,24831,24833,24835,25242},
+        },
+        [24843] = { -- A Change of Heart - Courage revered - ormus
+            [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
+            [questKeys.preQuestGroup] = {24834,24808},
+            [questKeys.exclusiveTo] = {24829,24831,24833,24835,25242},
+        },
+        [24844] = { -- A Change of Heart - Destruction exalted - ormus
+            [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
+            [questKeys.preQuestGroup] = {24829,24811},
+        },
+        [24845] = { -- A Change of Heart - Wisdom exalted - ormus
+            [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
+            [questKeys.preQuestGroup] = {24831,24809},
+        },
+        [24846] = { -- A Change of Heart - Vengeance exalted - ormus
+            [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
+            [questKeys.preQuestGroup] = {24833,24810},
+        },
+        [24847] = { -- A Change of Heart - Courage exalted - ormus
+            [questKeys.startedBy] = {{38316}},
+            [questKeys.finishedBy] = {{38316}},
+            [questKeys.preQuestGroup] = {24835,24808},
         },
         [24857] = {
             [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
@@ -5697,6 +5836,34 @@ function QuestieWotlkQuestFixes:Load()
             [questKeys.startedBy] = {{37120}},
             [questKeys.finishedBy] = {{37120}},
             [questKeys.preQuestSingle] = {24549},
+        },
+        [25239] = { -- Path of Might - friendly to honored
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {24815,25238},
+        },
+        [25240] = { -- Path of Might - honored to revered
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {25239,25238},
+        },
+        [25242] = { -- Path of Might - revered to exalted
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {25240,25238},
+        },
+        [25246] = { -- A Change of Heart - might exalted - aronen
+            [questKeys.preQuestGroup] = {25242,25238},
+        },
+        [25247] = { -- A Change of Heart - might friendly - aronen
+            [questKeys.preQuestGroup] = {24815,25238},
+            [questKeys.requiredMinRep] = {1156,3000},
+            [questKeys.exclusiveTo] = {24825,24826,24827,24828,25239},
+        },
+        [25248] = { -- A Change of Heart - might honored - aronen
+            [questKeys.preQuestGroup] = {25238,25239},
+            [questKeys.exclusiveTo] = {24823,24830,24832,24834,25240},
+        },
+        [25249] = { -- A Change of Heart - might revered - aronen
+            [questKeys.preQuestGroup] = {25240,25238},
+            [questKeys.exclusiveTo] = {24823,24830,24832,24834,25240},
         },
 
         ----- Boosted character quests -----

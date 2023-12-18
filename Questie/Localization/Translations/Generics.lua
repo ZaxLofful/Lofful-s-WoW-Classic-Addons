@@ -458,6 +458,18 @@ local genericsLocales = {
         ["esES"] = "Cerrar",
         ["frFR"] = false,
     },
+    ["Doable"] = {
+        ["ptBR"] = false,
+        ["ruRU"] = "Выполнимые",
+        ["deDE"] = false,
+        ["koKR"] = false,
+        ["esMX"] = "Realizable",
+        ["enUS"] = true,
+        ["zhCN"] = false,
+        ["zhTW"] = false,
+        ["esES"] = "Realizable",
+        ["frFR"] = false,
+    },
 }
 
 for k, v in pairs(genericsLocales) do

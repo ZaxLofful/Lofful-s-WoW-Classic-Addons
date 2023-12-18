@@ -75,6 +75,18 @@ function QuestieEventHandler:RegisterLateEvents()
     Questie:RegisterBucketEvent("CHAT_MSG_COMBAT_FACTION_CHANGE", 2, _EventHandler.ChatMsgCompatFactionChange)
     Questie:RegisterEvent("CHAT_MSG_SYSTEM", _EventHandler.ChatMsgSystem)
 
+    -- Spell objectives
+    Questie:RegisterEvent("NEW_RECIPE_LEARNED", function() -- Needed for some spells that don't necessarily appear in the spellbook, but are definitely spells
+        Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] NEW_RECIPE_LEARNED")
+        QuestieQuest.CalculateAndDrawAvailableQuestsIterative()
+    end)
+
+    -- TODO: This seems to fire constantly with the "Way of Earth" Shaman rune. Do we even need it?
+    --Questie:RegisterEvent("SPELLS_CHANGED", function() -- Ensures map icon eligibility updates for quests with RequireSpell
+    --    Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] SPELLS_CHANGED")
+    --    QuestieQuest.CalculateAndDrawAvailableQuestsIterative()
+    --end)
+
     -- UI Quest Events
     Questie:RegisterEvent("UI_INFO_MESSAGE", _EventHandler.UiInfoMessage)
     Questie:RegisterEvent("QUEST_FINISHED", QuestieAuto.QUEST_FINISHED)

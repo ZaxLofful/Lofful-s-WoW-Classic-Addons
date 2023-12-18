@@ -1,7 +1,6 @@
 # Auctionator
 
-## [10.2.3](https://github.com/Auctionator/Auctionator/tree/10.2.3) (2023-12-01)
-[Full Changelog](https://github.com/Auctionator/Auctionator/compare/10.2.2...10.2.3) 
+## [10.2.7](https://github.com/Auctionator/Auctionator/tree/10.2.7) (2023-12-16)
+[Full Changelog](https://github.com/Auctionator/Auctionator/compare/10.2.6...10.2.7) 
 
-- [Fixes #1459] Retail: Crafting Info: Error when search enchant dreaming devotion  
-- Crafting Info: Add new enchants for 10.2 for AH search  
+- [Fixes #1451] Selling: Add option to unhide single item back  

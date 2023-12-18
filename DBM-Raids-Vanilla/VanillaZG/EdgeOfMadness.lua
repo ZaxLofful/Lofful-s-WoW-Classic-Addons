@@ -9,7 +9,7 @@ end
 local mod	= DBM:NewMod("EdgeOfMadness", "DBM-Raids-Vanilla", catID)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20231209212515")
+mod:SetRevision("20231210005857")
 mod:SetCreatureID(15083)
 mod:SetEncounterID(788)
 mod:RegisterCombat("combat")

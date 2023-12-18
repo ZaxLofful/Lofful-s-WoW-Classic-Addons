@@ -14,7 +14,7 @@ function Visualizer:OnEnable()
 	title:SetText('Scrap')
 
 	local portrait = self.portrait or self.PortraitContainer.portrait
-	portrait:SetTexture('Interface/Addons/Scrap/Art/scrap-enabled')
+	portrait:SetTexture('Interface/Addons/Scrap/Art/Scrap-Big')
 
 	local backdrop = portrait:GetParent():CreateTexture(nil, 'BORDER')
 	backdrop:SetColorTexture(0, 0, 0)

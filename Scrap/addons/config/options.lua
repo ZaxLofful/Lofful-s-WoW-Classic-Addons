@@ -5,7 +5,7 @@ All Rights Reserved
 
 local Sushi = LibStub('Sushi-3.2')
 local BasePanel = Sushi.OptionsGroup:NewClass()
-local Options = Scrap:NewModule('Options', BasePanel('|Tinterface/addons/scrap/art/scrap-enabled:13:13:4:0|t  Scrap'))
+local Options = Scrap:NewModule('Options', BasePanel('|Tinterface/addons/scrap/art/scrap-small:16:16:2:0|t  Scrap'))
 local L = LibStub('AceLocale-3.0'):GetLocale('Scrap')
 
 local PATRONS = {{title='Jenkins',people={'Gnare','Adcantu','Justin Hall','Debora S Ogormanw','Johnny Rabbit','Francesco Rollo'}},{title='Ambassador',people={'Julia F','Lolari ','Dodgen','Kelly Wolf','Kopernikus ','Ptsdthegamer','Burt Humburg','Adam Mann','Christie Hopkins','Bc Spear','Jury ','Tigran Andrew','Swallow@area52','Peter Hollaubek','Michael Kinasz','Sam Ramji','Syed Hamdani','Ds9293','Charles Howarth'}}} -- generated patron list
@@ -56,7 +56,9 @@ function Options:OnFilters()
 	self:AddHeader(CALENDAR_FILTERS)
 	self:AddCheck {set = 'unusable', text = 'Unusable', char = true}
 	self:AddCheck {set = 'equip', text = 'LowEquip', char = true}
+	self:AddTreshold ('equip')
 	self:AddCheck {set = 'consumable', text = 'LowConsume', char = true}
+	self:AddTreshold ('consumable')
 end
 
 function Options:OnHelp()
@@ -113,6 +115,18 @@ function BasePanel:AddCheck(info)
 		sets[info.set] = v
 		Options:SendSignal('LIST_CHANGED')
 	end)
+end
+
+function BasePanel:AddTreshold(set)
+	if Scrap_CharSets[set] then
+		local set = set .. 'Factor'
+		local s = self:Add('Slider', L.iLevelTreshold, (Scrap_CharSets[set] - 1) * 100, 0,100,1, '%s%')
+		s:SetSmall(true):SetKeys {top = 5, left = 40, bottom = 15}
+		s:SetCall('OnInput', function(s, v)
+			Scrap_CharSets[set] = 1 + v / 100
+			Options:SendSignal('LIST_CHANGED')
+		end)
+	end
 end
 
 function BasePanel:SetDefaults()

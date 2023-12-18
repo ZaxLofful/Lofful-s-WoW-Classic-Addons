@@ -31,33 +31,23 @@ SCRAP = 'Scrap'
 --[[ Startup ]]--
 
 function Scrap:OnEnable()
-	self.Tip = CreateFrame('GameTooltip', 'ScrapTooltip', nil, 'GameTooltipTemplate')
 	self:RegisterEvent('MERCHANT_SHOW', function() LoadAddOn('Scrap_Merchant'); self:SendSignal('MERCHANT_SHOW') end)
 	self:RegisterSignal('SETS_CHANGED', 'OnSettings')
 	self:OnSettings()
 
-	if (Scrap.sets.tutorial or 0) < 1 then
-		LoadAddOn('Scrap_Config')
+	if (Scrap.sets.tutorial or 0) > 0 then
+		(SettingsPanel or InterfaceOptionsFrame):HookScript('OnShow', function() LoadAddOn('Scrap_Config') end)
 	else
-		(SettingsPanel or InterfaceOptionsFrame):HookScript('OnShow', function()
-			LoadAddOn('Scrap_Config')
-		end)
+		LoadAddOn('Scrap_Config')
 	end
 end
 
 function Scrap:OnSettings()
-	Scrap_CharSets = Scrap_CharSets or {list = {}, auto = {}}
-	Scrap_Sets = Scrap_Sets or {list = {}}
-
-	self.charsets, self.sets = Scrap_CharSets, setmetatable(Scrap_Sets, self.Defaults)
+	self.sets, self.charsets = setmetatable(Scrap_Sets or {}, self.Defaults), setmetatable(Scrap_CharSets or {}, self.CharDefaults)
 	self.junk = setmetatable(self.charsets.share and self.sets.list or self.charsets.list, self.BaseList)
-
-	-- removes deprecated data. keep until next major game update
-	self.charsets.ml = nil
-	self.charsets.auto = self.charsets.auto or {}
-	--
-
 	self:SendSignal('LIST_CHANGED')
+
+	Scrap_Sets, Scrap_CharSets = self.sets, self.charsets
 end
 
 
@@ -190,13 +180,13 @@ end
 function Scrap:IsBetterEquip(slot, level, canEmpty)
 	local item = ItemLocation:CreateFromEquipmentSlot(_G['INVSLOT_' .. slot])
 	if C_Item.DoesItemExist(item) then
-		return (C_Item.GetCurrentItemLevel(item) or 0) >= (level * 1.3)
+		return (C_Item.GetCurrentItemLevel(item) or 0) >= (level * self.charsets.equipFactor)
 	end
 	return canEmpty
 end
 
 function Scrap:IsLowConsumable(level)
-	return level > 1 and (level * 1.3) < UnitLevel('player')
+	return level > 1 and (level * self.charsets.consumableFactor) < UnitLevel('player')
 end
 
 

@@ -3,7 +3,8 @@ Copyright 2008-2023 João Cardoso
 All Rights Reserved
 --]]
 
-Scrap.Defaults = {__index = {sell = true, repair = true, safe = true, destroy = true, glow = true, icons = true, prices=true}}
+Scrap.Defaults = {__index = {list = {}, sell = true, repair = true, safe = true, destroy = true, glow = true, icons = true, prices=true}}
+Scrap.CharDefaults = {__index = {list = {}, auto = {}, equipFactor = 1.3, consumableFactor = 1.3}}
 Scrap.BaseList = {__index = {
 	[90561] = false,
 	[12709] = false,

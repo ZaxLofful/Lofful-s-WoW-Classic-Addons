@@ -168,10 +168,12 @@ do
 
         -- Season of Discovery Corrections
         if Questie.IsSoD then
+            -- TODO: Why is this needed at all? Something is off. Only faction fixes should be needed!!
             addOverride(QuestieDB.itemDataOverrides, SeasonOfDiscovery:LoadItems())
             addOverride(QuestieDB.npcDataOverrides, SeasonOfDiscovery:LoadNPCs())
             addOverride(QuestieDB.objectDataOverrides, SeasonOfDiscovery:LoadObjects())
             addOverride(QuestieDB.questDataOverrides, SeasonOfDiscovery:LoadQuests())
+            addOverride(QuestieDB.questDataOverrides, SeasonOfDiscovery:LoadFactionQuestFixes())
         end
 
         QuestieCorrections.questItemBlacklist = filterExpansion(QuestieItemBlacklist:Load())
@@ -272,8 +274,8 @@ function QuestieCorrections:Initialize(validationTables)
     end
 
     if Questie.IsSoD then
-        --_LoadCorrections("questData", SeasonOfDiscovery:LoadBaseQuests(), QuestieDB.questKeysReversed, validationTables)
-        --_LoadCorrections("questData", SeasonOfDiscovery:LoadQuests(), QuestieDB.questKeysReversed, validationTables)
+        _LoadCorrections("questData", SeasonOfDiscovery:LoadBaseQuests(), QuestieDB.questKeysReversed, validationTables)
+        _LoadCorrections("questData", SeasonOfDiscovery:LoadQuests(), QuestieDB.questKeysReversed, validationTables)
         _LoadCorrections("npcData", SeasonOfDiscovery:LoadBaseNPCs(), QuestieDB.npcKeysReversed, validationTables)
         _LoadCorrections("npcData", SeasonOfDiscovery:LoadNPCs(), QuestieDB.npcKeysReversed, validationTables)
         _LoadCorrections("itemData", SeasonOfDiscovery:LoadBaseItems(), QuestieDB.itemKeysReversed, validationTables)
