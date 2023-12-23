@@ -775,7 +775,7 @@ function Track.Init()
 	Track.allRolled = false
 
 --	TitanPanelLootTypeMainWindow:SetMinResize(194,170)
-	TitanPanelLootTypeMainWindow:SetMinResize(225,250)
+--	TitanPanelLootTypeMainWindow:SetMinResize(225,250)
 	local x, y, w, h = Track.DB.X, Track.DB.Y, Track.DB.Width, Track.DB.Height
 	if not x or not y or not w or not h then
 		Track.SaveAnchors()
@@ -1413,13 +1413,14 @@ function TitanPanelLootTypeButton_OnLoad(self)
 			ShowLabelText = true,
 			ShowRegularText = false,
 			ShowColoredText = false,
-			DisplayOnRightSide = false
+			DisplayOnRightSide = true,
 		},
 		savedVariables = {
 			ShowIcon = 1,
 			ShowLabelText = 1,
 			RandomRoll = 100,
 			DB = {},
+			DisplayOnRightSide = false,
 --			ShowDungeonDiff = false,
 --			DungeonDiffType = "AUTO",
 		}
@@ -1541,7 +1542,7 @@ function TitanPanelRightClickMenu_PrepareLootTypeMenu()
 
 	TitanPanelRightClickMenu_AddToggleIcon(TITAN_LOOTTYPE_ID);
 	TitanPanelRightClickMenu_AddToggleLabelText(TITAN_LOOTTYPE_ID);
-
+	TitanPanelRightClickMenu_AddToggleRightSide(TITAN_LOOTTYPE_ID);
 	TitanPanelRightClickMenu_AddSpacer();
 	TitanPanelRightClickMenu_AddCommand(L["TITAN_PANEL_MENU_HIDE"], TITAN_LOOTTYPE_ID, TITAN_PANEL_MENU_FUNC_HIDE);
 end

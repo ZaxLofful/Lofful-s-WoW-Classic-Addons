@@ -170,8 +170,8 @@ end
 --]]
 local function CountMe(bag)
 	-- defaults as if bag does not exist
-	local name = (GetBagName(bag) or "")
-	local size = (GetContainerNumSlots(bag) or 0)
+	local name = (C_Container.GetBagName(bag) or "")
+	local size = (C_Container.GetContainerNumSlots(bag) or 0)
 	local bagType = ""
 	local color = {r=1,g=1,b=1} -- WHITE
 	local used = 0
@@ -219,7 +219,7 @@ local function CountMe(bag)
 		-- Collect the slots IF we should count it
 		if (countme) then
 			for slot = 1, size do
-				if (GetContainerItemInfo(bag, slot)) then
+				if (C_Container.GetContainerItemInfo(bag, slot)) then
 					used = used + 1;
 				end
 			end
@@ -266,7 +266,7 @@ function TitanPanelBagButton_OnLoad(self)
 			ShowLabelText = true,
 			ShowRegularText = false,
 			ShowColoredText = true,
-			DisplayOnRightSide = false
+			DisplayOnRightSide = true,
 		},
 		savedVariables = {
 			ShowUsedSlots = 1,
@@ -277,6 +277,7 @@ function TitanPanelBagButton_OnLoad(self)
 			ShowIcon = 1,
 			ShowLabelText = 1,
 			ShowColoredText = 1,
+			DisplayOnRightSide = false,
 		}
 	};
 
@@ -398,8 +399,8 @@ function TitanPanelBagButton_GetTooltipText()
 		end
 
 		for bag = 0, 4 do
-			totalSlots = GetContainerNumSlots(bag) or 0;
-			availableSlots = GetContainerNumFreeSlots(bag) or 0;
+			totalSlots = C_Container.GetContainerNumSlots(bag) or 0;
+			availableSlots = C_Container.GetContainerNumFreeSlots(bag) or 0;
 			usedSlots = totalSlots - availableSlots;
 			local itemlink  = bag > 0 and GetInventoryItemLink("player", ContainerIDToInventoryID(bag)) 
 				or TitanUtils_GetHighlightText(L["TITAN_BAG_BACKPACK"]).. FONT_COLOR_CODE_CLOSE;
@@ -521,6 +522,7 @@ function TitanPanelRightClickMenu_PrepareBagMenu()
 	TitanPanelRightClickMenu_AddToggleIcon(TITAN_BAG_ID);
 	TitanPanelRightClickMenu_AddToggleLabelText(TITAN_BAG_ID);
 	TitanPanelRightClickMenu_AddToggleColoredText(TITAN_BAG_ID);
+	TitanPanelRightClickMenu_AddToggleRightSide(TITAN_BAG_ID);
 	TitanPanelRightClickMenu_AddSpacer();
 	TitanPanelRightClickMenu_AddCommand(L["TITAN_PANEL_MENU_HIDE"], TITAN_BAG_ID, TITAN_PANEL_MENU_FUNC_HIDE);
 end

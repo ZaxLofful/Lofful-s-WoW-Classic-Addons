@@ -371,8 +371,9 @@ function TitanPanelPerformanceButton_SetTooltip()
 	-- Tooltip title
 	GameTooltip:SetText(L["TITAN_PERFORMANCE_TOOLTIP"], HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
 
+-- Ticket 48 : Request to always show info in the tooltip. Does NOT include addon info as that is tooltip only
 	-- FPS tooltip
-	if ( showFPS ) then
+--	if ( showFPS ) then
 		local fpsText = format(L["TITAN_FPS_FORMAT"], button.fps);
 		local avgFPSText = format(L["TITAN_FPS_FORMAT"], button.avgFPS);
 		local minFPSText = format(L["TITAN_FPS_FORMAT"], button.minFPS);
@@ -384,10 +385,10 @@ function TitanPanelPerformanceButton_SetTooltip()
 		GameTooltip:AddDoubleLine(L["TITAN_FPS_TOOLTIP_AVG_FPS"], TitanUtils_GetHighlightText(avgFPSText));
 		GameTooltip:AddDoubleLine(L["TITAN_FPS_TOOLTIP_MIN_FPS"], TitanUtils_GetHighlightText(minFPSText));
 		GameTooltip:AddDoubleLine(L["TITAN_FPS_TOOLTIP_MAX_FPS"], TitanUtils_GetHighlightText(maxFPSText));
-	end
+--	end
 
 	-- Latency tooltip
-	if ( showLatency or showWorldLatency ) then
+--	if ( showLatency or showWorldLatency ) then
 		local latencyText = format(L["TITAN_LATENCY_FORMAT"], button.latencyHome);
 		local latencyWorldText = format(L["TITAN_LATENCY_FORMAT"], button.latencyWorld);
 		local bandwidthInText = format(L["TITAN_LATENCY_BANDWIDTH_FORMAT"], button.bandwidthIn);
@@ -399,10 +400,10 @@ function TitanPanelPerformanceButton_SetTooltip()
 		if showWorldLatency then GameTooltip:AddDoubleLine(L["TITAN_LATENCY_TOOLTIP_LATENCY_WORLD"], TitanUtils_GetHighlightText(latencyWorldText)); end
 		GameTooltip:AddDoubleLine(L["TITAN_LATENCY_TOOLTIP_BANDWIDTH_IN"], TitanUtils_GetHighlightText(bandwidthInText));
 		GameTooltip:AddDoubleLine(L["TITAN_LATENCY_TOOLTIP_BANDWIDTH_OUT"], TitanUtils_GetHighlightText(bandwidthOutText));
-	end
+--	end
 
 	-- Memory tooltip
-	if ( showMemory ) then
+--	if ( showMemory ) then
 		local memoryText = format(L["TITAN_MEMORY_FORMAT"], button.memory/1024);
 		local initialMemoryText = format(L["TITAN_MEMORY_FORMAT"], button.initialMemory/1024);
 		local sessionTime = time() - button.startSessionTime;
@@ -423,7 +424,7 @@ function TitanPanelPerformanceButton_SetTooltip()
 		GameTooltip:AddDoubleLine(L["TITAN_MEMORY_TOOLTIP_CURRENT_MEMORY"], TitanUtils_GetHighlightText(memoryText));
 		GameTooltip:AddDoubleLine(L["TITAN_MEMORY_TOOLTIP_INITIAL_MEMORY"], TitanUtils_GetHighlightText(initialMemoryText));
 		GameTooltip:AddDoubleLine(L["TITAN_MEMORY_TOOLTIP_INCREASING_RATE"], rateRichText);
-	end
+--	end
 
 	if ( showAddonMemory == 1 ) then
 		for _,i in pairs(topAddOns) do
@@ -601,6 +602,7 @@ function TitanPanelRightClickMenu_PreparePerformanceMenu()
 	TitanPanelRightClickMenu_AddToggleIcon(TITAN_PERFORMANCE_ID);
 	TitanPanelRightClickMenu_AddToggleLabelText(TITAN_PERFORMANCE_ID);
 	TitanPanelRightClickMenu_AddToggleColoredText(TITAN_PERFORMANCE_ID);
+	TitanPanelRightClickMenu_AddToggleRightSide(TITAN_PERFORMANCE_ID);
 	TitanPanelRightClickMenu_AddSpacer();
 	TitanPanelRightClickMenu_AddCommand(L["TITAN_PANEL_MENU_HIDE"], TITAN_PERFORMANCE_ID, TITAN_PANEL_MENU_FUNC_HIDE);
 end
@@ -618,7 +620,7 @@ function TitanPanelPerformanceButton_UpdateData()
 	local showAddonMemory = TitanGetVar(TITAN_PERFORMANCE_ID, "ShowAddonMemory");
 
 	-- FPS Data
-	if ( showFPS ) then
+--	if ( showFPS ) then
 		button.fps = GetFramerate();
 		button.fpsSampleCount = button.fpsSampleCount + 1;
 		if (button.fpsSampleCount == 1) then
@@ -633,13 +635,13 @@ function TitanPanelPerformanceButton_UpdateData()
 			end
 			button.avgFPS = (button.avgFPS * (button.fpsSampleCount - 1) + button.fps) / button.fpsSampleCount;
 		end
-	end
+--	end
 
 	-- Latency Data
-	if ( showLatency or showWorldLatency ) then
+--	if ( showLatency or showWorldLatency ) then
 		-- bandwidthIn, bandwidthOut, latencyHome, latencyWorld = GetNetStats();
 		button.bandwidthIn, button.bandwidthOut, button.latencyHome, button.latencyWorld = GetNetStats();
-	end
+--	end
 
 	-- Memory data
 	if ( showMemory ) or (showAddonMemory == 1) then
@@ -724,7 +726,7 @@ function TitanPanelPerfControlSlider_OnShow(self)
 	self:SetValueStep(1);
 	self:SetValue(CalcAppNum(TitanGetVar(TITAN_PERFORMANCE_ID, "NumOfAddons")));
 --	self:SetValue((TitanGetVar(TITAN_PERFORMANCE_ID, "NumOfAddons")));
-	TitanPanelPerfControlFrame:SetBackdropColor(0, 0, 0, 1)
+--	TitanPanelPerfControlFrame:SetBackdropColor(0, 0, 0, 1)
 
 	local scale = _G[drop_down.."1"]:GetScale()
 	local drop_arrow = drop_down.."2Button4ExpandArrow"
@@ -795,16 +797,7 @@ end
 -- **************************************************************************
 function TitanPanelPerfControlFrame_OnLoad(self)
 	_G[self:GetName().."Title"]:SetText(L["TITAN_PERFORMANCE_CONTROL_TITLE"]);
-	self:SetBackdrop({
-		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
-		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-		tile = true,
-		tileSize = 32,
-		edgeSize = 32,
-		insets = { left = 11, right = 12, top = 12, bottom = 9, },
-	})
-	self:SetBackdropBorderColor(1, 1, 1);
-	self:SetBackdropColor(0, 0, 0, 1);
+	TitanPanelRightClickMenu_SetCustomBackdrop(self)
 end
 
 -- **************************************************************************

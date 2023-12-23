@@ -33,7 +33,17 @@ TitanTooltipScaleSet = 0;
 
 -- Set Titan Version var for backwards compatibility
 TITAN_VERSION = GetAddOnMetadata(TITAN_ID, "Version") or L["TITAN_NA"]
-
+--[[	local s, e, major, minor, patch, ver = string.find(TITAN_VERSION, "(%w+)%.(%w+)%.(%w+)%.(%w+)")
+	print("ver"
+	.." s "..s..""
+	.." e "..e..""
+	.." maj "..major..""
+	.." min "..minor..""
+	.." pat "..patch..""
+	.." ver "..ver..""
+	.." ["..TITAN_VERSION.."]"
+	)
+--]]
 -- Various constants
 TITAN_PANEL_PLACE_TOP = 1;
 TITAN_PANEL_PLACE_BOTTOM = 2;
@@ -277,6 +287,7 @@ TITAN_PANEL_SAVED_VARIABLES = {
 	AuxBar2_Transparency = 0.7,
 	AuxBar2_Align = TITAN_PANEL_BUTTONS_ALIGN_LEFT,
 	MainMenuBarXAdj = 0,
+	BuffIconVerticalAdj = -13,
 };
 
 --[[ Titan
@@ -296,6 +307,7 @@ TITAN_ALL_SAVED_VARIABLES = {
 	Silenced = false,
 	-- OrderHallCommandBar Status
 	--OrderHall = true,
+	ShowRegistered = true,
 };
 
 -- The skins released with Titan
