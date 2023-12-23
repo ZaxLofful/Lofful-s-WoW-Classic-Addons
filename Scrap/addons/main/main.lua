@@ -4,8 +4,8 @@ All Rights Reserved
 --]]
 
 local Scrap = LibStub('WildAddon-1.0'):NewAddon(...)
+local C, LoadAddOn = LibStub('C_Everywhere').Container, LibStub('C_Everywhere').AddOns.LoadAddOn
 local L = LibStub('AceLocale-3.0'):GetLocale('Scrap')
-local C = LibStub('C_Everywhere').Container
 local Search = LibStub('ItemSearch-1.3')
 
 local NUM_BAGS = NUM_TOTAL_EQUIPPED_BAG_SLOTS or NUM_BAG_SLOTS
@@ -35,19 +35,30 @@ function Scrap:OnEnable()
 	self:RegisterSignal('SETS_CHANGED', 'OnSettings')
 	self:OnSettings()
 
-	if (Scrap.sets.tutorial or 0) > 0 then
-		(SettingsPanel or InterfaceOptionsFrame):HookScript('OnShow', function() LoadAddOn('Scrap_Config') end)
+	Scrap_Sets, Scrap_CharSets = self.sets, self.charsets
+	if (Scrap_Sets.tutorial or 0) > 0 then
+		SettingsPanel.CategoryList:HookScript('OnShow', function() LoadAddOn('Scrap_Config') end)
 	else
 		LoadAddOn('Scrap_Config')
+	end
+
+	if AddonCompartmentFrame then
+		AddonCompartmentFrame:RegisterAddon {
+			text = 'Scrap', keepShownOnClick = true, notCheckable = true,
+			icon = 'interface/addons/scrap/art/scrap-small',
+			func = function()
+				if LoadAddOn('Scrap_Config') then
+					self.Options:Open()
+				end
+			end
+		}
 	end
 end
 
 function Scrap:OnSettings()
-	self.sets, self.charsets = setmetatable(Scrap_Sets or {}, self.Defaults), setmetatable(Scrap_CharSets or {}, self.CharDefaults)
-	self.junk = setmetatable(self.charsets.share and self.sets.list or self.charsets.list, self.BaseList)
+	self.sets, self.charsets = self:SetDefaults(Scrap_Sets or {}, self.Defaults), self:SetDefaults(Scrap_CharSets or {}, self.CharDefaults)
+	self.junk = self:SetDefaults(self.charsets.share and self.sets.list or self.charsets.list, self.BaseList)
 	self:SendSignal('LIST_CHANGED')
-
-	Scrap_Sets, Scrap_CharSets = self.sets, self.charsets
 end
 
 
