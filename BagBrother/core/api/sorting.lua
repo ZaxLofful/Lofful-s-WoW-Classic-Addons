@@ -142,7 +142,7 @@ function Sort:GetFamilies(spaces)
 		tinsert(list, family)
 	end
 
-	sort(list, function(a, b) return a > b end)
+	sort(list, function(a, b) return a > b or a < 0 end)
 	return list
 end
 
@@ -174,8 +174,10 @@ end
 function Sort:FitsIn(id, family)
 	if family == 9 then
 		return GetItemFamily(id) == 256
+	elseif family == -3 then
+		return select(17, GetItemInfo(id))
 	end
-
+	
 	return family == 0 or (bit.band(GetItemFamily(id), family) > 0 and select(9, GetItemInfo(id)) ~= 'INVTYPE_BAG')
 end
 
